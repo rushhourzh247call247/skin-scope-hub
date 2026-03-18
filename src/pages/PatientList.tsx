@@ -3,7 +3,8 @@ import { api } from "@/lib/api";
 import type { Patient } from "@/types/patient";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Search, Plus, Calendar, Hash } from "lucide-react";
+import { Search, Plus, Calendar, Hash, LogOut } from "lucide-react";
+import { useAuth } from "@/contexts/AuthContext";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import {
@@ -20,6 +21,7 @@ import { de } from "date-fns/locale";
 const PatientList = () => {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
+  const { user, logout } = useAuth();
   const [search, setSearch] = useState("");
   const [dialogOpen, setDialogOpen] = useState(false);
   const [newName, setNewName] = useState("");
@@ -63,6 +65,12 @@ const PatientList = () => {
             <h1 className="text-lg font-semibold tracking-tight text-foreground">
               DermTrack
             </h1>
+          </div>
+          <div className="flex items-center gap-3">
+            <span className="text-sm text-muted-foreground">{user?.name}</span>
+            <Button variant="ghost" size="sm" onClick={logout}>
+              <LogOut className="mr-1.5 h-4 w-4" /> Abmelden
+            </Button>
           </div>
         </div>
       </header>
