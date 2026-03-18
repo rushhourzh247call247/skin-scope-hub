@@ -3,7 +3,8 @@ import { api } from "@/lib/api";
 import type { Patient } from "@/types/patient";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Search, Plus, Calendar, Hash } from "lucide-react";
+import { Search, Plus, Calendar, Hash, LogOut } from "lucide-react";
+import { useAuth } from "@/contexts/AuthContext";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import {
