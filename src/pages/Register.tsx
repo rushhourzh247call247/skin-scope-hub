@@ -25,7 +25,9 @@ const Register = () => {
       await register({ name, email, password, company_name: companyName });
       navigate("/");
     } catch (err: any) {
-      setError("Registrierung fehlgeschlagen. Bitte prüfen Sie Ihre Eingaben.");
+      const msg = err?.message || "";
+      console.error("Register error:", msg);
+      setError(msg.includes("API Error") ? msg : "Registrierung fehlgeschlagen. Bitte prüfen Sie Ihre Eingaben.");
     } finally {
       setLoading(false);
     }
