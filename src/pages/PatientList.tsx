@@ -21,6 +21,7 @@ import { de } from "date-fns/locale";
 const PatientList = () => {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
+  const { user, logout } = useAuth();
   const [search, setSearch] = useState("");
   const [dialogOpen, setDialogOpen] = useState(false);
   const [newName, setNewName] = useState("");
