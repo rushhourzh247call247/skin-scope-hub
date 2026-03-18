@@ -1,21 +1,45 @@
 const BASE_URL = "http://83.228.246.191:8001/api";
 
+let authToken: string | null = null;
+
+function setToken(token: string | null) {
+  authToken = token;
+}
+
 async function request<T>(path: string, options?: RequestInit): Promise<T> {
+  const headers: Record<string, string> = {
+    'Accept': 'application/json',
+    ...(!options?.body || options.body instanceof FormData ? {} : { 'Content-Type': 'application/json' }),
+  };
+
+  if (authToken) {
+    headers['Authorization'] = `Bearer ${authToken}`;
+  }
+
   const res = await fetch(`${BASE_URL}${path}`, {
     ...options,
     headers: {
-      'Accept': 'application/json',
-      ...(!options?.body || options.body instanceof FormData ? {} : { 'Content-Type': 'application/json' }),
+      ...headers,
       ...options?.headers,
     },
   });
   if (!res.ok) {
-    throw new Error(`API Error: ${res.status} ${res.statusText}`);
+    const errorBody = await res.text().catch(() => '');
+    throw new Error(`API Error: ${res.status} ${res.statusText} ${errorBody}`);
   }
   return res.json();
 }
 
 export const api = {
+  setToken,
+
+  // Auth
+  login: (data: { email: string; password: string }) =>
+    request<{ user: any; token: string }>('/login', { method: 'POST', body: JSON.stringify(data) }),
+
+  register: (data: { name: string; email: string; password: string; company_name: string }) =>
+    request<{ user: any; token: string }>('/register', { method: 'POST', body: JSON.stringify(data) }),
+
   // Patients
   getPatients: () => request<any>('/patients'),
   createPatient: (data: { name: string; birth_date: string }) =>
