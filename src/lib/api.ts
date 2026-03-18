@@ -24,6 +24,12 @@ async function request<T>(path: string, options?: RequestInit): Promise<T> {
     },
   });
   if (!res.ok) {
+    if (res.status === 401) {
+      sessionStorage.removeItem("auth_token");
+      sessionStorage.removeItem("auth_user");
+      window.location.href = "/login";
+      throw new Error("Sitzung abgelaufen");
+    }
     const errorBody = await res.text().catch(() => '');
     throw new Error(`API Error: ${res.status} ${res.statusText} ${errorBody}`);
   }
