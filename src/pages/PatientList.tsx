@@ -66,6 +66,12 @@ const PatientList = () => {
               DermTrack
             </h1>
           </div>
+          <div className="flex items-center gap-3">
+            <span className="text-sm text-muted-foreground">{user?.name}</span>
+            <Button variant="ghost" size="sm" onClick={logout}>
+              <LogOut className="mr-1.5 h-4 w-4" /> Abmelden
+            </Button>
+          </div>
         </div>
       </header>
 
