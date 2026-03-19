@@ -1,9 +1,9 @@
 import React, { useRef, useState, useCallback, useMemo } from "react";
 import { Canvas, useFrame, useThree, ThreeEvent } from "@react-three/fiber";
-import { OrbitControls, Html, Environment } from "@react-three/drei";
+import { OrbitControls, Html } from "@react-three/drei";
 import * as THREE from "three";
 import { cn } from "@/lib/utils";
-import { MapPin, RotateCcw, Eye, Hand, Footprints, User, Shirt } from "lucide-react";
+import { RotateCcw, Eye, Hand, Footprints, User, Shirt } from "lucide-react";
 
 /* ─── Types ─── */
 interface Marker {
@@ -25,129 +25,141 @@ interface BodyMap3DProps {
 type Region = "full" | "head" | "torso" | "arms" | "legs";
 
 const CAMERA_PRESETS: Record<Region, { position: [number, number, number]; target: [number, number, number]; label: string; icon: React.ElementType }> = {
-  full:  { position: [0, 0, 4.5],   target: [0, 0, 0],    label: "Ganzkörper", icon: User },
-  head:  { position: [0, 2.2, 2],   target: [0, 2.0, 0],  label: "Kopf",       icon: Eye },
-  torso: { position: [0, 0.6, 2.5], target: [0, 0.5, 0],  label: "Torso",      icon: Shirt },
-  arms:  { position: [2.5, 0.8, 2], target: [0, 0.6, 0],  label: "Arme",       icon: Hand },
-  legs:  { position: [0, -1.5, 3],  target: [0, -1.5, 0], label: "Beine",      icon: Footprints },
+  full:  { position: [0, 0, 4.2],   target: [0, 0, 0],    label: "Ganzkörper", icon: User },
+  head:  { position: [0, 2.2, 1.8], target: [0, 2.0, 0],  label: "Kopf",       icon: Eye },
+  torso: { position: [0, 0.6, 2.2], target: [0, 0.5, 0],  label: "Torso",      icon: Shirt },
+  arms:  { position: [2.2, 0.8, 1.8], target: [0, 0.6, 0], label: "Arme",      icon: Hand },
+  legs:  { position: [0, -1.5, 2.8], target: [0, -1.5, 0], label: "Beine",     icon: Footprints },
 };
 
 /* ─── Skin Material ─── */
-const SKIN_COLOR = new THREE.Color("hsl(25, 60%, 72%)");
-const SKIN_EMISSIVE = new THREE.Color("hsl(15, 40%, 30%)");
+const skinMat = new THREE.MeshStandardMaterial({
+  color: new THREE.Color("hsl(25, 55%, 68%)"),
+  roughness: 0.55,
+  metalness: 0.0,
+  emissive: new THREE.Color("hsl(15, 30%, 25%)"),
+  emissiveIntensity: 0.04,
+});
 
-function SkinMaterial() {
-  return (
-    <meshStandardMaterial
-      color={SKIN_COLOR}
-      roughness={0.65}
-      metalness={0.02}
-      emissive={SKIN_EMISSIVE}
-      emissiveIntensity={0.05}
-    />
-  );
+/* ─── Helper: Create LatheGeometry from profile ─── */
+function createLatheGeo(profile: [number, number][], segments = 32): THREE.LatheGeometry {
+  const points = profile.map(([x, y]) => new THREE.Vector2(x, y));
+  return new THREE.LatheGeometry(points, segments);
 }
 
-/* ─── Human Body Model (Parametric) ─── */
+/* ─── Helper: Smooth tapered limb via LatheGeometry ─── */
+function TaperedLimb({ topR, botR, len, pos, rot, segs = 16 }: {
+  topR: number; botR: number; len: number;
+  pos: [number, number, number]; rot?: [number, number, number]; segs?: number;
+}) {
+  const geo = useMemo(() => {
+    const profile: [number, number][] = [];
+    const n = 14;
+    profile.push([0, -len / 2]);
+    for (let i = 0; i <= n; i++) {
+      const t = i / n;
+      const y = -len / 2 + t * len;
+      const r = botR + (topR - botR) * t + Math.sin(t * Math.PI) * 0.012;
+      profile.push([r, y]);
+    }
+    profile.push([0, len / 2]);
+    return createLatheGeo(profile, segs);
+  }, [topR, botR, len, segs]);
+
+  return <mesh geometry={geo} position={pos} rotation={rot ? new THREE.Euler(...rot) : undefined} material={skinMat} />;
+}
+
+/* ─── Human Body Model (Organic LatheGeometry) ─── */
 function HumanBody({ onBodyClick }: { onBodyClick: (e: ThreeEvent<MouseEvent>) => void }) {
-  const groupRef = useRef<THREE.Group>(null);
+  const torsoGeo = useMemo(() => createLatheGeo([
+    [0, -0.65], [0.22, -0.6], [0.3, -0.48], [0.29, -0.35],
+    [0.24, -0.15], [0.22, 0.0], [0.25, 0.15], [0.31, 0.32],
+    [0.34, 0.48], [0.32, 0.58], [0.27, 0.68], [0.17, 0.74],
+    [0.11, 0.77], [0, 0.79],
+  ], 48), []);
+
+  const headGeo = useMemo(() => createLatheGeo([
+    [0, -0.2], [0.13, -0.17], [0.19, -0.08], [0.22, 0.02],
+    [0.22, 0.1], [0.2, 0.17], [0.16, 0.22], [0.1, 0.25], [0, 0.26],
+  ], 36), []);
+
+  const neckGeo = useMemo(() => createLatheGeo([
+    [0, -0.07], [0.09, -0.05], [0.085, 0], [0.09, 0.05], [0, 0.07],
+  ], 20), []);
+
+  const footGeo = useMemo(() => {
+    const shape = new THREE.Shape();
+    shape.moveTo(-0.045, -0.12);
+    shape.quadraticCurveTo(-0.05, 0.0, -0.04, 0.1);
+    shape.quadraticCurveTo(0, 0.13, 0.04, 0.1);
+    shape.quadraticCurveTo(0.05, 0.0, 0.045, -0.12);
+    shape.quadraticCurveTo(0, -0.14, -0.045, -0.12);
+    const extrudeSettings = { depth: 0.045, bevelEnabled: true, bevelThickness: 0.015, bevelSize: 0.01, bevelSegments: 4 };
+    return new THREE.ExtrudeGeometry(shape, extrudeSettings);
+  }, []);
 
   return (
-    <group ref={groupRef} onClick={onBodyClick}>
-      {/* Head */}
-      <mesh position={[0, 2.15, 0]}>
-        <sphereGeometry args={[0.28, 32, 32]} />
-        <SkinMaterial />
-      </mesh>
+    <group onClick={onBodyClick}>
+      {/* Torso */}
+      <mesh geometry={torsoGeo} position={[0, 0.55, 0]} material={skinMat} />
       {/* Neck */}
-      <mesh position={[0, 1.82, 0]}>
-        <cylinderGeometry args={[0.1, 0.12, 0.15, 16]} />
-        <SkinMaterial />
-      </mesh>
-      {/* Torso upper */}
-      <mesh position={[0, 1.25, 0]}>
-        <capsuleGeometry args={[0.38, 0.6, 16, 32]} />
-        <SkinMaterial />
-      </mesh>
-      {/* Torso lower / hips */}
-      <mesh position={[0, 0.55, 0]}>
-        <capsuleGeometry args={[0.32, 0.3, 16, 32]} />
-        <SkinMaterial />
-      </mesh>
+      <mesh geometry={neckGeo} position={[0, 1.48, 0]} material={skinMat} />
+      {/* Head */}
+      <mesh geometry={headGeo} position={[0, 1.82, 0]} material={skinMat} />
+      {/* Ears */}
+      <mesh position={[-0.23, 1.83, 0]} material={skinMat}><sphereGeometry args={[0.045, 12, 12]} /></mesh>
+      <mesh position={[0.23, 1.83, 0]} material={skinMat}><sphereGeometry args={[0.045, 12, 12]} /></mesh>
+      {/* Nose hint */}
+      <mesh position={[0, 1.8, 0.2]} material={skinMat}><sphereGeometry args={[0.03, 10, 10]} /></mesh>
 
-      {/* Left Shoulder */}
-      <mesh position={[-0.52, 1.55, 0]}>
-        <sphereGeometry args={[0.15, 16, 16]} />
-        <SkinMaterial />
-      </mesh>
-      {/* Left Upper Arm */}
-      <mesh position={[-0.6, 1.15, 0]} rotation={[0, 0, 0.15]}>
-        <capsuleGeometry args={[0.1, 0.5, 8, 16]} />
-        <SkinMaterial />
-      </mesh>
-      {/* Left Forearm */}
-      <mesh position={[-0.65, 0.55, 0]} rotation={[0, 0, 0.08]}>
-        <capsuleGeometry args={[0.08, 0.45, 8, 16]} />
-        <SkinMaterial />
-      </mesh>
-      {/* Left Hand */}
-      <mesh position={[-0.68, 0.18, 0]}>
-        <sphereGeometry args={[0.09, 12, 12]} />
-        <SkinMaterial />
-      </mesh>
+      {/* ── LEFT ARM ── */}
+      <mesh position={[-0.4, 1.25, 0]} material={skinMat}><sphereGeometry args={[0.11, 20, 20]} /></mesh>
+      <TaperedLimb topR={0.09} botR={0.075} len={0.48} pos={[-0.48, 0.88, 0]} rot={[0, 0, 0.1]} />
+      <mesh position={[-0.52, 0.6, 0]} material={skinMat}><sphereGeometry args={[0.07, 14, 14]} /></mesh>
+      <TaperedLimb topR={0.07} botR={0.05} len={0.45} pos={[-0.55, 0.32, 0]} rot={[0, 0, 0.05]} />
+      <mesh position={[-0.57, 0.06, 0]} material={skinMat}><sphereGeometry args={[0.045, 12, 12]} /></mesh>
+      {/* Hand */}
+      <mesh position={[-0.58, -0.08, 0]} material={skinMat}><boxGeometry args={[0.07, 0.1, 0.035]} /></mesh>
+      {[-0.035, -0.012, 0.01, 0.032].map((dx, i) => (
+        <mesh key={`lf${i}`} position={[-0.58 + dx, -0.17, 0]} material={skinMat}><capsuleGeometry args={[0.01, 0.05, 4, 8]} /></mesh>
+      ))}
+      <mesh position={[-0.535, -0.06, 0.015]} rotation={[0, 0, -0.5]} material={skinMat}><capsuleGeometry args={[0.012, 0.045, 4, 8]} /></mesh>
 
-      {/* Right Shoulder */}
-      <mesh position={[0.52, 1.55, 0]}>
-        <sphereGeometry args={[0.15, 16, 16]} />
-        <SkinMaterial />
-      </mesh>
-      {/* Right Upper Arm */}
-      <mesh position={[0.6, 1.15, 0]} rotation={[0, 0, -0.15]}>
-        <capsuleGeometry args={[0.1, 0.5, 8, 16]} />
-        <SkinMaterial />
-      </mesh>
-      {/* Right Forearm */}
-      <mesh position={[0.65, 0.55, 0]} rotation={[0, 0, -0.08]}>
-        <capsuleGeometry args={[0.08, 0.45, 8, 16]} />
-        <SkinMaterial />
-      </mesh>
-      {/* Right Hand */}
-      <mesh position={[0.68, 0.18, 0]}>
-        <sphereGeometry args={[0.09, 12, 12]} />
-        <SkinMaterial />
-      </mesh>
+      {/* ── RIGHT ARM ── */}
+      <mesh position={[0.4, 1.25, 0]} material={skinMat}><sphereGeometry args={[0.11, 20, 20]} /></mesh>
+      <TaperedLimb topR={0.09} botR={0.075} len={0.48} pos={[0.48, 0.88, 0]} rot={[0, 0, -0.1]} />
+      <mesh position={[0.52, 0.6, 0]} material={skinMat}><sphereGeometry args={[0.07, 14, 14]} /></mesh>
+      <TaperedLimb topR={0.07} botR={0.05} len={0.45} pos={[0.55, 0.32, 0]} rot={[0, 0, -0.05]} />
+      <mesh position={[0.57, 0.06, 0]} material={skinMat}><sphereGeometry args={[0.045, 12, 12]} /></mesh>
+      <mesh position={[0.58, -0.08, 0]} material={skinMat}><boxGeometry args={[0.07, 0.1, 0.035]} /></mesh>
+      {[0.035, 0.012, -0.01, -0.032].map((dx, i) => (
+        <mesh key={`rf${i}`} position={[0.58 + dx, -0.17, 0]} material={skinMat}><capsuleGeometry args={[0.01, 0.05, 4, 8]} /></mesh>
+      ))}
+      <mesh position={[0.535, -0.06, 0.015]} rotation={[0, 0, 0.5]} material={skinMat}><capsuleGeometry args={[0.012, 0.045, 4, 8]} /></mesh>
 
-      {/* Left Upper Leg */}
-      <mesh position={[-0.2, -0.25, 0]}>
-        <capsuleGeometry args={[0.14, 0.6, 8, 16]} />
-        <SkinMaterial />
-      </mesh>
-      {/* Left Lower Leg */}
-      <mesh position={[-0.22, -1.05, 0]}>
-        <capsuleGeometry args={[0.1, 0.6, 8, 16]} />
-        <SkinMaterial />
-      </mesh>
-      {/* Left Foot */}
-      <mesh position={[-0.22, -1.52, 0.08]} rotation={[0.3, 0, 0]}>
-        <boxGeometry args={[0.14, 0.08, 0.28]} />
-        <SkinMaterial />
-      </mesh>
+      {/* ── LEFT LEG ── */}
+      <mesh position={[-0.17, -0.15, 0]} material={skinMat}><sphereGeometry args={[0.13, 16, 16]} /></mesh>
+      <TaperedLimb topR={0.13} botR={0.085} len={0.6} pos={[-0.17, -0.55, 0]} rot={[0, 0, 0.015]} segs={20} />
+      <mesh position={[-0.18, -0.9, 0]} material={skinMat}><sphereGeometry args={[0.085, 14, 14]} /></mesh>
+      <TaperedLimb topR={0.085} botR={0.055} len={0.55} pos={[-0.19, -1.22, 0]} rot={[0, 0, 0.01]} segs={20} />
+      <mesh position={[-0.19, -1.53, 0]} material={skinMat}><sphereGeometry args={[0.05, 12, 12]} /></mesh>
+      {/* Foot */}
+      <mesh geometry={footGeo} position={[-0.19, -1.58, -0.04]} rotation={[-Math.PI / 2, 0, 0]} material={skinMat} />
+      {/* Toes */}
+      {[-0.03, -0.015, 0, 0.015, 0.028].map((dx, i) => (
+        <mesh key={`lt${i}`} position={[-0.19 + dx, -1.575, 0.13]} material={skinMat}><sphereGeometry args={[0.015 - i * 0.001, 8, 8]} /></mesh>
+      ))}
 
-      {/* Right Upper Leg */}
-      <mesh position={[0.2, -0.25, 0]}>
-        <capsuleGeometry args={[0.14, 0.6, 8, 16]} />
-        <SkinMaterial />
-      </mesh>
-      {/* Right Lower Leg */}
-      <mesh position={[0.22, -1.05, 0]}>
-        <capsuleGeometry args={[0.1, 0.6, 8, 16]} />
-        <SkinMaterial />
-      </mesh>
-      {/* Right Foot */}
-      <mesh position={[0.22, -1.52, 0.08]} rotation={[0.3, 0, 0]}>
-        <boxGeometry args={[0.14, 0.08, 0.28]} />
-        <SkinMaterial />
-      </mesh>
+      {/* ── RIGHT LEG ── */}
+      <mesh position={[0.17, -0.15, 0]} material={skinMat}><sphereGeometry args={[0.13, 16, 16]} /></mesh>
+      <TaperedLimb topR={0.13} botR={0.085} len={0.6} pos={[0.17, -0.55, 0]} rot={[0, 0, -0.015]} segs={20} />
+      <mesh position={[0.18, -0.9, 0]} material={skinMat}><sphereGeometry args={[0.085, 14, 14]} /></mesh>
+      <TaperedLimb topR={0.085} botR={0.055} len={0.55} pos={[0.19, -1.22, 0]} rot={[0, 0, -0.01]} segs={20} />
+      <mesh position={[0.19, -1.53, 0]} material={skinMat}><sphereGeometry args={[0.05, 12, 12]} /></mesh>
+      <mesh geometry={footGeo} position={[0.19, -1.58, -0.04]} rotation={[-Math.PI / 2, 0, 0]} material={skinMat} />
+      {[0.03, 0.015, 0, -0.015, -0.028].map((dx, i) => (
+        <mesh key={`rt${i}`} position={[0.19 + dx, -1.575, 0.13]} material={skinMat}><sphereGeometry args={[0.015 - i * 0.001, 8, 8]} /></mesh>
+      ))}
     </group>
   );
 }
