@@ -10,7 +10,8 @@ import PatientList from "./pages/PatientList";
 import PatientDetail from "./pages/PatientDetail";
 import NewPatient from "./pages/NewPatient";
 import Login from "./pages/Login";
-import Register from "./pages/Register";
+import CompanyManagement from "./pages/CompanyManagement";
+import UserManagement from "./pages/UserManagement";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient({
