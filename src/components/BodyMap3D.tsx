@@ -577,7 +577,19 @@ function Scene({ markers, selectedLocationId, onMapClick, onMarkerClick, preset,
       if (!markMode) return;
       e.stopPropagation();
       const { x, y, view } = pointTo2D(e.point);
-      onMapClick?.(x, y, view, markType);
+
+      const worldNormal = e.face
+        ? e.face.normal.clone().transformDirection((e.object as THREE.Object3D).matrixWorld).normalize()
+        : undefined;
+
+      onMapClick?.(
+        x,
+        y,
+        view,
+        markType,
+        [e.point.x, e.point.y, e.point.z],
+        worldNormal ? [worldNormal.x, worldNormal.y, worldNormal.z] : undefined,
+      );
     },
     [onMapClick, markMode, markType],
   );
@@ -598,7 +610,13 @@ function Scene({ markers, selectedLocationId, onMapClick, onMarkerClick, preset,
       </Suspense>
 
       {spots.map((m) => (
-        <SurfaceProjectedGroup key={`spot-${m.id}`} approxPosition={coords2Dto3D(m.x, m.y, m.view)} view={m.view}>
+        <SurfaceProjectedGroup
+          key={`spot-${m.id}`}
+          approxPosition={coords2Dto3D(m.x, m.y, m.view)}
+          view={m.view}
+          storedPosition={m.x3d !== undefined && m.y3d !== undefined && m.z3d !== undefined ? [m.x3d, m.y3d, m.z3d] : undefined}
+          storedNormal={m.nx !== undefined && m.ny !== undefined && m.nz !== undefined ? [m.nx, m.ny, m.nz] : undefined}
+        >
           <SpotMarker
             position={[0, 0, 0]}
             name={m.name}
@@ -611,7 +629,13 @@ function Scene({ markers, selectedLocationId, onMapClick, onMarkerClick, preset,
       ))}
 
       {regions.map((m) => (
-        <SurfaceProjectedGroup key={`region-${m.id}`} approxPosition={coords2Dto3D(m.x, m.y, m.view)} view={m.view}>
+        <SurfaceProjectedGroup
+          key={`region-${m.id}`}
+          approxPosition={coords2Dto3D(m.x, m.y, m.view)}
+          view={m.view}
+          storedPosition={m.x3d !== undefined && m.y3d !== undefined && m.z3d !== undefined ? [m.x3d, m.y3d, m.z3d] : undefined}
+          storedNormal={m.nx !== undefined && m.ny !== undefined && m.nz !== undefined ? [m.nx, m.ny, m.nz] : undefined}
+        >
           <RegionMarker
             position={[0, 0, 0]}
             name={m.name}
