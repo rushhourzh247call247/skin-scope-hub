@@ -1,4 +1,4 @@
-const BASE_URL = "http://83.228.246.191:8001/api";
+const DEFAULT_API_BASE_URL = 'http://83.228.246.191:8001/api';
 
 let authToken: string | null = null;
 
@@ -6,33 +6,55 @@ function setToken(token: string | null) {
   authToken = token;
 }
 
+function getApiBaseUrl() {
+  const configuredBaseUrl =
+    (import.meta.env.VITE_API_BASE_URL?.trim() || DEFAULT_API_BASE_URL).replace(/\/$/, '');
+
+  if (typeof window !== 'undefined' && window.location.protocol === 'https:' && configuredBaseUrl.startsWith('http://')) {
+    return configuredBaseUrl.replace(/^http:\/\//i, 'https://');
+  }
+
+  return configuredBaseUrl;
+}
+
+function getStorageBaseUrl() {
+  return getApiBaseUrl().replace(/\/api$/, '');
+}
+
 async function request<T>(path: string, options?: RequestInit): Promise<T> {
   const headers: Record<string, string> = {
-    'Accept': 'application/json',
+    Accept: 'application/json',
     ...(!options?.body || options.body instanceof FormData ? {} : { 'Content-Type': 'application/json' }),
   };
 
   if (authToken) {
-    headers['Authorization'] = `Bearer ${authToken}`;
+    headers.Authorization = `Bearer ${authToken}`;
   }
 
-  const res = await fetch(`${BASE_URL}${path}`, {
-    ...options,
-    headers: {
-      ...headers,
-      ...options?.headers,
-    },
-  });
+  let res: Response;
+  try {
+    res = await fetch(`${getApiBaseUrl()}${path}`, {
+      ...options,
+      headers: {
+        ...headers,
+        ...options?.headers,
+      },
+    });
+  } catch {
+    throw new Error('Verbindung zur API fehlgeschlagen. Bitte prüfen Sie HTTPS/CORS und ob der Server erreichbar ist.');
+  }
+
   if (!res.ok) {
     if (res.status === 401) {
-      sessionStorage.removeItem("auth_token");
-      sessionStorage.removeItem("auth_user");
-      window.location.href = "/login";
-      throw new Error("Sitzung abgelaufen");
+      sessionStorage.removeItem('auth_token');
+      sessionStorage.removeItem('auth_user');
+      window.location.href = '/login';
+      throw new Error('Sitzung abgelaufen');
     }
     const errorBody = await res.text().catch(() => '');
     throw new Error(`API Error: ${res.status} ${res.statusText} ${errorBody}`);
   }
+
   return res.json();
 }
 
@@ -69,5 +91,5 @@ export const api = {
   },
 
   // Helper to get full image URL
-  getImageUrl: (path: string) => `http://83.228.246.191:8001/storage/${path}`,
+  getImageUrl: (path: string) => `${getStorageBaseUrl()}/storage/${path}`,
 };
