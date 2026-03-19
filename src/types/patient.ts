@@ -60,6 +60,7 @@ export interface Location {
   nx?: number;      // persisted surface normal at anchor point
   ny?: number;
   nz?: number;
+  classification?: LesionClassification;
   created_at?: string;
   updated_at?: string;
   images?: LocationImage[];
