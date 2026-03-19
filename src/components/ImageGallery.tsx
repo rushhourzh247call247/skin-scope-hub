@@ -13,9 +13,10 @@ interface ImageGalleryProps {
   patientId: number;
   images: LocationImage[];
   locationName?: string;
+  locationType?: "spot" | "region";
 }
 
-const ImageGallery = ({ locationId, patientId, images, locationName }: ImageGalleryProps) => {
+const ImageGallery = ({ locationId, patientId, images, locationName, locationType = "spot" }: ImageGalleryProps) => {
   const queryClient = useQueryClient();
   const fileRef = useRef<HTMLInputElement>(null);
   const [uploading, setUploading] = useState(false);
@@ -75,23 +76,43 @@ const ImageGallery = ({ locationId, patientId, images, locationName }: ImageGall
           <p className="text-sm">Noch keine Bilder vorhanden</p>
         </div>
       ) : (
-        <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
+        <div className={locationType === "spot" ? "grid grid-cols-3 gap-3 sm:grid-cols-4" : "grid grid-cols-2 gap-3 sm:grid-cols-3"}>
           {sorted.map((img) => (
-            <div key={img.id} className="group relative overflow-hidden rounded-md border bg-card">
-              <div className="aspect-[3/4]">
-                <img
-                  src={mockApi.getImageUrl(img.image_path)}
-                  alt={`Aufnahme #${img.id}`}
-                  className="h-full w-full object-cover"
-                  loading="lazy"
-                />
-              </div>
-              <div className="flex items-center gap-1 border-t px-2 py-1.5 text-xs text-muted-foreground">
-                <Calendar className="h-3 w-3" />
-                <span className="tabular-nums">
-                  {img.created_at ? format(new Date(img.created_at), "dd.MM.yyyy", { locale: de }) : "–"}
-                </span>
-              </div>
+            <div key={img.id} className="group relative overflow-hidden bg-card">
+              {locationType === "spot" ? (
+                /* Circular display for spots */
+                <div className="flex flex-col items-center gap-1.5">
+                  <div className="relative h-20 w-20 overflow-hidden rounded-full border-2 border-border shadow-sm">
+                    <img
+                      src={mockApi.getImageUrl(img.image_path)}
+                      alt={`Aufnahme #${img.id}`}
+                      className="h-full w-full object-cover"
+                      loading="lazy"
+                    />
+                  </div>
+                  <span className="text-[10px] text-muted-foreground tabular-nums">
+                    {img.created_at ? format(new Date(img.created_at), "dd.MM.yy", { locale: de }) : "–"}
+                  </span>
+                </div>
+              ) : (
+                /* Portrait display for regions */
+                <div className="rounded-md border">
+                  <div className="aspect-[3/4]">
+                    <img
+                      src={mockApi.getImageUrl(img.image_path)}
+                      alt={`Aufnahme #${img.id}`}
+                      className="h-full w-full object-cover rounded-t-md"
+                      loading="lazy"
+                    />
+                  </div>
+                  <div className="flex items-center gap-1 border-t px-2 py-1.5 text-xs text-muted-foreground">
+                    <Calendar className="h-3 w-3" />
+                    <span className="tabular-nums">
+                      {img.created_at ? format(new Date(img.created_at), "dd.MM.yyyy", { locale: de }) : "–"}
+                    </span>
+                  </div>
+                </div>
+              )}
             </div>
           ))}
         </div>

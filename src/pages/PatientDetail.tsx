@@ -3,7 +3,8 @@ import { useParams, useNavigate } from "react-router-dom";
 import { mockApi } from "@/lib/mockData";
 import type { FullPatient } from "@/types/patient";
 import { useState } from "react";
-import { ArrowLeft, MapPin, Plus, Calendar, ImageIcon, User, Hash, Activity, Mail, Phone, Pencil, Trash2, Save, X, Square, GitCompareArrows } from "lucide-react";
+import { ArrowLeft, MapPin, Plus, Calendar, ImageIcon, User, Hash, Activity, Mail, Phone, Pencil, Trash2, Save, X, Square, GitCompareArrows, Move } from "lucide-react";
+import { Slider } from "@/components/ui/slider";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { format } from "date-fns";
@@ -31,6 +32,10 @@ const PatientDetail = () => {
   const [locationName, setLocationName] = useState("");
   const [activeTab, setActiveTab] = useState<"spots" | "timeline">("spots");
   const [newFindingText, setNewFindingText] = useState("");
+  const [regionWidth, setRegionWidth] = useState(40);
+  const [regionHeight, setRegionHeight] = useState(30);
+  const [spotX, setSpotX] = useState(0);
+  const [spotY, setSpotY] = useState(0);
   const [editingFindingId, setEditingFindingId] = useState<number | null>(null);
   const [editingFindingText, setEditingFindingText] = useState("");
 
@@ -79,18 +84,25 @@ const PatientDetail = () => {
   const selectedLocation = locations.find((l) => l.id === selectedLocationId);
   const totalImages = locations.reduce((sum, l) => sum + (l.images?.length ?? 0), 0);
 
-  const handleMapClick = (x: number, y: number, view: "front" | "back", markType?: "spot" | "region") => setMapClickDialog({ x, y, view, markType });
+  const handleMapClick = (x: number, y: number, view: "front" | "back", markType?: "spot" | "region") => {
+    setSpotX(x);
+    setSpotY(y);
+    setRegionWidth(40);
+    setRegionHeight(30);
+    setMapClickDialog({ x, y, view, markType });
+  };
 
   const handleCreateLocation = () => {
     if (!mapClickDialog) return;
+    const isRegion = mapClickDialog.markType === "region";
     createLocationMutation.mutate({
       name: locationName.trim() || undefined,
-      x: mapClickDialog.x,
-      y: mapClickDialog.y,
+      x: isRegion ? mapClickDialog.x : spotX,
+      y: isRegion ? mapClickDialog.y : spotY,
       view: mapClickDialog.view,
       type: mapClickDialog.markType || "spot",
-      width: mapClickDialog.markType === "region" ? 40 : undefined,
-      height: mapClickDialog.markType === "region" ? 30 : undefined,
+      width: isRegion ? regionWidth : undefined,
+      height: isRegion ? regionHeight : undefined,
     });
   };
 
@@ -428,7 +440,7 @@ const PatientDetail = () => {
                         <div className="space-y-3">
                           <div className="grid grid-cols-2 gap-4">
                             <div className="space-y-2">
-                              <div className="relative overflow-hidden rounded-lg border aspect-[4/3] bg-muted">
+                              <div className="relative overflow-hidden rounded-lg border aspect-[3/4] bg-muted">
                                 <img
                                   src={mockApi.getImageUrl(oldest.image_path)}
                                   alt="Ältere Aufnahme"
@@ -443,7 +455,7 @@ const PatientDetail = () => {
                               </p>
                             </div>
                             <div className="space-y-2">
-                              <div className="relative overflow-hidden rounded-lg border aspect-[4/3] bg-muted">
+                              <div className="relative overflow-hidden rounded-lg border aspect-[3/4] bg-muted">
                                 <img
                                   src={mockApi.getImageUrl(newest.image_path)}
                                   alt="Neuere Aufnahme"
@@ -543,6 +555,7 @@ const PatientDetail = () => {
                   patientId={patientId}
                   images={selectedLocation.images ?? []}
                   locationName={selectedLocation.name || (selectedLocation.type === "region" ? "Region" : `Spot #${selectedLocation.id}`)}
+                  locationType={selectedLocation.type || "spot"}
                 />
               </motion.div>
             ) : (
@@ -579,13 +592,68 @@ const PatientDetail = () => {
             <div className="flex items-center gap-4 rounded-md bg-muted p-3 text-sm">
               <div className="flex items-center gap-2 text-muted-foreground">
                 {mapClickDialog?.markType === "region" ? <Square className="h-4 w-4" /> : <MapPin className="h-4 w-4" />}
-                <span className="font-mono text-xs">x:{mapClickDialog?.x} y:{mapClickDialog?.y}</span>
+                <span className="font-mono text-xs">x:{mapClickDialog?.markType === "region" ? mapClickDialog?.x : spotX} y:{mapClickDialog?.markType === "region" ? mapClickDialog?.y : spotY}</span>
               </div>
               <Badge variant="outline">{mapClickDialog?.view === "back" ? "Rückseite" : "Vorderseite"}</Badge>
               {mapClickDialog?.markType === "region" && (
                 <Badge variant="outline" className="text-amber-600 border-amber-300">Region</Badge>
               )}
             </div>
+
+            {/* Spot: Position adjustment */}
+            {mapClickDialog?.markType !== "region" && (
+              <div className="space-y-3 rounded-md border p-3">
+                <div className="flex items-center gap-2 text-xs font-medium text-foreground">
+                  <Move className="h-3.5 w-3.5 text-primary" />
+                  Position anpassen
+                </div>
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <Label className="text-xs">Horizontal (X)</Label>
+                    <span className="text-xs text-muted-foreground font-mono">{spotX}</span>
+                  </div>
+                  <Slider value={[spotX]} onValueChange={([v]) => setSpotX(v)} min={0} max={200} step={1} />
+                </div>
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <Label className="text-xs">Vertikal (Y)</Label>
+                    <span className="text-xs text-muted-foreground font-mono">{spotY}</span>
+                  </div>
+                  <Slider value={[spotY]} onValueChange={([v]) => setSpotY(v)} min={0} max={500} step={1} />
+                </div>
+              </div>
+            )}
+
+            {/* Region: Size adjustment */}
+            {mapClickDialog?.markType === "region" && (
+              <div className="space-y-3 rounded-md border p-3">
+                <div className="flex items-center gap-2 text-xs font-medium text-foreground">
+                  <Square className="h-3.5 w-3.5 text-amber-500" />
+                  Regionsgrösse anpassen
+                </div>
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <Label className="text-xs">Breite</Label>
+                    <span className="text-xs text-muted-foreground font-mono">{regionWidth}</span>
+                  </div>
+                  <Slider value={[regionWidth]} onValueChange={([v]) => setRegionWidth(v)} min={10} max={150} step={1} />
+                </div>
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <Label className="text-xs">Höhe</Label>
+                    <span className="text-xs text-muted-foreground font-mono">{regionHeight}</span>
+                  </div>
+                  <Slider value={[regionHeight]} onValueChange={([v]) => setRegionHeight(v)} min={10} max={150} step={1} />
+                </div>
+                <div className="flex h-20 items-center justify-center rounded bg-muted/50">
+                  <div
+                    className="border-2 border-dashed border-amber-500/60 bg-amber-500/10 rounded"
+                    style={{ width: `${Math.min(regionWidth * 1.2, 140)}px`, height: `${Math.min(regionHeight * 1.2, 80)}px` }}
+                  />
+                </div>
+              </div>
+            )}
+
             <div className="space-y-2">
               <Label htmlFor="locName">Bezeichnung</Label>
               <Input
