@@ -1,95 +1,153 @@
+import { useState } from "react";
+import { cn } from "@/lib/utils";
+
+type View = "front" | "back";
+
 const BodyMapSvg = ({
   markers,
   onMapClick,
   selectedLocationId,
 }: {
-  markers: { id: number; x: number; y: number; name?: string }[];
-  onMapClick: (x: number, y: number) => void;
+  markers: { id: number; x: number; y: number; name?: string; view?: string }[];
+  onMapClick: (x: number, y: number, view: View) => void;
   selectedLocationId?: number | null;
 }) => {
+  const [view, setView] = useState<View>("front");
+
   const handleClick = (e: React.MouseEvent<SVGSVGElement>) => {
     const svg = e.currentTarget;
     const rect = svg.getBoundingClientRect();
     const x = ((e.clientX - rect.left) / rect.width) * 100;
     const y = ((e.clientY - rect.top) / rect.height) * 100;
-    onMapClick(Math.round(x * 10) / 10, Math.round(y * 10) / 10);
+    onMapClick(Math.round(x * 10) / 10, Math.round(y * 10) / 10, view);
   };
 
-  return (
-    <div className="relative w-full max-w-[280px] mx-auto">
-      <svg
-        viewBox="0 0 200 500"
-        className="w-full cursor-crosshair"
-        onClick={handleClick}
-      >
-        {/* Body silhouette - front view */}
-        {/* Head */}
-        <ellipse cx="100" cy="40" rx="25" ry="30" className="fill-secondary stroke-border" strokeWidth="1.5" />
-        {/* Neck */}
-        <rect x="90" y="68" width="20" height="15" rx="4" className="fill-secondary stroke-border" strokeWidth="1.5" />
-        {/* Torso */}
-        <path
-          d="M60 83 Q60 80 65 78 L90 78 Q100 78 110 78 L135 78 Q140 80 140 83 L145 200 Q145 220 130 220 L70 220 Q55 220 55 200 Z"
-          className="fill-secondary stroke-border"
-          strokeWidth="1.5"
-        />
-        {/* Left arm */}
-        <path
-          d="M60 83 Q45 85 35 100 L20 160 Q18 170 25 175 L35 170 Q38 165 40 155 L55 110 L55 200"
-          className="fill-secondary stroke-border"
-          strokeWidth="1.5"
-          fill="none"
-        />
-        <path
-          d="M60 83 Q45 85 35 100 L20 160 Q18 170 25 175 L35 170 Q38 165 40 155 L55 105"
-          className="fill-secondary stroke-border"
-          strokeWidth="1.5"
-        />
-        {/* Right arm */}
-        <path
-          d="M140 83 Q155 85 165 100 L180 160 Q182 170 175 175 L165 170 Q162 165 160 155 L145 105"
-          className="fill-secondary stroke-border"
-          strokeWidth="1.5"
-        />
-        {/* Left leg */}
-        <path
-          d="M70 220 L65 320 Q63 340 60 360 L55 440 Q54 455 65 455 L75 455 Q80 455 78 440 L85 340 L90 220"
-          className="fill-secondary stroke-border"
-          strokeWidth="1.5"
-        />
-        {/* Right leg */}
-        <path
-          d="M110 220 L115 340 L122 440 Q124 455 125 455 L135 455 Q146 455 145 440 L140 360 Q137 340 135 320 L130 220"
-          className="fill-secondary stroke-border"
-          strokeWidth="1.5"
-        />
+  const filteredMarkers = markers.filter(m => (m.view || "front") === view);
 
-        {/* Markers */}
-        {markers.map((marker) => {
-          const cx = (marker.x / 100) * 200;
-          const cy = (marker.y / 100) * 500;
-          const isSelected = marker.id === selectedLocationId;
-          return (
-            <g key={marker.id}>
-              {isSelected && (
-                <circle
-                  cx={cx}
-                  cy={cy}
-                  r="12"
-                  className="fill-primary/20 animate-pulse-marker"
-                />
-              )}
-              <circle
-                cx={cx}
-                cy={cy}
-                r="6"
-                className={isSelected ? "fill-primary stroke-primary-foreground" : "fill-accent stroke-accent-foreground"}
-                strokeWidth="2"
-              />
+  return (
+    <div className="space-y-3">
+      {/* View Toggle */}
+      <div className="flex items-center justify-center gap-1 rounded-lg bg-muted p-1">
+        <button
+          onClick={() => setView("front")}
+          className={cn(
+            "flex-1 rounded-md px-3 py-1.5 text-xs font-medium transition-all",
+            view === "front"
+              ? "bg-primary text-primary-foreground shadow-sm"
+              : "text-muted-foreground hover:text-foreground"
+          )}
+        >
+          Vorne
+        </button>
+        <button
+          onClick={() => setView("back")}
+          className={cn(
+            "flex-1 rounded-md px-3 py-1.5 text-xs font-medium transition-all",
+            view === "back"
+              ? "bg-primary text-primary-foreground shadow-sm"
+              : "text-muted-foreground hover:text-foreground"
+          )}
+        >
+          Hinten
+        </button>
+      </div>
+
+      <div className="relative w-full max-w-[240px] mx-auto">
+        <svg
+          viewBox="0 0 200 500"
+          className="w-full cursor-crosshair"
+          onClick={handleClick}
+        >
+          {/* Background */}
+          <rect width="200" height="500" fill="transparent" />
+
+          {view === "front" ? (
+            /* FRONT VIEW */
+            <g>
+              {/* Head */}
+              <ellipse cx="100" cy="38" rx="24" ry="28" className="fill-secondary stroke-border" strokeWidth="1" />
+              {/* Eyes hint */}
+              <circle cx="90" cy="34" r="2" className="fill-border" />
+              <circle cx="110" cy="34" r="2" className="fill-border" />
+              {/* Neck */}
+              <rect x="91" y="64" width="18" height="14" rx="4" className="fill-secondary stroke-border" strokeWidth="1" />
+              {/* Torso */}
+              <path d="M62 78 Q62 76 68 76 L132 76 Q138 76 138 78 L143 195 Q143 218 128 218 L72 218 Q57 218 57 195 Z" className="fill-secondary stroke-border" strokeWidth="1" />
+              {/* Chest lines */}
+              <path d="M82 100 Q100 115 118 100" className="stroke-border fill-none" strokeWidth="0.5" />
+              {/* Left arm */}
+              <path d="M62 78 Q48 80 38 95 L22 155 Q18 168 22 172 L30 168 Q34 162 38 150 L54 100" className="fill-secondary stroke-border" strokeWidth="1" />
+              {/* Left hand */}
+              <ellipse cx="22" cy="175" rx="8" ry="10" className="fill-secondary stroke-border" strokeWidth="1" />
+              {/* Right arm */}
+              <path d="M138 78 Q152 80 162 95 L178 155 Q182 168 178 172 L170 168 Q166 162 162 150 L146 100" className="fill-secondary stroke-border" strokeWidth="1" />
+              {/* Right hand */}
+              <ellipse cx="178" cy="175" rx="8" ry="10" className="fill-secondary stroke-border" strokeWidth="1" />
+              {/* Left leg */}
+              <path d="M72 218 L68 310 Q66 330 63 350 L58 435 Q57 448 66 450 L76 450 Q82 448 80 435 L86 330 L91 218" className="fill-secondary stroke-border" strokeWidth="1" />
+              {/* Left foot */}
+              <ellipse cx="67" cy="454" rx="12" ry="6" className="fill-secondary stroke-border" strokeWidth="1" />
+              {/* Right leg */}
+              <path d="M109 218 L114 330 L120 435 Q122 448 124 450 L134 450 Q143 448 142 435 L137 350 Q134 330 132 310 L128 218" className="fill-secondary stroke-border" strokeWidth="1" />
+              {/* Right foot */}
+              <ellipse cx="133" cy="454" rx="12" ry="6" className="fill-secondary stroke-border" strokeWidth="1" />
+              {/* Navel */}
+              <circle cx="100" cy="175" r="2.5" className="fill-border" />
             </g>
-          );
-        })}
-      </svg>
+          ) : (
+            /* BACK VIEW */
+            <g>
+              {/* Head */}
+              <ellipse cx="100" cy="38" rx="24" ry="28" className="fill-secondary stroke-border" strokeWidth="1" />
+              {/* Hair hint */}
+              <path d="M78 28 Q80 15 100 12 Q120 15 122 28" className="stroke-border fill-none" strokeWidth="1" />
+              {/* Neck */}
+              <rect x="91" y="64" width="18" height="14" rx="4" className="fill-secondary stroke-border" strokeWidth="1" />
+              {/* Torso */}
+              <path d="M62 78 Q62 76 68 76 L132 76 Q138 76 138 78 L143 195 Q143 218 128 218 L72 218 Q57 218 57 195 Z" className="fill-secondary stroke-border" strokeWidth="1" />
+              {/* Spine */}
+              <line x1="100" y1="78" x2="100" y2="210" className="stroke-border" strokeWidth="0.8" strokeDasharray="4 3" />
+              {/* Shoulder blades */}
+              <path d="M75 95 Q85 105 80 120" className="stroke-border fill-none" strokeWidth="0.5" />
+              <path d="M125 95 Q115 105 120 120" className="stroke-border fill-none" strokeWidth="0.5" />
+              {/* Left arm */}
+              <path d="M62 78 Q48 80 38 95 L22 155 Q18 168 22 172 L30 168 Q34 162 38 150 L54 100" className="fill-secondary stroke-border" strokeWidth="1" />
+              <ellipse cx="22" cy="175" rx="8" ry="10" className="fill-secondary stroke-border" strokeWidth="1" />
+              {/* Right arm */}
+              <path d="M138 78 Q152 80 162 95 L178 155 Q182 168 178 172 L170 168 Q166 162 162 150 L146 100" className="fill-secondary stroke-border" strokeWidth="1" />
+              <ellipse cx="178" cy="175" rx="8" ry="10" className="fill-secondary stroke-border" strokeWidth="1" />
+              {/* Left leg */}
+              <path d="M72 218 L68 310 Q66 330 63 350 L58 435 Q57 448 66 450 L76 450 Q82 448 80 435 L86 330 L91 218" className="fill-secondary stroke-border" strokeWidth="1" />
+              <ellipse cx="67" cy="454" rx="12" ry="6" className="fill-secondary stroke-border" strokeWidth="1" />
+              {/* Right leg */}
+              <path d="M109 218 L114 330 L120 435 Q122 448 124 450 L134 450 Q143 448 142 435 L137 350 Q134 330 132 310 L128 218" className="fill-secondary stroke-border" strokeWidth="1" />
+              <ellipse cx="133" cy="454" rx="12" ry="6" className="fill-secondary stroke-border" strokeWidth="1" />
+              {/* Buttock line */}
+              <path d="M82 210 Q100 225 118 210" className="stroke-border fill-none" strokeWidth="0.5" />
+            </g>
+          )}
+
+          {/* Markers */}
+          {filteredMarkers.map((marker) => {
+            const cx = (marker.x / 100) * 200;
+            const cy = (marker.y / 100) * 500;
+            const isSelected = marker.id === selectedLocationId;
+            return (
+              <g key={marker.id}>
+                {isSelected && (
+                  <circle cx={cx} cy={cy} r="14" className="fill-primary/20 animate-pulse-marker" />
+                )}
+                <circle
+                  cx={cx} cy={cy} r="7"
+                  className={isSelected ? "fill-primary stroke-primary-foreground" : "fill-none stroke-primary"}
+                  strokeWidth="2"
+                />
+                <circle cx={cx} cy={cy} r="3" className={isSelected ? "fill-primary-foreground" : "fill-primary"} />
+              </g>
+            );
+          })}
+        </svg>
+      </div>
     </div>
   );
 };

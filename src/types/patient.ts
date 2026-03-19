@@ -20,6 +20,7 @@ export interface Location {
   name?: string;
   x: number;
   y: number;
+  view?: "front" | "back";
   created_at?: string;
   updated_at?: string;
   images?: LocationImage[];
