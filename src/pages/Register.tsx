@@ -28,7 +28,7 @@ const Register = () => {
       const msg = err?.message || "";
       console.error("Register error:", msg);
       if (msg.includes("Verbindung zur API fehlgeschlagen") || msg.includes("Failed to fetch")) {
-        setError("API nicht erreichbar. Bitte prüfen Sie HTTPS/CORS und ob der Server läuft.");
+        setError("API nicht erreichbar. Bitte prüfen Sie CORS und dass die API-URL zum Server passt (bei php artisan serve: http://...).");
       } else {
         setError(msg.includes("API Error") ? msg : "Registrierung fehlgeschlagen. Bitte prüfen Sie Ihre Eingaben.");
       }
