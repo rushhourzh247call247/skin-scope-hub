@@ -817,6 +817,69 @@ const BodyMap3D: React.FC<BodyMap3DProps> = (props) => {
         <div className="absolute left-2 top-2 rounded-md border border-primary/20 bg-primary/10 px-2 py-0.5 text-[10px] font-semibold text-primary">
           3D
         </div>
+
+        {/* Classification Legend / Filter */}
+        {(() => {
+          const classificationCounts: Partial<Record<LesionClassification, number>> = {};
+          props.markers.filter(m => m.type !== "region").forEach(m => {
+            const cls = (m.classification as LesionClassification) || "unclassified";
+            classificationCounts[cls] = (classificationCounts[cls] || 0) + 1;
+          });
+          const activeClasses = Object.keys(classificationCounts) as LesionClassification[];
+          if (activeClasses.length <= 1) return null;
+
+          const filter = props.classificationFilter ?? [];
+          const hasFilter = filter.length > 0;
+
+          return (
+            <div className="absolute bottom-10 left-2 rounded-lg border border-border/50 bg-card/90 backdrop-blur-sm p-1.5 space-y-0.5 max-w-[140px]">
+              <div className="flex items-center justify-between px-1 mb-0.5">
+                <span className="text-[8px] font-bold text-muted-foreground uppercase tracking-wider flex items-center gap-1">
+                  <Filter className="h-2.5 w-2.5" /> Legende
+                </span>
+                {hasFilter && (
+                  <button
+                    onClick={() => props.onFilterChange?.([])}
+                    className="text-[8px] text-primary hover:underline"
+                  >
+                    Alle
+                  </button>
+                )}
+              </div>
+              {activeClasses.map((cls) => {
+                const info = LESION_CLASSIFICATIONS[cls];
+                const isFiltered = hasFilter && !filter.includes(cls);
+                const isHighRisk = HIGH_RISK_CLASSIFICATIONS.includes(cls);
+                return (
+                  <button
+                    key={cls}
+                    onClick={() => {
+                      if (!hasFilter) {
+                        props.onFilterChange?.([cls]);
+                      } else if (filter.includes(cls)) {
+                        const next = filter.filter(f => f !== cls);
+                        props.onFilterChange?.(next);
+                      } else {
+                        props.onFilterChange?.([...filter, cls]);
+                      }
+                    }}
+                    className={cn(
+                      "flex w-full items-center gap-1.5 rounded px-1.5 py-0.5 text-[9px] font-medium transition-all",
+                      isFiltered ? "opacity-30 line-through" : "opacity-100 hover:bg-muted/50"
+                    )}
+                  >
+                    <span
+                      className={cn("h-2 w-2 rounded-full shrink-0", isHighRisk && !isFiltered && "animate-pulse")}
+                      style={{ backgroundColor: info.color }}
+                    />
+                    <span className="truncate text-foreground">{info.shortLabel}</span>
+                    <span className="ml-auto text-muted-foreground">{classificationCounts[cls]}</span>
+                  </button>
+                );
+              })}
+            </div>
+          );
+        })()}
       </div>
 
       <p className="mt-2 text-center text-[10px] text-muted-foreground">
