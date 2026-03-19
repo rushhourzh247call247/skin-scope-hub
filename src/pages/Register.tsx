@@ -27,7 +27,11 @@ const Register = () => {
     } catch (err: any) {
       const msg = err?.message || "";
       console.error("Register error:", msg);
-      setError(msg.includes("API Error") ? msg : "Registrierung fehlgeschlagen. Bitte prüfen Sie Ihre Eingaben.");
+      if (msg.includes("Verbindung zur API fehlgeschlagen") || msg.includes("Failed to fetch")) {
+        setError("API nicht erreichbar. Bitte prüfen Sie HTTPS/CORS und ob der Server läuft.");
+      } else {
+        setError(msg.includes("API Error") ? msg : "Registrierung fehlgeschlagen. Bitte prüfen Sie Ihre Eingaben.");
+      }
     } finally {
       setLoading(false);
     }
