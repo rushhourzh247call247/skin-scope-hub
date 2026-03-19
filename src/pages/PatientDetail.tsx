@@ -27,7 +27,7 @@ const PatientDetail = () => {
   const patientId = Number(id);
 
   const [selectedLocationId, setSelectedLocationId] = useState<number | null>(null);
-  const [mapClickDialog, setMapClickDialog] = useState<{ x: number; y: number; view: "front" | "back" } | null>(null);
+  const [mapClickDialog, setMapClickDialog] = useState<{ x: number; y: number; view: "front" | "back"; markType?: "spot" | "region" } | null>(null);
   const [locationName, setLocationName] = useState("");
   const [activeTab, setActiveTab] = useState<"spots" | "timeline">("spots");
   const [newFindingText, setNewFindingText] = useState("");
