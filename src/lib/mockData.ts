@@ -72,9 +72,9 @@ let nextId = {
   company: 4,
   user: 4,
   patient: 7,
-  location: 6,
-  image: 8,
-  finding: 4,
+  location: 8,
+  image: 13,
+  finding: 5,
 };
 
 // Simulate async delay
