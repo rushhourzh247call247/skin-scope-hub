@@ -86,6 +86,7 @@ function BodyModel({ onBodyClick, gender }: { onBodyClick: (e: ThreeEvent<MouseE
         mesh.material = skinMaterial.clone();
         mesh.castShadow = true;
         mesh.receiveShadow = true;
+        mesh.userData.isBodyMesh = true;
       }
     });
     return clone;
