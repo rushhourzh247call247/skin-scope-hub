@@ -28,7 +28,18 @@ const PatientDetail = () => {
   const patientId = Number(id);
 
   const [selectedLocationId, setSelectedLocationId] = useState<number | null>(null);
-  const [mapClickDialog, setMapClickDialog] = useState<{ x: number; y: number; view: "front" | "back"; markType?: "spot" | "region" } | null>(null);
+  const [mapClickDialog, setMapClickDialog] = useState<{
+    x: number;
+    y: number;
+    view: "front" | "back";
+    markType?: "spot" | "region";
+    x3d?: number;
+    y3d?: number;
+    z3d?: number;
+    nx?: number;
+    ny?: number;
+    nz?: number;
+  } | null>(null);
   const [locationName, setLocationName] = useState("");
   const [activeTab, setActiveTab] = useState<"spots" | "timeline">("spots");
   const [newFindingText, setNewFindingText] = useState("");
@@ -46,8 +57,21 @@ const PatientDetail = () => {
   });
 
   const createLocationMutation = useMutation({
-    mutationFn: (loc: { name?: string; x: number; y: number; view?: "front" | "back"; type?: "spot" | "region"; width?: number; height?: number }) =>
-      mockApi.createLocation(patientId, loc),
+    mutationFn: (loc: {
+      name?: string;
+      x: number;
+      y: number;
+      view?: "front" | "back";
+      type?: "spot" | "region";
+      width?: number;
+      height?: number;
+      x3d?: number;
+      y3d?: number;
+      z3d?: number;
+      nx?: number;
+      ny?: number;
+      nz?: number;
+    }) => mockApi.createLocation(patientId, loc),
     onSuccess: (newLoc) => {
       queryClient.invalidateQueries({ queryKey: ["full-patient", patientId] });
       setMapClickDialog(null);
@@ -84,25 +108,53 @@ const PatientDetail = () => {
   const selectedLocation = locations.find((l) => l.id === selectedLocationId);
   const totalImages = locations.reduce((sum, l) => sum + (l.images?.length ?? 0), 0);
 
-  const handleMapClick = (x: number, y: number, view: "front" | "back", markType?: "spot" | "region") => {
+  const handleMapClick = (
+    x: number,
+    y: number,
+    view: "front" | "back",
+    markType?: "spot" | "region",
+    point3d?: [number, number, number],
+    normal3d?: [number, number, number],
+  ) => {
     setSpotX(x);
     setSpotY(y);
     setRegionWidth(40);
     setRegionHeight(30);
-    setMapClickDialog({ x, y, view, markType });
+    setMapClickDialog({
+      x,
+      y,
+      view,
+      markType,
+      x3d: point3d?.[0],
+      y3d: point3d?.[1],
+      z3d: point3d?.[2],
+      nx: normal3d?.[0],
+      ny: normal3d?.[1],
+      nz: normal3d?.[2],
+    });
   };
 
   const handleCreateLocation = () => {
     if (!mapClickDialog) return;
     const isRegion = mapClickDialog.markType === "region";
+    const finalX = isRegion ? mapClickDialog.x : spotX;
+    const finalY = isRegion ? mapClickDialog.y : spotY;
+    const spotMoved = !isRegion && (spotX !== mapClickDialog.x || spotY !== mapClickDialog.y);
+
     createLocationMutation.mutate({
       name: locationName.trim() || undefined,
-      x: isRegion ? mapClickDialog.x : spotX,
-      y: isRegion ? mapClickDialog.y : spotY,
+      x: finalX,
+      y: finalY,
       view: mapClickDialog.view,
       type: mapClickDialog.markType || "spot",
       width: isRegion ? regionWidth : undefined,
       height: isRegion ? regionHeight : undefined,
+      x3d: spotMoved ? undefined : mapClickDialog.x3d,
+      y3d: spotMoved ? undefined : mapClickDialog.y3d,
+      z3d: spotMoved ? undefined : mapClickDialog.z3d,
+      nx: spotMoved ? undefined : mapClickDialog.nx,
+      ny: spotMoved ? undefined : mapClickDialog.ny,
+      nz: spotMoved ? undefined : mapClickDialog.nz,
     });
   };
 
@@ -220,7 +272,7 @@ const PatientDetail = () => {
         <div className="w-[300px] shrink-0 border-r bg-card p-3 overflow-y-auto flex flex-col">
           <div className="h-[350px]">
             <BodyMap3D
-              markers={locations.map((l) => ({ id: l.id, x: l.x, y: l.y, name: l.name, view: l.view, type: l.type, width: l.width, height: l.height, imageCount: l.images?.length ?? 0, findingCount: l.findings?.length ?? 0 }))}
+              markers={locations.map((l) => ({ id: l.id, x: l.x, y: l.y, x3d: l.x3d, y3d: l.y3d, z3d: l.z3d, nx: l.nx, ny: l.ny, nz: l.nz, name: l.name, view: l.view, type: l.type, width: l.width, height: l.height, imageCount: l.images?.length ?? 0, findingCount: l.findings?.length ?? 0 }))}
               gender={patient.gender}
               onMapClick={handleMapClick}
               selectedLocationId={selectedLocationId}

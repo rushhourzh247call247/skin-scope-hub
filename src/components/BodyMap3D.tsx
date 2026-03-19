@@ -10,6 +10,12 @@ interface Marker {
   id: number;
   x: number;
   y: number;
+  x3d?: number;
+  y3d?: number;
+  z3d?: number;
+  nx?: number;
+  ny?: number;
+  nz?: number;
   name?: string;
   view?: "front" | "back";
   imageCount?: number;
@@ -26,7 +32,14 @@ interface BodyMap3DProps {
   markers: Marker[];
   selectedLocationId: number | null;
   gender?: Gender;
-  onMapClick?: (x: number, y: number, view: "front" | "back", markType?: MarkType) => void;
+  onMapClick?: (
+    x: number,
+    y: number,
+    view: "front" | "back",
+    markType?: MarkType,
+    point3d?: [number, number, number],
+    normal3d?: [number, number, number],
+  ) => void;
   onMarkerClick?: (id: number) => void;
 }
 
@@ -73,6 +86,7 @@ function BodyModel({ onBodyClick, gender }: { onBodyClick: (e: ThreeEvent<MouseE
         mesh.material = skinMaterial.clone();
         mesh.castShadow = true;
         mesh.receiveShadow = true;
+        mesh.userData.isBodyMesh = true;
       }
     });
     return clone;
@@ -96,14 +110,19 @@ useGLTF.preload(FEMALE_MODEL_URL);
 useGLTF.preload(MALE_MODEL_URL);
 
 /* ─── Spot Marker (DermEngine-style circle ring) ─── */
-function SpotMarker({ position, name, isSelected, onClick, imageCount, findingCount }: {
+type SpotMarkerProps = {
   position: [number, number, number];
   name?: string;
   isSelected: boolean;
   onClick: () => void;
   imageCount?: number;
   findingCount?: number;
-}) {
+};
+
+const SpotMarker = React.forwardRef<THREE.Group, SpotMarkerProps>(function SpotMarker(
+  { position, name, isSelected, onClick, imageCount, findingCount },
+  forwardedRef,
+) {
   const groupRef = useRef<THREE.Group>(null);
   const [hovered, setHovered] = useState(false);
 
@@ -120,7 +139,7 @@ function SpotMarker({ position, name, isSelected, onClick, imageCount, findingCo
   const ringOpacity = isSelected ? 0.9 : hovered ? 0.7 : 0.5;
 
   return (
-    <group position={position}>
+    <group ref={forwardedRef} position={position}>
       <group
         ref={groupRef}
         onClick={(e) => {
@@ -209,7 +228,7 @@ function SpotMarker({ position, name, isSelected, onClick, imageCount, findingCo
       )}
     </group>
   );
-}
+});
 
 /* ─── Convert 3D hit point to 2D coords for storage ─── */
 function pointTo2D(point: THREE.Vector3): { x: number; y: number; view: "front" | "back" } {
@@ -220,7 +239,7 @@ function pointTo2D(point: THREE.Vector3): { x: number; y: number; view: "front" 
 }
 
 /* ─── Region Marker (rectangle) ─── */
-function RegionMarker({ position, name, isSelected, onClick, imageCount, findingCount, width, height }: {
+type RegionMarkerProps = {
   position: [number, number, number];
   name?: string;
   isSelected: boolean;
@@ -229,7 +248,12 @@ function RegionMarker({ position, name, isSelected, onClick, imageCount, finding
   findingCount?: number;
   width: number;
   height: number;
-}) {
+};
+
+const RegionMarker = React.forwardRef<THREE.Group, RegionMarkerProps>(function RegionMarker(
+  { position, name, isSelected, onClick, imageCount, findingCount, width, height },
+  forwardedRef,
+) {
   const groupRef = useRef<THREE.Group>(null);
   const [hovered, setHovered] = useState(false);
 
@@ -263,7 +287,7 @@ function RegionMarker({ position, name, isSelected, onClick, imageCount, finding
   }, [w3d, h3d]);
 
   return (
-    <group position={position}>
+    <group ref={forwardedRef} position={position}>
       <group
         ref={groupRef}
         onClick={(e) => { e.stopPropagation(); onClick(); }}
@@ -342,7 +366,7 @@ function RegionMarker({ position, name, isSelected, onClick, imageCount, finding
       )}
     </group>
   );
-}
+});
 
 /* ─── Convert 2D coords to 3D (approximate, used as raycast origin direction) ─── */
 function coords2Dto3D(x: number, y: number, view?: "front" | "back"): [number, number, number] {
@@ -352,65 +376,134 @@ function coords2Dto3D(x: number, y: number, view?: "front" | "back"): [number, n
   return [x3d, y3d, z3d];
 }
 
-/* ─── Surface-projected wrapper: raycasts markers onto body mesh ─── */
-function SurfaceProjectedGroup({ approxPosition, view, children }: {
+/* ─── Surface projection helpers ─── */
+function projectMarkerToBody(
+  scene: THREE.Scene,
+  approxPosition: [number, number, number],
+  view?: "front" | "back",
+): { point: THREE.Vector3; normal: THREE.Vector3 } | null {
+  const bodyMeshes: THREE.Mesh[] = [];
+  scene.traverse((child) => {
+    if ((child as THREE.Mesh).isMesh && (child as THREE.Mesh).userData?.isBodyMesh) {
+      bodyMeshes.push(child as THREE.Mesh);
+    }
+  });
+
+  if (bodyMeshes.length === 0) return null;
+
+  const approx = new THREE.Vector3(...approxPosition);
+  const preferredDirections = view === "back"
+    ? [new THREE.Vector3(0, 0, -1), new THREE.Vector3(0, 0, 1)]
+    : [new THREE.Vector3(0, 0, 1), new THREE.Vector3(0, 0, -1)];
+  const rayDirections = [
+    ...preferredDirections,
+    new THREE.Vector3(1, 0, 0),
+    new THREE.Vector3(-1, 0, 0),
+    new THREE.Vector3(0, 1, 0),
+    new THREE.Vector3(0, -1, 0),
+  ];
+
+  const raycaster = new THREE.Raycaster();
+  let bestHit: { point: THREE.Vector3; normal: THREE.Vector3; distance: number } | null = null;
+
+  for (const fromDir of rayDirections) {
+    const origin = approx.clone().addScaledVector(fromDir, 4);
+    raycaster.set(origin, fromDir.clone().negate());
+    const hits = raycaster.intersectObjects(bodyMeshes, true);
+
+    for (const hit of hits) {
+      const point = hit.point;
+      const normal = hit.face
+        ? hit.face.normal.clone().transformDirection(hit.object.matrixWorld).normalize()
+        : fromDir.clone().negate().normalize();
+      const distance = point.distanceTo(approx);
+
+      if (!bestHit || distance < bestHit.distance) {
+        bestHit = { point, normal, distance };
+      }
+    }
+  }
+
+  return bestHit ? { point: bestHit.point, normal: bestHit.normal } : null;
+}
+
+/* ─── Surface-projected wrapper: keeps markers glued to body mesh ─── */
+type SurfaceProjectedGroupProps = {
   approxPosition: [number, number, number];
   view?: "front" | "back";
+  storedPosition?: [number, number, number];
+  storedNormal?: [number, number, number];
   children: React.ReactNode;
-}) {
+};
+
+const SurfaceProjectedGroup = React.forwardRef<THREE.Group, SurfaceProjectedGroupProps>(function SurfaceProjectedGroup(
+  { approxPosition, view, storedPosition, storedNormal, children },
+  forwardedRef,
+) {
   const { scene } = useThree();
   const groupRef = useRef<THREE.Group>(null);
   const projectedRef = useRef(false);
 
-  // Use useFrame to retry raycasting until body mesh is loaded
+  const setGroupRef = useCallback((node: THREE.Group | null) => {
+    groupRef.current = node;
+    if (typeof forwardedRef === "function") {
+      forwardedRef(node);
+    } else if (forwardedRef) {
+      (forwardedRef as React.MutableRefObject<THREE.Group | null>).current = node;
+    }
+  }, [forwardedRef]);
+
   useFrame(() => {
     if (!groupRef.current || projectedRef.current) return;
 
-    const raycaster = new THREE.Raycaster();
-    const origin = new THREE.Vector3(approxPosition[0], approxPosition[1], view === "back" ? -3 : 3);
-    const direction = new THREE.Vector3(0, 0, view === "back" ? 1 : -1);
-    raycaster.set(origin, direction);
-
-    const meshes: THREE.Mesh[] = [];
-    scene.traverse((child) => {
-      if ((child as THREE.Mesh).isMesh && !(child as any).__isMarker) {
-        meshes.push(child as THREE.Mesh);
-      }
-    });
-
-    if (meshes.length === 0) return; // Model not loaded yet, retry next frame
-
-    const intersections = raycaster.intersectObjects(meshes, true);
-    if (intersections.length > 0) {
-      const hit = intersections[0];
-      const pos = hit.point;
-      const normal = hit.face?.normal;
-
-      groupRef.current.position.set(pos.x, pos.y, pos.z);
-
-      if (normal) {
-        const worldNormal = normal.clone().transformDirection(hit.object.matrixWorld).normalize();
-        groupRef.current.position.addScaledVector(worldNormal, 0.003);
+    if (storedPosition) {
+      groupRef.current.position.set(...storedPosition);
+      if (storedNormal) {
+        const normal = new THREE.Vector3(...storedNormal).normalize();
+        groupRef.current.position.addScaledVector(normal, 0.003);
         groupRef.current.lookAt(
-          pos.x + worldNormal.x,
-          pos.y + worldNormal.y,
-          pos.z + worldNormal.z
+          storedPosition[0] + normal.x,
+          storedPosition[1] + normal.y,
+          storedPosition[2] + normal.z,
         );
       }
       projectedRef.current = true;
-    } else {
-      groupRef.current.position.set(...approxPosition);
-      projectedRef.current = true;
+      return;
     }
+
+    const projected = projectMarkerToBody(scene, approxPosition, view);
+    if (!projected) {
+      groupRef.current.position.set(...approxPosition);
+      return; // keep retrying until body mesh is ready/intersectable
+    }
+
+    groupRef.current.position.copy(projected.point).addScaledVector(projected.normal, 0.003);
+    groupRef.current.lookAt(
+      projected.point.x + projected.normal.x,
+      projected.point.y + projected.normal.y,
+      projected.point.z + projected.normal.z,
+    );
+    projectedRef.current = true;
   });
 
-  // Reset projection flag when position changes
+  // Reset projection when source coordinates change
   useEffect(() => {
     projectedRef.current = false;
-  }, [approxPosition[0], approxPosition[1], approxPosition[2], view]);
+  }, [
+    approxPosition[0],
+    approxPosition[1],
+    approxPosition[2],
+    view,
+    storedPosition?.[0],
+    storedPosition?.[1],
+    storedPosition?.[2],
+    storedNormal?.[0],
+    storedNormal?.[1],
+    storedNormal?.[2],
+  ]);
 
-  return <group ref={groupRef}>{children}</group>;
-}
+  return <group ref={setGroupRef}>{children}</group>;
+});
 
 /* ─── Camera Animator: animate to preset only, then free interaction ─── */
 function CameraAnimator({ preset }: { preset: Pick<CameraPreset, "position" | "target"> }) {
@@ -484,7 +577,19 @@ function Scene({ markers, selectedLocationId, onMapClick, onMarkerClick, preset,
       if (!markMode) return;
       e.stopPropagation();
       const { x, y, view } = pointTo2D(e.point);
-      onMapClick?.(x, y, view, markType);
+
+      const worldNormal = e.face
+        ? e.face.normal.clone().transformDirection((e.object as THREE.Object3D).matrixWorld).normalize()
+        : undefined;
+
+      onMapClick?.(
+        x,
+        y,
+        view,
+        markType,
+        [e.point.x, e.point.y, e.point.z],
+        worldNormal ? [worldNormal.x, worldNormal.y, worldNormal.z] : undefined,
+      );
     },
     [onMapClick, markMode, markType],
   );
@@ -505,7 +610,13 @@ function Scene({ markers, selectedLocationId, onMapClick, onMarkerClick, preset,
       </Suspense>
 
       {spots.map((m) => (
-        <SurfaceProjectedGroup key={`spot-${m.id}`} approxPosition={coords2Dto3D(m.x, m.y, m.view)} view={m.view}>
+        <SurfaceProjectedGroup
+          key={`spot-${m.id}`}
+          approxPosition={coords2Dto3D(m.x, m.y, m.view)}
+          view={m.view}
+          storedPosition={m.x3d !== undefined && m.y3d !== undefined && m.z3d !== undefined ? [m.x3d, m.y3d, m.z3d] : undefined}
+          storedNormal={m.nx !== undefined && m.ny !== undefined && m.nz !== undefined ? [m.nx, m.ny, m.nz] : undefined}
+        >
           <SpotMarker
             position={[0, 0, 0]}
             name={m.name}
@@ -518,7 +629,13 @@ function Scene({ markers, selectedLocationId, onMapClick, onMarkerClick, preset,
       ))}
 
       {regions.map((m) => (
-        <SurfaceProjectedGroup key={`region-${m.id}`} approxPosition={coords2Dto3D(m.x, m.y, m.view)} view={m.view}>
+        <SurfaceProjectedGroup
+          key={`region-${m.id}`}
+          approxPosition={coords2Dto3D(m.x, m.y, m.view)}
+          view={m.view}
+          storedPosition={m.x3d !== undefined && m.y3d !== undefined && m.z3d !== undefined ? [m.x3d, m.y3d, m.z3d] : undefined}
+          storedNormal={m.nx !== undefined && m.ny !== undefined && m.nz !== undefined ? [m.nx, m.ny, m.nz] : undefined}
+        >
           <RegionMarker
             position={[0, 0, 0]}
             name={m.name}
