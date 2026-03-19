@@ -156,7 +156,7 @@ export const mockApi = {
   },
 
   // Locations
-  createLocation: async (patientId: number, data: { name?: string; x: number; y: number; view?: "front" | "back" }) => {
+  createLocation: async (patientId: number, data: { name?: string; x: number; y: number; view?: "front" | "back"; type?: "spot" | "region"; width?: number; height?: number }) => {
     await delay();
     const loc: Location & { images: LocationImage[]; findings: Finding[] } = {
       id: nextId.location++,
@@ -165,6 +165,9 @@ export const mockApi = {
       x: data.x,
       y: data.y,
       view: data.view || "front",
+      type: data.type || "spot",
+      width: data.width,
+      height: data.height,
       created_at: new Date().toISOString(),
       images: [],
       findings: [],
