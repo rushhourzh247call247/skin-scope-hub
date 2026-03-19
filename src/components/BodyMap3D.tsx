@@ -14,6 +14,8 @@ interface Marker {
   view?: "front" | "back";
 }
 
+type Gender = "female" | "male";
+
 interface BodyMap3DProps {
   markers: Marker[];
   selectedLocationId: number | null;
@@ -48,8 +50,8 @@ const skinMaterial = new THREE.MeshStandardMaterial({
   emissiveIntensity: 0.06,
 });
 
-/* ─── Make mesh unisex by flattening chest and narrowing hips ─── */
-function makeUnisex(scene: THREE.Object3D) {
+/* ─── Transform mesh to male body shape ─── */
+function makeMale(scene: THREE.Object3D) {
   scene.traverse((child) => {
     if (!(child as THREE.Mesh).isMesh) return;
     const mesh = child as THREE.Mesh;
@@ -62,35 +64,43 @@ function makeUnisex(scene: THREE.Object3D) {
     const center = box.getCenter(new THREE.Vector3());
     const height = size.y;
 
-    // Normalize Y to 0..1 (bottom=0, top=1)
     for (let i = 0; i < pos.count; i++) {
       const x = pos.getX(i);
       const y = pos.getY(i);
       const z = pos.getZ(i);
-      const ny = (y - box.min.y) / height; // normalized 0..1
+      const ny = (y - box.min.y) / height;
 
-      // Chest area (roughly 0.52-0.75 of height) — aggressively flatten Z protrusion
+      // Chest area — aggressively flatten
       if (ny > 0.52 && ny < 0.75 && z > center.z + 0.01 * size.z) {
         const chestFactor = Math.sin(((ny - 0.52) / 0.23) * Math.PI);
         const distFromCenter = (z - center.z) / (size.z * 0.5);
-        const flatten = 0.6 * chestFactor * Math.max(0, distFromCenter);
+        const flatten = 0.7 * chestFactor * Math.max(0, distFromCenter);
         pos.setZ(i, z - (z - center.z) * flatten);
       }
 
-      // Hip area (roughly 0.40-0.52) — narrow the wider hips
-      if (ny > 0.40 && ny < 0.52) {
-        const hipFactor = Math.sin(((ny - 0.40) / 0.12) * Math.PI);
+      // Broaden shoulders (0.68-0.80)
+      if (ny > 0.68 && ny < 0.80) {
+        const shoulderFactor = Math.sin(((ny - 0.68) / 0.12) * Math.PI);
         const distFromCenter = Math.abs(x - center.x) / (size.x * 0.5);
-        const narrow = 0.12 * hipFactor * distFromCenter;
+        const broaden = 0.08 * shoulderFactor * distFromCenter;
+        const sign = x > center.x ? 1 : -1;
+        pos.setX(i, x + sign * Math.abs(x - center.x) * broaden);
+      }
+
+      // Narrow hips (0.38-0.52)
+      if (ny > 0.38 && ny < 0.52) {
+        const hipFactor = Math.sin(((ny - 0.38) / 0.14) * Math.PI);
+        const distFromCenter = Math.abs(x - center.x) / (size.x * 0.5);
+        const narrow = 0.15 * hipFactor * distFromCenter;
         const sign = x > center.x ? 1 : -1;
         pos.setX(i, x - sign * Math.abs(x - center.x) * narrow);
       }
 
-      // Buttocks area (back side, 0.42-0.55) — flatten
+      // Flatten buttocks (back side, 0.42-0.55)
       if (ny > 0.42 && ny < 0.55 && z < center.z - 0.01 * size.z) {
         const buttFactor = Math.sin(((ny - 0.42) / 0.13) * Math.PI);
         const distFromCenter = Math.abs(z - center.z) / (size.z * 0.5);
-        const flatten = 0.25 * buttFactor * distFromCenter;
+        const flatten = 0.3 * buttFactor * distFromCenter;
         pos.setZ(i, z + Math.abs(z - center.z) * flatten);
       }
     }
@@ -101,16 +111,14 @@ function makeUnisex(scene: THREE.Object3D) {
 }
 
 /* ─── GLB Body Model ─── */
-function BodyModel({ onBodyClick }: { onBodyClick: (e: ThreeEvent<MouseEvent>) => void }) {
+function BodyModel({ onBodyClick, gender }: { onBodyClick: (e: ThreeEvent<MouseEvent>) => void; gender: Gender }) {
   const { scene } = useGLTF(MODEL_URL);
   const clonedScene = useMemo(() => {
     const clone = scene.clone(true);
 
-    // Apply skin material
     clone.traverse((child) => {
       if ((child as THREE.Mesh).isMesh) {
         const mesh = child as THREE.Mesh;
-        // Clone geometry so we can modify vertices
         mesh.geometry = mesh.geometry.clone();
         mesh.material = skinMaterial.clone();
         mesh.castShadow = true;
@@ -118,13 +126,13 @@ function BodyModel({ onBodyClick }: { onBodyClick: (e: ThreeEvent<MouseEvent>) =
       }
     });
 
-    // Make unisex
-    makeUnisex(clone);
+    if (gender === "male") {
+      makeMale(clone);
+    }
 
     return clone;
-  }, [scene]);
+  }, [scene, gender]);
 
-  // Compute scale to normalize height ~2.5 units
   const normalizedScale = useMemo(() => {
     const box = new THREE.Box3().setFromObject(clonedScene);
     const size = box.getSize(new THREE.Vector3());
@@ -139,7 +147,6 @@ function BodyModel({ onBodyClick }: { onBodyClick: (e: ThreeEvent<MouseEvent>) =
   );
 }
 
-// Preload model
 useGLTF.preload(MODEL_URL);
 
 /* ─── Spot Marker ─── */
@@ -211,24 +218,19 @@ function coords2Dto3D(x: number, y: number, view?: "front" | "back"): [number, n
   return [x3d, y3d, z3d];
 }
 
-/* ─── Camera Animator (lerps BOTH position and target) ─── */
+/* ─── Camera Animator ─── */
 function CameraAnimator({ preset }: { preset: { position: [number, number, number]; target: [number, number, number] } }) {
   const { camera } = useThree();
   const controlsRef = useRef<any>(null);
   const posVec = useMemo(() => new THREE.Vector3(...preset.position), [preset.position]);
   const tarVec = useMemo(() => new THREE.Vector3(...preset.target), [preset.target]);
-  const currentTarget = useRef(new THREE.Vector3(...preset.target));
 
-  // Reset target immediately when preset changes
   useEffect(() => {
-    currentTarget.current.copy(tarVec);
+    // nothing needed
   }, [tarVec]);
 
   useFrame(() => {
-    // Lerp camera position
     camera.position.lerp(posVec, 0.08);
-
-    // Lerp orbit controls target
     if (controlsRef.current) {
       controlsRef.current.target.lerp(tarVec, 0.08);
       controlsRef.current.update();
@@ -258,7 +260,7 @@ function LoadingFallback() {
 }
 
 /* ─── Scene ─── */
-function Scene({ markers, selectedLocationId, onMapClick, onMarkerClick, preset }: BodyMap3DProps & { preset: typeof CAMERA_PRESETS.full }) {
+function Scene({ markers, selectedLocationId, onMapClick, onMarkerClick, preset, gender }: BodyMap3DProps & { preset: typeof CAMERA_PRESETS.full; gender: Gender }) {
   const handleBodyClick = useCallback((e: ThreeEvent<MouseEvent>) => {
     e.stopPropagation();
     const { x, y, view } = pointTo2D(e.point);
@@ -267,7 +269,6 @@ function Scene({ markers, selectedLocationId, onMapClick, onMarkerClick, preset 
 
   return (
     <>
-      {/* Studio Lighting */}
       <ambientLight intensity={0.5} />
       <directionalLight position={[3, 5, 4]} intensity={0.9} castShadow shadow-mapSize={1024} />
       <directionalLight position={[-2, 3, -3]} intensity={0.3} />
@@ -275,7 +276,7 @@ function Scene({ markers, selectedLocationId, onMapClick, onMarkerClick, preset 
       <hemisphereLight args={["#b1e1ff", "#b97a20", 0.3]} />
 
       <Suspense fallback={<LoadingFallback />}>
-        <BodyModel onBodyClick={handleBodyClick} />
+        <BodyModel onBodyClick={handleBodyClick} gender={gender} />
       </Suspense>
 
       {markers.map((m) => (
@@ -296,6 +297,7 @@ function Scene({ markers, selectedLocationId, onMapClick, onMarkerClick, preset 
 /* ─── Main Component ─── */
 const BodyMap3D: React.FC<BodyMap3DProps> = (props) => {
   const [activeRegion, setActiveRegion] = useState<Region>("full");
+  const [gender, setGender] = useState<Gender>("female");
   const preset = CAMERA_PRESETS[activeRegion];
 
   return (
@@ -307,8 +309,36 @@ const BodyMap3D: React.FC<BodyMap3DProps> = (props) => {
           gl={{ antialias: true, alpha: true, toneMapping: THREE.ACESFilmicToneMapping, toneMappingExposure: 1.2 }}
           shadows
         >
-          <Scene {...props} preset={preset} />
+          <Scene {...props} preset={preset} gender={gender} />
         </Canvas>
+
+        {/* Gender toggle */}
+        <div className="absolute left-2 top-10 flex flex-col gap-1">
+          <button
+            onClick={() => setGender("female")}
+            title="Weiblich"
+            className={cn(
+              "flex h-8 w-8 items-center justify-center rounded-md text-sm font-bold transition-all",
+              gender === "female"
+                ? "bg-primary text-primary-foreground shadow-md"
+                : "bg-card/80 text-muted-foreground hover:bg-card hover:text-foreground border border-border/50"
+            )}
+          >
+            ♀
+          </button>
+          <button
+            onClick={() => setGender("male")}
+            title="Männlich"
+            className={cn(
+              "flex h-8 w-8 items-center justify-center rounded-md text-sm font-bold transition-all",
+              gender === "male"
+                ? "bg-primary text-primary-foreground shadow-md"
+                : "bg-card/80 text-muted-foreground hover:bg-card hover:text-foreground border border-border/50"
+            )}
+          >
+            ♂
+          </button>
+        </div>
 
         {/* Region buttons */}
         <div className="absolute right-2 top-1/2 -translate-y-1/2 flex flex-col gap-1">
