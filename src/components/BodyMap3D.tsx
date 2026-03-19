@@ -610,7 +610,7 @@ function LoadingFallback() {
 }
 
 /* ─── Scene ─── */
-function Scene({ markers, selectedLocationId, onMapClick, onMarkerClick, preset, gender, markMode, markType }: BodyMap3DProps & { preset: CameraPreset; gender: Gender; markMode: boolean; markType: MarkType }) {
+function Scene({ markers, selectedLocationId, onMapClick, onMarkerClick, classificationFilter, preset, gender, markMode, markType }: BodyMap3DProps & { preset: CameraPreset; gender: Gender; markMode: boolean; markType: MarkType }) {
   const handleBodyClick = useCallback(
     (e: ThreeEvent<MouseEvent>) => {
       if (!markMode) return;
@@ -633,8 +633,17 @@ function Scene({ markers, selectedLocationId, onMapClick, onMarkerClick, preset,
     [onMapClick, markMode, markType],
   );
 
-  const spots = markers.filter((m) => m.type !== "region");
-  const regions = markers.filter((m) => m.type === "region");
+  const hasFilter = classificationFilter && classificationFilter.length > 0;
+
+  const filteredMarkers = hasFilter
+    ? markers.filter((m) => {
+        const cls = (m.classification as LesionClassification) || "unclassified";
+        return classificationFilter!.includes(cls);
+      })
+    : markers;
+
+  const spots = filteredMarkers.filter((m) => m.type !== "region");
+  const regions = filteredMarkers.filter((m) => m.type === "region");
 
   return (
     <>
@@ -648,25 +657,30 @@ function Scene({ markers, selectedLocationId, onMapClick, onMarkerClick, preset,
         <BodyModel onBodyClick={handleBodyClick} gender={gender} />
       </Suspense>
 
-      {spots.map((m) => (
-        <SurfaceProjectedGroup
-          key={`spot-${m.id}`}
-          approxPosition={coords2Dto3D(m.x, m.y, m.view)}
-          view={m.view}
-          storedPosition={m.x3d !== undefined && m.y3d !== undefined && m.z3d !== undefined ? [m.x3d, m.y3d, m.z3d] : undefined}
-          storedNormal={m.nx !== undefined && m.ny !== undefined && m.nz !== undefined ? [m.nx, m.ny, m.nz] : undefined}
-        >
-          <SpotMarker
-            position={[0, 0, 0]}
-            name={m.name}
-            isSelected={m.id === selectedLocationId}
-            onClick={() => onMarkerClick?.(m.id)}
-            imageCount={m.imageCount}
-            findingCount={m.findingCount}
-            classificationColor={m.classificationColor}
-          />
-        </SurfaceProjectedGroup>
-      ))}
+      {spots.map((m) => {
+        const cls = (m.classification as LesionClassification) || "unclassified";
+        const isHighRisk = HIGH_RISK_CLASSIFICATIONS.includes(cls);
+        return (
+          <SurfaceProjectedGroup
+            key={`spot-${m.id}`}
+            approxPosition={coords2Dto3D(m.x, m.y, m.view)}
+            view={m.view}
+            storedPosition={m.x3d !== undefined && m.y3d !== undefined && m.z3d !== undefined ? [m.x3d, m.y3d, m.z3d] : undefined}
+            storedNormal={m.nx !== undefined && m.ny !== undefined && m.nz !== undefined ? [m.nx, m.ny, m.nz] : undefined}
+          >
+            <SpotMarker
+              position={[0, 0, 0]}
+              name={m.name}
+              isSelected={m.id === selectedLocationId}
+              onClick={() => onMarkerClick?.(m.id)}
+              imageCount={m.imageCount}
+              findingCount={m.findingCount}
+              classificationColor={m.classificationColor}
+              isHighRisk={isHighRisk}
+            />
+          </SurfaceProjectedGroup>
+        );
+      })}
 
       {regions.map((m) => (
         <SurfaceProjectedGroup
