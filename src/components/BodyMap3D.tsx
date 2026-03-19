@@ -344,12 +344,67 @@ function RegionMarker({ position, name, isSelected, onClick, imageCount, finding
   );
 }
 
-/* ─── Convert 2D coords to 3D ─── */
+/* ─── Convert 2D coords to 3D (approximate, used as raycast origin direction) ─── */
 function coords2Dto3D(x: number, y: number, view?: "front" | "back"): [number, number, number] {
   const x3d = (x / 200) * 2 - 1;
   const y3d = 2.0 - (y / 500) * 3.5;
   const z3d = view === "back" ? -0.25 : 0.25;
   return [x3d, y3d, z3d];
+}
+
+/* ─── Surface-projected wrapper: raycasts markers onto body mesh ─── */
+function SurfaceProjectedGroup({ approxPosition, view, children }: {
+  approxPosition: [number, number, number];
+  view?: "front" | "back";
+  children: React.ReactNode;
+}) {
+  const { scene } = useThree();
+  const groupRef = useRef<THREE.Group>(null);
+
+  // Raycast onto body mesh to find surface point + normal
+  useEffect(() => {
+    if (!groupRef.current) return;
+
+    const raycaster = new THREE.Raycaster();
+    const origin = new THREE.Vector3(approxPosition[0], approxPosition[1], view === "back" ? -3 : 3);
+    const direction = new THREE.Vector3(0, 0, view === "back" ? 1 : -1);
+    raycaster.set(origin, direction);
+
+    // Find all meshes in scene (the body model)
+    const meshes: THREE.Mesh[] = [];
+    scene.traverse((child) => {
+      if ((child as THREE.Mesh).isMesh && !(child as any).__isMarker) {
+        meshes.push(child as THREE.Mesh);
+      }
+    });
+
+    const intersections = raycaster.intersectObjects(meshes, true);
+    if (intersections.length > 0) {
+      const hit = intersections[0];
+      const pos = hit.point;
+      const normal = hit.face?.normal;
+
+      groupRef.current.position.set(pos.x, pos.y, pos.z);
+
+      if (normal) {
+        // Transform normal to world space
+        const worldNormal = normal.clone().transformDirection(hit.object.matrixWorld).normalize();
+        // Offset slightly along normal so marker sits just above surface
+        groupRef.current.position.addScaledVector(worldNormal, 0.003);
+        // Orient marker to face along the surface normal
+        groupRef.current.lookAt(
+          pos.x + worldNormal.x,
+          pos.y + worldNormal.y,
+          pos.z + worldNormal.z
+        );
+      }
+    } else {
+      // Fallback: use approximate position
+      groupRef.current.position.set(...approxPosition);
+    }
+  }, [approxPosition, view, scene]);
+
+  return <group ref={groupRef}>{children}</group>;
 }
 
 /* ─── Camera Animator: animate to preset only, then free interaction ─── */
@@ -445,29 +500,31 @@ function Scene({ markers, selectedLocationId, onMapClick, onMarkerClick, preset,
       </Suspense>
 
       {spots.map((m) => (
-        <SpotMarker
-          key={m.id}
-          position={coords2Dto3D(m.x, m.y, m.view)}
-          name={m.name}
-          isSelected={m.id === selectedLocationId}
-          onClick={() => onMarkerClick?.(m.id)}
-          imageCount={m.imageCount}
-          findingCount={m.findingCount}
-        />
+        <SurfaceProjectedGroup key={`spot-${m.id}`} approxPosition={coords2Dto3D(m.x, m.y, m.view)} view={m.view}>
+          <SpotMarker
+            position={[0, 0, 0]}
+            name={m.name}
+            isSelected={m.id === selectedLocationId}
+            onClick={() => onMarkerClick?.(m.id)}
+            imageCount={m.imageCount}
+            findingCount={m.findingCount}
+          />
+        </SurfaceProjectedGroup>
       ))}
 
       {regions.map((m) => (
-        <RegionMarker
-          key={m.id}
-          position={coords2Dto3D(m.x, m.y, m.view)}
-          name={m.name}
-          isSelected={m.id === selectedLocationId}
-          onClick={() => onMarkerClick?.(m.id)}
-          imageCount={m.imageCount}
-          findingCount={m.findingCount}
-          width={m.width ?? 40}
-          height={m.height ?? 30}
-        />
+        <SurfaceProjectedGroup key={`region-${m.id}`} approxPosition={coords2Dto3D(m.x, m.y, m.view)} view={m.view}>
+          <RegionMarker
+            position={[0, 0, 0]}
+            name={m.name}
+            isSelected={m.id === selectedLocationId}
+            onClick={() => onMarkerClick?.(m.id)}
+            imageCount={m.imageCount}
+            findingCount={m.findingCount}
+            width={m.width ?? 40}
+            height={m.height ?? 30}
+          />
+        </SurfaceProjectedGroup>
       ))}
 
       <CameraAnimator preset={preset} />
