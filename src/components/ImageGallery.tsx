@@ -13,6 +13,7 @@ interface ImageGalleryProps {
   patientId: number;
   images: LocationImage[];
   locationName?: string;
+  locationType?: "spot" | "region";
 }
 
 const ImageGallery = ({ locationId, patientId, images, locationName }: ImageGalleryProps) => {
