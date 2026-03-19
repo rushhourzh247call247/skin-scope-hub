@@ -1,0 +1,418 @@
+import { useState, useEffect, useRef, useCallback } from "react";
+import { useSearchParams } from "react-router-dom";
+import { api } from "@/lib/api";
+import { Button } from "@/components/ui/button";
+import { Camera, Trash2, CheckCircle, AlertTriangle, Loader2, X, ImageIcon } from "lucide-react";
+import { cn } from "@/lib/utils";
+import { format } from "date-fns";
+import { de } from "date-fns/locale";
+
+interface UploadedPhoto {
+  id?: number;
+  file: File;
+  preview: string;
+  order: number;
+  uploading: boolean;
+  uploaded: boolean;
+  error?: string;
+  created_at?: string;
+  image_url?: string;
+}
+
+type SessionState =
+  | { status: "loading" }
+  | { status: "invalid"; message: string }
+  | { status: "expired" }
+  | { status: "completed"; imageCount: number }
+  | {
+      status: "active";
+      patientName: string;
+      locationName: string;
+      locationId: number;
+      expiresAt: string;
+    };
+
+const MobileUpload = () => {
+  const [searchParams] = useSearchParams();
+  const token = searchParams.get("token");
+  const [session, setSession] = useState<SessionState>({ status: "loading" });
+  const [photos, setPhotos] = useState<UploadedPhoto[]>([]);
+  const [completing, setCompleting] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const orderRef = useRef(0);
+
+  // Validate token on mount
+  useEffect(() => {
+    if (!token) {
+      setSession({ status: "invalid", message: "Kein Upload-Token angegeben." });
+      return;
+    }
+
+    const validate = async () => {
+      try {
+        const result = await api.validateUploadSession(token);
+        if (!result.valid) {
+          setSession({ status: "invalid", message: "Ungültiger Token." });
+          return;
+        }
+        if (result.completed) {
+          setSession({ status: "completed", imageCount: result.image_count });
+          return;
+        }
+        const expiresAt = new Date(result.expires_at);
+        if (expiresAt <= new Date()) {
+          setSession({ status: "expired" });
+          return;
+        }
+        orderRef.current = result.image_count;
+        setSession({
+          status: "active",
+          patientName: result.patient_name,
+          locationName: result.location_name,
+          locationId: result.location_id,
+          expiresAt: result.expires_at,
+        });
+      } catch (err: any) {
+        setSession({
+          status: "invalid",
+          message: err.message || "Token konnte nicht validiert werden.",
+        });
+      }
+    };
+
+    validate();
+  }, [token]);
+
+  const handleCapture = useCallback(() => {
+    fileInputRef.current?.click();
+  }, []);
+
+  const handleFiles = useCallback(
+    async (e: React.ChangeEvent<HTMLInputElement>) => {
+      if (!token || session.status !== "active") return;
+      const files = Array.from(e.target.files || []);
+      if (files.length === 0) return;
+
+      for (const file of files) {
+        orderRef.current += 1;
+        const order = orderRef.current;
+        const preview = URL.createObjectURL(file);
+
+        const photo: UploadedPhoto = {
+          file,
+          preview,
+          order,
+          uploading: true,
+          uploaded: false,
+        };
+
+        setPhotos((prev) => [...prev, photo]);
+
+        // Upload immediately
+        try {
+          const result = await api.uploadSessionImage(token, file, order);
+          setPhotos((prev) =>
+            prev.map((p) =>
+              p.order === order
+                ? {
+                    ...p,
+                    uploading: false,
+                    uploaded: true,
+                    id: result.id,
+                    created_at: result.created_at,
+                    image_url: result.image_url,
+                  }
+                : p
+            )
+          );
+        } catch (err: any) {
+          setPhotos((prev) =>
+            prev.map((p) =>
+              p.order === order
+                ? { ...p, uploading: false, error: err.message || "Upload fehlgeschlagen" }
+                : p
+            )
+          );
+        }
+      }
+
+      // Reset input so same file can be re-selected
+      e.target.value = "";
+    },
+    [token, session]
+  );
+
+  const removePhoto = (order: number) => {
+    setPhotos((prev) => {
+      const photo = prev.find((p) => p.order === order);
+      if (photo) URL.revokeObjectURL(photo.preview);
+      return prev.filter((p) => p.order !== order);
+    });
+  };
+
+  const handleComplete = async () => {
+    if (!token) return;
+    setCompleting(true);
+    try {
+      const result = await api.completeUploadSession(token);
+      setSession({ status: "completed", imageCount: result.image_count });
+    } catch (err: any) {
+      // Still show as completed if photos were uploaded
+      if (photos.filter((p) => p.uploaded).length > 0) {
+        setSession({ status: "completed", imageCount: photos.filter((p) => p.uploaded).length });
+      }
+    } finally {
+      setCompleting(false);
+    }
+  };
+
+  const uploadedCount = photos.filter((p) => p.uploaded).length;
+  const uploadingCount = photos.filter((p) => p.uploading).length;
+
+  // ─── Error / Loading States ───
+  if (session.status === "loading") {
+    return (
+      <MobileShell>
+        <div className="flex flex-col items-center justify-center gap-4 py-20">
+          <Loader2 className="h-8 w-8 animate-spin text-primary" />
+          <p className="text-sm text-muted-foreground">Session wird überprüft…</p>
+        </div>
+      </MobileShell>
+    );
+  }
+
+  if (session.status === "invalid") {
+    return (
+      <MobileShell>
+        <StatusCard
+          icon={<AlertTriangle className="h-8 w-8 text-destructive" />}
+          title="Ungültiger Link"
+          description={session.message}
+        />
+      </MobileShell>
+    );
+  }
+
+  if (session.status === "expired") {
+    return (
+      <MobileShell>
+        <StatusCard
+          icon={<AlertTriangle className="h-8 w-8 text-amber-500" />}
+          title="Link abgelaufen"
+          description="Dieser Upload-Link ist abgelaufen. Bitte generieren Sie einen neuen QR-Code am PC."
+        />
+      </MobileShell>
+    );
+  }
+
+  if (session.status === "completed") {
+    return (
+      <MobileShell>
+        <StatusCard
+          icon={<CheckCircle className="h-8 w-8 text-clinical-success" />}
+          title="Upload abgeschlossen"
+          description={`${session.imageCount} ${session.imageCount === 1 ? "Foto wurde" : "Fotos wurden"} erfolgreich hochgeladen.`}
+        />
+      </MobileShell>
+    );
+  }
+
+  // ─── Active Upload Session ───
+  return (
+    <MobileShell>
+      {/* Session Info */}
+      <div className="rounded-xl border bg-card p-4 space-y-2 shadow-sm">
+        <div className="flex items-center gap-2">
+          <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary/10">
+            <Camera className="h-4 w-4 text-primary" />
+          </div>
+          <div>
+            <h1 className="text-sm font-semibold text-foreground">Foto-Upload</h1>
+            <p className="text-[10px] text-muted-foreground">
+              Gültig bis {format(new Date(session.expiresAt), "HH:mm", { locale: de })} Uhr
+            </p>
+          </div>
+        </div>
+        <div className="flex gap-4 text-xs">
+          <div>
+            <span className="text-muted-foreground">Patient</span>
+            <p className="font-medium text-foreground">{session.patientName}</p>
+          </div>
+          <div>
+            <span className="text-muted-foreground">Stelle</span>
+            <p className="font-medium text-foreground">{session.locationName}</p>
+          </div>
+        </div>
+      </div>
+
+      {/* Hidden file input – camera capture */}
+      <input
+        ref={fileInputRef}
+        type="file"
+        accept="image/*"
+        capture="environment"
+        multiple
+        className="hidden"
+        onChange={handleFiles}
+      />
+
+      {/* Capture Button */}
+      <Button
+        size="lg"
+        className="w-full h-14 text-base gap-2 rounded-xl shadow-lg"
+        onClick={handleCapture}
+        disabled={uploadingCount > 0}
+      >
+        {uploadingCount > 0 ? (
+          <>
+            <Loader2 className="h-5 w-5 animate-spin" /> Wird hochgeladen…
+          </>
+        ) : (
+          <>
+            <Camera className="h-5 w-5" /> Foto aufnehmen
+          </>
+        )}
+      </Button>
+
+      {/* Photos Grid */}
+      {photos.length > 0 && (
+        <div className="space-y-3">
+          <div className="flex items-center justify-between">
+            <h2 className="text-xs font-semibold text-foreground flex items-center gap-1.5">
+              <ImageIcon className="h-3.5 w-3.5 text-primary" />
+              {uploadedCount} {uploadedCount === 1 ? "Foto" : "Fotos"} aufgenommen
+            </h2>
+          </div>
+
+          <div className="grid grid-cols-3 gap-2">
+            {photos.map((photo) => (
+              <div
+                key={photo.order}
+                className={cn(
+                  "relative aspect-square overflow-hidden rounded-lg border",
+                  photo.error && "border-destructive/50",
+                  photo.uploading && "opacity-70"
+                )}
+              >
+                <img
+                  src={photo.preview}
+                  alt={`Foto ${photo.order}`}
+                  className="h-full w-full object-cover"
+                />
+
+                {/* Upload indicator */}
+                {photo.uploading && (
+                  <div className="absolute inset-0 flex items-center justify-center bg-background/50">
+                    <Loader2 className="h-5 w-5 animate-spin text-primary" />
+                  </div>
+                )}
+
+                {/* Success check */}
+                {photo.uploaded && (
+                  <div className="absolute top-1 left-1">
+                    <CheckCircle className="h-4 w-4 text-green-500 drop-shadow" />
+                  </div>
+                )}
+
+                {/* Error */}
+                {photo.error && (
+                  <div className="absolute top-1 left-1">
+                    <AlertTriangle className="h-4 w-4 text-destructive drop-shadow" />
+                  </div>
+                )}
+
+                {/* Order badge */}
+                <div className="absolute bottom-1 left-1 rounded bg-background/80 px-1 py-0.5 text-[9px] font-mono font-medium text-foreground backdrop-blur-sm">
+                  #{photo.order}
+                </div>
+
+                {/* Delete button */}
+                {!photo.uploading && (
+                  <button
+                    onClick={() => removePhoto(photo.order)}
+                    className="absolute top-1 right-1 flex h-5 w-5 items-center justify-center rounded-full bg-destructive/90 text-destructive-foreground shadow"
+                  >
+                    <X className="h-3 w-3" />
+                  </button>
+                )}
+
+                {/* Timestamp */}
+                {photo.created_at && (
+                  <div className="absolute bottom-1 right-1 rounded bg-background/80 px-1 py-0.5 text-[8px] text-muted-foreground backdrop-blur-sm">
+                    {format(new Date(photo.created_at), "HH:mm:ss")}
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Complete Button */}
+      {uploadedCount > 0 && (
+        <Button
+          variant="default"
+          size="lg"
+          className="w-full h-12 text-sm gap-2 rounded-xl bg-green-600 hover:bg-green-700 text-white"
+          onClick={handleComplete}
+          disabled={completing || uploadingCount > 0}
+        >
+          {completing ? (
+            <>
+              <Loader2 className="h-4 w-4 animate-spin" /> Wird abgeschlossen…
+            </>
+          ) : (
+            <>
+              <CheckCircle className="h-4 w-4" /> Fertig – {uploadedCount}{" "}
+              {uploadedCount === 1 ? "Foto" : "Fotos"} hochgeladen
+            </>
+          )}
+        </Button>
+      )}
+    </MobileShell>
+  );
+};
+
+// ─── Layout Shell (mobile-optimized, no sidebar) ───
+function MobileShell({ children }: { children: React.ReactNode }) {
+  return (
+    <div className="min-h-screen bg-background">
+      {/* Header */}
+      <header className="sticky top-0 z-50 border-b bg-card/95 backdrop-blur-sm px-4 py-3">
+        <div className="flex items-center gap-2">
+          <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-primary text-primary-foreground text-xs font-bold">
+            D
+          </div>
+          <span className="text-sm font-semibold text-foreground">Derm247</span>
+          <span className="ml-auto text-[10px] text-muted-foreground">Foto-Upload</span>
+        </div>
+      </header>
+
+      {/* Content */}
+      <main className="mx-auto max-w-md space-y-4 p-4">{children}</main>
+    </div>
+  );
+}
+
+// ─── Status Card (error/completed states) ───
+function StatusCard({
+  icon,
+  title,
+  description,
+}: {
+  icon: React.ReactNode;
+  title: string;
+  description: string;
+}) {
+  return (
+    <div className="flex flex-col items-center gap-4 rounded-xl border bg-card p-8 text-center shadow-sm">
+      {icon}
+      <div className="space-y-1">
+        <h2 className="text-base font-semibold text-foreground">{title}</h2>
+        <p className="text-xs text-muted-foreground">{description}</p>
+      </div>
+    </div>
+  );
+}
+
+export default MobileUpload;
