@@ -262,14 +262,15 @@ function LoadingFallback() {
 }
 
 /* ─── Scene ─── */
-function Scene({ markers, selectedLocationId, onMapClick, onMarkerClick, preset, gender }: BodyMap3DProps & { preset: CameraPreset; gender: Gender }) {
+function Scene({ markers, selectedLocationId, onMapClick, onMarkerClick, preset, gender, markMode }: BodyMap3DProps & { preset: CameraPreset; gender: Gender; markMode: boolean }) {
   const handleBodyClick = useCallback(
     (e: ThreeEvent<MouseEvent>) => {
+      if (!markMode) return;
       e.stopPropagation();
       const { x, y, view } = pointTo2D(e.point);
       onMapClick?.(x, y, view);
     },
-    [onMapClick],
+    [onMapClick, markMode],
   );
 
   return (
