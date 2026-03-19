@@ -12,6 +12,8 @@ interface Marker {
   y: number;
   name?: string;
   view?: "front" | "back";
+  imageCount?: number;
+  findingCount?: number;
 }
 
 type Gender = "female" | "male";
