@@ -24,6 +24,10 @@ const ImageCompare = ({ images, locationName, onClose }: ImageCompareProps) => {
   const [zoomedImage, setZoomedImage] = useState<LocationImage | null>(null);
   const [compareMode, setCompareMode] = useState<"side" | "overlay">("side");
   const [overlayOpacity, setOverlayOpacity] = useState(50);
+  const [overlayRotation, setOverlayRotation] = useState(0);
+  const [overlayScale, setOverlayScale] = useState(100);
+  const [overlayOffsetX, setOverlayOffsetX] = useState(0);
+  const [overlayOffsetY, setOverlayOffsetY] = useState(0);
 
   const sorted = [...images].sort(
     (a, b) => new Date(a.created_at ?? 0).getTime() - new Date(b.created_at ?? 0).getTime()
