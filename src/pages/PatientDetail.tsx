@@ -605,7 +605,26 @@ const PatientDetail = () => {
                       </p>
                     </div>
                   </div>
+                  {/* QR Upload Button */}
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="gap-1.5 text-xs"
+                    onClick={() => setQrDialogOpen(true)}
+                  >
+                    <QrCode className="h-3.5 w-3.5" /> QR Upload
+                  </Button>
                 </div>
+
+                {/* QR Upload Dialog */}
+                <QrUploadDialog
+                  open={qrDialogOpen}
+                  onOpenChange={setQrDialogOpen}
+                  patientId={patientId}
+                  patientName={patient.name}
+                  locationId={selectedLocation.id}
+                  locationName={selectedLocation.name || `Spot #${selectedLocation.id}`}
+                />
 
                 {/* Lesion Classification */}
                 {selectedLocation.type !== "region" && (
