@@ -370,6 +370,82 @@ const PatientDetail = () => {
                   {selectedLocation.findings && selectedLocation.findings.map((f) => (
                     <div key={f.id} className="flex items-start gap-2 rounded-md bg-muted/50 p-3">
                       <Activity className="h-4 w-4 mt-0.5 text-primary shrink-0" />
+                      {editingFindingId === f.id ? (
+                        <div className="flex-1 space-y-2">
+                          <Textarea
+                            value={editingFindingText}
+                            onChange={(e) => setEditingFindingText(e.target.value)}
+                            rows={2}
+                            className="text-sm"
+                          />
+                          <div className="flex gap-1.5">
+                            <Button size="sm" variant="default" onClick={() => updateFindingMutation.mutate({ findingId: f.id, description: editingFindingText })} disabled={updateFindingMutation.isPending}>
+                              <Save className="mr-1 h-3 w-3" /> Speichern
+                            </Button>
+                            <Button size="sm" variant="ghost" onClick={() => { setEditingFindingId(null); setEditingFindingText(""); }}>
+                              <X className="mr-1 h-3 w-3" /> Abbrechen
+                            </Button>
+                          </div>
+                        </div>
+                      ) : (
+                        <div className="flex-1 flex items-start justify-between">
+                          <p className="text-sm text-foreground">{f.description || "–"}</p>
+                          <div className="flex gap-1 shrink-0 ml-2">
+                            <button onClick={() => { setEditingFindingId(f.id); setEditingFindingText(f.description || ""); }} className="p-1 rounded hover:bg-muted text-muted-foreground hover:text-foreground">
+                              <Pencil className="h-3.5 w-3.5" />
+                            </button>
+                            <button onClick={() => deleteFindingMutation.mutate(f.id)} className="p-1 rounded hover:bg-destructive/10 text-muted-foreground hover:text-destructive">
+                              <Trash2 className="h-3.5 w-3.5" />
+                            </button>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  ))}
+
+                  {/* Add new finding */}
+                  <div className="space-y-2 pt-2 border-t">
+                    <Textarea
+                      placeholder="Neuen Befund eingeben…"
+                      value={newFindingText}
+                      onChange={(e) => setNewFindingText(e.target.value)}
+                      rows={2}
+                      className="text-sm"
+                    />
+                    <Button
+                      size="sm"
+                      disabled={!newFindingText.trim() || createFindingMutation.isPending}
+                      onClick={() => createFindingMutation.mutate({ locationId: selectedLocation.id, description: newFindingText.trim() })}
+                    >
+                      <Plus className="mr-1 h-3 w-3" /> Befund hinzufügen
+                    </Button>
+                  </div>
+                </div>
+
+                {/* Image Gallery */}
+                <ImageGallery
+                  locationId={selectedLocation.id}
+                  patientId={patientId}
+                  images={selectedLocation.images ?? []}
+                  locationName={selectedLocation.name || `Spot #${selectedLocation.id}`}
+                />
+              </motion.div>
+            ) : (
+              <motion.div
+                key="empty"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                className="flex flex-col items-center justify-center h-full text-muted-foreground"
+              >
+                <div className="flex h-16 w-16 items-center justify-center rounded-full bg-muted mb-4">
+                  <MapPin className="h-8 w-8" />
+                </div>
+                <p className="text-sm font-medium">Wählen Sie eine Körperstelle aus</p>
+                <p className="text-xs mt-1">oder klicken Sie auf die Body Map, um eine neue Stelle zu markieren</p>
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </div>
       </div>
 
       {/* New Location Dialog */}
