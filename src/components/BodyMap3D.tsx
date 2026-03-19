@@ -10,6 +10,12 @@ interface Marker {
   id: number;
   x: number;
   y: number;
+  x3d?: number;
+  y3d?: number;
+  z3d?: number;
+  nx?: number;
+  ny?: number;
+  nz?: number;
   name?: string;
   view?: "front" | "back";
   imageCount?: number;
@@ -26,7 +32,14 @@ interface BodyMap3DProps {
   markers: Marker[];
   selectedLocationId: number | null;
   gender?: Gender;
-  onMapClick?: (x: number, y: number, view: "front" | "back", markType?: MarkType) => void;
+  onMapClick?: (
+    x: number,
+    y: number,
+    view: "front" | "back",
+    markType?: MarkType,
+    point3d?: [number, number, number],
+    normal3d?: [number, number, number],
+  ) => void;
   onMarkerClick?: (id: number) => void;
 }
 
