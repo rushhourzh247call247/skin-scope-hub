@@ -1,45 +1,25 @@
 
 
-# 3D Body Map mit React Three Fiber
+# Männliches GLB-Modell integrieren
 
 ## Übersicht
-Ersetze die aktuelle 2D SVG Body Map durch ein interaktives 3D-Modell im DermEngine-Stil. Der Patient kann von allen Seiten betrachtet werden (drehen, zoomen), Spots werden direkt auf der 3D-Oberfläche platziert.
+Das hochgeladene `Male_base.glb` wird als dediziertes männliches 3D-Modell eingebunden. Der Frau/Mann-Umschalter lädt dann jeweils das passende GLB-Modell, statt das weibliche Modell programmatisch zu verformen.
 
-## Technischer Ansatz
+## Schritte
 
-**Bibliotheken** (React 18 kompatibel):
-- `@react-three/fiber@^8.18` — React-Renderer für Three.js
-- `three@^0.160` — 3D-Engine
-- `@react-three/drei@^9.122.0` — Helpers (OrbitControls, Html-Overlays, Environment Lighting)
+1. **GLB-Datei kopieren** — `user-uploads://Male_base.glb` → `public/models/male_body.glb`
 
-**3D-Modell:**
-- Verwende ein parametrisches menschliches Körpermodell (programmatisch aus Three.js Geometrien aufgebaut — Capsule/Sphere/Cylinder Primitives für Kopf, Torso, Arme, Beine)
-- Alternativ: Ein freies GLTF Human-Mesh einbetten (z.B. von Mixamo/Sketchfab CC0)
-- Hautfarbene PBR-Materialien mit Subsurface-Look
+2. **BodyMap3D.tsx anpassen:**
+   - Zweite Model-URL definieren: `MALE_MODEL_URL = "/models/male_body.glb"`
+   - `BodyModel` erhält je nach `gender` das passende Modell via `useGLTF`
+   - `makeMale()`-Funktion komplett entfernen (nicht mehr nötig)
+   - Beide Modelle mit `useGLTF.preload()` vorladen
+   - Gleiche Skin-Material, Normalisierung und Center-Logik für beide Modelle
 
-**Interaktion:**
-- OrbitControls für Drehen/Zoomen mit Touch-Support
-- Raycasting bei Klick → berechne UV/3D-Koordinaten → speichere als Spot
-- Spots als kleine leuchtende Spheres auf der Körperoberfläche mit Html-Label Overlays
-- Region-Buttons (Kopf, Torso, Arme, Beine) animieren die Kamera zu vordefinierten Positionen
+3. **Kamera-Presets prüfen** — Falls das männliche Modell andere Proportionen hat, ggf. Y-Offsets feinjustieren (vermutlich minimal, da beide auf gleiche Höhe normalisiert werden)
 
-**Komponenten-Architektur:**
-1. `src/components/BodyMap3D.tsx` — Neue 3D-Komponente mit Canvas, Modell, Markers, Controls
-2. `src/components/BodyMapSvg.tsx` — Bleibt als Fallback erhalten
-3. `src/pages/PatientDetail.tsx` — Switche auf BodyMap3D in der linken Sidebar
-
-## Umsetzungsschritte
-
-1. **Dependencies installieren**: `three`, `@react-three/fiber@^8.18`, `@react-three/drei@^9.122.0`
-2. **BodyMap3D Komponente erstellen**: Canvas mit programmatischem Körpermodell aus Primitives (Capsules, Spheres), hautfarbenes Material, Studio-Beleuchtung
-3. **OrbitControls & Kamera-Presets**: Drehen/Zoomen + Region-Buttons die Kamera zu Kopf/Torso/Armen/Beinen animieren
-4. **Raycasting für Spot-Platzierung**: Klick auf Körper → 3D-Position → neuer Spot mit Marker-Sphere
-5. **Marker-Rendering**: Bestehende Spots als leuchtende Kugeln mit pulsierender Animation + Html-Labels
-6. **Integration in PatientDetail**: SVG-Map durch 3D-Canvas ersetzen, gleiche Props/Callbacks beibehalten
-7. **Bottom-Bar**: "Add Mole", "Add Hair", "Add General" Buttons wie im DermEngine-Screenshot
-
-## Einschränkungen
-- Programmatisches Modell aus Primitives sieht gut aus, ist aber nicht so detailliert wie ein gescanntes 3D-Mesh
-- Für ein fotorealistisches Modell bräuchte man eine externe GLTF-Datei (~2-5MB)
-- UV-Mapping für exakte Spot-Positionen funktioniert am besten mit einem echten Mesh-Modell
+## Technische Details
+- Beide Modelle werden auf dieselbe Höhe (2.5 units) normalisiert via `Box3`
+- `useMemo` dependency auf `gender` sorgt für sauberen Wechsel
+- Kein programmatisches Vertex-Morphing mehr nötig — sauberer und performanter
 
