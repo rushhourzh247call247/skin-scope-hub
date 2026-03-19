@@ -92,11 +92,13 @@ useGLTF.preload(FEMALE_MODEL_URL);
 useGLTF.preload(MALE_MODEL_URL);
 
 /* ─── Spot Marker ─── */
-function SpotMarker({ position, name, isSelected, onClick }: {
+function SpotMarker({ position, name, isSelected, onClick, imageCount, findingCount }: {
   position: [number, number, number];
   name?: string;
   isSelected: boolean;
   onClick: () => void;
+  imageCount?: number;
+  findingCount?: number;
 }) {
   const meshRef = useRef<THREE.Mesh>(null);
   const [hovered, setHovered] = useState(false);
@@ -106,7 +108,7 @@ function SpotMarker({ position, name, isSelected, onClick }: {
     if (isSelected) {
       meshRef.current.scale.setScalar(1 + Math.sin(Date.now() * 0.005) * 0.2);
     } else {
-      meshRef.current.scale.setScalar(hovered ? 1.3 : 1);
+      meshRef.current.scale.setScalar(hovered ? 1.4 : 1);
     }
   });
 
@@ -121,25 +123,56 @@ function SpotMarker({ position, name, isSelected, onClick }: {
         onPointerOver={() => setHovered(true)}
         onPointerOut={() => setHovered(false)}
       >
-        <sphereGeometry args={[0.025, 16, 16]} />
+        <sphereGeometry args={[0.03, 16, 16]} />
         <meshStandardMaterial
-          color="#38bdf8"
+          color={isSelected ? "#0ea5e9" : "#38bdf8"}
           emissive={isSelected ? "#0284c7" : "#1d4ed8"}
           emissiveIntensity={isSelected ? 0.8 : 0.3}
           transparent
           opacity={isSelected ? 0.95 : 0.85}
         />
       </mesh>
-      {isSelected && (
-        <mesh rotation={[Math.PI / 2, 0, 0]}>
-          <ringGeometry args={[0.04, 0.055, 32]} />
-          <meshBasicMaterial color="#38bdf8" transparent opacity={0.5} side={THREE.DoubleSide} />
-        </mesh>
-      )}
-      {(isSelected || hovered) && name && (
-        <Html position={[0, 0.07, 0]} center style={{ pointerEvents: "none" }}>
-          <div className="rounded-md border bg-popover px-2 py-1 text-[10px] font-medium text-popover-foreground shadow-lg whitespace-nowrap">
+      {/* Outer glow ring - always visible */}
+      <mesh rotation={[Math.PI / 2, 0, 0]}>
+        <ringGeometry args={[0.035, isSelected ? 0.055 : 0.045, 32]} />
+        <meshBasicMaterial
+          color={isSelected ? "#0ea5e9" : "#38bdf8"}
+          transparent
+          opacity={isSelected ? 0.6 : 0.25}
+          side={THREE.DoubleSide}
+        />
+      </mesh>
+      {/* Always-visible small label */}
+      {name && !hovered && !isSelected && (
+        <Html position={[0, 0.06, 0]} center style={{ pointerEvents: "none" }}>
+          <div className="rounded bg-card/90 border border-border/50 px-1.5 py-0.5 text-[8px] font-medium text-muted-foreground shadow whitespace-nowrap backdrop-blur-sm">
             {name}
+          </div>
+        </Html>
+      )}
+      {/* Rich hover/selected tooltip */}
+      {(isSelected || hovered) && (
+        <Html position={[0, 0.08, 0]} center style={{ pointerEvents: "none" }}>
+          <div className="rounded-lg border bg-popover px-3 py-2 shadow-xl whitespace-nowrap backdrop-blur-sm min-w-[120px]">
+            <p className="text-[11px] font-semibold text-popover-foreground">{name || "Spot"}</p>
+            <div className="mt-1 flex items-center gap-3 text-[9px] text-muted-foreground">
+              {(imageCount ?? 0) > 0 && (
+                <span className="flex items-center gap-0.5">
+                  📷 {imageCount} {imageCount === 1 ? "Bild" : "Bilder"}
+                </span>
+              )}
+              {(findingCount ?? 0) > 0 && (
+                <span className="flex items-center gap-0.5">
+                  📋 {findingCount} {findingCount === 1 ? "Befund" : "Befunde"}
+                </span>
+              )}
+              {(imageCount ?? 0) === 0 && (findingCount ?? 0) === 0 && (
+                <span>Keine Einträge</span>
+              )}
+            </div>
+            {hovered && !isSelected && (
+              <p className="mt-1 text-[8px] text-primary font-medium">Klicken für Details & Fotos</p>
+            )}
           </div>
         </Html>
       )}
