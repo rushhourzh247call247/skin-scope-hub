@@ -79,7 +79,7 @@ const PatientDetail = () => {
   const selectedLocation = locations.find((l) => l.id === selectedLocationId);
   const totalImages = locations.reduce((sum, l) => sum + (l.images?.length ?? 0), 0);
 
-  const handleMapClick = (x: number, y: number, view: "front" | "back") => setMapClickDialog({ x, y, view });
+  const handleMapClick = (x: number, y: number, view: "front" | "back", markType?: "spot" | "region") => setMapClickDialog({ x, y, view, markType });
 
   const handleCreateLocation = () => {
     if (!mapClickDialog) return;
@@ -88,6 +88,9 @@ const PatientDetail = () => {
       x: mapClickDialog.x,
       y: mapClickDialog.y,
       view: mapClickDialog.view,
+      type: mapClickDialog.markType || "spot",
+      width: mapClickDialog.markType === "region" ? 40 : undefined,
+      height: mapClickDialog.markType === "region" ? 30 : undefined,
     });
   };
 
