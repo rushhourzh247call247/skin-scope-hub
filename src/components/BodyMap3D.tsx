@@ -40,7 +40,8 @@ const CAMERA_PRESETS: Record<Region, CameraPreset> = {
   back: { position: [0, 0, -3.5], target: [0, 0, 0], label: "Rücken", icon: User },
 };
 
-const MODEL_URL = "/models/body.glb";
+const FEMALE_MODEL_URL = "/models/body.glb";
+const MALE_MODEL_URL = "/models/male_body.glb";
 
 /* ─── Skin Material ─── */
 const skinMaterial = new THREE.MeshStandardMaterial({
