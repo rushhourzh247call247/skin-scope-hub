@@ -40,7 +40,8 @@ const CAMERA_PRESETS: Record<Region, CameraPreset> = {
   back: { position: [0, 0, -3.5], target: [0, 0, 0], label: "Rücken", icon: User },
 };
 
-const MODEL_URL = "/models/body.glb";
+const FEMALE_MODEL_URL = "/models/body.glb";
+const MALE_MODEL_URL = "/models/male_body.glb";
 
 /* ─── Skin Material ─── */
 const skinMaterial = new THREE.MeshStandardMaterial({
@@ -51,79 +52,13 @@ const skinMaterial = new THREE.MeshStandardMaterial({
   emissiveIntensity: 0.06,
 });
 
-/* ─── Male morph (clearer silhouette) ─── */
-function makeMale(scene: THREE.Object3D) {
-  scene.traverse((child) => {
-    if (!(child as THREE.Mesh).isMesh) return;
-
-    const mesh = child as THREE.Mesh;
-    const geo = mesh.geometry;
-    if (!geo || !geo.attributes.position) return;
-
-    const pos = geo.attributes.position;
-    geo.computeBoundingBox();
-    const box = geo.boundingBox;
-    if (!box) return;
-
-    const size = box.getSize(new THREE.Vector3());
-    const center = box.getCenter(new THREE.Vector3());
-    const height = Math.max(size.y, 0.001);
-    const halfX = Math.max(size.x * 0.5, 0.001);
-    const halfZ = Math.max(size.z * 0.5, 0.001);
-
-    for (let i = 0; i < pos.count; i++) {
-      const x = pos.getX(i);
-      const y = pos.getY(i);
-      const z = pos.getZ(i);
-
-      const ny = (y - box.min.y) / height;
-      const sign = x >= center.x ? 1 : -1;
-      const distX = Math.abs(x - center.x) / halfX;
-      const distZ = Math.abs(z - center.z) / halfZ;
-
-      // Wider shoulders
-      if (ny > 0.67 && ny < 0.84) {
-        const f = Math.sin(((ny - 0.67) / 0.17) * Math.PI);
-        pos.setX(i, x + sign * Math.abs(x - center.x) * 0.22 * f * distX);
-      }
-
-      // Flatter chest (front)
-      if (ny > 0.54 && ny < 0.76 && z > center.z) {
-        const f = Math.sin(((ny - 0.54) / 0.22) * Math.PI);
-        pos.setZ(i, z - (z - center.z) * 0.9 * f * distZ);
-      }
-
-      // Slightly narrower waist
-      if (ny > 0.46 && ny < 0.60) {
-        const f = Math.sin(((ny - 0.46) / 0.14) * Math.PI);
-        pos.setX(i, x - sign * Math.abs(x - center.x) * 0.12 * f * distX);
-      }
-
-      // Narrower hips
-      if (ny > 0.32 && ny < 0.48) {
-        const f = Math.sin(((ny - 0.32) / 0.16) * Math.PI);
-        pos.setX(i, x - sign * Math.abs(x - center.x) * 0.24 * f * distX);
-      }
-
-      // Flatter buttocks
-      if (ny > 0.36 && ny < 0.52 && z < center.z) {
-        const f = Math.sin(((ny - 0.36) / 0.16) * Math.PI);
-        pos.setZ(i, z + Math.abs(z - center.z) * 0.42 * f * distZ);
-      }
-    }
-
-    pos.needsUpdate = true;
-    geo.computeVertexNormals();
-  });
-}
-
 /* ─── GLB Body Model ─── */
 function BodyModel({ onBodyClick, gender }: { onBodyClick: (e: ThreeEvent<MouseEvent>) => void; gender: Gender }) {
-  const { scene } = useGLTF(MODEL_URL);
+  const modelUrl = gender === "male" ? MALE_MODEL_URL : FEMALE_MODEL_URL;
+  const { scene } = useGLTF(modelUrl);
 
   const clonedScene = useMemo(() => {
     const clone = scene.clone(true);
-
     clone.traverse((child) => {
       if ((child as THREE.Mesh).isMesh) {
         const mesh = child as THREE.Mesh;
@@ -133,13 +68,8 @@ function BodyModel({ onBodyClick, gender }: { onBodyClick: (e: ThreeEvent<MouseE
         mesh.receiveShadow = true;
       }
     });
-
-    if (gender === "male") {
-      makeMale(clone);
-    }
-
     return clone;
-  }, [scene, gender]);
+  }, [scene]);
 
   const normalizedScale = useMemo(() => {
     const box = new THREE.Box3().setFromObject(clonedScene);
@@ -155,7 +85,8 @@ function BodyModel({ onBodyClick, gender }: { onBodyClick: (e: ThreeEvent<MouseE
   );
 }
 
-useGLTF.preload(MODEL_URL);
+useGLTF.preload(FEMALE_MODEL_URL);
+useGLTF.preload(MALE_MODEL_URL);
 
 /* ─── Spot Marker ─── */
 function SpotMarker({ position, name, isSelected, onClick }: {
