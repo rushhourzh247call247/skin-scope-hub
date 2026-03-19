@@ -128,9 +128,9 @@ export const mockApi = {
     await delay();
     return [...patients];
   },
-  createPatient: async (data: { name: string; birth_date: string }) => {
+  createPatient: async (data: { name: string; birth_date: string; gender: "female" | "male"; email?: string; phone?: string; insurance_number?: string; notes?: string }) => {
     await delay();
-    const p: Patient = { id: nextId.patient++, name: data.name, birth_date: data.birth_date, created_at: new Date().toISOString() };
+    const p: Patient = { id: nextId.patient++, name: data.name, birth_date: data.birth_date, gender: data.gender, email: data.email, phone: data.phone, insurance_number: data.insurance_number, notes: data.notes, created_at: new Date().toISOString() };
     patients.push(p);
     return p;
   },

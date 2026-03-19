@@ -1,7 +1,14 @@
+export type Gender = "female" | "male";
+
 export interface Patient {
   id: number;
   name: string;
   birth_date: string;
+  gender: Gender;
+  email?: string;
+  phone?: string;
+  insurance_number?: string;
+  notes?: string;
   created_at?: string;
   updated_at?: string;
 }
