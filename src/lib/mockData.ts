@@ -42,12 +42,12 @@ const demoImages: LocationImage[] = [
 
 // --- Patients with locations ---
 let patients: Patient[] = [
-  { id: 1, name: "Maria Schneider", birth_date: "1985-03-14", created_at: "2025-05-20T08:30:00Z" },
-  { id: 2, name: "Thomas Brunner", birth_date: "1972-11-08", created_at: "2025-06-15T10:00:00Z" },
-  { id: 3, name: "Elena Fischer", birth_date: "1990-07-22", created_at: "2025-08-01T14:00:00Z" },
-  { id: 4, name: "Hans Keller", birth_date: "1958-01-30", created_at: "2025-09-10T09:15:00Z" },
-  { id: 5, name: "Sophie Huber", birth_date: "1995-12-05", created_at: "2025-10-22T11:45:00Z" },
-  { id: 6, name: "Marco Rossi", birth_date: "1968-06-17", created_at: "2025-11-30T16:00:00Z" },
+  { id: 1, name: "Maria Schneider", birth_date: "1985-03-14", gender: "female", email: "m.schneider@mail.ch", phone: "+41 79 123 45 67", created_at: "2025-05-20T08:30:00Z" },
+  { id: 2, name: "Thomas Brunner", birth_date: "1972-11-08", gender: "male", email: "t.brunner@mail.ch", phone: "+41 78 234 56 78", created_at: "2025-06-15T10:00:00Z" },
+  { id: 3, name: "Elena Fischer", birth_date: "1990-07-22", gender: "female", email: "e.fischer@mail.ch", created_at: "2025-08-01T14:00:00Z" },
+  { id: 4, name: "Hans Keller", birth_date: "1958-01-30", gender: "male", phone: "+41 76 345 67 89", created_at: "2025-09-10T09:15:00Z" },
+  { id: 5, name: "Sophie Huber", birth_date: "1995-12-05", gender: "female", email: "s.huber@mail.ch", phone: "+41 79 456 78 90", created_at: "2025-10-22T11:45:00Z" },
+  { id: 6, name: "Marco Rossi", birth_date: "1968-06-17", gender: "male", email: "m.rossi@mail.ch", created_at: "2025-11-30T16:00:00Z" },
 ];
 
 let locations: (Location & { images: LocationImage[]; findings: Finding[] })[] = [
@@ -128,9 +128,9 @@ export const mockApi = {
     await delay();
     return [...patients];
   },
-  createPatient: async (data: { name: string; birth_date: string }) => {
+  createPatient: async (data: { name: string; birth_date: string; gender: "female" | "male"; email?: string; phone?: string; insurance_number?: string; notes?: string }) => {
     await delay();
-    const p: Patient = { id: nextId.patient++, name: data.name, birth_date: data.birth_date, created_at: new Date().toISOString() };
+    const p: Patient = { id: nextId.patient++, name: data.name, birth_date: data.birth_date, gender: data.gender, email: data.email, phone: data.phone, insurance_number: data.insurance_number, notes: data.notes, created_at: new Date().toISOString() };
     patients.push(p);
     return p;
   },
