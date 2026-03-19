@@ -83,18 +83,25 @@ const PatientDetail = () => {
   const selectedLocation = locations.find((l) => l.id === selectedLocationId);
   const totalImages = locations.reduce((sum, l) => sum + (l.images?.length ?? 0), 0);
 
-  const handleMapClick = (x: number, y: number, view: "front" | "back", markType?: "spot" | "region") => setMapClickDialog({ x, y, view, markType });
+  const handleMapClick = (x: number, y: number, view: "front" | "back", markType?: "spot" | "region") => {
+    setSpotX(x);
+    setSpotY(y);
+    setRegionWidth(40);
+    setRegionHeight(30);
+    setMapClickDialog({ x, y, view, markType });
+  };
 
   const handleCreateLocation = () => {
     if (!mapClickDialog) return;
+    const isRegion = mapClickDialog.markType === "region";
     createLocationMutation.mutate({
       name: locationName.trim() || undefined,
-      x: mapClickDialog.x,
-      y: mapClickDialog.y,
+      x: isRegion ? mapClickDialog.x : spotX,
+      y: isRegion ? mapClickDialog.y : spotY,
       view: mapClickDialog.view,
       type: mapClickDialog.markType || "spot",
-      width: mapClickDialog.markType === "region" ? 40 : undefined,
-      height: mapClickDialog.markType === "region" ? 30 : undefined,
+      width: isRegion ? regionWidth : undefined,
+      height: isRegion ? regionHeight : undefined,
     });
   };
 
