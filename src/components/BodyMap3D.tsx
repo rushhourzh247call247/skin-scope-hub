@@ -22,14 +22,19 @@ interface BodyMap3DProps {
 }
 
 /* ─── Camera Presets ─── */
-type Region = "full" | "head" | "torso" | "arms" | "legs";
+type Region = "full" | "head" | "torso" | "left_arm" | "right_arm" | "hands" | "legs" | "knees" | "feet" | "back";
 
 const CAMERA_PRESETS: Record<Region, { position: [number, number, number]; target: [number, number, number]; label: string; icon: React.ElementType }> = {
-  full:  { position: [0, 0.5, 3.5],  target: [0, 0.5, 0],   label: "Ganzkörper", icon: User },
-  head:  { position: [0, 1.8, 1.2],  target: [0, 1.7, 0],   label: "Kopf",       icon: Eye },
-  torso: { position: [0, 1.0, 1.8],  target: [0, 1.0, 0],   label: "Torso",      icon: Shirt },
-  arms:  { position: [1.8, 1.0, 1.5], target: [0, 1.0, 0],  label: "Arme",       icon: Hand },
-  legs:  { position: [0, -0.3, 2.2], target: [0, -0.2, 0],  label: "Beine",      icon: Footprints },
+  full:      { position: [0, 0.3, 3.2],    target: [0, 0.3, 0],    label: "Ganzkörper",  icon: User },
+  head:      { position: [0, 1.5, 0.8],    target: [0, 1.4, 0],    label: "Kopf",        icon: Eye },
+  torso:     { position: [0, 0.7, 1.5],    target: [0, 0.7, 0],    label: "Torso",       icon: Shirt },
+  left_arm:  { position: [-1.2, 0.8, 1.0], target: [-0.5, 0.8, 0], label: "L. Arm",      icon: Hand },
+  right_arm: { position: [1.2, 0.8, 1.0],  target: [0.5, 0.8, 0],  label: "R. Arm",      icon: Hand },
+  hands:     { position: [0, 0.2, 0.8],    target: [0, 0.2, 0],    label: "Hände",       icon: CircleDot },
+  legs:      { position: [0, -0.3, 1.8],   target: [0, -0.3, 0],   label: "Beine",       icon: Footprints },
+  knees:     { position: [0, -0.6, 1.0],   target: [0, -0.6, 0],   label: "Knie",        icon: ArrowDown },
+  feet:      { position: [0, -1.3, 0.8],   target: [0, -1.3, 0],   label: "Füße",        icon: Footprints },
+  back:      { position: [0, 0.3, -3.2],   target: [0, 0.3, 0],    label: "Rücken",      icon: User },
 };
 
 const MODEL_URL = "/models/body.glb";
