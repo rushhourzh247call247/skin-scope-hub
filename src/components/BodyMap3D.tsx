@@ -291,6 +291,8 @@ function Scene({ markers, selectedLocationId, onMapClick, onMarkerClick, preset,
           name={m.name}
           isSelected={m.id === selectedLocationId}
           onClick={() => onMarkerClick?.(m.id)}
+          imageCount={m.imageCount}
+          findingCount={m.findingCount}
         />
       ))}
 
