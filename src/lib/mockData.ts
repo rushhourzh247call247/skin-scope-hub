@@ -181,6 +181,45 @@ export const mockApi = {
   // Image URL helper (mock images are already full URLs)
   getImageUrl: (path: string) => path,
 
+  // Findings
+  createFinding: async (locationId: number, description: string) => {
+    await delay();
+    const finding: Finding = {
+      id: nextId.finding++,
+      location_id: locationId,
+      description,
+      created_at: new Date().toISOString(),
+    };
+    const loc = locations.find(l => l.id === locationId);
+    if (loc) loc.findings.push(finding);
+    return finding;
+  },
+
+  updateFinding: async (findingId: number, description: string) => {
+    await delay();
+    for (const loc of locations) {
+      const f = loc.findings.find(f => f.id === findingId);
+      if (f) {
+        f.description = description;
+        f.updated_at = new Date().toISOString();
+        return f;
+      }
+    }
+    throw new Error("Befund nicht gefunden");
+  },
+
+  deleteFinding: async (findingId: number) => {
+    await delay();
+    for (const loc of locations) {
+      const idx = loc.findings.findIndex(f => f.id === findingId);
+      if (idx !== -1) {
+        loc.findings.splice(idx, 1);
+        return { success: true };
+      }
+    }
+    throw new Error("Befund nicht gefunden");
+  },
+
   // Dashboard stats
   getDashboardStats: async () => {
     await delay();
