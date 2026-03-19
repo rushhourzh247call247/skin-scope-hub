@@ -50,6 +50,30 @@ const PatientDetail = () => {
     },
   });
 
+  const createFindingMutation = useMutation({
+    mutationFn: ({ locationId, description }: { locationId: number; description: string }) =>
+      mockApi.createFinding(locationId, description),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["full-patient", patientId] });
+      setNewFindingText("");
+    },
+  });
+
+  const updateFindingMutation = useMutation({
+    mutationFn: ({ findingId, description }: { findingId: number; description: string }) =>
+      mockApi.updateFinding(findingId, description),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["full-patient", patientId] });
+      setEditingFindingId(null);
+      setEditingFindingText("");
+    },
+  });
+
+  const deleteFindingMutation = useMutation({
+    mutationFn: (findingId: number) => mockApi.deleteFinding(findingId),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["full-patient", patientId] }),
+  });
+
   const locations = patient?.locations ?? [];
   const selectedLocation = locations.find((l) => l.id === selectedLocationId);
   const totalImages = locations.reduce((sum, l) => sum + (l.images?.length ?? 0), 0);
