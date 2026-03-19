@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { DermLogo } from "@/components/DermLogo";
 import { LogIn } from "lucide-react";
 
 const Login = () => {
@@ -33,11 +34,8 @@ const Login = () => {
     <div className="flex min-h-screen items-center justify-center bg-background px-4">
       <Card className="w-full max-w-sm">
         <CardHeader className="text-center">
-          <div className="mx-auto mb-2 flex h-10 w-10 items-center justify-center rounded-md bg-primary">
-            <span className="text-lg font-bold text-primary-foreground">d</span>
-          </div>
-          <CardTitle className="text-xl">derm<span className="text-primary">247</span></CardTitle>
-          <CardDescription>Melden Sie sich an, um fortzufahren</CardDescription>
+          <DermLogo size="lg" className="justify-center" />
+          <CardDescription className="mt-2">Melden Sie sich an, um fortzufahren</CardDescription>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-4">
