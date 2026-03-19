@@ -315,37 +315,38 @@ const PatientDetail = () => {
                     : "hover:bg-muted text-foreground border border-transparent"
                 )}
               >
-                <div
-                  className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full text-[10px] font-bold"
-                  style={{
-                    backgroundColor: (loc as any).classification
-                      ? LESION_CLASSIFICATIONS[(loc as any).classification as LesionClassification]?.color || undefined
-                      : undefined,
-                    color: (loc as any).classification && (loc as any).classification !== "unclassified" ? "#fff" : undefined,
-                  }}
-                  className={cn(
-                    "flex h-5 w-5 shrink-0 items-center justify-center rounded-full text-[10px] font-bold",
-                    !(loc as any).classification || (loc as any).classification === "unclassified"
-                      ? selectedLocationId === loc.id ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground"
-                      : ""
-                  )}
-                >
-                  {i + 1}
-                </div>
+                {(() => {
+                  const cls = (loc as any).classification as LesionClassification | undefined;
+                  const hasClass = cls && cls !== "unclassified";
+                  const clsColor = hasClass ? LESION_CLASSIFICATIONS[cls]?.color : undefined;
+                  return (
+                    <div
+                      className={cn(
+                        "flex h-5 w-5 shrink-0 items-center justify-center rounded-full text-[10px] font-bold",
+                        !hasClass && (selectedLocationId === loc.id ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground"),
+                      )}
+                      style={hasClass ? { backgroundColor: clsColor, color: "#fff" } : undefined}
+                    >
+                      {i + 1}
+                    </div>
+                  );
+                })()}
                 <div className="min-w-0 flex-1">
                   <div className="flex items-center gap-1.5">
                     <p className="truncate font-medium">{loc.name || `Spot ${i + 1}`}</p>
-                    {(loc as any).classification && (loc as any).classification !== "unclassified" && (
-                      <span
-                        className="text-[8px] font-bold px-1 rounded"
-                        style={{
-                          backgroundColor: `${LESION_CLASSIFICATIONS[(loc as any).classification as LesionClassification]?.color}20`,
-                          color: LESION_CLASSIFICATIONS[(loc as any).classification as LesionClassification]?.color,
-                        }}
-                      >
-                        {LESION_CLASSIFICATIONS[(loc as any).classification as LesionClassification]?.shortLabel}
-                      </span>
-                    )}
+                    {(() => {
+                      const cls = (loc as any).classification as LesionClassification | undefined;
+                      if (!cls || cls === "unclassified") return null;
+                      const info = LESION_CLASSIFICATIONS[cls];
+                      return (
+                        <span
+                          className="text-[8px] font-bold px-1 rounded"
+                          style={{ backgroundColor: `${info.color}20`, color: info.color }}
+                        >
+                          {info.shortLabel}
+                        </span>
+                      );
+                    })()}
                   </div>
                   <p className="text-[10px] text-muted-foreground">
                     {loc.images?.length ?? 0} Bilder · {loc.view === "back" ? "Hinten" : "Vorne"}
