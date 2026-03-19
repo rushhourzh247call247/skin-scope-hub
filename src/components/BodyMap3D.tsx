@@ -267,7 +267,7 @@ function Scene({ markers, selectedLocationId, onMapClick, onMarkerClick, preset,
 /* ─── Main Component ─── */
 const BodyMap3D: React.FC<BodyMap3DProps> = (props) => {
   const [activeRegion, setActiveRegion] = useState<Region>("full");
-  const [gender, setGender] = useState<Gender>("female");
+  const gender = props.gender ?? "male";
   const preset = CAMERA_PRESETS[activeRegion];
 
   return (
