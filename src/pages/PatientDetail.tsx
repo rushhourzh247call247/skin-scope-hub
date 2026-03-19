@@ -284,7 +284,7 @@ const PatientDetail = () => {
         <div className="w-[300px] shrink-0 border-r bg-card p-3 overflow-y-auto flex flex-col">
           <div className="h-[350px]">
             <BodyMap3D
-              markers={locations.map((l) => ({ id: l.id, x: l.x, y: l.y, x3d: l.x3d, y3d: l.y3d, z3d: l.z3d, nx: l.nx, ny: l.ny, nz: l.nz, name: l.name, view: l.view, type: l.type, width: l.width, height: l.height, imageCount: l.images?.length ?? 0, findingCount: l.findings?.length ?? 0 }))}
+              markers={locations.map((l) => ({ id: l.id, x: l.x, y: l.y, x3d: l.x3d, y3d: l.y3d, z3d: l.z3d, nx: l.nx, ny: l.ny, nz: l.nz, name: l.name, view: l.view, type: l.type, width: l.width, height: l.height, imageCount: l.images?.length ?? 0, findingCount: l.findings?.length ?? 0, classification: (l as any).classification, classificationColor: LESION_CLASSIFICATIONS[(l as any).classification as LesionClassification || "unclassified"]?.color }))}
               gender={patient.gender}
               onMapClick={handleMapClick}
               selectedLocationId={selectedLocationId}
