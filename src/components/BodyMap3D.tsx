@@ -164,9 +164,9 @@ function CameraAnimator({ preset }: { preset: { position: [number, number, numbe
   return (
     <OrbitControls
       ref={controlsRef}
-      enablePan={false}
-      minDistance={1}
-      maxDistance={6}
+      enablePan={true}
+      minDistance={0.3}
+      maxDistance={8}
       target={tarVec}
     />
   );
