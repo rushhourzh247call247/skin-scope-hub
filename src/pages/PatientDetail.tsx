@@ -29,6 +29,9 @@ const PatientDetail = () => {
   const [mapClickDialog, setMapClickDialog] = useState<{ x: number; y: number; view: "front" | "back" } | null>(null);
   const [locationName, setLocationName] = useState("");
   const [activeTab, setActiveTab] = useState<"spots" | "timeline">("spots");
+  const [newFindingText, setNewFindingText] = useState("");
+  const [editingFindingId, setEditingFindingId] = useState<number | null>(null);
+  const [editingFindingText, setEditingFindingText] = useState("");
 
   const { data: patient, isLoading, error } = useQuery({
     queryKey: ["full-patient", patientId],
