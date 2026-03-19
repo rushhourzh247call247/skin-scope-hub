@@ -201,6 +201,20 @@ const SpotMarker = React.forwardRef<THREE.Group, SpotMarkerProps>(function SpotM
           </mesh>
         )}
 
+        {/* High-risk outer glow ring */}
+        {isHighRisk && !isSelected && (
+          <mesh rotation={[0, 0, 0]}>
+            <ringGeometry args={[0.038, 0.046, 48]} />
+            <meshBasicMaterial
+              color="#ef4444"
+              transparent
+              opacity={0.3 + Math.sin(Date.now() * 0.005) * 0.15}
+              side={THREE.DoubleSide}
+              depthTest={false}
+            />
+          </mesh>
+        )}
+
         {/* Invisible click target (larger) */}
         <mesh>
           <circleGeometry args={[0.045, 16]} />
