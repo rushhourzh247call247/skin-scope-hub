@@ -41,7 +41,7 @@ const PatientDetail = () => {
     nz?: number;
   } | null>(null);
   const [locationName, setLocationName] = useState("");
-  const [activeTab, setActiveTab] = useState<"spots" | "timeline">("spots");
+  const [activeTab, setActiveTab] = useState<"spots" | "timeline" | "fotos">("spots");
   const [newFindingText, setNewFindingText] = useState("");
   const [regionWidth, setRegionWidth] = useState(40);
   const [regionHeight, setRegionHeight] = useState(30);
