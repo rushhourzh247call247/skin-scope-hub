@@ -46,21 +46,29 @@ const skinMaterial = new THREE.MeshStandardMaterial({
 /* ─── GLB Body Model ─── */
 function BodyModel({ onBodyClick }: { onBodyClick: (e: ThreeEvent<MouseEvent>) => void }) {
   const { scene } = useGLTF(MODEL_URL);
+  const clonedScene = useMemo(() => scene.clone(true), [scene]);
 
-  // Apply skin material to all meshes
-  useMemo(() => {
-    scene.traverse((child) => {
+  // Apply skin material and compute scale to normalize height ~2 units
+  const normalizedScale = useMemo(() => {
+    const box = new THREE.Box3().setFromObject(clonedScene);
+    const size = box.getSize(new THREE.Vector3());
+    const height = size.y || 1;
+    const s = 2.5 / height; // normalize to ~2.5 units tall
+
+    clonedScene.traverse((child) => {
       if ((child as THREE.Mesh).isMesh) {
-        (child as THREE.Mesh).material = skinMaterial;
+        (child as THREE.Mesh).material = skinMaterial.clone();
         (child as THREE.Mesh).castShadow = true;
         (child as THREE.Mesh).receiveShadow = true;
       }
     });
-  }, [scene]);
+
+    return s;
+  }, [clonedScene]);
 
   return (
     <Center>
-      <primitive object={scene} onClick={onBodyClick} scale={1} />
+      <primitive object={clonedScene} onClick={onBodyClick} scale={normalizedScale} />
     </Center>
   );
 }
