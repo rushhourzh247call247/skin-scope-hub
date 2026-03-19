@@ -360,23 +360,25 @@ function SurfaceProjectedGroup({ approxPosition, view, children }: {
 }) {
   const { scene } = useThree();
   const groupRef = useRef<THREE.Group>(null);
+  const projectedRef = useRef(false);
 
-  // Raycast onto body mesh to find surface point + normal
-  useEffect(() => {
-    if (!groupRef.current) return;
+  // Use useFrame to retry raycasting until body mesh is loaded
+  useFrame(() => {
+    if (!groupRef.current || projectedRef.current) return;
 
     const raycaster = new THREE.Raycaster();
     const origin = new THREE.Vector3(approxPosition[0], approxPosition[1], view === "back" ? -3 : 3);
     const direction = new THREE.Vector3(0, 0, view === "back" ? 1 : -1);
     raycaster.set(origin, direction);
 
-    // Find all meshes in scene (the body model)
     const meshes: THREE.Mesh[] = [];
     scene.traverse((child) => {
       if ((child as THREE.Mesh).isMesh && !(child as any).__isMarker) {
         meshes.push(child as THREE.Mesh);
       }
     });
+
+    if (meshes.length === 0) return; // Model not loaded yet, retry next frame
 
     const intersections = raycaster.intersectObjects(meshes, true);
     if (intersections.length > 0) {
@@ -387,22 +389,25 @@ function SurfaceProjectedGroup({ approxPosition, view, children }: {
       groupRef.current.position.set(pos.x, pos.y, pos.z);
 
       if (normal) {
-        // Transform normal to world space
         const worldNormal = normal.clone().transformDirection(hit.object.matrixWorld).normalize();
-        // Offset slightly along normal so marker sits just above surface
         groupRef.current.position.addScaledVector(worldNormal, 0.003);
-        // Orient marker to face along the surface normal
         groupRef.current.lookAt(
           pos.x + worldNormal.x,
           pos.y + worldNormal.y,
           pos.z + worldNormal.z
         );
       }
+      projectedRef.current = true;
     } else {
-      // Fallback: use approximate position
       groupRef.current.position.set(...approxPosition);
+      projectedRef.current = true;
     }
-  }, [approxPosition, view, scene]);
+  });
+
+  // Reset projection flag when position changes
+  useEffect(() => {
+    projectedRef.current = false;
+  }, [approxPosition[0], approxPosition[1], approxPosition[2], view]);
 
   return <group ref={groupRef}>{children}</group>;
 }
