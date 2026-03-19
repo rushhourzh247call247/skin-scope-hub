@@ -440,7 +440,7 @@ const PatientDetail = () => {
                         <div className="space-y-3">
                           <div className="grid grid-cols-2 gap-4">
                             <div className="space-y-2">
-                              <div className="relative overflow-hidden rounded-lg border aspect-[4/3] bg-muted">
+                              <div className="relative overflow-hidden rounded-lg border aspect-[3/4] bg-muted">
                                 <img
                                   src={mockApi.getImageUrl(oldest.image_path)}
                                   alt="Ältere Aufnahme"
