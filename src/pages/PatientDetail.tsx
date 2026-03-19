@@ -455,7 +455,7 @@ const PatientDetail = () => {
                               </p>
                             </div>
                             <div className="space-y-2">
-                              <div className="relative overflow-hidden rounded-lg border aspect-[4/3] bg-muted">
+                              <div className="relative overflow-hidden rounded-lg border aspect-[3/4] bg-muted">
                                 <img
                                   src={mockApi.getImageUrl(newest.image_path)}
                                   alt="Neuere Aufnahme"
