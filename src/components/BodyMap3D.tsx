@@ -25,18 +25,19 @@ interface BodyMap3DProps {
 
 /* ─── Camera Presets ─── */
 type Region = "full" | "head" | "torso" | "left_arm" | "right_arm" | "hands" | "legs" | "knees" | "feet" | "back";
+type CameraPreset = { position: [number, number, number]; target: [number, number, number]; label: string; icon: React.ElementType };
 
-const CAMERA_PRESETS: Record<Region, { position: [number, number, number]; target: [number, number, number]; label: string; icon: React.ElementType }> = {
-  full:      { position: [0, 0, 3.5],       target: [0, 0, 0],       label: "Ganzkörper",  icon: User },
-  head:      { position: [0, 1.15, 0.8],    target: [0, 1.15, 0],    label: "Kopf",        icon: Eye },
-  torso:     { position: [0, 0.35, 1.4],    target: [0, 0.35, 0],    label: "Torso",       icon: Shirt },
-  left_arm:  { position: [-0.8, 0.4, 1.0],  target: [-0.35, 0.4, 0], label: "L. Arm",      icon: Hand },
-  right_arm: { position: [0.8, 0.4, 1.0],   target: [0.35, 0.4, 0],  label: "R. Arm",      icon: Hand },
-  hands:     { position: [0, -0.2, 0.8],    target: [0, -0.2, 0],    label: "Hände",       icon: CircleDot },
-  legs:      { position: [0, -0.7, 1.6],    target: [0, -0.7, 0],    label: "Beine",       icon: Footprints },
-  knees:     { position: [0, -0.9, 0.9],    target: [0, -0.9, 0],    label: "Knie",        icon: ArrowDown },
-  feet:      { position: [0, -1.35, 0.7],   target: [0, -1.35, 0],   label: "Füße",        icon: Footprints },
-  back:      { position: [0, 0, -3.5],      target: [0, 0, 0],       label: "Rücken",      icon: User },
+const CAMERA_PRESETS: Record<Region, CameraPreset> = {
+  full: { position: [0, 0, 3.5], target: [0, 0, 0], label: "Ganzkörper", icon: User },
+  head: { position: [0, 1.15, 0.8], target: [0, 1.15, 0], label: "Kopf", icon: Eye },
+  torso: { position: [0, 0.35, 1.4], target: [0, 0.35, 0], label: "Torso", icon: Shirt },
+  left_arm: { position: [-0.8, 0.4, 1.0], target: [-0.35, 0.4, 0], label: "L. Arm", icon: Hand },
+  right_arm: { position: [0.8, 0.4, 1.0], target: [0.35, 0.4, 0], label: "R. Arm", icon: Hand },
+  hands: { position: [0, -0.2, 0.8], target: [0, -0.2, 0], label: "Hände", icon: CircleDot },
+  legs: { position: [0, -0.7, 1.6], target: [0, -0.7, 0], label: "Beine", icon: Footprints },
+  knees: { position: [0, -0.9, 0.9], target: [0, -0.9, 0], label: "Knie", icon: ArrowDown },
+  feet: { position: [0, -1.35, 0.7], target: [0, -1.35, 0], label: "Füße", icon: Footprints },
+  back: { position: [0, 0, -3.5], target: [0, 0, 0], label: "Rücken", icon: User },
 };
 
 const MODEL_URL = "/models/body.glb";
@@ -50,58 +51,64 @@ const skinMaterial = new THREE.MeshStandardMaterial({
   emissiveIntensity: 0.06,
 });
 
-/* ─── Transform mesh to male body shape ─── */
+/* ─── Male morph (clearer silhouette) ─── */
 function makeMale(scene: THREE.Object3D) {
   scene.traverse((child) => {
     if (!(child as THREE.Mesh).isMesh) return;
+
     const mesh = child as THREE.Mesh;
     const geo = mesh.geometry;
     if (!geo || !geo.attributes.position) return;
 
     const pos = geo.attributes.position;
-    const box = new THREE.Box3().setFromObject(scene);
+    geo.computeBoundingBox();
+    const box = geo.boundingBox;
+    if (!box) return;
+
     const size = box.getSize(new THREE.Vector3());
     const center = box.getCenter(new THREE.Vector3());
-    const height = size.y;
+    const height = Math.max(size.y, 0.001);
+    const halfX = Math.max(size.x * 0.5, 0.001);
+    const halfZ = Math.max(size.z * 0.5, 0.001);
 
     for (let i = 0; i < pos.count; i++) {
       const x = pos.getX(i);
       const y = pos.getY(i);
       const z = pos.getZ(i);
+
       const ny = (y - box.min.y) / height;
+      const sign = x >= center.x ? 1 : -1;
+      const distX = Math.abs(x - center.x) / halfX;
+      const distZ = Math.abs(z - center.z) / halfZ;
 
-      // Chest area — aggressively flatten
-      if (ny > 0.52 && ny < 0.75 && z > center.z + 0.01 * size.z) {
-        const chestFactor = Math.sin(((ny - 0.52) / 0.23) * Math.PI);
-        const distFromCenter = (z - center.z) / (size.z * 0.5);
-        const flatten = 0.7 * chestFactor * Math.max(0, distFromCenter);
-        pos.setZ(i, z - (z - center.z) * flatten);
+      // Wider shoulders
+      if (ny > 0.67 && ny < 0.84) {
+        const f = Math.sin(((ny - 0.67) / 0.17) * Math.PI);
+        pos.setX(i, x + sign * Math.abs(x - center.x) * 0.22 * f * distX);
       }
 
-      // Broaden shoulders (0.68-0.80)
-      if (ny > 0.68 && ny < 0.80) {
-        const shoulderFactor = Math.sin(((ny - 0.68) / 0.12) * Math.PI);
-        const distFromCenter = Math.abs(x - center.x) / (size.x * 0.5);
-        const broaden = 0.08 * shoulderFactor * distFromCenter;
-        const sign = x > center.x ? 1 : -1;
-        pos.setX(i, x + sign * Math.abs(x - center.x) * broaden);
+      // Flatter chest (front)
+      if (ny > 0.54 && ny < 0.76 && z > center.z) {
+        const f = Math.sin(((ny - 0.54) / 0.22) * Math.PI);
+        pos.setZ(i, z - (z - center.z) * 0.9 * f * distZ);
       }
 
-      // Narrow hips (0.38-0.52)
-      if (ny > 0.38 && ny < 0.52) {
-        const hipFactor = Math.sin(((ny - 0.38) / 0.14) * Math.PI);
-        const distFromCenter = Math.abs(x - center.x) / (size.x * 0.5);
-        const narrow = 0.15 * hipFactor * distFromCenter;
-        const sign = x > center.x ? 1 : -1;
-        pos.setX(i, x - sign * Math.abs(x - center.x) * narrow);
+      // Slightly narrower waist
+      if (ny > 0.46 && ny < 0.60) {
+        const f = Math.sin(((ny - 0.46) / 0.14) * Math.PI);
+        pos.setX(i, x - sign * Math.abs(x - center.x) * 0.12 * f * distX);
       }
 
-      // Flatten buttocks (back side, 0.42-0.55)
-      if (ny > 0.42 && ny < 0.55 && z < center.z - 0.01 * size.z) {
-        const buttFactor = Math.sin(((ny - 0.42) / 0.13) * Math.PI);
-        const distFromCenter = Math.abs(z - center.z) / (size.z * 0.5);
-        const flatten = 0.3 * buttFactor * distFromCenter;
-        pos.setZ(i, z + Math.abs(z - center.z) * flatten);
+      // Narrower hips
+      if (ny > 0.32 && ny < 0.48) {
+        const f = Math.sin(((ny - 0.32) / 0.16) * Math.PI);
+        pos.setX(i, x - sign * Math.abs(x - center.x) * 0.24 * f * distX);
+      }
+
+      // Flatter buttocks
+      if (ny > 0.36 && ny < 0.52 && z < center.z) {
+        const f = Math.sin(((ny - 0.36) / 0.16) * Math.PI);
+        pos.setZ(i, z + Math.abs(z - center.z) * 0.42 * f * distZ);
       }
     }
 
@@ -113,6 +120,7 @@ function makeMale(scene: THREE.Object3D) {
 /* ─── GLB Body Model ─── */
 function BodyModel({ onBodyClick, gender }: { onBodyClick: (e: ThreeEvent<MouseEvent>) => void; gender: Gender }) {
   const { scene } = useGLTF(MODEL_URL);
+
   const clonedScene = useMemo(() => {
     const clone = scene.clone(true);
 
@@ -172,17 +180,20 @@ function SpotMarker({ position, name, isSelected, onClick }: {
     <group position={position}>
       <mesh
         ref={meshRef}
-        onClick={(e) => { e.stopPropagation(); onClick(); }}
+        onClick={(e) => {
+          e.stopPropagation();
+          onClick();
+        }}
         onPointerOver={() => setHovered(true)}
         onPointerOut={() => setHovered(false)}
       >
         <sphereGeometry args={[0.025, 16, 16]} />
         <meshStandardMaterial
-          color={isSelected ? "#38bdf8" : "#60a5fa"}
+          color="#38bdf8"
           emissive={isSelected ? "#0284c7" : "#1d4ed8"}
           emissiveIntensity={isSelected ? 0.8 : 0.3}
           transparent
-          opacity={0.9}
+          opacity={isSelected ? 0.95 : 0.85}
         />
       </mesh>
       {isSelected && (
@@ -193,7 +204,7 @@ function SpotMarker({ position, name, isSelected, onClick }: {
       )}
       {(isSelected || hovered) && name && (
         <Html position={[0, 0.07, 0]} center style={{ pointerEvents: "none" }}>
-          <div className="rounded-md bg-popover px-2 py-1 text-[10px] font-medium text-popover-foreground shadow-lg border whitespace-nowrap">
+          <div className="rounded-md border bg-popover px-2 py-1 text-[10px] font-medium text-popover-foreground shadow-lg whitespace-nowrap">
             {name}
           </div>
         </Html>
@@ -218,31 +229,55 @@ function coords2Dto3D(x: number, y: number, view?: "front" | "back"): [number, n
   return [x3d, y3d, z3d];
 }
 
-/* ─── Camera Animator ─── */
-function CameraAnimator({ preset }: { preset: { position: [number, number, number]; target: [number, number, number] } }) {
+/* ─── Camera Animator: animate to preset only, then free interaction ─── */
+function CameraAnimator({ preset }: { preset: Pick<CameraPreset, "position" | "target"> }) {
   const { camera } = useThree();
   const controlsRef = useRef<any>(null);
-  const posVec = useMemo(() => new THREE.Vector3(...preset.position), [preset.position]);
-  const tarVec = useMemo(() => new THREE.Vector3(...preset.target), [preset.target]);
+  const targetPositionRef = useRef(new THREE.Vector3(...preset.position));
+  const targetLookAtRef = useRef(new THREE.Vector3(...preset.target));
+  const isAnimatingRef = useRef(true);
 
   useEffect(() => {
-    // nothing needed
-  }, [tarVec]);
+    targetPositionRef.current.set(...preset.position);
+    targetLookAtRef.current.set(...preset.target);
+    isAnimatingRef.current = true;
+  }, [preset]);
 
   useFrame(() => {
-    camera.position.lerp(posVec, 0.08);
-    if (controlsRef.current) {
-      controlsRef.current.target.lerp(tarVec, 0.08);
-      controlsRef.current.update();
+    const controls = controlsRef.current;
+    if (!controls) return;
+
+    if (isAnimatingRef.current) {
+      camera.position.lerp(targetPositionRef.current, 0.14);
+      controls.target.lerp(targetLookAtRef.current, 0.14);
+
+      const donePos = camera.position.distanceTo(targetPositionRef.current) < 0.01;
+      const doneTarget = controls.target.distanceTo(targetLookAtRef.current) < 0.01;
+
+      if (donePos && doneTarget) {
+        camera.position.copy(targetPositionRef.current);
+        controls.target.copy(targetLookAtRef.current);
+        isAnimatingRef.current = false;
+      }
     }
+
+    controls.update();
   });
 
   return (
     <OrbitControls
       ref={controlsRef}
-      enablePan={true}
+      enablePan
+      enableZoom
+      enableRotate
+      enableDamping
+      dampingFactor={0.08}
+      rotateSpeed={0.9}
+      zoomSpeed={0.9}
       minDistance={0.3}
       maxDistance={8}
+      minPolarAngle={0}
+      maxPolarAngle={Math.PI}
     />
   );
 }
@@ -260,12 +295,15 @@ function LoadingFallback() {
 }
 
 /* ─── Scene ─── */
-function Scene({ markers, selectedLocationId, onMapClick, onMarkerClick, preset, gender }: BodyMap3DProps & { preset: typeof CAMERA_PRESETS.full; gender: Gender }) {
-  const handleBodyClick = useCallback((e: ThreeEvent<MouseEvent>) => {
-    e.stopPropagation();
-    const { x, y, view } = pointTo2D(e.point);
-    onMapClick?.(x, y, view);
-  }, [onMapClick]);
+function Scene({ markers, selectedLocationId, onMapClick, onMarkerClick, preset, gender }: BodyMap3DProps & { preset: CameraPreset; gender: Gender }) {
+  const handleBodyClick = useCallback(
+    (e: ThreeEvent<MouseEvent>) => {
+      e.stopPropagation();
+      const { x, y, view } = pointTo2D(e.point);
+      onMapClick?.(x, y, view);
+    },
+    [onMapClick],
+  );
 
   return (
     <>
@@ -301,8 +339,8 @@ const BodyMap3D: React.FC<BodyMap3DProps> = (props) => {
   const preset = CAMERA_PRESETS[activeRegion];
 
   return (
-    <div className="flex flex-col h-full">
-      <div className="relative flex-1 min-h-[300px] rounded-lg overflow-hidden bg-gradient-to-b from-muted/20 via-muted/40 to-muted/60 border">
+    <div className="flex h-full flex-col">
+      <div className="relative min-h-[300px] flex-1 overflow-hidden rounded-lg border bg-gradient-to-b from-muted/20 via-muted/40 to-muted/60">
         <Canvas
           camera={{ position: preset.position, fov: 40, near: 0.1, far: 100 }}
           style={{ width: "100%", height: "100%" }}
@@ -313,36 +351,32 @@ const BodyMap3D: React.FC<BodyMap3DProps> = (props) => {
         </Canvas>
 
         {/* Gender toggle */}
-        <div className="absolute left-2 top-10 flex flex-col gap-1">
+        <div className="absolute left-2 top-10 inline-flex overflow-hidden rounded-md border border-border/50 bg-card/85">
           <button
             onClick={() => setGender("female")}
             title="Weiblich"
             className={cn(
-              "flex h-8 w-8 items-center justify-center rounded-md text-sm font-bold transition-all",
-              gender === "female"
-                ? "bg-primary text-primary-foreground shadow-md"
-                : "bg-card/80 text-muted-foreground hover:bg-card hover:text-foreground border border-border/50"
+              "h-8 px-2 text-[10px] font-semibold transition-all",
+              gender === "female" ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:bg-card hover:text-foreground",
             )}
           >
-            ♀
+            Frau
           </button>
           <button
             onClick={() => setGender("male")}
             title="Männlich"
             className={cn(
-              "flex h-8 w-8 items-center justify-center rounded-md text-sm font-bold transition-all",
-              gender === "male"
-                ? "bg-primary text-primary-foreground shadow-md"
-                : "bg-card/80 text-muted-foreground hover:bg-card hover:text-foreground border border-border/50"
+              "h-8 px-2 text-[10px] font-semibold transition-all",
+              gender === "male" ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:bg-card hover:text-foreground",
             )}
           >
-            ♂
+            Mann
           </button>
         </div>
 
         {/* Region buttons */}
-        <div className="absolute right-2 top-1/2 -translate-y-1/2 flex flex-col gap-1">
-          {(Object.entries(CAMERA_PRESETS) as [Region, typeof CAMERA_PRESETS.full][]).map(([key, p]) => {
+        <div className="absolute right-2 top-1/2 flex -translate-y-1/2 flex-col gap-1">
+          {(Object.entries(CAMERA_PRESETS) as [Region, CameraPreset][]).map(([key, p]) => {
             const Icon = p.icon;
             return (
               <button
@@ -353,7 +387,7 @@ const BodyMap3D: React.FC<BodyMap3DProps> = (props) => {
                   "flex h-8 w-8 items-center justify-center rounded-md transition-all",
                   activeRegion === key
                     ? "bg-primary text-primary-foreground shadow-md"
-                    : "bg-card/80 text-muted-foreground hover:bg-card hover:text-foreground border border-border/50"
+                    : "border border-border/50 bg-card/80 text-muted-foreground hover:bg-card hover:text-foreground",
                 )}
               >
                 <Icon className="h-3.5 w-3.5" />
@@ -365,20 +399,18 @@ const BodyMap3D: React.FC<BodyMap3DProps> = (props) => {
         {/* Reset */}
         <button
           onClick={() => setActiveRegion("full")}
-          className="absolute left-2 bottom-2 flex h-7 items-center gap-1 rounded-md bg-card/80 px-2 text-[10px] text-muted-foreground hover:text-foreground border border-border/50 transition-all"
+          className="absolute bottom-2 left-2 flex h-7 items-center gap-1 rounded-md border border-border/50 bg-card/80 px-2 text-[10px] text-muted-foreground transition-all hover:text-foreground"
         >
           <RotateCcw className="h-3 w-3" /> Reset
         </button>
 
         {/* 3D Badge */}
-        <div className="absolute left-2 top-2 rounded-md bg-primary/10 px-2 py-0.5 text-[10px] font-semibold text-primary border border-primary/20">
+        <div className="absolute left-2 top-2 rounded-md border border-primary/20 bg-primary/10 px-2 py-0.5 text-[10px] font-semibold text-primary">
           3D
         </div>
       </div>
 
-      <p className="mt-2 text-center text-[10px] text-muted-foreground">
-        Drehen & Zoomen · Klicken um Spot zu setzen
-      </p>
+      <p className="mt-2 text-center text-[10px] text-muted-foreground">Drehen & Zoomen · Klicken um Spot zu setzen</p>
     </div>
   );
 };
