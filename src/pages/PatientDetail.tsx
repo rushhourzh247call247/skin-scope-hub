@@ -51,6 +51,7 @@ const PatientDetail = () => {
   const [spotY, setSpotY] = useState(0);
   const [editingFindingId, setEditingFindingId] = useState<number | null>(null);
   const [editingFindingText, setEditingFindingText] = useState("");
+  const [classificationFilter, setClassificationFilter] = useState<LesionClassificationType[]>([]);
 
   const { data: patient, isLoading, error } = useQuery({
     queryKey: ["full-patient", patientId],
