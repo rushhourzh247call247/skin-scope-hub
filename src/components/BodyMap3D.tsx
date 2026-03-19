@@ -91,7 +91,7 @@ function BodyModel({ onBodyClick, gender }: { onBodyClick: (e: ThreeEvent<MouseE
 useGLTF.preload(FEMALE_MODEL_URL);
 useGLTF.preload(MALE_MODEL_URL);
 
-/* ─── Spot Marker ─── */
+/* ─── Spot Marker (DermEngine-style circle ring) ─── */
 function SpotMarker({ position, name, isSelected, onClick, imageCount, findingCount }: {
   position: [number, number, number];
   name?: string;
@@ -100,22 +100,25 @@ function SpotMarker({ position, name, isSelected, onClick, imageCount, findingCo
   imageCount?: number;
   findingCount?: number;
 }) {
-  const meshRef = useRef<THREE.Mesh>(null);
+  const groupRef = useRef<THREE.Group>(null);
   const [hovered, setHovered] = useState(false);
 
   useFrame(() => {
-    if (!meshRef.current) return;
+    if (!groupRef.current) return;
     if (isSelected) {
-      meshRef.current.scale.setScalar(1 + Math.sin(Date.now() * 0.005) * 0.2);
+      groupRef.current.scale.setScalar(1 + Math.sin(Date.now() * 0.004) * 0.1);
     } else {
-      meshRef.current.scale.setScalar(hovered ? 1.4 : 1);
+      groupRef.current.scale.setScalar(hovered ? 1.15 : 1);
     }
   });
 
+  const ringColor = isSelected ? "#0ea5e9" : hovered ? "#38bdf8" : "#64748b";
+  const ringOpacity = isSelected ? 0.9 : hovered ? 0.7 : 0.5;
+
   return (
     <group position={position}>
-      <mesh
-        ref={meshRef}
+      <group
+        ref={groupRef}
         onClick={(e) => {
           e.stopPropagation();
           onClick();
@@ -123,36 +126,63 @@ function SpotMarker({ position, name, isSelected, onClick, imageCount, findingCo
         onPointerOver={() => setHovered(true)}
         onPointerOut={() => setHovered(false)}
       >
-        <sphereGeometry args={[0.03, 16, 16]} />
-        <meshStandardMaterial
-          color={isSelected ? "#0ea5e9" : "#38bdf8"}
-          emissive={isSelected ? "#0284c7" : "#1d4ed8"}
-          emissiveIntensity={isSelected ? 0.8 : 0.3}
-          transparent
-          opacity={isSelected ? 0.95 : 0.85}
-        />
-      </mesh>
-      {/* Outer glow ring - always visible */}
-      <mesh rotation={[Math.PI / 2, 0, 0]}>
-        <ringGeometry args={[0.035, isSelected ? 0.055 : 0.045, 32]} />
-        <meshBasicMaterial
-          color={isSelected ? "#0ea5e9" : "#38bdf8"}
-          transparent
-          opacity={isSelected ? 0.6 : 0.25}
-          side={THREE.DoubleSide}
-        />
-      </mesh>
+        {/* Main circle ring - like DermEngine */}
+        <mesh rotation={[0, 0, 0]}>
+          <ringGeometry args={[0.028, 0.035, 48]} />
+          <meshBasicMaterial
+            color={ringColor}
+            transparent
+            opacity={ringOpacity}
+            side={THREE.DoubleSide}
+            depthTest={false}
+          />
+        </mesh>
+
+        {/* Tiny center dot */}
+        <mesh>
+          <circleGeometry args={[0.006, 16]} />
+          <meshBasicMaterial
+            color={ringColor}
+            transparent
+            opacity={isSelected ? 0.8 : 0.4}
+            side={THREE.DoubleSide}
+            depthTest={false}
+          />
+        </mesh>
+
+        {/* Selected: outer highlight ring */}
+        {isSelected && (
+          <mesh rotation={[0, 0, 0]}>
+            <ringGeometry args={[0.038, 0.043, 48]} />
+            <meshBasicMaterial
+              color="#0ea5e9"
+              transparent
+              opacity={0.4}
+              side={THREE.DoubleSide}
+              depthTest={false}
+            />
+          </mesh>
+        )}
+
+        {/* Invisible click target (larger) */}
+        <mesh>
+          <circleGeometry args={[0.045, 16]} />
+          <meshBasicMaterial transparent opacity={0} side={THREE.DoubleSide} depthTest={false} />
+        </mesh>
+      </group>
+
       {/* Always-visible small label */}
       {name && !hovered && !isSelected && (
-        <Html position={[0, 0.06, 0]} center style={{ pointerEvents: "none" }}>
-          <div className="rounded bg-card/90 border border-border/50 px-1.5 py-0.5 text-[8px] font-medium text-muted-foreground shadow whitespace-nowrap backdrop-blur-sm">
+        <Html position={[0, 0.055, 0]} center style={{ pointerEvents: "none" }}>
+          <div className="rounded bg-card/90 border border-border/50 px-1.5 py-0.5 text-[7px] font-medium text-muted-foreground shadow whitespace-nowrap backdrop-blur-sm">
             {name}
           </div>
         </Html>
       )}
+
       {/* Rich hover/selected tooltip */}
       {(isSelected || hovered) && (
-        <Html position={[0, 0.08, 0]} center style={{ pointerEvents: "none" }}>
+        <Html position={[0, 0.065, 0]} center style={{ pointerEvents: "none" }}>
           <div className="rounded-lg border bg-popover px-3 py-2 shadow-xl whitespace-nowrap backdrop-blur-sm min-w-[120px]">
             <p className="text-[11px] font-semibold text-popover-foreground">{name || "Spot"}</p>
             <div className="mt-1 flex items-center gap-3 text-[9px] text-muted-foreground">
