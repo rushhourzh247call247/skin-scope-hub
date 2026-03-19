@@ -500,29 +500,31 @@ function Scene({ markers, selectedLocationId, onMapClick, onMarkerClick, preset,
       </Suspense>
 
       {spots.map((m) => (
-        <SpotMarker
-          key={m.id}
-          position={coords2Dto3D(m.x, m.y, m.view)}
-          name={m.name}
-          isSelected={m.id === selectedLocationId}
-          onClick={() => onMarkerClick?.(m.id)}
-          imageCount={m.imageCount}
-          findingCount={m.findingCount}
-        />
+        <SurfaceProjectedGroup key={`spot-${m.id}`} approxPosition={coords2Dto3D(m.x, m.y, m.view)} view={m.view}>
+          <SpotMarker
+            position={[0, 0, 0]}
+            name={m.name}
+            isSelected={m.id === selectedLocationId}
+            onClick={() => onMarkerClick?.(m.id)}
+            imageCount={m.imageCount}
+            findingCount={m.findingCount}
+          />
+        </SurfaceProjectedGroup>
       ))}
 
       {regions.map((m) => (
-        <RegionMarker
-          key={m.id}
-          position={coords2Dto3D(m.x, m.y, m.view)}
-          name={m.name}
-          isSelected={m.id === selectedLocationId}
-          onClick={() => onMarkerClick?.(m.id)}
-          imageCount={m.imageCount}
-          findingCount={m.findingCount}
-          width={m.width ?? 40}
-          height={m.height ?? 30}
-        />
+        <SurfaceProjectedGroup key={`region-${m.id}`} approxPosition={coords2Dto3D(m.x, m.y, m.view)} view={m.view}>
+          <RegionMarker
+            position={[0, 0, 0]}
+            name={m.name}
+            isSelected={m.id === selectedLocationId}
+            onClick={() => onMarkerClick?.(m.id)}
+            imageCount={m.imageCount}
+            findingCount={m.findingCount}
+            width={m.width ?? 40}
+            height={m.height ?? 30}
+          />
+        </SurfaceProjectedGroup>
       ))}
 
       <CameraAnimator preset={preset} />
