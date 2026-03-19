@@ -16,7 +16,7 @@ interface ImageGalleryProps {
   locationType?: "spot" | "region";
 }
 
-const ImageGallery = ({ locationId, patientId, images, locationName }: ImageGalleryProps) => {
+const ImageGallery = ({ locationId, patientId, images, locationName, locationType = "spot" }: ImageGalleryProps) => {
   const queryClient = useQueryClient();
   const fileRef = useRef<HTMLInputElement>(null);
   const [uploading, setUploading] = useState(false);
