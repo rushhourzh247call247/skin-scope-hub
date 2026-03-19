@@ -1,4 +1,4 @@
-import type { Patient, FullPatient, Location, LocationImage, Finding } from "@/types/patient";
+import type { Patient, FullPatient, Location, LocationImage, Finding, LesionClassification } from "@/types/patient";
 
 export interface MockCompany {
   id: number;
