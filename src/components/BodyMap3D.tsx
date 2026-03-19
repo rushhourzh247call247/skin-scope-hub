@@ -184,8 +184,8 @@ function SpotMarker({ position, name, isSelected, onClick, imageCount, findingCo
         </Html>
       )}
 
-      {/* Rich hover/selected tooltip */}
-      {(isSelected || hovered) && (
+      {/* Tooltip only on hover */}
+      {hovered && (
         <Html position={[0, 0.065, 0]} center style={{ pointerEvents: "none" }}>
           <div className="rounded-lg border bg-popover px-3 py-2 shadow-xl whitespace-nowrap backdrop-blur-sm min-w-[120px]">
             <p className="text-[11px] font-semibold text-popover-foreground">{name || "Spot"}</p>
@@ -204,9 +204,6 @@ function SpotMarker({ position, name, isSelected, onClick, imageCount, findingCo
                 <span>Keine Einträge</span>
               )}
             </div>
-            {hovered && !isSelected && (
-              <p className="mt-1 text-[8px] text-primary font-medium">Klicken für Details & Fotos</p>
-            )}
           </div>
         </Html>
       )}
