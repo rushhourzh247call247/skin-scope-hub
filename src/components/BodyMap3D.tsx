@@ -3,7 +3,7 @@ import { Canvas, useFrame, useThree, ThreeEvent } from "@react-three/fiber";
 import { OrbitControls, Html, useGLTF, Center } from "@react-three/drei";
 import * as THREE from "three";
 import { cn } from "@/lib/utils";
-import { RotateCcw, Eye, Hand, Footprints, User, Shirt, CircleDot, ArrowDown, MapPin } from "lucide-react";
+import { RotateCcw, Eye, Hand, Footprints, User, Shirt, CircleDot, ArrowDown, MapPin, Square } from "lucide-react";
 
 /* ─── Types ─── */
 interface Marker {
@@ -14,15 +14,19 @@ interface Marker {
   view?: "front" | "back";
   imageCount?: number;
   findingCount?: number;
+  type?: "spot" | "region";
+  width?: number;
+  height?: number;
 }
 
 type Gender = "female" | "male";
+type MarkType = "spot" | "region";
 
 interface BodyMap3DProps {
   markers: Marker[];
   selectedLocationId: number | null;
   gender?: Gender;
-  onMapClick?: (x: number, y: number, view: "front" | "back") => void;
+  onMapClick?: (x: number, y: number, view: "front" | "back", markType?: MarkType) => void;
   onMarkerClick?: (id: number) => void;
 }
 
