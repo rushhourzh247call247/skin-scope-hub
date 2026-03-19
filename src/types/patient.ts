@@ -32,6 +32,12 @@ export interface Location {
   type?: LocationType;
   width?: number;   // region width in 2D coords (0-200 scale)
   height?: number;  // region height in 2D coords (0-500 scale)
+  x3d?: number;     // persisted 3D anchor point for stable marker placement
+  y3d?: number;
+  z3d?: number;
+  nx?: number;      // persisted surface normal at anchor point
+  ny?: number;
+  nz?: number;
   created_at?: string;
   updated_at?: string;
   images?: LocationImage[];
