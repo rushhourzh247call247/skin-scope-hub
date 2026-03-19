@@ -156,7 +156,7 @@ const PatientDetail = () => {
                     <MapPin className="h-4 w-4 text-primary" />
                     <h3 className="text-sm font-medium text-foreground">{selectedLocation.name || `Stelle #${selectedLocation.id}`}</h3>
                   </div>
-                  <ImageGallery locationId={selectedLocation.id} patientId={patientId} images={selectedLocation.images ?? []} />
+                  <ImageGallery locationId={selectedLocation.id} patientId={patientId} images={selectedLocation.images ?? []} locationName={selectedLocation.name || `Stelle #${selectedLocation.id}`} />
                 </motion.div>
               ) : (
                 <motion.div key="empty" initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex flex-col items-center justify-center py-20 text-muted-foreground">
