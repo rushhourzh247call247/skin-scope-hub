@@ -23,6 +23,8 @@ interface Marker {
   type?: "spot" | "region";
   width?: number;
   height?: number;
+  classification?: string;
+  classificationColor?: string;
 }
 
 type Gender = "female" | "male";
@@ -117,10 +119,11 @@ type SpotMarkerProps = {
   onClick: () => void;
   imageCount?: number;
   findingCount?: number;
+  classificationColor?: string;
 };
 
 const SpotMarker = React.forwardRef<THREE.Group, SpotMarkerProps>(function SpotMarker(
-  { position, name, isSelected, onClick, imageCount, findingCount },
+  { position, name, isSelected, onClick, imageCount, findingCount, classificationColor },
   forwardedRef,
 ) {
   const groupRef = useRef<THREE.Group>(null);
@@ -135,8 +138,9 @@ const SpotMarker = React.forwardRef<THREE.Group, SpotMarkerProps>(function SpotM
     }
   });
 
-  const ringColor = isSelected ? "#0ea5e9" : hovered ? "#38bdf8" : "#64748b";
-  const ringOpacity = isSelected ? 0.9 : hovered ? 0.7 : 0.5;
+  const baseColor = classificationColor || "#64748b";
+  const ringColor = isSelected ? "#0ea5e9" : hovered ? baseColor : baseColor;
+  const ringOpacity = isSelected ? 0.9 : hovered ? 0.85 : 0.7;
 
   return (
     <group ref={forwardedRef} position={position}>
@@ -635,6 +639,7 @@ function Scene({ markers, selectedLocationId, onMapClick, onMarkerClick, preset,
             onClick={() => onMarkerClick?.(m.id)}
             imageCount={m.imageCount}
             findingCount={m.findingCount}
+            classificationColor={m.classificationColor}
           />
         </SurfaceProjectedGroup>
       ))}

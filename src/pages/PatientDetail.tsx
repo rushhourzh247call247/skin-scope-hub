@@ -1,9 +1,10 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useParams, useNavigate } from "react-router-dom";
 import { mockApi } from "@/lib/mockData";
-import type { FullPatient } from "@/types/patient";
+import type { FullPatient, LesionClassification } from "@/types/patient";
+import { LESION_CLASSIFICATIONS } from "@/types/patient";
 import { useState } from "react";
-import { ArrowLeft, MapPin, Plus, Calendar, ImageIcon, User, Hash, Activity, Mail, Phone, Pencil, Trash2, Save, X, Square, GitCompareArrows, Move, Camera } from "lucide-react";
+import { ArrowLeft, MapPin, Plus, Calendar, ImageIcon, User, Hash, Activity, Mail, Phone, Pencil, Trash2, Save, X, Square, GitCompareArrows, Move, Camera, Tag } from "lucide-react";
 import { Slider } from "@/components/ui/slider";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -101,6 +102,12 @@ const PatientDetail = () => {
 
   const deleteFindingMutation = useMutation({
     mutationFn: (findingId: number) => mockApi.deleteFinding(findingId),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["full-patient", patientId] }),
+  });
+
+  const classifyMutation = useMutation({
+    mutationFn: ({ locationId, classification }: { locationId: number; classification: LesionClassification }) =>
+      mockApi.updateClassification(locationId, classification),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ["full-patient", patientId] }),
   });
 
@@ -283,7 +290,7 @@ const PatientDetail = () => {
         <div className="w-[300px] shrink-0 border-r bg-card p-3 overflow-y-auto flex flex-col">
           <div className="h-[350px]">
             <BodyMap3D
-              markers={locations.map((l) => ({ id: l.id, x: l.x, y: l.y, x3d: l.x3d, y3d: l.y3d, z3d: l.z3d, nx: l.nx, ny: l.ny, nz: l.nz, name: l.name, view: l.view, type: l.type, width: l.width, height: l.height, imageCount: l.images?.length ?? 0, findingCount: l.findings?.length ?? 0 }))}
+              markers={locations.map((l) => ({ id: l.id, x: l.x, y: l.y, x3d: l.x3d, y3d: l.y3d, z3d: l.z3d, nx: l.nx, ny: l.ny, nz: l.nz, name: l.name, view: l.view, type: l.type, width: l.width, height: l.height, imageCount: l.images?.length ?? 0, findingCount: l.findings?.length ?? 0, classification: (l as any).classification, classificationColor: LESION_CLASSIFICATIONS[(l as any).classification as LesionClassification || "unclassified"]?.color }))}
               gender={patient.gender}
               onMapClick={handleMapClick}
               selectedLocationId={selectedLocationId}
@@ -308,16 +315,39 @@ const PatientDetail = () => {
                     : "hover:bg-muted text-foreground border border-transparent"
                 )}
               >
-                <div className={cn(
-                  "flex h-5 w-5 shrink-0 items-center justify-center rounded-full text-[10px] font-bold",
-                  selectedLocationId === loc.id
-                    ? "bg-primary text-primary-foreground"
-                    : "bg-muted text-muted-foreground"
-                )}>
-                  {i + 1}
-                </div>
+                {(() => {
+                  const cls = (loc as any).classification as LesionClassification | undefined;
+                  const hasClass = cls && cls !== "unclassified";
+                  const clsColor = hasClass ? LESION_CLASSIFICATIONS[cls]?.color : undefined;
+                  return (
+                    <div
+                      className={cn(
+                        "flex h-5 w-5 shrink-0 items-center justify-center rounded-full text-[10px] font-bold",
+                        !hasClass && (selectedLocationId === loc.id ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground"),
+                      )}
+                      style={hasClass ? { backgroundColor: clsColor, color: "#fff" } : undefined}
+                    >
+                      {i + 1}
+                    </div>
+                  );
+                })()}
                 <div className="min-w-0 flex-1">
-                  <p className="truncate font-medium">{loc.name || `Spot ${i + 1}`}</p>
+                  <div className="flex items-center gap-1.5">
+                    <p className="truncate font-medium">{loc.name || `Spot ${i + 1}`}</p>
+                    {(() => {
+                      const cls = (loc as any).classification as LesionClassification | undefined;
+                      if (!cls || cls === "unclassified") return null;
+                      const info = LESION_CLASSIFICATIONS[cls];
+                      return (
+                        <span
+                          className="text-[8px] font-bold px-1 rounded"
+                          style={{ backgroundColor: `${info.color}20`, color: info.color }}
+                        >
+                          {info.shortLabel}
+                        </span>
+                      );
+                    })()}
+                  </div>
                   <p className="text-[10px] text-muted-foreground">
                     {loc.images?.length ?? 0} Bilder · {loc.view === "back" ? "Hinten" : "Vorne"}
                   </p>
@@ -561,7 +591,46 @@ const PatientDetail = () => {
                   </div>
                 </div>
 
-                {/* Region: Side-by-Side Compare */}
+                {/* Lesion Classification */}
+                {selectedLocation.type !== "region" && (
+                  <div className="rounded-lg border bg-card p-4 space-y-3">
+                    <h4 className="text-xs font-semibold text-foreground uppercase tracking-wider flex items-center gap-2">
+                      <Tag className="h-3.5 w-3.5 text-primary" />
+                      Klassifizierung
+                    </h4>
+                    <div className="flex flex-wrap gap-1.5">
+                      {(Object.entries(LESION_CLASSIFICATIONS) as [LesionClassification, { label: string; color: string; shortLabel: string }][]).map(([key, cls]) => {
+                        const current = (selectedLocation as any).classification || "unclassified";
+                        const isActive = current === key;
+                        return (
+                          <button
+                            key={key}
+                            onClick={() => classifyMutation.mutate({ locationId: selectedLocation.id, classification: key })}
+                            className={cn(
+                              "flex items-center gap-1.5 rounded-full px-3 py-1.5 text-[11px] font-medium border transition-all",
+                              isActive
+                                ? "ring-2 ring-offset-1 ring-offset-background shadow-sm"
+                                : "opacity-60 hover:opacity-100"
+                            )}
+                            style={{
+                              borderColor: cls.color,
+                              backgroundColor: isActive ? `${cls.color}20` : "transparent",
+                              color: cls.color,
+                              ...(isActive ? { ringColor: cls.color } : {}),
+                            }}
+                          >
+                            <span
+                              className="h-2.5 w-2.5 rounded-full shrink-0"
+                              style={{ backgroundColor: cls.color }}
+                            />
+                            {cls.label}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
+
                 {selectedLocation.type === "region" && (selectedLocation.images?.length ?? 0) >= 2 && (
                   <div className="rounded-lg border bg-card p-4 space-y-4">
                     <h4 className="text-xs font-semibold text-foreground uppercase tracking-wider flex items-center gap-2">

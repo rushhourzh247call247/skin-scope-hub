@@ -1,4 +1,4 @@
-import type { Patient, FullPatient, Location, LocationImage, Finding } from "@/types/patient";
+import type { Patient, FullPatient, Location, LocationImage, Finding, LesionClassification } from "@/types/patient";
 
 export interface MockCompany {
   id: number;
@@ -50,11 +50,11 @@ let patients: Patient[] = [
   { id: 6, name: "Marco Rossi", birth_date: "1968-06-17", gender: "male", email: "m.rossi@mail.ch", created_at: "2025-11-30T16:00:00Z" },
 ];
 
-let locations: (Location & { images: LocationImage[]; findings: Finding[] })[] = [
-  { id: 1, patient_id: 1, name: "Linker Unterarm", x: 30.5, y: 35.2, view: "front", type: "spot", created_at: "2025-06-01T10:00:00Z", images: demoImages.filter(i => i.location_id === 1), findings: [{ id: 1, location_id: 1, description: "Verdacht auf Basalzellkarzinom, 5mm Durchmesser", created_at: "2025-06-01T10:00:00Z" }] },
-  { id: 2, patient_id: 1, name: "Rechte Schulter", x: 72.0, y: 20.1, view: "back", type: "spot", created_at: "2025-08-10T09:00:00Z", images: demoImages.filter(i => i.location_id === 2), findings: [{ id: 2, location_id: 2, description: "Melanozytärer Nävus, regelmässig", created_at: "2025-08-10T09:00:00Z" }] },
+let locations: (Location & { images: LocationImage[]; findings: Finding[]; classification?: string })[] = [
+  { id: 1, patient_id: 1, name: "Linker Unterarm", x: 30.5, y: 35.2, view: "front", type: "spot", classification: "bcc", created_at: "2025-06-01T10:00:00Z", images: demoImages.filter(i => i.location_id === 1), findings: [{ id: 1, location_id: 1, description: "Verdacht auf Basalzellkarzinom, 5mm Durchmesser", created_at: "2025-06-01T10:00:00Z" }] },
+  { id: 2, patient_id: 1, name: "Rechte Schulter", x: 72.0, y: 20.1, view: "back", type: "spot", classification: "naevus", created_at: "2025-08-10T09:00:00Z", images: demoImages.filter(i => i.location_id === 2), findings: [{ id: 2, location_id: 2, description: "Melanozytärer Nävus, regelmässig", created_at: "2025-08-10T09:00:00Z" }] },
   { id: 3, patient_id: 2, name: "Stirn", x: 50.0, y: 5.0, view: "front", type: "spot", created_at: "2025-10-05T16:00:00Z", images: demoImages.filter(i => i.location_id === 3), findings: [] },
-  { id: 4, patient_id: 2, name: "Rücken Mitte", x: 50.0, y: 30.0, view: "back", type: "spot", created_at: "2025-11-01T08:00:00Z", images: demoImages.filter(i => i.location_id === 4), findings: [{ id: 3, location_id: 4, description: "Seborrhoische Keratose", created_at: "2025-11-01T08:00:00Z" }] },
+  { id: 4, patient_id: 2, name: "Rücken Mitte", x: 50.0, y: 30.0, view: "back", type: "spot", classification: "keratosis", created_at: "2025-11-01T08:00:00Z", images: demoImages.filter(i => i.location_id === 4), findings: [{ id: 3, location_id: 4, description: "Seborrhoische Keratose", created_at: "2025-11-01T08:00:00Z" }] },
   { id: 5, patient_id: 3, name: "Linkes Knie", x: 38.0, y: 72.0, view: "front", type: "spot", created_at: "2025-12-01T10:00:00Z", images: [], findings: [] },
   // Region examples
   { id: 6, patient_id: 1, name: "Oberer Rücken", x: 50.0, y: 18.0, view: "back", type: "region", width: 60, height: 40, created_at: "2025-07-01T10:00:00Z", images: [
@@ -251,6 +251,15 @@ export const mockApi = {
       }
     }
     throw new Error("Befund nicht gefunden");
+  },
+
+  // Classification
+  updateClassification: async (locationId: number, classification: LesionClassification) => {
+    await delay();
+    const loc = locations.find(l => l.id === locationId);
+    if (!loc) throw new Error("Stelle nicht gefunden");
+    (loc as any).classification = classification;
+    return loc;
   },
 
   // Dashboard stats

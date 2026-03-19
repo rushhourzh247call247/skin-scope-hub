@@ -1,5 +1,27 @@
 export type Gender = "female" | "male";
 export type LocationType = "spot" | "region";
+export type LesionClassification =
+  | "unclassified"
+  | "naevus"
+  | "melanoma_suspect"
+  | "bcc"
+  | "scc"
+  | "keratosis"
+  | "dermatofibroma"
+  | "vascular"
+  | "other";
+
+export const LESION_CLASSIFICATIONS: Record<LesionClassification, { label: string; color: string; shortLabel: string }> = {
+  unclassified: { label: "Nicht klassifiziert", color: "#64748b", shortLabel: "–" },
+  naevus: { label: "Nävus (Muttermal)", color: "#22c55e", shortLabel: "NÄV" },
+  melanoma_suspect: { label: "Melanom-Verdacht", color: "#ef4444", shortLabel: "MEL" },
+  bcc: { label: "Basalzellkarzinom", color: "#f97316", shortLabel: "BCC" },
+  scc: { label: "Plattenepithelkarzinom", color: "#dc2626", shortLabel: "SCC" },
+  keratosis: { label: "Keratose", color: "#eab308", shortLabel: "KER" },
+  dermatofibroma: { label: "Dermatofibrom", color: "#8b5cf6", shortLabel: "DFB" },
+  vascular: { label: "Vaskuläre Läsion", color: "#ec4899", shortLabel: "VAS" },
+  other: { label: "Andere", color: "#6b7280", shortLabel: "AND" },
+};
 
 export interface Patient {
   id: number;
@@ -38,6 +60,7 @@ export interface Location {
   nx?: number;      // persisted surface normal at anchor point
   ny?: number;
   nz?: number;
+  classification?: LesionClassification;
   created_at?: string;
   updated_at?: string;
   images?: LocationImage[];
