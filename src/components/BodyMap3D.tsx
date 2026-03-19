@@ -19,6 +19,7 @@ type Gender = "female" | "male";
 interface BodyMap3DProps {
   markers: Marker[];
   selectedLocationId: number | null;
+  gender?: Gender;
   onMapClick?: (x: number, y: number, view: "front" | "back") => void;
   onMarkerClick?: (id: number) => void;
 }
@@ -266,7 +267,7 @@ function Scene({ markers, selectedLocationId, onMapClick, onMarkerClick, preset,
 /* ─── Main Component ─── */
 const BodyMap3D: React.FC<BodyMap3DProps> = (props) => {
   const [activeRegion, setActiveRegion] = useState<Region>("full");
-  const [gender, setGender] = useState<Gender>("female");
+  const gender = props.gender ?? "male";
   const preset = CAMERA_PRESETS[activeRegion];
 
   return (
@@ -281,28 +282,9 @@ const BodyMap3D: React.FC<BodyMap3DProps> = (props) => {
           <Scene {...props} preset={preset} gender={gender} />
         </Canvas>
 
-        {/* Gender toggle */}
-        <div className="absolute left-2 top-10 inline-flex overflow-hidden rounded-md border border-border/50 bg-card/85">
-          <button
-            onClick={() => setGender("female")}
-            title="Weiblich"
-            className={cn(
-              "h-8 px-2 text-[10px] font-semibold transition-all",
-              gender === "female" ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:bg-card hover:text-foreground",
-            )}
-          >
-            Frau
-          </button>
-          <button
-            onClick={() => setGender("male")}
-            title="Männlich"
-            className={cn(
-              "h-8 px-2 text-[10px] font-semibold transition-all",
-              gender === "male" ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:bg-card hover:text-foreground",
-            )}
-          >
-            Mann
-          </button>
+        {/* Gender indicator */}
+        <div className="absolute left-2 top-10 rounded-md border border-border/50 bg-card/85 px-2 py-1 text-[10px] font-semibold text-muted-foreground">
+          {gender === "female" ? "♀ Weiblich" : "♂ Männlich"}
         </div>
 
         {/* Region buttons */}

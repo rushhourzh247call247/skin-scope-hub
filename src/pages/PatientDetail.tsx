@@ -3,7 +3,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import { mockApi } from "@/lib/mockData";
 import type { FullPatient } from "@/types/patient";
 import { useState } from "react";
-import { ArrowLeft, MapPin, Plus, Calendar, ImageIcon, User, Hash, Activity } from "lucide-react";
+import { ArrowLeft, MapPin, Plus, Calendar, ImageIcon, User, Hash, Activity, Mail, Phone } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { format } from "date-fns";
@@ -111,11 +111,27 @@ const PatientDetail = () => {
               <p className="font-mono font-medium text-foreground">{patient.id}</p>
             </div>
             <div>
+              <span className="text-muted-foreground">Geschlecht</span>
+              <p className="font-medium text-foreground">{patient.gender === "female" ? "Weiblich" : "Männlich"}</p>
+            </div>
+            <div>
               <span className="text-muted-foreground">Geburtsdatum</span>
               <p className="font-medium text-foreground tabular-nums">
                 {patient.birth_date ? format(new Date(patient.birth_date), "dd.MM.yyyy", { locale: de }) : "–"}
               </p>
             </div>
+            {patient.email && (
+              <div className="flex items-center gap-1">
+                <Mail className="h-3 w-3 text-muted-foreground" />
+                <p className="font-medium text-foreground">{patient.email}</p>
+              </div>
+            )}
+            {patient.phone && (
+              <div className="flex items-center gap-1">
+                <Phone className="h-3 w-3 text-muted-foreground" />
+                <p className="font-medium text-foreground">{patient.phone}</p>
+              </div>
+            )}
             <div>
               <span className="text-muted-foreground">Stellen</span>
               <p className="font-medium text-foreground">{locations.length}</p>
@@ -161,6 +177,7 @@ const PatientDetail = () => {
           <div className="h-[350px]">
             <BodyMap3D
               markers={locations.map((l) => ({ id: l.id, x: l.x, y: l.y, name: l.name, view: l.view }))}
+              gender={patient.gender}
               onMapClick={handleMapClick}
               selectedLocationId={selectedLocationId}
               onMarkerClick={(id) => setSelectedLocationId(id)}
