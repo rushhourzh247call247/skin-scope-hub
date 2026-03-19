@@ -308,7 +308,11 @@ const PatientDetail = () => {
               <h3 className="text-xs font-semibold text-foreground uppercase tracking-wider">Spots</h3>
               <span className="text-[10px] text-muted-foreground">{locations.filter(l => l.type !== "region").length} Stellen</span>
             </div>
-            {locations.filter(l => l.type !== "region").map((loc, i) => (
+            {locations.filter(l => l.type !== "region").filter(l => {
+              if (classificationFilter.length === 0) return true;
+              const cls = ((l as any).classification as LesionClassificationType) || "unclassified";
+              return classificationFilter.includes(cls);
+            }).map((loc, i) => (
               <button
                 key={loc.id}
                 onClick={() => setSelectedLocationId(loc.id)}
