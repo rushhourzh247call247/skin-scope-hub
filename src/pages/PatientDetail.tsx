@@ -204,7 +204,7 @@ const PatientDetail = () => {
         <div className="w-[300px] shrink-0 border-r bg-card p-3 overflow-y-auto flex flex-col">
           <div className="h-[350px]">
             <BodyMap3D
-              markers={locations.map((l) => ({ id: l.id, x: l.x, y: l.y, name: l.name, view: l.view }))}
+              markers={locations.map((l) => ({ id: l.id, x: l.x, y: l.y, name: l.name, view: l.view, imageCount: l.images?.length ?? 0, findingCount: l.findings?.length ?? 0 }))}
               gender={patient.gender}
               onMapClick={handleMapClick}
               selectedLocationId={selectedLocationId}
