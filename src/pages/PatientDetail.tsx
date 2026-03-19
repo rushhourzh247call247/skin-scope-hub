@@ -4,6 +4,7 @@ import { mockApi } from "@/lib/mockData";
 import type { FullPatient, LesionClassification } from "@/types/patient";
 import { LESION_CLASSIFICATIONS } from "@/types/patient";
 import { useState } from "react";
+import type { LesionClassification as LesionClassificationType } from "@/types/patient";
 import { ArrowLeft, MapPin, Plus, Calendar, ImageIcon, User, Hash, Activity, Mail, Phone, Pencil, Trash2, Save, X, Square, GitCompareArrows, Move, Camera, Tag } from "lucide-react";
 import { Slider } from "@/components/ui/slider";
 import { Button } from "@/components/ui/button";
