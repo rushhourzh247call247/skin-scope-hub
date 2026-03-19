@@ -1,4 +1,5 @@
 export type Gender = "female" | "male";
+export type LocationType = "spot" | "region";
 
 export interface Patient {
   id: number;
@@ -28,6 +29,9 @@ export interface Location {
   x: number;
   y: number;
   view?: "front" | "back";
+  type?: LocationType;
+  width?: number;   // region width in 2D coords (0-200 scale)
+  height?: number;  // region height in 2D coords (0-500 scale)
   created_at?: string;
   updated_at?: string;
   images?: LocationImage[];
