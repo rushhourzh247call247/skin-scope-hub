@@ -2,7 +2,7 @@ import { useState } from "react";
 import type { LocationImage } from "@/types/patient";
 import { format } from "date-fns";
 import { de } from "date-fns/locale";
-import { ArrowLeft, Calendar, Check, GitCompareArrows, RotateCcw, ZoomIn, Layers } from "lucide-react";
+import { ArrowLeft, Calendar, Check, GitCompareArrows, RotateCcw, ZoomIn, Layers, Move, RotateCw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Slider } from "@/components/ui/slider";
 import { mockApi } from "@/lib/mockData";
@@ -24,6 +24,10 @@ const ImageCompare = ({ images, locationName, onClose }: ImageCompareProps) => {
   const [zoomedImage, setZoomedImage] = useState<LocationImage | null>(null);
   const [compareMode, setCompareMode] = useState<"side" | "overlay">("side");
   const [overlayOpacity, setOverlayOpacity] = useState(50);
+  const [overlayRotation, setOverlayRotation] = useState(0);
+  const [overlayScale, setOverlayScale] = useState(100);
+  const [overlayOffsetX, setOverlayOffsetX] = useState(0);
+  const [overlayOffsetY, setOverlayOffsetY] = useState(0);
 
   const sorted = [...images].sort(
     (a, b) => new Date(a.created_at ?? 0).getTime() - new Date(b.created_at ?? 0).getTime()
@@ -209,7 +213,10 @@ const ImageCompare = ({ images, locationName, onClose }: ImageCompareProps) => {
                     src={mockApi.getImageUrl(compareImages[1].image_path)}
                     alt="Neuere Aufnahme"
                     className="absolute inset-0 h-full w-full object-contain"
-                    style={{ opacity: overlayOpacity / 100 }}
+                    style={{
+                      opacity: overlayOpacity / 100,
+                      transform: `rotate(${overlayRotation}deg) scale(${overlayScale / 100}) translate(${overlayOffsetX}px, ${overlayOffsetY}px)`,
+                    }}
                   />
                   {/* Labels */}
                   <div className="absolute top-2 left-2 rounded-full bg-primary/90 px-2 py-0.5 text-[9px] font-bold text-primary-foreground backdrop-blur-sm">
@@ -239,6 +246,88 @@ const ImageCompare = ({ images, locationName, onClose }: ImageCompareProps) => {
                     max={100}
                     step={1}
                   />
+                </div>
+
+                {/* Alignment Controls */}
+                <div className="rounded-lg border bg-muted/30 p-3 space-y-3">
+                  <div className="flex items-center justify-between">
+                    <h5 className="text-[10px] font-semibold text-foreground flex items-center gap-1.5">
+                      <Move className="h-3 w-3 text-primary" /> Ausrichtung anpassen
+                    </h5>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="h-6 px-2 text-[10px]"
+                      onClick={() => {
+                        setOverlayRotation(0);
+                        setOverlayScale(100);
+                        setOverlayOffsetX(0);
+                        setOverlayOffsetY(0);
+                      }}
+                    >
+                      <RotateCcw className="mr-1 h-3 w-3" /> Reset
+                    </Button>
+                  </div>
+
+                  {/* Rotation */}
+                  <div className="space-y-1">
+                    <div className="flex items-center justify-between text-[10px] text-muted-foreground">
+                      <span className="flex items-center gap-1"><RotateCw className="h-3 w-3" /> Rotation</span>
+                      <span className="font-mono">{overlayRotation}°</span>
+                    </div>
+                    <Slider
+                      value={[overlayRotation]}
+                      onValueChange={([v]) => setOverlayRotation(v)}
+                      min={-180}
+                      max={180}
+                      step={1}
+                    />
+                  </div>
+
+                  {/* Scale */}
+                  <div className="space-y-1">
+                    <div className="flex items-center justify-between text-[10px] text-muted-foreground">
+                      <span className="flex items-center gap-1"><ZoomIn className="h-3 w-3" /> Zoom</span>
+                      <span className="font-mono">{overlayScale}%</span>
+                    </div>
+                    <Slider
+                      value={[overlayScale]}
+                      onValueChange={([v]) => setOverlayScale(v)}
+                      min={50}
+                      max={200}
+                      step={1}
+                    />
+                  </div>
+
+                  {/* Offset X */}
+                  <div className="space-y-1">
+                    <div className="flex items-center justify-between text-[10px] text-muted-foreground">
+                      <span>← Horizontal →</span>
+                      <span className="font-mono">{overlayOffsetX}px</span>
+                    </div>
+                    <Slider
+                      value={[overlayOffsetX]}
+                      onValueChange={([v]) => setOverlayOffsetX(v)}
+                      min={-100}
+                      max={100}
+                      step={1}
+                    />
+                  </div>
+
+                  {/* Offset Y */}
+                  <div className="space-y-1">
+                    <div className="flex items-center justify-between text-[10px] text-muted-foreground">
+                      <span>↑ Vertikal ↓</span>
+                      <span className="font-mono">{overlayOffsetY}px</span>
+                    </div>
+                    <Slider
+                      value={[overlayOffsetY]}
+                      onValueChange={([v]) => setOverlayOffsetY(v)}
+                      min={-100}
+                      max={100}
+                      step={1}
+                    />
+                  </div>
                 </div>
               </div>
             )}

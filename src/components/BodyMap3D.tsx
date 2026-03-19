@@ -3,7 +3,9 @@ import { Canvas, useFrame, useThree, ThreeEvent } from "@react-three/fiber";
 import { OrbitControls, Html, useGLTF, Center } from "@react-three/drei";
 import * as THREE from "three";
 import { cn } from "@/lib/utils";
-import { RotateCcw, Eye, Hand, Footprints, User, Shirt, CircleDot, ArrowDown, MapPin, Square } from "lucide-react";
+import { RotateCcw, Eye, Hand, Footprints, User, Shirt, CircleDot, ArrowDown, MapPin, Square, Filter } from "lucide-react";
+import type { LesionClassification } from "@/types/patient";
+import { LESION_CLASSIFICATIONS } from "@/types/patient";
 
 /* ─── Types ─── */
 interface Marker {
@@ -34,6 +36,8 @@ interface BodyMap3DProps {
   markers: Marker[];
   selectedLocationId: number | null;
   gender?: Gender;
+  classificationFilter?: LesionClassification[];
+  onFilterChange?: (filter: LesionClassification[]) => void;
   onMapClick?: (
     x: number,
     y: number,
@@ -112,6 +116,8 @@ useGLTF.preload(FEMALE_MODEL_URL);
 useGLTF.preload(MALE_MODEL_URL);
 
 /* ─── Spot Marker (DermEngine-style circle ring) ─── */
+const HIGH_RISK_CLASSIFICATIONS: LesionClassification[] = ["melanoma_suspect", "scc"];
+
 type SpotMarkerProps = {
   position: [number, number, number];
   name?: string;
@@ -120,10 +126,11 @@ type SpotMarkerProps = {
   imageCount?: number;
   findingCount?: number;
   classificationColor?: string;
+  isHighRisk?: boolean;
 };
 
 const SpotMarker = React.forwardRef<THREE.Group, SpotMarkerProps>(function SpotMarker(
-  { position, name, isSelected, onClick, imageCount, findingCount, classificationColor },
+  { position, name, isSelected, onClick, imageCount, findingCount, classificationColor, isHighRisk },
   forwardedRef,
 ) {
   const groupRef = useRef<THREE.Group>(null);
@@ -131,7 +138,10 @@ const SpotMarker = React.forwardRef<THREE.Group, SpotMarkerProps>(function SpotM
 
   useFrame(() => {
     if (!groupRef.current) return;
-    if (isSelected) {
+    if (isHighRisk && !isSelected) {
+      // Faster, stronger pulse for high-risk
+      groupRef.current.scale.setScalar(1 + Math.sin(Date.now() * 0.006) * 0.18);
+    } else if (isSelected) {
       groupRef.current.scale.setScalar(1 + Math.sin(Date.now() * 0.004) * 0.1);
     } else {
       groupRef.current.scale.setScalar(hovered ? 1.15 : 1);
@@ -185,6 +195,20 @@ const SpotMarker = React.forwardRef<THREE.Group, SpotMarkerProps>(function SpotM
               color="#0ea5e9"
               transparent
               opacity={0.4}
+              side={THREE.DoubleSide}
+              depthTest={false}
+            />
+          </mesh>
+        )}
+
+        {/* High-risk outer glow ring */}
+        {isHighRisk && !isSelected && (
+          <mesh rotation={[0, 0, 0]}>
+            <ringGeometry args={[0.038, 0.046, 48]} />
+            <meshBasicMaterial
+              color="#ef4444"
+              transparent
+              opacity={0.3 + Math.sin(Date.now() * 0.005) * 0.15}
               side={THREE.DoubleSide}
               depthTest={false}
             />
@@ -586,7 +610,7 @@ function LoadingFallback() {
 }
 
 /* ─── Scene ─── */
-function Scene({ markers, selectedLocationId, onMapClick, onMarkerClick, preset, gender, markMode, markType }: BodyMap3DProps & { preset: CameraPreset; gender: Gender; markMode: boolean; markType: MarkType }) {
+function Scene({ markers, selectedLocationId, onMapClick, onMarkerClick, classificationFilter, preset, gender, markMode, markType }: BodyMap3DProps & { preset: CameraPreset; gender: Gender; markMode: boolean; markType: MarkType }) {
   const handleBodyClick = useCallback(
     (e: ThreeEvent<MouseEvent>) => {
       if (!markMode) return;
@@ -609,8 +633,17 @@ function Scene({ markers, selectedLocationId, onMapClick, onMarkerClick, preset,
     [onMapClick, markMode, markType],
   );
 
-  const spots = markers.filter((m) => m.type !== "region");
-  const regions = markers.filter((m) => m.type === "region");
+  const hasFilter = classificationFilter && classificationFilter.length > 0;
+
+  const filteredMarkers = hasFilter
+    ? markers.filter((m) => {
+        const cls = (m.classification as LesionClassification) || "unclassified";
+        return classificationFilter!.includes(cls);
+      })
+    : markers;
+
+  const spots = filteredMarkers.filter((m) => m.type !== "region");
+  const regions = filteredMarkers.filter((m) => m.type === "region");
 
   return (
     <>
@@ -624,25 +657,30 @@ function Scene({ markers, selectedLocationId, onMapClick, onMarkerClick, preset,
         <BodyModel onBodyClick={handleBodyClick} gender={gender} />
       </Suspense>
 
-      {spots.map((m) => (
-        <SurfaceProjectedGroup
-          key={`spot-${m.id}`}
-          approxPosition={coords2Dto3D(m.x, m.y, m.view)}
-          view={m.view}
-          storedPosition={m.x3d !== undefined && m.y3d !== undefined && m.z3d !== undefined ? [m.x3d, m.y3d, m.z3d] : undefined}
-          storedNormal={m.nx !== undefined && m.ny !== undefined && m.nz !== undefined ? [m.nx, m.ny, m.nz] : undefined}
-        >
-          <SpotMarker
-            position={[0, 0, 0]}
-            name={m.name}
-            isSelected={m.id === selectedLocationId}
-            onClick={() => onMarkerClick?.(m.id)}
-            imageCount={m.imageCount}
-            findingCount={m.findingCount}
-            classificationColor={m.classificationColor}
-          />
-        </SurfaceProjectedGroup>
-      ))}
+      {spots.map((m) => {
+        const cls = (m.classification as LesionClassification) || "unclassified";
+        const isHighRisk = HIGH_RISK_CLASSIFICATIONS.includes(cls);
+        return (
+          <SurfaceProjectedGroup
+            key={`spot-${m.id}`}
+            approxPosition={coords2Dto3D(m.x, m.y, m.view)}
+            view={m.view}
+            storedPosition={m.x3d !== undefined && m.y3d !== undefined && m.z3d !== undefined ? [m.x3d, m.y3d, m.z3d] : undefined}
+            storedNormal={m.nx !== undefined && m.ny !== undefined && m.nz !== undefined ? [m.nx, m.ny, m.nz] : undefined}
+          >
+            <SpotMarker
+              position={[0, 0, 0]}
+              name={m.name}
+              isSelected={m.id === selectedLocationId}
+              onClick={() => onMarkerClick?.(m.id)}
+              imageCount={m.imageCount}
+              findingCount={m.findingCount}
+              classificationColor={m.classificationColor}
+              isHighRisk={isHighRisk}
+            />
+          </SurfaceProjectedGroup>
+        );
+      })}
 
       {regions.map((m) => (
         <SurfaceProjectedGroup
@@ -779,6 +817,69 @@ const BodyMap3D: React.FC<BodyMap3DProps> = (props) => {
         <div className="absolute left-2 top-2 rounded-md border border-primary/20 bg-primary/10 px-2 py-0.5 text-[10px] font-semibold text-primary">
           3D
         </div>
+
+        {/* Classification Legend / Filter */}
+        {(() => {
+          const classificationCounts: Partial<Record<LesionClassification, number>> = {};
+          props.markers.filter(m => m.type !== "region").forEach(m => {
+            const cls = (m.classification as LesionClassification) || "unclassified";
+            classificationCounts[cls] = (classificationCounts[cls] || 0) + 1;
+          });
+          const activeClasses = Object.keys(classificationCounts) as LesionClassification[];
+          if (activeClasses.length <= 1) return null;
+
+          const filter = props.classificationFilter ?? [];
+          const hasFilter = filter.length > 0;
+
+          return (
+            <div className="absolute bottom-10 left-2 rounded-lg border border-border/50 bg-card/90 backdrop-blur-sm p-1.5 space-y-0.5 max-w-[140px]">
+              <div className="flex items-center justify-between px-1 mb-0.5">
+                <span className="text-[8px] font-bold text-muted-foreground uppercase tracking-wider flex items-center gap-1">
+                  <Filter className="h-2.5 w-2.5" /> Legende
+                </span>
+                {hasFilter && (
+                  <button
+                    onClick={() => props.onFilterChange?.([])}
+                    className="text-[8px] text-primary hover:underline"
+                  >
+                    Alle
+                  </button>
+                )}
+              </div>
+              {activeClasses.map((cls) => {
+                const info = LESION_CLASSIFICATIONS[cls];
+                const isFiltered = hasFilter && !filter.includes(cls);
+                const isHighRisk = HIGH_RISK_CLASSIFICATIONS.includes(cls);
+                return (
+                  <button
+                    key={cls}
+                    onClick={() => {
+                      if (!hasFilter) {
+                        props.onFilterChange?.([cls]);
+                      } else if (filter.includes(cls)) {
+                        const next = filter.filter(f => f !== cls);
+                        props.onFilterChange?.(next);
+                      } else {
+                        props.onFilterChange?.([...filter, cls]);
+                      }
+                    }}
+                    className={cn(
+                      "flex w-full items-center gap-1.5 rounded px-1.5 py-0.5 text-[9px] font-medium transition-all",
+                      isFiltered ? "opacity-30 line-through" : "opacity-100 hover:bg-muted/50"
+                    )}
+                  >
+                    <span
+                      className={cn("h-2 w-2 rounded-full shrink-0", isHighRisk && !isFiltered && "animate-pulse")}
+                      style={{ backgroundColor: info.color }}
+                    />
+                    <span className="truncate text-foreground">{info.shortLabel}</span>
+                    <span className="ml-auto text-muted-foreground">{classificationCounts[cls]}</span>
+                  </button>
+                );
+              })}
+            </div>
+          );
+        })()}
       </div>
 
       <p className="mt-2 text-center text-[10px] text-muted-foreground">

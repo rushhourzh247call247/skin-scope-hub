@@ -4,6 +4,7 @@ import { mockApi } from "@/lib/mockData";
 import type { FullPatient, LesionClassification } from "@/types/patient";
 import { LESION_CLASSIFICATIONS } from "@/types/patient";
 import { useState } from "react";
+import type { LesionClassification as LesionClassificationType } from "@/types/patient";
 import { ArrowLeft, MapPin, Plus, Calendar, ImageIcon, User, Hash, Activity, Mail, Phone, Pencil, Trash2, Save, X, Square, GitCompareArrows, Move, Camera, Tag } from "lucide-react";
 import { Slider } from "@/components/ui/slider";
 import { Button } from "@/components/ui/button";
@@ -50,6 +51,7 @@ const PatientDetail = () => {
   const [spotY, setSpotY] = useState(0);
   const [editingFindingId, setEditingFindingId] = useState<number | null>(null);
   const [editingFindingText, setEditingFindingText] = useState("");
+  const [classificationFilter, setClassificationFilter] = useState<LesionClassificationType[]>([]);
 
   const { data: patient, isLoading, error } = useQuery({
     queryKey: ["full-patient", patientId],
@@ -295,6 +297,8 @@ const PatientDetail = () => {
               onMapClick={handleMapClick}
               selectedLocationId={selectedLocationId}
               onMarkerClick={(id) => setSelectedLocationId(id)}
+              classificationFilter={classificationFilter}
+              onFilterChange={setClassificationFilter}
             />
           </div>
 
@@ -304,7 +308,11 @@ const PatientDetail = () => {
               <h3 className="text-xs font-semibold text-foreground uppercase tracking-wider">Spots</h3>
               <span className="text-[10px] text-muted-foreground">{locations.filter(l => l.type !== "region").length} Stellen</span>
             </div>
-            {locations.filter(l => l.type !== "region").map((loc, i) => (
+            {locations.filter(l => l.type !== "region").filter(l => {
+              if (classificationFilter.length === 0) return true;
+              const cls = ((l as any).classification as LesionClassificationType) || "unclassified";
+              return classificationFilter.includes(cls);
+            }).map((loc, i) => (
               <button
                 key={loc.id}
                 onClick={() => setSelectedLocationId(loc.id)}
