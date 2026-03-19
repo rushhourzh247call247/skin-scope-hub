@@ -110,14 +110,19 @@ useGLTF.preload(FEMALE_MODEL_URL);
 useGLTF.preload(MALE_MODEL_URL);
 
 /* ─── Spot Marker (DermEngine-style circle ring) ─── */
-function SpotMarker({ position, name, isSelected, onClick, imageCount, findingCount }: {
+type SpotMarkerProps = {
   position: [number, number, number];
   name?: string;
   isSelected: boolean;
   onClick: () => void;
   imageCount?: number;
   findingCount?: number;
-}) {
+};
+
+const SpotMarker = React.forwardRef<THREE.Group, SpotMarkerProps>(function SpotMarker(
+  { position, name, isSelected, onClick, imageCount, findingCount },
+  forwardedRef,
+) {
   const groupRef = useRef<THREE.Group>(null);
   const [hovered, setHovered] = useState(false);
 
@@ -134,7 +139,7 @@ function SpotMarker({ position, name, isSelected, onClick, imageCount, findingCo
   const ringOpacity = isSelected ? 0.9 : hovered ? 0.7 : 0.5;
 
   return (
-    <group position={position}>
+    <group ref={forwardedRef} position={position}>
       <group
         ref={groupRef}
         onClick={(e) => {
@@ -223,7 +228,7 @@ function SpotMarker({ position, name, isSelected, onClick, imageCount, findingCo
       )}
     </group>
   );
-}
+});
 
 /* ─── Convert 3D hit point to 2D coords for storage ─── */
 function pointTo2D(point: THREE.Vector3): { x: number; y: number; view: "front" | "back" } {
