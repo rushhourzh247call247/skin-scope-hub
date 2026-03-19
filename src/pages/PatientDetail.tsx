@@ -53,6 +53,7 @@ const PatientDetail = () => {
   const [editingFindingId, setEditingFindingId] = useState<number | null>(null);
   const [editingFindingText, setEditingFindingText] = useState("");
   const [classificationFilter, setClassificationFilter] = useState<LesionClassificationType[]>([]);
+  const [qrDialogOpen, setQrDialogOpen] = useState(false);
 
   const { data: patient, isLoading, error } = useQuery({
     queryKey: ["full-patient", patientId],
