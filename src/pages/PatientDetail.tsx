@@ -252,6 +252,17 @@ const PatientDetail = () => {
               <MapPin className="h-3.5 w-3.5" /> SPOTS
             </button>
             <button
+              onClick={() => setActiveTab("fotos")}
+              className={cn(
+                "flex items-center gap-1.5 rounded-md px-3 py-1.5 text-xs font-medium transition-all",
+                activeTab === "fotos"
+                  ? "bg-primary text-primary-foreground shadow-sm"
+                  : "text-muted-foreground hover:text-foreground"
+              )}
+            >
+              <Camera className="h-3.5 w-3.5" /> FOTOS
+            </button>
+            <button
               onClick={() => setActiveTab("timeline")}
               className={cn(
                 "flex items-center gap-1.5 rounded-md px-3 py-1.5 text-xs font-medium transition-all",
