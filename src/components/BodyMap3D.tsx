@@ -69,20 +69,29 @@ function makeUnisex(scene: THREE.Object3D) {
       const z = pos.getZ(i);
       const ny = (y - box.min.y) / height; // normalized 0..1
 
-      // Chest area (roughly 0.55-0.72 of height) — flatten Z protrusion
-      if (ny > 0.55 && ny < 0.72 && z > center.z) {
-        const chestFactor = Math.sin(((ny - 0.55) / 0.17) * Math.PI);
-        const flatten = 0.35 * chestFactor;
-        const zOffset = (z - center.z) * flatten;
-        pos.setZ(i, z - zOffset);
+      // Chest area (roughly 0.52-0.75 of height) — aggressively flatten Z protrusion
+      if (ny > 0.52 && ny < 0.75 && z > center.z + 0.01 * size.z) {
+        const chestFactor = Math.sin(((ny - 0.52) / 0.23) * Math.PI);
+        const distFromCenter = (z - center.z) / (size.z * 0.5);
+        const flatten = 0.6 * chestFactor * Math.max(0, distFromCenter);
+        pos.setZ(i, z - (z - center.z) * flatten);
       }
 
-      // Hip area (roughly 0.42-0.52) — slightly narrow
-      if (ny > 0.42 && ny < 0.52) {
-        const hipFactor = Math.sin(((ny - 0.42) / 0.10) * Math.PI);
-        const narrow = 0.08 * hipFactor;
-        const xOffset = (x - center.x) * narrow;
-        pos.setX(i, x - xOffset);
+      // Hip area (roughly 0.40-0.52) — narrow the wider hips
+      if (ny > 0.40 && ny < 0.52) {
+        const hipFactor = Math.sin(((ny - 0.40) / 0.12) * Math.PI);
+        const distFromCenter = Math.abs(x - center.x) / (size.x * 0.5);
+        const narrow = 0.12 * hipFactor * distFromCenter;
+        const sign = x > center.x ? 1 : -1;
+        pos.setX(i, x - sign * Math.abs(x - center.x) * narrow);
+      }
+
+      // Buttocks area (back side, 0.42-0.55) — flatten
+      if (ny > 0.42 && ny < 0.55 && z < center.z - 0.01 * size.z) {
+        const buttFactor = Math.sin(((ny - 0.42) / 0.13) * Math.PI);
+        const distFromCenter = Math.abs(z - center.z) / (size.z * 0.5);
+        const flatten = 0.25 * buttFactor * distFromCenter;
+        pos.setZ(i, z + Math.abs(z - center.z) * flatten);
       }
     }
 
