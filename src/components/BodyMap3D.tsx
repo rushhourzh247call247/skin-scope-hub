@@ -175,8 +175,8 @@ function SpotMarker({ position, name, isSelected, onClick, imageCount, findingCo
         </mesh>
       </group>
 
-      {/* Always-visible small label */}
-      {name && !hovered && !isSelected && (
+      {/* Small label only on hover (not selected) */}
+      {name && hovered && !isSelected && (
         <Html position={[0, 0.055, 0]} center style={{ pointerEvents: "none" }}>
           <div className="rounded bg-card/90 border border-border/50 px-1.5 py-0.5 text-[7px] font-medium text-muted-foreground shadow whitespace-nowrap backdrop-blur-sm">
             {name}
