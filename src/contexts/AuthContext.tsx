@@ -49,15 +49,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     sessionStorage.setItem("auth_user", JSON.stringify(u));
   }, []);
 
-  const register = useCallback(async (data: { name: string; email: string; password: string; company_name: string }) => {
-    const res = await api.register(data);
-    const { user: u, token: t } = res;
-    setUser(u);
-    setToken(t);
-    api.setToken(t);
-    sessionStorage.setItem("auth_token", t);
-    sessionStorage.setItem("auth_user", JSON.stringify(u));
-  }, []);
 
   const logout = useCallback(() => {
     setUser(null);
