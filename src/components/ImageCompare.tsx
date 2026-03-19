@@ -2,8 +2,9 @@ import { useState } from "react";
 import type { LocationImage } from "@/types/patient";
 import { format } from "date-fns";
 import { de } from "date-fns/locale";
-import { ArrowLeft, Calendar, Check, GitCompareArrows, RotateCcw, ZoomIn } from "lucide-react";
+import { ArrowLeft, Calendar, Check, GitCompareArrows, RotateCcw, ZoomIn, Layers } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Slider } from "@/components/ui/slider";
 import { mockApi } from "@/lib/mockData";
 import { cn } from "@/lib/utils";
 import { motion, AnimatePresence } from "framer-motion";
@@ -21,6 +22,8 @@ interface ImageCompareProps {
 const ImageCompare = ({ images, locationName, onClose }: ImageCompareProps) => {
   const [selected, setSelected] = useState<number[]>([]);
   const [zoomedImage, setZoomedImage] = useState<LocationImage | null>(null);
+  const [compareMode, setCompareMode] = useState<"side" | "overlay">("side");
+  const [overlayOpacity, setOverlayOpacity] = useState(50);
 
   const sorted = [...images].sort(
     (a, b) => new Date(a.created_at ?? 0).getTime() - new Date(b.created_at ?? 0).getTime()
@@ -65,14 +68,11 @@ const ImageCompare = ({ images, locationName, onClose }: ImageCompareProps) => {
 
       {/* Timeline */}
       <div className="relative">
-        {/* Timeline line */}
         <div className="absolute left-[18px] top-0 bottom-0 w-0.5 bg-border" />
-
         <div className="space-y-4">
           {sorted.map((img, index) => {
             const isSelected = selected.includes(img.id);
             const selectionOrder = selected.indexOf(img.id);
-
             return (
               <motion.div
                 key={img.id}
@@ -81,7 +81,6 @@ const ImageCompare = ({ images, locationName, onClose }: ImageCompareProps) => {
                 transition={{ delay: index * 0.05 }}
                 className="relative flex items-start gap-4 pl-1"
               >
-                {/* Timeline dot */}
                 <button
                   onClick={() => toggleSelect(img.id)}
                   className={cn(
@@ -97,8 +96,6 @@ const ImageCompare = ({ images, locationName, onClose }: ImageCompareProps) => {
                     <Calendar className="h-3.5 w-3.5" />
                   )}
                 </button>
-
-                {/* Card */}
                 <div
                   onClick={() => toggleSelect(img.id)}
                   className={cn(
@@ -121,24 +118,12 @@ const ImageCompare = ({ images, locationName, onClose }: ImageCompareProps) => {
                     )}
                   </div>
                   <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium text-foreground">
-                      Aufnahme #{index + 1}
-                    </p>
+                    <p className="text-sm font-medium text-foreground">Aufnahme #{index + 1}</p>
                     <p className="text-xs text-muted-foreground tabular-nums">
-                      {img.created_at
-                        ? format(new Date(img.created_at), "dd. MMMM yyyy, HH:mm", { locale: de })
-                        : "–"}
+                      {img.created_at ? format(new Date(img.created_at), "dd. MMMM yyyy, HH:mm", { locale: de }) : "–"}
                     </p>
                   </div>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="shrink-0"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      setZoomedImage(img);
-                    }}
-                  >
+                  <Button variant="ghost" size="icon" className="shrink-0" onClick={(e) => { e.stopPropagation(); setZoomedImage(img); }}>
                     <ZoomIn className="h-4 w-4" />
                   </Button>
                 </div>
@@ -162,37 +147,101 @@ const ImageCompare = ({ images, locationName, onClose }: ImageCompareProps) => {
                 <GitCompareArrows className="h-4 w-4 text-primary" />
                 Vergleich
               </h4>
-              <div className="flex items-center gap-2 rounded-full bg-muted px-3 py-1 text-xs text-muted-foreground">
-                <span>🔄 Auto-Ausrichtung verfügbar mit Backend</span>
+              {/* Mode toggle */}
+              <div className="flex items-center gap-1 rounded-lg bg-muted p-1">
+                <button
+                  onClick={() => setCompareMode("side")}
+                  className={cn(
+                    "flex items-center gap-1.5 rounded-md px-2.5 py-1 text-[10px] font-medium transition-all",
+                    compareMode === "side"
+                      ? "bg-primary text-primary-foreground shadow-sm"
+                      : "text-muted-foreground hover:text-foreground"
+                  )}
+                >
+                  <GitCompareArrows className="h-3 w-3" /> Nebeneinander
+                </button>
+                <button
+                  onClick={() => setCompareMode("overlay")}
+                  className={cn(
+                    "flex items-center gap-1.5 rounded-md px-2.5 py-1 text-[10px] font-medium transition-all",
+                    compareMode === "overlay"
+                      ? "bg-primary text-primary-foreground shadow-sm"
+                      : "text-muted-foreground hover:text-foreground"
+                  )}
+                >
+                  <Layers className="h-3 w-3" /> Overlay
+                </button>
               </div>
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
-              {compareImages.map((img, i) => (
-                <div key={img.id} className="space-y-2">
-                  <div className="relative overflow-hidden rounded-lg border aspect-square bg-muted">
-                    <img
-                      src={mockApi.getImageUrl(img.image_path)}
-                      alt={`Vergleich ${i + 1}`}
-                      className="h-full w-full object-contain"
-                    />
-                    <div className={cn(
-                      "absolute top-2 left-2 flex h-6 w-6 items-center justify-center rounded-full text-xs font-bold",
-                      i === 0
-                        ? "bg-primary text-primary-foreground"
-                        : "bg-accent text-accent-foreground"
-                    )}>
-                      {i + 1}
+            {compareMode === "side" ? (
+              /* Side-by-side */
+              <div className="grid grid-cols-2 gap-4">
+                {compareImages.map((img, i) => (
+                  <div key={img.id} className="space-y-2">
+                    <div className="relative overflow-hidden rounded-lg border aspect-square bg-muted">
+                      <img src={mockApi.getImageUrl(img.image_path)} alt={`Vergleich ${i + 1}`} className="h-full w-full object-contain" />
+                      <div className={cn(
+                        "absolute top-2 left-2 flex h-6 w-6 items-center justify-center rounded-full text-xs font-bold",
+                        i === 0 ? "bg-primary text-primary-foreground" : "bg-accent text-accent-foreground"
+                      )}>
+                        {i + 1}
+                      </div>
                     </div>
+                    <p className="text-center text-xs text-muted-foreground tabular-nums">
+                      {img.created_at ? format(new Date(img.created_at), "dd. MMM yyyy", { locale: de }) : "–"}
+                    </p>
                   </div>
-                  <p className="text-center text-xs text-muted-foreground tabular-nums">
-                    {img.created_at
-                      ? format(new Date(img.created_at), "dd. MMM yyyy", { locale: de })
-                      : "–"}
-                  </p>
+                ))}
+              </div>
+            ) : (
+              /* Overlay mode */
+              <div className="space-y-4">
+                <div className="relative overflow-hidden rounded-lg border aspect-square bg-muted">
+                  {/* Base image (older) */}
+                  <img
+                    src={mockApi.getImageUrl(compareImages[0].image_path)}
+                    alt="Ältere Aufnahme"
+                    className="absolute inset-0 h-full w-full object-contain"
+                  />
+                  {/* Overlay image (newer) with adjustable opacity */}
+                  <img
+                    src={mockApi.getImageUrl(compareImages[1].image_path)}
+                    alt="Neuere Aufnahme"
+                    className="absolute inset-0 h-full w-full object-contain"
+                    style={{ opacity: overlayOpacity / 100 }}
+                  />
+                  {/* Labels */}
+                  <div className="absolute top-2 left-2 rounded-full bg-primary/90 px-2 py-0.5 text-[9px] font-bold text-primary-foreground backdrop-blur-sm">
+                    ÄLTER
+                  </div>
+                  <div className="absolute top-2 right-2 rounded-full bg-accent/90 px-2 py-0.5 text-[9px] font-bold text-accent-foreground backdrop-blur-sm">
+                    NEUER ({overlayOpacity}%)
+                  </div>
                 </div>
-              ))}
-            </div>
+                {/* Opacity slider */}
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between text-xs text-muted-foreground">
+                    <span className="flex items-center gap-1">
+                      <Calendar className="h-3 w-3" />
+                      {compareImages[0].created_at ? format(new Date(compareImages[0].created_at), "dd.MM.yy", { locale: de }) : "–"}
+                    </span>
+                    <span className="text-[10px] font-medium text-foreground">Transparenz: {overlayOpacity}%</span>
+                    <span className="flex items-center gap-1">
+                      <Calendar className="h-3 w-3" />
+                      {compareImages[1].created_at ? format(new Date(compareImages[1].created_at), "dd.MM.yy", { locale: de }) : "–"}
+                    </span>
+                  </div>
+                  <Slider
+                    value={[overlayOpacity]}
+                    onValueChange={([v]) => setOverlayOpacity(v)}
+                    min={0}
+                    max={100}
+                    step={1}
+                  />
+                </div>
+              </div>
+            )}
 
             {/* Time difference */}
             {compareImages[0].created_at && compareImages[1].created_at && (
@@ -212,15 +261,9 @@ const ImageCompare = ({ images, locationName, onClose }: ImageCompareProps) => {
         <DialogContent className="max-w-2xl p-2">
           {zoomedImage && (
             <div className="space-y-2">
-              <img
-                src={mockApi.getImageUrl(zoomedImage.image_path)}
-                alt="Vergrössert"
-                className="w-full rounded-md object-contain"
-              />
+              <img src={mockApi.getImageUrl(zoomedImage.image_path)} alt="Vergrössert" className="w-full rounded-md object-contain" />
               <p className="text-center text-xs text-muted-foreground tabular-nums">
-                {zoomedImage.created_at
-                  ? format(new Date(zoomedImage.created_at), "dd. MMMM yyyy, HH:mm", { locale: de })
-                  : "–"}
+                {zoomedImage.created_at ? format(new Date(zoomedImage.created_at), "dd. MMMM yyyy, HH:mm", { locale: de }) : "–"}
               </p>
             </div>
           )}
