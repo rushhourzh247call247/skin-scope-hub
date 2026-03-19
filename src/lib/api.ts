@@ -7,7 +7,14 @@ function setToken(token: string | null) {
 }
 
 function getApiBaseUrl() {
-  return (import.meta.env.VITE_API_BASE_URL?.trim() || DEFAULT_API_BASE_URL).replace(/\/$/, '');
+  const configuredUrl = import.meta.env.VITE_API_BASE_URL?.trim();
+  const normalizedUrl = (configuredUrl || DEFAULT_API_BASE_URL).replace(/\/$/, '');
+
+  if (typeof window !== 'undefined' && window.location.protocol === 'https:' && normalizedUrl.startsWith('http://')) {
+    return DEFAULT_API_BASE_URL.replace(/\/$/, '');
+  }
+
+  return normalizedUrl;
 }
 
 function getStorageBaseUrl() {
