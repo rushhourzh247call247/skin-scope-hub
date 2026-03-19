@@ -3,7 +3,7 @@ import { Canvas, useFrame, useThree, ThreeEvent } from "@react-three/fiber";
 import { OrbitControls, Html, useGLTF, Center } from "@react-three/drei";
 import * as THREE from "three";
 import { cn } from "@/lib/utils";
-import { RotateCcw, Eye, Hand, Footprints, User, Shirt, CircleDot, ArrowDown } from "lucide-react";
+import { RotateCcw, Eye, Hand, Footprints, User, Shirt, CircleDot, ArrowDown, MapPin } from "lucide-react";
 
 /* ─── Types ─── */
 interface Marker {
@@ -262,14 +262,15 @@ function LoadingFallback() {
 }
 
 /* ─── Scene ─── */
-function Scene({ markers, selectedLocationId, onMapClick, onMarkerClick, preset, gender }: BodyMap3DProps & { preset: CameraPreset; gender: Gender }) {
+function Scene({ markers, selectedLocationId, onMapClick, onMarkerClick, preset, gender, markMode }: BodyMap3DProps & { preset: CameraPreset; gender: Gender; markMode: boolean }) {
   const handleBodyClick = useCallback(
     (e: ThreeEvent<MouseEvent>) => {
+      if (!markMode) return;
       e.stopPropagation();
       const { x, y, view } = pointTo2D(e.point);
       onMapClick?.(x, y, view);
     },
-    [onMapClick],
+    [onMapClick, markMode],
   );
 
   return (
@@ -304,19 +305,23 @@ function Scene({ markers, selectedLocationId, onMapClick, onMarkerClick, preset,
 /* ─── Main Component ─── */
 const BodyMap3D: React.FC<BodyMap3DProps> = (props) => {
   const [activeRegion, setActiveRegion] = useState<Region>("full");
+  const [markMode, setMarkMode] = useState(false);
   const gender = props.gender ?? "male";
   const preset = CAMERA_PRESETS[activeRegion];
 
   return (
     <div className="flex h-full flex-col">
-      <div className="relative min-h-[300px] flex-1 overflow-hidden rounded-lg border bg-gradient-to-b from-muted/20 via-muted/40 to-muted/60">
+      <div className={cn(
+        "relative min-h-[300px] flex-1 overflow-hidden rounded-lg border bg-gradient-to-b from-muted/20 via-muted/40 to-muted/60",
+        markMode && "ring-2 ring-primary/50"
+      )}>
         <Canvas
           camera={{ position: preset.position, fov: 40, near: 0.1, far: 100 }}
-          style={{ width: "100%", height: "100%" }}
+          style={{ width: "100%", height: "100%", cursor: markMode ? "crosshair" : "grab" }}
           gl={{ antialias: true, alpha: true, toneMapping: THREE.ACESFilmicToneMapping, toneMappingExposure: 1.2 }}
           shadows
         >
-          <Scene {...props} preset={preset} gender={gender} />
+          <Scene {...props} preset={preset} gender={gender} markMode={markMode} />
         </Canvas>
 
         {/* Gender indicator */}
@@ -346,13 +351,37 @@ const BodyMap3D: React.FC<BodyMap3DProps> = (props) => {
           })}
         </div>
 
-        {/* Reset */}
-        <button
-          onClick={() => setActiveRegion("full")}
-          className="absolute bottom-2 left-2 flex h-7 items-center gap-1 rounded-md border border-border/50 bg-card/80 px-2 text-[10px] text-muted-foreground transition-all hover:text-foreground"
-        >
-          <RotateCcw className="h-3 w-3" /> Reset
-        </button>
+        {/* Bottom controls */}
+        <div className="absolute bottom-2 left-2 flex items-center gap-1.5">
+          <button
+            onClick={() => setActiveRegion("full")}
+            className="flex h-7 items-center gap-1 rounded-md border border-border/50 bg-card/80 px-2 text-[10px] text-muted-foreground transition-all hover:text-foreground"
+          >
+            <RotateCcw className="h-3 w-3" /> Reset
+          </button>
+
+          {/* Mark mode toggle */}
+          <button
+            onClick={() => setMarkMode((v) => !v)}
+            title={markMode ? "Markieren beenden" : "Spot markieren"}
+            className={cn(
+              "flex h-7 items-center gap-1.5 rounded-md px-2.5 text-[10px] font-medium transition-all",
+              markMode
+                ? "bg-primary text-primary-foreground shadow-md"
+                : "border border-border/50 bg-card/80 text-muted-foreground hover:text-foreground"
+            )}
+          >
+            <MapPin className="h-3 w-3" />
+            {markMode ? "Markieren aktiv" : "Markieren"}
+          </button>
+        </div>
+
+        {/* Mark mode indicator */}
+        {markMode && (
+          <div className="absolute top-2 left-1/2 -translate-x-1/2 rounded-full bg-primary px-3 py-1 text-[10px] font-semibold text-primary-foreground shadow-lg animate-pulse">
+            Klicken Sie auf den Körper um einen Spot zu setzen
+          </div>
+        )}
 
         {/* 3D Badge */}
         <div className="absolute left-2 top-2 rounded-md border border-primary/20 bg-primary/10 px-2 py-0.5 text-[10px] font-semibold text-primary">
@@ -360,7 +389,9 @@ const BodyMap3D: React.FC<BodyMap3DProps> = (props) => {
         </div>
       </div>
 
-      <p className="mt-2 text-center text-[10px] text-muted-foreground">Drehen & Zoomen · Klicken um Spot zu setzen</p>
+      <p className="mt-2 text-center text-[10px] text-muted-foreground">
+        {markMode ? "Markier-Modus: Klicken um Spot zu setzen · Nochmal klicken zum Beenden" : "Drehen & Zoomen · «Markieren» um Spots zu setzen"}
+      </p>
     </div>
   );
 };
