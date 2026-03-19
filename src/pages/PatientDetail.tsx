@@ -3,7 +3,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import { mockApi } from "@/lib/mockData";
 import type { FullPatient } from "@/types/patient";
 import { useState } from "react";
-import { ArrowLeft, MapPin, Plus, Calendar, ImageIcon, User, Hash, Activity, Mail, Phone } from "lucide-react";
+import { ArrowLeft, MapPin, Plus, Calendar, ImageIcon, User, Hash, Activity, Mail, Phone, Pencil, Trash2, Save, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { format } from "date-fns";
@@ -15,6 +15,7 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 import { AnimatePresence, motion } from "framer-motion";
 import { cn } from "@/lib/utils";
 
@@ -28,6 +29,9 @@ const PatientDetail = () => {
   const [mapClickDialog, setMapClickDialog] = useState<{ x: number; y: number; view: "front" | "back" } | null>(null);
   const [locationName, setLocationName] = useState("");
   const [activeTab, setActiveTab] = useState<"spots" | "timeline">("spots");
+  const [newFindingText, setNewFindingText] = useState("");
+  const [editingFindingId, setEditingFindingId] = useState<number | null>(null);
+  const [editingFindingText, setEditingFindingText] = useState("");
 
   const { data: patient, isLoading, error } = useQuery({
     queryKey: ["full-patient", patientId],
@@ -44,6 +48,30 @@ const PatientDetail = () => {
       setLocationName("");
       setSelectedLocationId(newLoc.id);
     },
+  });
+
+  const createFindingMutation = useMutation({
+    mutationFn: ({ locationId, description }: { locationId: number; description: string }) =>
+      mockApi.createFinding(locationId, description),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["full-patient", patientId] });
+      setNewFindingText("");
+    },
+  });
+
+  const updateFindingMutation = useMutation({
+    mutationFn: ({ findingId, description }: { findingId: number; description: string }) =>
+      mockApi.updateFinding(findingId, description),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["full-patient", patientId] });
+      setEditingFindingId(null);
+      setEditingFindingText("");
+    },
+  });
+
+  const deleteFindingMutation = useMutation({
+    mutationFn: (findingId: number) => mockApi.deleteFinding(findingId),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["full-patient", patientId] }),
   });
 
   const locations = patient?.locations ?? [];
@@ -254,22 +282,88 @@ const PatientDetail = () => {
                 </div>
 
                 {/* Findings */}
-                {selectedLocation.findings && selectedLocation.findings.length > 0 && (
-                  <div className="rounded-lg border bg-card p-4 space-y-2">
-                    <h4 className="text-xs font-semibold text-foreground uppercase tracking-wider">Befunde</h4>
-                    {selectedLocation.findings.map((f) => (
-                      <div key={f.id} className="flex items-start gap-2 rounded-md bg-muted/50 p-3">
-                        <Activity className="h-4 w-4 mt-0.5 text-primary shrink-0" />
-                        <div>
-                          <p className="text-sm text-foreground">{f.description}</p>
-                          <p className="text-[10px] text-muted-foreground mt-1">
-                            {f.created_at ? format(new Date(f.created_at), "dd.MM.yyyy", { locale: de }) : "–"}
-                          </p>
+                <div className="rounded-lg border bg-card p-4 space-y-3">
+                  <h4 className="text-xs font-semibold text-foreground uppercase tracking-wider">Befunde</h4>
+
+                  {/* Existing findings */}
+                  {selectedLocation.findings && selectedLocation.findings.map((f) => (
+                    <div key={f.id} className="flex items-start gap-2 rounded-md bg-muted/50 p-3">
+                      <Activity className="h-4 w-4 mt-0.5 text-primary shrink-0" />
+                      {editingFindingId === f.id ? (
+                        <div className="flex-1 space-y-2">
+                          <Textarea
+                            value={editingFindingText}
+                            onChange={(e) => setEditingFindingText(e.target.value)}
+                            rows={2}
+                            className="text-sm"
+                          />
+                          <div className="flex gap-1.5">
+                            <Button
+                              size="sm"
+                              variant="default"
+                              className="h-7 gap-1 text-xs"
+                              disabled={!editingFindingText.trim() || updateFindingMutation.isPending}
+                              onClick={() => updateFindingMutation.mutate({ findingId: f.id, description: editingFindingText.trim() })}
+                            >
+                              <Save className="h-3 w-3" /> Speichern
+                            </Button>
+                            <Button size="sm" variant="ghost" className="h-7 text-xs" onClick={() => setEditingFindingId(null)}>
+                              <X className="h-3 w-3" />
+                            </Button>
+                          </div>
                         </div>
-                      </div>
-                    ))}
+                      ) : (
+                        <div className="flex-1">
+                          <p className="text-sm text-foreground">{f.description}</p>
+                          <div className="flex items-center justify-between mt-1">
+                            <p className="text-[10px] text-muted-foreground">
+                              {f.created_at ? format(new Date(f.created_at), "dd.MM.yyyy HH:mm", { locale: de }) : "–"}
+                              {f.updated_at && " (bearbeitet)"}
+                            </p>
+                            <div className="flex gap-0.5">
+                              <Button
+                                size="sm"
+                                variant="ghost"
+                                className="h-6 w-6 p-0 text-muted-foreground hover:text-foreground"
+                                onClick={() => { setEditingFindingId(f.id); setEditingFindingText(f.description ?? ""); }}
+                              >
+                                <Pencil className="h-3 w-3" />
+                              </Button>
+                              <Button
+                                size="sm"
+                                variant="ghost"
+                                className="h-6 w-6 p-0 text-muted-foreground hover:text-destructive"
+                                onClick={() => deleteFindingMutation.mutate(f.id)}
+                              >
+                                <Trash2 className="h-3 w-3" />
+                              </Button>
+                            </div>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  ))}
+
+                  {/* Add new finding */}
+                  <div className="space-y-2 pt-1">
+                    <Textarea
+                      placeholder="Neuen Befund erfassen… z.B. Verdacht auf Melanom, asymmetrisch, 6mm"
+                      value={newFindingText}
+                      onChange={(e) => setNewFindingText(e.target.value)}
+                      rows={2}
+                      className="text-sm"
+                    />
+                    <Button
+                      size="sm"
+                      className="gap-1.5"
+                      disabled={!newFindingText.trim() || createFindingMutation.isPending}
+                      onClick={() => createFindingMutation.mutate({ locationId: selectedLocation.id, description: newFindingText.trim() })}
+                    >
+                      <Plus className="h-3.5 w-3.5" />
+                      {createFindingMutation.isPending ? "Wird gespeichert…" : "Befund hinzufügen"}
+                    </Button>
                   </div>
-                )}
+                </div>
 
                 {/* Image Gallery */}
                 <ImageGallery
