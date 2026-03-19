@@ -10,8 +10,8 @@ import { LogIn } from "lucide-react";
 const Login = () => {
   const { login } = useAuth();
   const navigate = useNavigate();
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
+  const [email, setEmail] = useState("admin@derm247.ch");
+  const [password, setPassword] = useState("demo123");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
@@ -57,6 +57,9 @@ const Login = () => {
             <Button className="w-full" type="submit" disabled={loading}>
               {loading ? "Anmeldung…" : <><LogIn className="mr-2 h-4 w-4" /> Anmelden</>}
             </Button>
+            <p className="text-center text-xs text-muted-foreground">
+              Demo: admin@derm247.ch / demo123
+            </p>
           </form>
         </CardContent>
       </Card>

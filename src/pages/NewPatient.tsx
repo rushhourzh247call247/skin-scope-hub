@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { api } from "@/lib/api";
+import { mockApi } from "@/lib/mockData";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -14,11 +14,11 @@ const NewPatient = () => {
   const [birthDate, setBirthDate] = useState("");
 
   const createMutation = useMutation({
-    mutationFn: (data: { name: string; birth_date: string }) =>
-      api.createPatient(data),
+    mutationFn: (data: { name: string; birth_date: string }) => mockApi.createPatient(data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["patients"] });
-      navigate("/");
+      queryClient.invalidateQueries({ queryKey: ["dashboard-stats"] });
+      navigate("/patients");
     },
   });
 
@@ -54,9 +54,7 @@ const NewPatient = () => {
               <Button type="submit" disabled={createMutation.isPending || !name.trim() || !birthDate}>
                 {createMutation.isPending ? "Wird erstellt…" : "Patient anlegen"}
               </Button>
-              <Button type="button" variant="outline" onClick={() => navigate("/")}>
-                Abbrechen
-              </Button>
+              <Button type="button" variant="outline" onClick={() => navigate("/patients")}>Abbrechen</Button>
             </div>
           </form>
         </CardContent>
