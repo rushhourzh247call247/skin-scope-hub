@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { format } from "date-fns";
 import { de } from "date-fns/locale";
-import BodyMapSvg from "@/components/BodyMapSvg";
+import BodyMap3D from "@/components/BodyMap3D";
 import ImageGallery from "@/components/ImageGallery";
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle,
@@ -157,13 +157,15 @@ const PatientDetail = () => {
       {/* Main Content */}
       <div className="flex-1 flex overflow-hidden">
         {/* Left: Body Map */}
-        <div className="w-[280px] shrink-0 border-r bg-card p-4 overflow-y-auto">
-          <BodyMapSvg
-            markers={locations.map((l) => ({ id: l.id, x: l.x, y: l.y, name: l.name, view: l.view }))}
-            onMapClick={handleMapClick}
-            selectedLocationId={selectedLocationId}
-          />
-          <p className="mt-2 text-center text-[10px] text-muted-foreground">Klicken um Stelle zu markieren</p>
+        <div className="w-[300px] shrink-0 border-r bg-card p-3 overflow-y-auto flex flex-col">
+          <div className="h-[350px]">
+            <BodyMap3D
+              markers={locations.map((l) => ({ id: l.id, x: l.x, y: l.y, name: l.name, view: l.view }))}
+              onMapClick={handleMapClick}
+              selectedLocationId={selectedLocationId}
+              onMarkerClick={(id) => setSelectedLocationId(id)}
+            />
+          </div>
 
           {/* Spots List */}
           <div className="mt-4 space-y-1">
