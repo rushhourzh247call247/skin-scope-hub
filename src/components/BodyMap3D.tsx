@@ -239,7 +239,7 @@ function pointTo2D(point: THREE.Vector3): { x: number; y: number; view: "front" 
 }
 
 /* ─── Region Marker (rectangle) ─── */
-function RegionMarker({ position, name, isSelected, onClick, imageCount, findingCount, width, height }: {
+type RegionMarkerProps = {
   position: [number, number, number];
   name?: string;
   isSelected: boolean;
@@ -248,7 +248,12 @@ function RegionMarker({ position, name, isSelected, onClick, imageCount, finding
   findingCount?: number;
   width: number;
   height: number;
-}) {
+};
+
+const RegionMarker = React.forwardRef<THREE.Group, RegionMarkerProps>(function RegionMarker(
+  { position, name, isSelected, onClick, imageCount, findingCount, width, height },
+  forwardedRef,
+) {
   const groupRef = useRef<THREE.Group>(null);
   const [hovered, setHovered] = useState(false);
 
@@ -282,7 +287,7 @@ function RegionMarker({ position, name, isSelected, onClick, imageCount, finding
   }, [w3d, h3d]);
 
   return (
-    <group position={position}>
+    <group ref={forwardedRef} position={position}>
       <group
         ref={groupRef}
         onClick={(e) => { e.stopPropagation(); onClick(); }}
@@ -361,7 +366,7 @@ function RegionMarker({ position, name, isSelected, onClick, imageCount, finding
       )}
     </group>
   );
-}
+});
 
 /* ─── Convert 2D coords to 3D (approximate, used as raycast origin direction) ─── */
 function coords2Dto3D(x: number, y: number, view?: "front" | "back"): [number, number, number] {
