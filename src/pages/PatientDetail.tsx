@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { format } from "date-fns";
 import { de } from "date-fns/locale";
-import BodyMapSvg from "@/components/BodyMapSvg";
+import BodyMap3D from "@/components/BodyMap3D";
 import ImageGallery from "@/components/ImageGallery";
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle,
