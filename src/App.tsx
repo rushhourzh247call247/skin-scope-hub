@@ -6,6 +6,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { AuthProvider } from "@/contexts/AuthContext";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import { AppLayout } from "@/components/AppLayout";
+import Dashboard from "./pages/Dashboard";
 import PatientList from "./pages/PatientList";
 import PatientDetail from "./pages/PatientDetail";
 import NewPatient from "./pages/NewPatient";
@@ -23,6 +24,12 @@ const queryClient = new QueryClient({
   },
 });
 
+const ProtectedPage = ({ children }: { children: React.ReactNode }) => (
+  <ProtectedRoute>
+    <AppLayout>{children}</AppLayout>
+  </ProtectedRoute>
+);
+
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <AuthProvider>
@@ -32,56 +39,12 @@ const App = () => (
         <BrowserRouter>
           <Routes>
             <Route path="/login" element={<Login />} />
-            <Route
-              path="/companies"
-              element={
-                <ProtectedRoute>
-                  <AppLayout>
-                    <CompanyManagement />
-                  </AppLayout>
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/users"
-              element={
-                <ProtectedRoute>
-                  <AppLayout>
-                    <UserManagement />
-                  </AppLayout>
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/"
-              element={
-                <ProtectedRoute>
-                  <AppLayout>
-                    <PatientList />
-                  </AppLayout>
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/new-patient"
-              element={
-                <ProtectedRoute>
-                  <AppLayout>
-                    <NewPatient />
-                  </AppLayout>
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/patient/:id"
-              element={
-                <ProtectedRoute>
-                  <AppLayout>
-                    <PatientDetail />
-                  </AppLayout>
-                </ProtectedRoute>
-              }
-            />
+            <Route path="/" element={<ProtectedPage><Dashboard /></ProtectedPage>} />
+            <Route path="/patients" element={<ProtectedPage><PatientList /></ProtectedPage>} />
+            <Route path="/new-patient" element={<ProtectedPage><NewPatient /></ProtectedPage>} />
+            <Route path="/patient/:id" element={<ProtectedPage><PatientDetail /></ProtectedPage>} />
+            <Route path="/companies" element={<ProtectedPage><CompanyManagement /></ProtectedPage>} />
+            <Route path="/users" element={<ProtectedPage><UserManagement /></ProtectedPage>} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>

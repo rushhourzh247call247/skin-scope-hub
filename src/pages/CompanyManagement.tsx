@@ -1,5 +1,6 @@
-import { useState, useEffect } from "react";
-import { api } from "@/lib/api";
+import { useState } from "react";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { mockApi } from "@/lib/mockData";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -9,63 +10,37 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Building2, Plus, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 
-interface Company {
-  id: number;
-  name: string;
-  created_at?: string;
-}
-
 const CompanyManagement = () => {
-  const [companies, setCompanies] = useState<Company[]>([]);
-  const [loading, setLoading] = useState(true);
+  const queryClient = useQueryClient();
   const [name, setName] = useState("");
-  const [creating, setCreating] = useState(false);
   const [dialogOpen, setDialogOpen] = useState(false);
 
-  const loadCompanies = async () => {
-    try {
-      const data = await api.getCompanies();
-      setCompanies(Array.isArray(data) ? data : data.data ?? []);
-    } catch (err: any) {
-      toast.error("Firmen konnten nicht geladen werden");
-    } finally {
-      setLoading(false);
-    }
-  };
+  const { data: companies = [], isLoading } = useQuery({
+    queryKey: ["companies"],
+    queryFn: mockApi.getCompanies,
+  });
 
-  useEffect(() => {
-    loadCompanies();
-  }, []);
-
-  const handleCreate = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setCreating(true);
-    try {
-      await api.createCompany({ name });
+  const createMutation = useMutation({
+    mutationFn: mockApi.createCompany,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["companies"] });
+      queryClient.invalidateQueries({ queryKey: ["dashboard-stats"] });
       toast.success("Firma erstellt");
       setName("");
       setDialogOpen(false);
-      loadCompanies();
-    } catch (err: any) {
-      toast.error(err?.message || "Fehler beim Erstellen");
-    } finally {
-      setCreating(false);
-    }
-  };
+    },
+  });
 
-  const handleDelete = async (id: number) => {
-    if (!confirm("Firma wirklich löschen?")) return;
-    try {
-      await api.deleteCompany(id);
+  const deleteMutation = useMutation({
+    mutationFn: mockApi.deleteCompany,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["companies"] });
       toast.success("Firma gelöscht");
-      loadCompanies();
-    } catch (err: any) {
-      toast.error(err?.message || "Fehler beim Löschen");
-    }
-  };
+    },
+  });
 
   return (
-    <div className="space-y-6">
+    <div className="container py-8 space-y-6">
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold text-foreground">Firmen</h1>
@@ -73,27 +48,17 @@ const CompanyManagement = () => {
         </div>
         <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
           <DialogTrigger asChild>
-            <Button>
-              <Plus className="mr-2 h-4 w-4" /> Neue Firma
-            </Button>
+            <Button><Plus className="mr-2 h-4 w-4" /> Neue Firma</Button>
           </DialogTrigger>
           <DialogContent>
-            <DialogHeader>
-              <DialogTitle>Neue Firma erstellen</DialogTitle>
-            </DialogHeader>
-            <form onSubmit={handleCreate} className="space-y-4">
+            <DialogHeader><DialogTitle>Neue Firma erstellen</DialogTitle></DialogHeader>
+            <form onSubmit={(e) => { e.preventDefault(); createMutation.mutate({ name }); }} className="space-y-4">
               <div className="space-y-2">
                 <Label htmlFor="company-name">Firmenname</Label>
-                <Input
-                  id="company-name"
-                  required
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
-                  placeholder="Hautarztpraxis Muster"
-                />
+                <Input id="company-name" required value={name} onChange={(e) => setName(e.target.value)} placeholder="Hautarztpraxis Muster" />
               </div>
-              <Button type="submit" className="w-full" disabled={creating}>
-                {creating ? "Erstelle…" : "Firma erstellen"}
+              <Button type="submit" className="w-full" disabled={createMutation.isPending}>
+                {createMutation.isPending ? "Erstelle…" : "Firma erstellen"}
               </Button>
             </form>
           </DialogContent>
@@ -102,12 +67,10 @@ const CompanyManagement = () => {
 
       <Card>
         <CardHeader>
-          <CardTitle className="flex items-center gap-2 text-lg">
-            <Building2 className="h-5 w-5" /> Alle Firmen
-          </CardTitle>
+          <CardTitle className="flex items-center gap-2 text-lg"><Building2 className="h-5 w-5" /> Alle Firmen</CardTitle>
         </CardHeader>
         <CardContent>
-          {loading ? (
+          {isLoading ? (
             <div className="flex justify-center py-8">
               <div className="h-6 w-6 animate-spin rounded-full border-2 border-primary border-t-transparent" />
             </div>
@@ -128,7 +91,7 @@ const CompanyManagement = () => {
                     <TableCell className="font-mono text-xs text-muted-foreground">{c.id}</TableCell>
                     <TableCell className="font-medium">{c.name}</TableCell>
                     <TableCell>
-                      <Button variant="ghost" size="icon" onClick={() => handleDelete(c.id)} className="text-destructive hover:text-destructive">
+                      <Button variant="ghost" size="icon" onClick={() => deleteMutation.mutate(c.id)} className="text-destructive hover:text-destructive">
                         <Trash2 className="h-4 w-4" />
                       </Button>
                     </TableCell>

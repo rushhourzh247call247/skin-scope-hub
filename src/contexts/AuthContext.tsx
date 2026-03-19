@@ -1,5 +1,5 @@
 import { createContext, useContext, useState, useCallback, useEffect, type ReactNode } from "react";
-import { api } from "@/lib/api";
+import { mockApi } from "@/lib/mockData";
 
 interface User {
   id: number;
@@ -16,7 +16,6 @@ interface AuthContextType {
   isAuthenticated: boolean;
   isLoading: boolean;
   login: (email: string, password: string) => Promise<void>;
-  
   logout: () => void;
 }
 
@@ -27,33 +26,28 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [token, setToken] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
-  // Restore session on mount
   useEffect(() => {
     const savedToken = sessionStorage.getItem("auth_token");
     const savedUser = sessionStorage.getItem("auth_user");
     if (savedToken && savedUser) {
       setToken(savedToken);
       setUser(JSON.parse(savedUser));
-      api.setToken(savedToken);
     }
     setIsLoading(false);
   }, []);
 
   const login = useCallback(async (email: string, password: string) => {
-    const res = await api.login({ email, password });
+    const res = await mockApi.login({ email, password });
     const { user: u, token: t } = res;
     setUser(u);
     setToken(t);
-    api.setToken(t);
     sessionStorage.setItem("auth_token", t);
     sessionStorage.setItem("auth_user", JSON.stringify(u));
   }, []);
 
-
   const logout = useCallback(() => {
     setUser(null);
     setToken(null);
-    api.setToken(null);
     sessionStorage.removeItem("auth_token");
     sessionStorage.removeItem("auth_user");
   }, []);
