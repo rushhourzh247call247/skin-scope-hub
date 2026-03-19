@@ -440,9 +440,10 @@ const SurfaceProjectedGroup = React.forwardRef<THREE.Group, SurfaceProjectedGrou
   { approxPosition, view, storedPosition, storedNormal, children },
   forwardedRef,
 ) {
-  const { scene } = useThree();
+  const { scene, camera } = useThree();
   const groupRef = useRef<THREE.Group>(null);
   const projectedRef = useRef(false);
+  const normalRef = useRef<THREE.Vector3>(new THREE.Vector3(0, 0, 1));
 
   const setGroupRef = useCallback((node: THREE.Group | null) => {
     groupRef.current = node;
@@ -454,36 +455,46 @@ const SurfaceProjectedGroup = React.forwardRef<THREE.Group, SurfaceProjectedGrou
   }, [forwardedRef]);
 
   useFrame(() => {
-    if (!groupRef.current || projectedRef.current) return;
+    if (!groupRef.current) return;
 
-    if (storedPosition) {
-      groupRef.current.position.set(...storedPosition);
-      if (storedNormal) {
-        const normal = new THREE.Vector3(...storedNormal).normalize();
-        groupRef.current.position.addScaledVector(normal, 0.003);
+    // --- Projection (runs once until coordinates change) ---
+    if (!projectedRef.current) {
+      if (storedPosition) {
+        groupRef.current.position.set(...storedPosition);
+        if (storedNormal) {
+          const normal = new THREE.Vector3(...storedNormal).normalize();
+          normalRef.current.copy(normal);
+          groupRef.current.position.addScaledVector(normal, 0.003);
+          groupRef.current.lookAt(
+            storedPosition[0] + normal.x,
+            storedPosition[1] + normal.y,
+            storedPosition[2] + normal.z,
+          );
+        }
+        projectedRef.current = true;
+      } else {
+        const projected = projectMarkerToBody(scene, approxPosition, view);
+        if (!projected) {
+          groupRef.current.position.set(...approxPosition);
+          return; // keep retrying until body mesh is ready
+        }
+        normalRef.current.copy(projected.normal);
+        groupRef.current.position.copy(projected.point).addScaledVector(projected.normal, 0.003);
         groupRef.current.lookAt(
-          storedPosition[0] + normal.x,
-          storedPosition[1] + normal.y,
-          storedPosition[2] + normal.z,
+          projected.point.x + projected.normal.x,
+          projected.point.y + projected.normal.y,
+          projected.point.z + projected.normal.z,
         );
+        projectedRef.current = true;
       }
-      projectedRef.current = true;
-      return;
     }
 
-    const projected = projectMarkerToBody(scene, approxPosition, view);
-    if (!projected) {
-      groupRef.current.position.set(...approxPosition);
-      return; // keep retrying until body mesh is ready/intersectable
-    }
-
-    groupRef.current.position.copy(projected.point).addScaledVector(projected.normal, 0.003);
-    groupRef.current.lookAt(
-      projected.point.x + projected.normal.x,
-      projected.point.y + projected.normal.y,
-      projected.point.z + projected.normal.z,
-    );
-    projectedRef.current = true;
+    // --- Occlusion: hide markers facing away from camera ---
+    const markerPos = groupRef.current.position;
+    const cameraDir = new THREE.Vector3().subVectors(camera.position, markerPos).normalize();
+    const dot = normalRef.current.dot(cameraDir);
+    // If the surface normal points away from the camera (dot < 0), the marker is on the far side
+    groupRef.current.visible = dot > 0.05;
   });
 
   // Reset projection when source coordinates change
