@@ -251,7 +251,88 @@ const PatientDetail = () => {
         {/* Center + Right: Content */}
         <div className="flex-1 overflow-y-auto p-6">
           <AnimatePresence mode="wait">
-            {selectedLocation ? (
+            {activeTab === "timeline" ? (
+              <motion.div
+                key="timeline"
+                initial={{ opacity: 0, y: 8 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -8 }}
+                transition={{ duration: 0.15 }}
+                className="space-y-2"
+              >
+                <h2 className="text-lg font-semibold text-foreground mb-4">Chronologischer Verlauf</h2>
+                {(() => {
+                  // Collect all events from all locations
+                  const events: { date: string; type: "image" | "finding" | "location"; label: string; detail?: string; locationName: string; locationId: number; imagePath?: string }[] = [];
+                  locations.forEach((loc) => {
+                    const locName = loc.name || `Spot #${loc.id}`;
+                    // Location creation
+                    events.push({ date: loc.created_at ?? "", type: "location", label: "Spot erstellt", detail: locName, locationName: locName, locationId: loc.id });
+                    // Images
+                    (loc.images ?? []).forEach((img) => {
+                      events.push({ date: img.created_at ?? "", type: "image", label: "Bild hochgeladen", locationName: locName, locationId: loc.id, imagePath: img.image_path });
+                    });
+                    // Findings
+                    (loc.findings ?? []).forEach((f) => {
+                      events.push({ date: f.created_at ?? "", type: "finding", label: "Befund", detail: f.description, locationName: locName, locationId: loc.id });
+                    });
+                  });
+                  events.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+
+                  if (events.length === 0) {
+                    return (
+                      <div className="flex flex-col items-center justify-center py-16 text-muted-foreground">
+                        <Activity className="h-10 w-10 mb-3" />
+                        <p className="text-sm">Noch keine Einträge vorhanden</p>
+                      </div>
+                    );
+                  }
+
+                  return (
+                    <div className="relative border-l-2 border-muted ml-4 space-y-4">
+                      {events.map((ev, i) => (
+                        <div key={i} className="relative pl-6">
+                          <div className={cn(
+                            "absolute -left-[9px] top-1.5 h-4 w-4 rounded-full border-2 border-background",
+                            ev.type === "image" ? "bg-blue-500" : ev.type === "finding" ? "bg-amber-500" : "bg-primary"
+                          )} />
+                          <div className="rounded-lg border bg-card p-3 space-y-1.5">
+                            <div className="flex items-center justify-between">
+                              <div className="flex items-center gap-2 text-xs">
+                                {ev.type === "image" && <ImageIcon className="h-3.5 w-3.5 text-blue-500" />}
+                                {ev.type === "finding" && <Activity className="h-3.5 w-3.5 text-amber-500" />}
+                                {ev.type === "location" && <MapPin className="h-3.5 w-3.5 text-primary" />}
+                                <span className="font-medium text-foreground">{ev.label}</span>
+                                <Badge variant="outline" className="text-[10px] px-1.5 py-0">{ev.locationName}</Badge>
+                              </div>
+                              <span className="text-[10px] text-muted-foreground tabular-nums flex items-center gap-1">
+                                <Calendar className="h-3 w-3" />
+                                {ev.date ? format(new Date(ev.date), "dd.MM.yyyy HH:mm", { locale: de }) : "–"}
+                              </span>
+                            </div>
+                            {ev.detail && <p className="text-sm text-muted-foreground">{ev.detail}</p>}
+                            {ev.imagePath && (
+                              <img
+                                src={mockApi.getImageUrl(ev.imagePath)}
+                                alt="Aufnahme"
+                                className="h-24 w-20 rounded object-cover border mt-1"
+                                loading="lazy"
+                              />
+                            )}
+                            <button
+                              onClick={() => { setActiveTab("spots"); setSelectedLocationId(ev.locationId); }}
+                              className="text-[10px] text-primary hover:underline"
+                            >
+                              → Zum Spot
+                            </button>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  );
+                })()}
+              </motion.div>
+            ) : selectedLocation ? (
               <motion.div
                 key={selectedLocation.id}
                 initial={{ opacity: 0, y: 8 }}
@@ -289,106 +370,6 @@ const PatientDetail = () => {
                   {selectedLocation.findings && selectedLocation.findings.map((f) => (
                     <div key={f.id} className="flex items-start gap-2 rounded-md bg-muted/50 p-3">
                       <Activity className="h-4 w-4 mt-0.5 text-primary shrink-0" />
-                      {editingFindingId === f.id ? (
-                        <div className="flex-1 space-y-2">
-                          <Textarea
-                            value={editingFindingText}
-                            onChange={(e) => setEditingFindingText(e.target.value)}
-                            rows={2}
-                            className="text-sm"
-                          />
-                          <div className="flex gap-1.5">
-                            <Button
-                              size="sm"
-                              variant="default"
-                              className="h-7 gap-1 text-xs"
-                              disabled={!editingFindingText.trim() || updateFindingMutation.isPending}
-                              onClick={() => updateFindingMutation.mutate({ findingId: f.id, description: editingFindingText.trim() })}
-                            >
-                              <Save className="h-3 w-3" /> Speichern
-                            </Button>
-                            <Button size="sm" variant="ghost" className="h-7 text-xs" onClick={() => setEditingFindingId(null)}>
-                              <X className="h-3 w-3" />
-                            </Button>
-                          </div>
-                        </div>
-                      ) : (
-                        <div className="flex-1">
-                          <p className="text-sm text-foreground">{f.description}</p>
-                          <div className="flex items-center justify-between mt-1">
-                            <p className="text-[10px] text-muted-foreground">
-                              {f.created_at ? format(new Date(f.created_at), "dd.MM.yyyy HH:mm", { locale: de }) : "–"}
-                              {f.updated_at && " (bearbeitet)"}
-                            </p>
-                            <div className="flex gap-0.5">
-                              <Button
-                                size="sm"
-                                variant="ghost"
-                                className="h-6 w-6 p-0 text-muted-foreground hover:text-foreground"
-                                onClick={() => { setEditingFindingId(f.id); setEditingFindingText(f.description ?? ""); }}
-                              >
-                                <Pencil className="h-3 w-3" />
-                              </Button>
-                              <Button
-                                size="sm"
-                                variant="ghost"
-                                className="h-6 w-6 p-0 text-muted-foreground hover:text-destructive"
-                                onClick={() => deleteFindingMutation.mutate(f.id)}
-                              >
-                                <Trash2 className="h-3 w-3" />
-                              </Button>
-                            </div>
-                          </div>
-                        </div>
-                      )}
-                    </div>
-                  ))}
-
-                  {/* Add new finding */}
-                  <div className="space-y-2 pt-1">
-                    <Textarea
-                      placeholder="Neuen Befund erfassen… z.B. Verdacht auf Melanom, asymmetrisch, 6mm"
-                      value={newFindingText}
-                      onChange={(e) => setNewFindingText(e.target.value)}
-                      rows={2}
-                      className="text-sm"
-                    />
-                    <Button
-                      size="sm"
-                      className="gap-1.5"
-                      disabled={!newFindingText.trim() || createFindingMutation.isPending}
-                      onClick={() => createFindingMutation.mutate({ locationId: selectedLocation.id, description: newFindingText.trim() })}
-                    >
-                      <Plus className="h-3.5 w-3.5" />
-                      {createFindingMutation.isPending ? "Wird gespeichert…" : "Befund hinzufügen"}
-                    </Button>
-                  </div>
-                </div>
-
-                {/* Image Gallery */}
-                <ImageGallery
-                  locationId={selectedLocation.id}
-                  patientId={patientId}
-                  images={selectedLocation.images ?? []}
-                  locationName={selectedLocation.name || `Spot #${selectedLocation.id}`}
-                />
-              </motion.div>
-            ) : (
-              <motion.div
-                key="empty"
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                className="flex flex-col items-center justify-center h-full text-muted-foreground"
-              >
-                <div className="flex h-16 w-16 items-center justify-center rounded-full bg-muted mb-4">
-                  <MapPin className="h-8 w-8" />
-                </div>
-                <p className="text-sm font-medium">Wählen Sie eine Körperstelle aus</p>
-                <p className="text-xs mt-1">oder klicken Sie auf die Body Map, um eine neue Stelle zu markieren</p>
-              </motion.div>
-            )}
-          </AnimatePresence>
-        </div>
       </div>
 
       {/* New Location Dialog */}
