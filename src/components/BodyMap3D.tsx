@@ -424,16 +424,19 @@ function LoadingFallback() {
 }
 
 /* ─── Scene ─── */
-function Scene({ markers, selectedLocationId, onMapClick, onMarkerClick, preset, gender, markMode }: BodyMap3DProps & { preset: CameraPreset; gender: Gender; markMode: boolean }) {
+function Scene({ markers, selectedLocationId, onMapClick, onMarkerClick, preset, gender, markMode, markType }: BodyMap3DProps & { preset: CameraPreset; gender: Gender; markMode: boolean; markType: MarkType }) {
   const handleBodyClick = useCallback(
     (e: ThreeEvent<MouseEvent>) => {
       if (!markMode) return;
       e.stopPropagation();
       const { x, y, view } = pointTo2D(e.point);
-      onMapClick?.(x, y, view);
+      onMapClick?.(x, y, view, markType);
     },
-    [onMapClick, markMode],
+    [onMapClick, markMode, markType],
   );
+
+  const spots = markers.filter((m) => m.type !== "region");
+  const regions = markers.filter((m) => m.type === "region");
 
   return (
     <>
@@ -447,7 +450,7 @@ function Scene({ markers, selectedLocationId, onMapClick, onMarkerClick, preset,
         <BodyModel onBodyClick={handleBodyClick} gender={gender} />
       </Suspense>
 
-      {markers.map((m) => (
+      {spots.map((m) => (
         <SpotMarker
           key={m.id}
           position={coords2Dto3D(m.x, m.y, m.view)}
@@ -456,6 +459,20 @@ function Scene({ markers, selectedLocationId, onMapClick, onMarkerClick, preset,
           onClick={() => onMarkerClick?.(m.id)}
           imageCount={m.imageCount}
           findingCount={m.findingCount}
+        />
+      ))}
+
+      {regions.map((m) => (
+        <RegionMarker
+          key={m.id}
+          position={coords2Dto3D(m.x, m.y, m.view)}
+          name={m.name}
+          isSelected={m.id === selectedLocationId}
+          onClick={() => onMarkerClick?.(m.id)}
+          imageCount={m.imageCount}
+          findingCount={m.findingCount}
+          width={m.width ?? 40}
+          height={m.height ?? 30}
         />
       ))}
 
