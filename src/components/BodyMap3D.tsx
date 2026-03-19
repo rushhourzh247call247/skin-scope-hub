@@ -319,8 +319,8 @@ function RegionMarker({ position, name, isSelected, onClick, imageCount, finding
         </Html>
       )}
 
-      {/* Hover/selected tooltip */}
-      {(isSelected || hovered) && (
+      {/* Tooltip only on hover */}
+      {hovered && (
         <Html position={[0, h3d / 2 + 0.06, 0]} center style={{ pointerEvents: "none" }}>
           <div className="rounded-lg border bg-popover px-3 py-2 shadow-xl whitespace-nowrap backdrop-blur-sm min-w-[130px]">
             <p className="text-[11px] font-semibold text-popover-foreground flex items-center gap-1.5">
@@ -337,9 +337,6 @@ function RegionMarker({ position, name, isSelected, onClick, imageCount, finding
                 <span>Keine Einträge</span>
               )}
             </div>
-            {hovered && !isSelected && (
-              <p className="mt-1 text-[8px] text-primary font-medium">Klicken für Verlaufsfotos</p>
-            )}
           </div>
         </Html>
       )}
