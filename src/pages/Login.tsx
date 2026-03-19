@@ -57,12 +57,6 @@ const Login = () => {
             <Button className="w-full" type="submit" disabled={loading}>
               {loading ? "Anmeldung…" : <><LogIn className="mr-2 h-4 w-4" /> Anmelden</>}
             </Button>
-            <p className="text-center text-sm text-muted-foreground">
-              Noch kein Konto?{" "}
-              <Link to="/register" className="font-medium text-primary hover:underline">
-                Registrieren
-              </Link>
-            </p>
           </form>
         </CardContent>
       </Card>

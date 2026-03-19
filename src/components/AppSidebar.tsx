@@ -18,6 +18,8 @@ import {
 const navItems = [
   { title: "Patienten", url: "/", icon: Users },
   { title: "Neuer Patient", url: "/new-patient", icon: UserPlus },
+  { title: "Firmen", url: "/companies", icon: Building2 },
+  { title: "Benutzer", url: "/users", icon: UserCog },
 ];
 
 export function AppSidebar() {
