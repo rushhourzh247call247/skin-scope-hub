@@ -254,11 +254,11 @@ export const mockApi = {
   },
 
   // Classification
-  updateClassification: async (locationId: number, classification: string) => {
+  updateClassification: async (locationId: number, classification: LesionClassification) => {
     await delay();
     const loc = locations.find(l => l.id === locationId);
     if (!loc) throw new Error("Stelle nicht gefunden");
-    loc.classification = classification;
+    (loc as any).classification = classification;
     return loc;
   },
 
