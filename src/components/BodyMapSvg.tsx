@@ -15,7 +15,7 @@ const REGION_VIEWS: Record<BodyRegion, RegionViewBox> = {
   full:  { viewBox: "0 0 200 500", label: "Ganzkörper" },
   head:  { viewBox: "50 0 100 120", label: "Kopf & Hals" },
   torso: { viewBox: "30 65 140 170", label: "Oberkörper" },
-  legs:  { viewBox: "30 200 140 280", label: "Beine & Füsse" },
+  legs:  { viewBox: "30 200 140 290", label: "Beine & Füsse" },
   hands: { viewBox: "0 60 200 140", label: "Arme & Hände" },
 };
 
