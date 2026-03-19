@@ -32,11 +32,11 @@ export function AppSidebar() {
         {/* Logo */}
         <div className="flex h-14 items-center gap-3 border-b border-sidebar-border px-4">
           <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-primary">
-            <span className="text-sm font-bold text-primary-foreground">D</span>
+            <span className="text-sm font-bold text-primary-foreground">d</span>
           </div>
           {!collapsed && (
             <span className="text-base font-bold tracking-tight text-sidebar-foreground">
-              DERM<span className="text-primary">TRACK</span>
+              derm<span className="text-primary">247</span>
             </span>
           )}
         </div>
