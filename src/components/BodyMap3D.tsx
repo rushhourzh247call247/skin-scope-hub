@@ -116,6 +116,8 @@ useGLTF.preload(FEMALE_MODEL_URL);
 useGLTF.preload(MALE_MODEL_URL);
 
 /* ─── Spot Marker (DermEngine-style circle ring) ─── */
+const HIGH_RISK_CLASSIFICATIONS: LesionClassification[] = ["melanoma_suspect", "scc"];
+
 type SpotMarkerProps = {
   position: [number, number, number];
   name?: string;
@@ -124,6 +126,7 @@ type SpotMarkerProps = {
   imageCount?: number;
   findingCount?: number;
   classificationColor?: string;
+  isHighRisk?: boolean;
 };
 
 const SpotMarker = React.forwardRef<THREE.Group, SpotMarkerProps>(function SpotMarker(
