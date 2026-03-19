@@ -253,6 +253,15 @@ export const mockApi = {
     throw new Error("Befund nicht gefunden");
   },
 
+  // Classification
+  updateClassification: async (locationId: number, classification: string) => {
+    await delay();
+    const loc = locations.find(l => l.id === locationId);
+    if (!loc) throw new Error("Stelle nicht gefunden");
+    loc.classification = classification;
+    return loc;
+  },
+
   // Dashboard stats
   getDashboardStats: async () => {
     await delay();
