@@ -23,6 +23,8 @@ interface Marker {
   type?: "spot" | "region";
   width?: number;
   height?: number;
+  classification?: string;
+  classificationColor?: string;
 }
 
 type Gender = "female" | "male";
