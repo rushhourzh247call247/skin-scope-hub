@@ -213,7 +213,10 @@ const ImageCompare = ({ images, locationName, onClose }: ImageCompareProps) => {
                     src={mockApi.getImageUrl(compareImages[1].image_path)}
                     alt="Neuere Aufnahme"
                     className="absolute inset-0 h-full w-full object-contain"
-                    style={{ opacity: overlayOpacity / 100 }}
+                    style={{
+                      opacity: overlayOpacity / 100,
+                      transform: `rotate(${overlayRotation}deg) scale(${overlayScale / 100}) translate(${overlayOffsetX}px, ${overlayOffsetY}px)`,
+                    }}
                   />
                   {/* Labels */}
                   <div className="absolute top-2 left-2 rounded-full bg-primary/90 px-2 py-0.5 text-[9px] font-bold text-primary-foreground backdrop-blur-sm">
