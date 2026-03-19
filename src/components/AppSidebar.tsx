@@ -31,14 +31,13 @@ export function AppSidebar() {
     <Sidebar collapsible="icon">
       <SidebarContent className="bg-sidebar">
         {/* Logo */}
-        <div className="flex h-14 items-center gap-3 border-b border-sidebar-border px-4">
-          <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-primary">
-            <span className="text-sm font-bold text-primary-foreground">d</span>
-          </div>
-          {!collapsed && (
-            <span className="text-base font-bold tracking-tight text-sidebar-foreground">
-              derm<span className="text-primary">247</span>
-            </span>
+        <div className="flex h-14 items-center border-b border-sidebar-border px-4">
+          {collapsed ? (
+            <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-primary to-primary/80 text-sm font-bold text-primary-foreground shadow-sm">
+              D
+            </div>
+          ) : (
+            <DermLogo size="sm" className="text-sidebar-foreground" />
           )}
         </div>
 
