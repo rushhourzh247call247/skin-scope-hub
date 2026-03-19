@@ -36,6 +36,8 @@ interface BodyMap3DProps {
   markers: Marker[];
   selectedLocationId: number | null;
   gender?: Gender;
+  classificationFilter?: LesionClassification[];
+  onFilterChange?: (filter: LesionClassification[]) => void;
   onMapClick?: (
     x: number,
     y: number,
