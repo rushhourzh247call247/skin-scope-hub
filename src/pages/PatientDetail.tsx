@@ -387,23 +387,95 @@ const PatientDetail = () => {
                 {/* Location Header */}
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-3">
-                    <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary text-sm font-bold text-primary-foreground">
-                      <MapPin className="h-4 w-4" />
+                    <div className={cn(
+                      "flex h-8 w-8 items-center justify-center text-sm font-bold",
+                      selectedLocation.type === "region"
+                        ? "rounded bg-amber-500 text-white"
+                        : "rounded-full bg-primary text-primary-foreground"
+                    )}>
+                      {selectedLocation.type === "region" ? <Square className="h-4 w-4" /> : <MapPin className="h-4 w-4" />}
                     </div>
                     <div>
-                      <h2 className="text-lg font-semibold text-foreground">
-                        {selectedLocation.name || `Spot #${selectedLocation.id}`}
+                      <h2 className="text-lg font-semibold text-foreground flex items-center gap-2">
+                        {selectedLocation.name || (selectedLocation.type === "region" ? "Region" : `Spot #${selectedLocation.id}`)}
+                        {selectedLocation.type === "region" && (
+                          <Badge variant="outline" className="text-[10px] text-amber-600 border-amber-300">Region</Badge>
+                        )}
                       </h2>
                       <p className="text-xs text-muted-foreground flex items-center gap-2">
                         <span>{selectedLocation.view === "back" ? "Rückseite" : "Vorderseite"}</span>
-                        <span>·</span>
-                        <span className="font-mono">x:{selectedLocation.x} y:{selectedLocation.y}</span>
                         <span>·</span>
                         <span>{selectedLocation.images?.length ?? 0} Aufnahmen</span>
                       </p>
                     </div>
                   </div>
                 </div>
+
+                {/* Region: Side-by-Side Compare */}
+                {selectedLocation.type === "region" && (selectedLocation.images?.length ?? 0) >= 2 && (
+                  <div className="rounded-lg border bg-card p-4 space-y-4">
+                    <h4 className="text-xs font-semibold text-foreground uppercase tracking-wider flex items-center gap-2">
+                      <GitCompareArrows className="h-3.5 w-3.5 text-amber-500" />
+                      Verlaufsvergleich
+                    </h4>
+                    {(() => {
+                      const sorted = [...(selectedLocation.images ?? [])].sort(
+                        (a, b) => new Date(a.created_at ?? 0).getTime() - new Date(b.created_at ?? 0).getTime()
+                      );
+                      const oldest = sorted[0];
+                      const newest = sorted[sorted.length - 1];
+                      return (
+                        <div className="space-y-3">
+                          <div className="grid grid-cols-2 gap-4">
+                            <div className="space-y-2">
+                              <div className="relative overflow-hidden rounded-lg border aspect-[4/3] bg-muted">
+                                <img
+                                  src={mockApi.getImageUrl(oldest.image_path)}
+                                  alt="Ältere Aufnahme"
+                                  className="h-full w-full object-cover"
+                                />
+                                <div className="absolute top-2 left-2 rounded-full bg-muted/90 px-2 py-0.5 text-[10px] font-semibold text-foreground backdrop-blur-sm">
+                                  ÄLTER
+                                </div>
+                              </div>
+                              <p className="text-center text-xs text-muted-foreground tabular-nums">
+                                {oldest.created_at ? format(new Date(oldest.created_at), "dd. MMM yyyy", { locale: de }) : "–"}
+                              </p>
+                            </div>
+                            <div className="space-y-2">
+                              <div className="relative overflow-hidden rounded-lg border aspect-[4/3] bg-muted">
+                                <img
+                                  src={mockApi.getImageUrl(newest.image_path)}
+                                  alt="Neuere Aufnahme"
+                                  className="h-full w-full object-cover"
+                                />
+                                <div className="absolute top-2 left-2 rounded-full bg-primary/90 px-2 py-0.5 text-[10px] font-semibold text-primary-foreground backdrop-blur-sm">
+                                  NEUER
+                                </div>
+                              </div>
+                              <p className="text-center text-xs text-muted-foreground tabular-nums">
+                                {newest.created_at ? format(new Date(newest.created_at), "dd. MMM yyyy", { locale: de }) : "–"}
+                              </p>
+                            </div>
+                          </div>
+                          {oldest.created_at && newest.created_at && (
+                            <div className="text-center">
+                              <span className="inline-flex items-center gap-1.5 rounded-full bg-muted px-3 py-1 text-xs font-medium text-muted-foreground">
+                                <Calendar className="h-3 w-3" />
+                                Zeitraum: {getDaysDiff(oldest.created_at, newest.created_at)}
+                              </span>
+                            </div>
+                          )}
+                          {sorted.length > 2 && (
+                            <p className="text-center text-[10px] text-muted-foreground">
+                              {sorted.length} Aufnahmen insgesamt · Alle Fotos unten in der Galerie
+                            </p>
+                          )}
+                        </div>
+                      );
+                    })()}
+                  </div>
+                )}
 
                 {/* Findings */}
                 <div className="rounded-lg border bg-card p-4 space-y-3">
@@ -470,7 +542,7 @@ const PatientDetail = () => {
                   locationId={selectedLocation.id}
                   patientId={patientId}
                   images={selectedLocation.images ?? []}
-                  locationName={selectedLocation.name || `Spot #${selectedLocation.id}`}
+                  locationName={selectedLocation.name || (selectedLocation.type === "region" ? "Region" : `Spot #${selectedLocation.id}`)}
                 />
               </motion.div>
             ) : (
