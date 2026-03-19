@@ -19,6 +19,7 @@ type Gender = "female" | "male";
 interface BodyMap3DProps {
   markers: Marker[];
   selectedLocationId: number | null;
+  gender?: Gender;
   onMapClick?: (x: number, y: number, view: "front" | "back") => void;
   onMarkerClick?: (id: number) => void;
 }
