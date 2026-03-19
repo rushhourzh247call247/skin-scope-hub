@@ -2,10 +2,12 @@ import { useState, useEffect, useRef, useCallback } from "react";
 import { useSearchParams } from "react-router-dom";
 import { api } from "@/lib/api";
 import { Button } from "@/components/ui/button";
-import { Camera, Trash2, CheckCircle, AlertTriangle, Loader2, X, ImageIcon } from "lucide-react";
+import { Camera, CheckCircle, AlertTriangle, Loader2, X, ImageIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { format } from "date-fns";
 import { de } from "date-fns/locale";
+
+// ─── Types ───
 
 interface UploadedPhoto {
   id?: number;
@@ -14,6 +16,7 @@ interface UploadedPhoto {
   order: number;
   uploading: boolean;
   uploaded: boolean;
+  deleting?: boolean;
   error?: string;
   created_at?: string;
   image_url?: string;
@@ -31,6 +34,8 @@ type SessionState =
       locationId: number;
       expiresAt: string;
     };
+
+// ─── Main Component ───
 
 const MobileUpload = () => {
   const [searchParams] = useSearchParams();
@@ -108,7 +113,6 @@ const MobileUpload = () => {
 
         setPhotos((prev) => [...prev, photo]);
 
-        // Upload immediately
         try {
           const result = await api.uploadSessionImage(token, file, order);
           setPhotos((prev) =>
@@ -136,19 +140,31 @@ const MobileUpload = () => {
         }
       }
 
-      // Reset input so same file can be re-selected
       e.target.value = "";
     },
     [token, session]
   );
 
-  const removePhoto = (order: number) => {
-    setPhotos((prev) => {
-      const photo = prev.find((p) => p.order === order);
-      if (photo) URL.revokeObjectURL(photo.preview);
-      return prev.filter((p) => p.order !== order);
-    });
-  };
+  // Delete photo – calls backend DELETE if already uploaded
+  const removePhoto = useCallback(async (order: number) => {
+    const photo = photos.find((p) => p.order === order);
+    if (!photo) return;
+
+    // If uploaded to server, delete via API
+    if (photo.uploaded && photo.id) {
+      setPhotos((prev) =>
+        prev.map((p) => (p.order === order ? { ...p, deleting: true } : p))
+      );
+      try {
+        await api.deleteImage(photo.id);
+      } catch {
+        // Even if delete fails, remove from UI – server cleanup can happen later
+      }
+    }
+
+    URL.revokeObjectURL(photo.preview);
+    setPhotos((prev) => prev.filter((p) => p.order !== order));
+  }, [photos]);
 
   const handleComplete = async () => {
     if (!token) return;
@@ -156,8 +172,7 @@ const MobileUpload = () => {
     try {
       const result = await api.completeUploadSession(token);
       setSession({ status: "completed", imageCount: result.image_count });
-    } catch (err: any) {
-      // Still show as completed if photos were uploaded
+    } catch {
       if (photos.filter((p) => p.uploaded).length > 0) {
         setSession({ status: "completed", imageCount: photos.filter((p) => p.uploaded).length });
       }
@@ -169,7 +184,8 @@ const MobileUpload = () => {
   const uploadedCount = photos.filter((p) => p.uploaded).length;
   const uploadingCount = photos.filter((p) => p.uploading).length;
 
-  // ─── Error / Loading States ───
+  // ─── Render by status ───
+
   if (session.status === "loading") {
     return (
       <MobileShell>
@@ -209,7 +225,7 @@ const MobileUpload = () => {
     return (
       <MobileShell>
         <StatusCard
-          icon={<CheckCircle className="h-8 w-8 text-clinical-success" />}
+          icon={<CheckCircle className="h-8 w-8 text-green-600" />}
           title="Upload abgeschlossen"
           description={`${session.imageCount} ${session.imageCount === 1 ? "Foto wurde" : "Fotos wurden"} erfolgreich hochgeladen.`}
         />
@@ -221,31 +237,9 @@ const MobileUpload = () => {
   return (
     <MobileShell>
       {/* Session Info */}
-      <div className="rounded-xl border bg-card p-4 space-y-2 shadow-sm">
-        <div className="flex items-center gap-2">
-          <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary/10">
-            <Camera className="h-4 w-4 text-primary" />
-          </div>
-          <div>
-            <h1 className="text-sm font-semibold text-foreground">Foto-Upload</h1>
-            <p className="text-[10px] text-muted-foreground">
-              Gültig bis {format(new Date(session.expiresAt), "HH:mm", { locale: de })} Uhr
-            </p>
-          </div>
-        </div>
-        <div className="flex gap-4 text-xs">
-          <div>
-            <span className="text-muted-foreground">Patient</span>
-            <p className="font-medium text-foreground">{session.patientName}</p>
-          </div>
-          <div>
-            <span className="text-muted-foreground">Stelle</span>
-            <p className="font-medium text-foreground">{session.locationName}</p>
-          </div>
-        </div>
-      </div>
+      <SessionInfoCard session={session} />
 
-      {/* Hidden file input – camera capture */}
+      {/* Hidden file input – camera capture (structured for future Camera API extension) */}
       <input
         ref={fileInputRef}
         type="file"
@@ -286,63 +280,11 @@ const MobileUpload = () => {
 
           <div className="grid grid-cols-3 gap-2">
             {photos.map((photo) => (
-              <div
+              <PhotoThumbnail
                 key={photo.order}
-                className={cn(
-                  "relative aspect-square overflow-hidden rounded-lg border",
-                  photo.error && "border-destructive/50",
-                  photo.uploading && "opacity-70"
-                )}
-              >
-                <img
-                  src={photo.preview}
-                  alt={`Foto ${photo.order}`}
-                  className="h-full w-full object-cover"
-                />
-
-                {/* Upload indicator */}
-                {photo.uploading && (
-                  <div className="absolute inset-0 flex items-center justify-center bg-background/50">
-                    <Loader2 className="h-5 w-5 animate-spin text-primary" />
-                  </div>
-                )}
-
-                {/* Success check */}
-                {photo.uploaded && (
-                  <div className="absolute top-1 left-1">
-                    <CheckCircle className="h-4 w-4 text-green-500 drop-shadow" />
-                  </div>
-                )}
-
-                {/* Error */}
-                {photo.error && (
-                  <div className="absolute top-1 left-1">
-                    <AlertTriangle className="h-4 w-4 text-destructive drop-shadow" />
-                  </div>
-                )}
-
-                {/* Order badge */}
-                <div className="absolute bottom-1 left-1 rounded bg-background/80 px-1 py-0.5 text-[9px] font-mono font-medium text-foreground backdrop-blur-sm">
-                  #{photo.order}
-                </div>
-
-                {/* Delete button */}
-                {!photo.uploading && (
-                  <button
-                    onClick={() => removePhoto(photo.order)}
-                    className="absolute top-1 right-1 flex h-5 w-5 items-center justify-center rounded-full bg-destructive/90 text-destructive-foreground shadow"
-                  >
-                    <X className="h-3 w-3" />
-                  </button>
-                )}
-
-                {/* Timestamp */}
-                {photo.created_at && (
-                  <div className="absolute bottom-1 right-1 rounded bg-background/80 px-1 py-0.5 text-[8px] text-muted-foreground backdrop-blur-sm">
-                    {format(new Date(photo.created_at), "HH:mm:ss")}
-                  </div>
-                )}
-              </div>
+                photo={photo}
+                onRemove={removePhoto}
+              />
             ))}
           </div>
         </div>
@@ -373,11 +315,11 @@ const MobileUpload = () => {
   );
 };
 
-// ─── Layout Shell (mobile-optimized, no sidebar) ───
+// ─── Sub-Components ───
+
 function MobileShell({ children }: { children: React.ReactNode }) {
   return (
     <div className="min-h-screen bg-background">
-      {/* Header */}
       <header className="sticky top-0 z-50 border-b bg-card/95 backdrop-blur-sm px-4 py-3">
         <div className="flex items-center gap-2">
           <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-primary text-primary-foreground text-xs font-bold">
@@ -387,23 +329,12 @@ function MobileShell({ children }: { children: React.ReactNode }) {
           <span className="ml-auto text-[10px] text-muted-foreground">Foto-Upload</span>
         </div>
       </header>
-
-      {/* Content */}
       <main className="mx-auto max-w-md space-y-4 p-4">{children}</main>
     </div>
   );
 }
 
-// ─── Status Card (error/completed states) ───
-function StatusCard({
-  icon,
-  title,
-  description,
-}: {
-  icon: React.ReactNode;
-  title: string;
-  description: string;
-}) {
+function StatusCard({ icon, title, description }: { icon: React.ReactNode; title: string; description: string }) {
   return (
     <div className="flex flex-col items-center gap-4 rounded-xl border bg-card p-8 text-center shadow-sm">
       {icon}
@@ -411,6 +342,103 @@ function StatusCard({
         <h2 className="text-base font-semibold text-foreground">{title}</h2>
         <p className="text-xs text-muted-foreground">{description}</p>
       </div>
+    </div>
+  );
+}
+
+function SessionInfoCard({ session }: { session: Extract<SessionState, { status: "active" }> }) {
+  return (
+    <div className="rounded-xl border bg-card p-4 space-y-2 shadow-sm">
+      <div className="flex items-center gap-2">
+        <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary/10">
+          <Camera className="h-4 w-4 text-primary" />
+        </div>
+        <div>
+          <h1 className="text-sm font-semibold text-foreground">Foto-Upload</h1>
+          <p className="text-[10px] text-muted-foreground">
+            Gültig bis {format(new Date(session.expiresAt), "HH:mm", { locale: de })} Uhr
+          </p>
+        </div>
+      </div>
+      <div className="flex gap-4 text-xs">
+        <div>
+          <span className="text-muted-foreground">Patient</span>
+          <p className="font-medium text-foreground">{session.patientName}</p>
+        </div>
+        <div>
+          <span className="text-muted-foreground">Stelle</span>
+          <p className="font-medium text-foreground">{session.locationName}</p>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function PhotoThumbnail({ photo, onRemove }: { photo: UploadedPhoto; onRemove: (order: number) => void }) {
+  return (
+    <div
+      className={cn(
+        "relative aspect-square overflow-hidden rounded-lg border",
+        photo.error && "border-destructive/50",
+        photo.uploading && "opacity-70",
+        photo.deleting && "opacity-40"
+      )}
+    >
+      <img
+        src={photo.preview}
+        alt={`Foto ${photo.order}`}
+        className="h-full w-full object-cover"
+      />
+
+      {/* Upload spinner */}
+      {photo.uploading && (
+        <div className="absolute inset-0 flex items-center justify-center bg-background/50">
+          <Loader2 className="h-5 w-5 animate-spin text-primary" />
+        </div>
+      )}
+
+      {/* Delete spinner */}
+      {photo.deleting && (
+        <div className="absolute inset-0 flex items-center justify-center bg-background/50">
+          <Loader2 className="h-5 w-5 animate-spin text-destructive" />
+        </div>
+      )}
+
+      {/* Success check */}
+      {photo.uploaded && !photo.deleting && (
+        <div className="absolute top-1 left-1">
+          <CheckCircle className="h-4 w-4 text-green-500 drop-shadow" />
+        </div>
+      )}
+
+      {/* Error */}
+      {photo.error && (
+        <div className="absolute top-1 left-1">
+          <AlertTriangle className="h-4 w-4 text-destructive drop-shadow" />
+        </div>
+      )}
+
+      {/* Order badge */}
+      <div className="absolute bottom-1 left-1 rounded bg-background/80 px-1 py-0.5 text-[9px] font-mono font-medium text-foreground backdrop-blur-sm">
+        #{photo.order}
+      </div>
+
+      {/* Delete button */}
+      {!photo.uploading && !photo.deleting && (
+        <button
+          onClick={() => onRemove(photo.order)}
+          className="absolute top-1 right-1 flex h-5 w-5 items-center justify-center rounded-full bg-destructive/90 text-destructive-foreground shadow"
+        >
+          <X className="h-3 w-3" />
+        </button>
+      )}
+
+      {/* Timestamp */}
+      {photo.created_at && (
+        <div className="absolute bottom-1 right-1 rounded bg-background/80 px-1 py-0.5 text-[8px] text-muted-foreground backdrop-blur-sm">
+          {format(new Date(photo.created_at), "HH:mm:ss")}
+        </div>
+      )}
     </div>
   );
 }

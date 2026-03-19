@@ -100,6 +100,8 @@ export const api = {
     formData.append('location_id', String(locationId));
     return request<any>('/upload', { method: 'POST', body: formData });
   },
+  deleteImage: (imageId: number) =>
+    request<{ success: boolean }>(`/images/${imageId}`, { method: 'DELETE' }),
 
   // Upload Sessions (QR Upload Flow)
   createUploadSession: (data: { patient_id: number; location_id: number }) =>
