@@ -3,13 +3,14 @@ import { useParams, useNavigate } from "react-router-dom";
 import { mockApi } from "@/lib/mockData";
 import type { FullPatient } from "@/types/patient";
 import { useState } from "react";
-import { ArrowLeft, MapPin, Plus, Calendar, ImageIcon, User, Hash, Activity, Mail, Phone, Pencil, Trash2, Save, X } from "lucide-react";
+import { ArrowLeft, MapPin, Plus, Calendar, ImageIcon, User, Hash, Activity, Mail, Phone, Pencil, Trash2, Save, X, Square, GitCompareArrows } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { format } from "date-fns";
 import { de } from "date-fns/locale";
 import BodyMap3D from "@/components/BodyMap3D";
 import ImageGallery from "@/components/ImageGallery";
+import ImageCompare from "@/components/ImageCompare";
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle,
 } from "@/components/ui/dialog";
@@ -26,7 +27,7 @@ const PatientDetail = () => {
   const patientId = Number(id);
 
   const [selectedLocationId, setSelectedLocationId] = useState<number | null>(null);
-  const [mapClickDialog, setMapClickDialog] = useState<{ x: number; y: number; view: "front" | "back" } | null>(null);
+  const [mapClickDialog, setMapClickDialog] = useState<{ x: number; y: number; view: "front" | "back"; markType?: "spot" | "region" } | null>(null);
   const [locationName, setLocationName] = useState("");
   const [activeTab, setActiveTab] = useState<"spots" | "timeline">("spots");
   const [newFindingText, setNewFindingText] = useState("");
@@ -40,7 +41,7 @@ const PatientDetail = () => {
   });
 
   const createLocationMutation = useMutation({
-    mutationFn: (loc: { name?: string; x: number; y: number; view?: "front" | "back" }) =>
+    mutationFn: (loc: { name?: string; x: number; y: number; view?: "front" | "back"; type?: "spot" | "region"; width?: number; height?: number }) =>
       mockApi.createLocation(patientId, loc),
     onSuccess: (newLoc) => {
       queryClient.invalidateQueries({ queryKey: ["full-patient", patientId] });
@@ -78,7 +79,7 @@ const PatientDetail = () => {
   const selectedLocation = locations.find((l) => l.id === selectedLocationId);
   const totalImages = locations.reduce((sum, l) => sum + (l.images?.length ?? 0), 0);
 
-  const handleMapClick = (x: number, y: number, view: "front" | "back") => setMapClickDialog({ x, y, view });
+  const handleMapClick = (x: number, y: number, view: "front" | "back", markType?: "spot" | "region") => setMapClickDialog({ x, y, view, markType });
 
   const handleCreateLocation = () => {
     if (!mapClickDialog) return;
@@ -87,6 +88,9 @@ const PatientDetail = () => {
       x: mapClickDialog.x,
       y: mapClickDialog.y,
       view: mapClickDialog.view,
+      type: mapClickDialog.markType || "spot",
+      width: mapClickDialog.markType === "region" ? 40 : undefined,
+      height: mapClickDialog.markType === "region" ? 30 : undefined,
     });
   };
 
@@ -204,7 +208,7 @@ const PatientDetail = () => {
         <div className="w-[300px] shrink-0 border-r bg-card p-3 overflow-y-auto flex flex-col">
           <div className="h-[350px]">
             <BodyMap3D
-              markers={locations.map((l) => ({ id: l.id, x: l.x, y: l.y, name: l.name, view: l.view, imageCount: l.images?.length ?? 0, findingCount: l.findings?.length ?? 0 }))}
+              markers={locations.map((l) => ({ id: l.id, x: l.x, y: l.y, name: l.name, view: l.view, type: l.type, width: l.width, height: l.height, imageCount: l.images?.length ?? 0, findingCount: l.findings?.length ?? 0 }))}
               gender={patient.gender}
               onMapClick={handleMapClick}
               selectedLocationId={selectedLocationId}
@@ -216,9 +220,9 @@ const PatientDetail = () => {
           <div className="mt-4 space-y-1">
             <div className="flex items-center justify-between mb-2">
               <h3 className="text-xs font-semibold text-foreground uppercase tracking-wider">Spots</h3>
-              <span className="text-[10px] text-muted-foreground">{locations.length} Stellen</span>
+              <span className="text-[10px] text-muted-foreground">{locations.filter(l => l.type !== "region").length} Stellen</span>
             </div>
-            {locations.map((loc, i) => (
+            {locations.filter(l => l.type !== "region").map((loc, i) => (
               <button
                 key={loc.id}
                 onClick={() => setSelectedLocationId(loc.id)}
@@ -246,6 +250,45 @@ const PatientDetail = () => {
               </button>
             ))}
           </div>
+
+          {/* Regions List */}
+          {locations.filter(l => l.type === "region").length > 0 && (
+            <div className="mt-4 space-y-1">
+              <div className="flex items-center justify-between mb-2">
+                <h3 className="text-xs font-semibold text-foreground uppercase tracking-wider flex items-center gap-1">
+                  <Square className="h-3 w-3 text-amber-500" /> Regionen
+                </h3>
+                <span className="text-[10px] text-muted-foreground">{locations.filter(l => l.type === "region").length} Bereiche</span>
+              </div>
+              {locations.filter(l => l.type === "region").map((loc) => (
+                <button
+                  key={loc.id}
+                  onClick={() => setSelectedLocationId(loc.id)}
+                  className={cn(
+                    "flex w-full items-center gap-2.5 rounded-md px-2.5 py-2 text-left transition-all text-xs",
+                    selectedLocationId === loc.id
+                      ? "bg-amber-500/10 text-amber-700 border border-amber-500/20"
+                      : "hover:bg-muted text-foreground border border-transparent"
+                  )}
+                >
+                  <div className={cn(
+                    "flex h-5 w-5 shrink-0 items-center justify-center rounded text-[10px] font-bold",
+                    selectedLocationId === loc.id
+                      ? "bg-amber-500 text-white"
+                      : "bg-muted text-muted-foreground"
+                  )}>
+                    ▭
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <p className="truncate font-medium">{loc.name || "Region"}</p>
+                    <p className="text-[10px] text-muted-foreground">
+                      {loc.images?.length ?? 0} Fotos · {loc.view === "back" ? "Hinten" : "Vorne"}
+                    </p>
+                  </div>
+                </button>
+              ))}
+            </div>
+          )}
         </div>
 
         {/* Center + Right: Content */}
@@ -344,23 +387,95 @@ const PatientDetail = () => {
                 {/* Location Header */}
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-3">
-                    <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary text-sm font-bold text-primary-foreground">
-                      <MapPin className="h-4 w-4" />
+                    <div className={cn(
+                      "flex h-8 w-8 items-center justify-center text-sm font-bold",
+                      selectedLocation.type === "region"
+                        ? "rounded bg-amber-500 text-white"
+                        : "rounded-full bg-primary text-primary-foreground"
+                    )}>
+                      {selectedLocation.type === "region" ? <Square className="h-4 w-4" /> : <MapPin className="h-4 w-4" />}
                     </div>
                     <div>
-                      <h2 className="text-lg font-semibold text-foreground">
-                        {selectedLocation.name || `Spot #${selectedLocation.id}`}
+                      <h2 className="text-lg font-semibold text-foreground flex items-center gap-2">
+                        {selectedLocation.name || (selectedLocation.type === "region" ? "Region" : `Spot #${selectedLocation.id}`)}
+                        {selectedLocation.type === "region" && (
+                          <Badge variant="outline" className="text-[10px] text-amber-600 border-amber-300">Region</Badge>
+                        )}
                       </h2>
                       <p className="text-xs text-muted-foreground flex items-center gap-2">
                         <span>{selectedLocation.view === "back" ? "Rückseite" : "Vorderseite"}</span>
-                        <span>·</span>
-                        <span className="font-mono">x:{selectedLocation.x} y:{selectedLocation.y}</span>
                         <span>·</span>
                         <span>{selectedLocation.images?.length ?? 0} Aufnahmen</span>
                       </p>
                     </div>
                   </div>
                 </div>
+
+                {/* Region: Side-by-Side Compare */}
+                {selectedLocation.type === "region" && (selectedLocation.images?.length ?? 0) >= 2 && (
+                  <div className="rounded-lg border bg-card p-4 space-y-4">
+                    <h4 className="text-xs font-semibold text-foreground uppercase tracking-wider flex items-center gap-2">
+                      <GitCompareArrows className="h-3.5 w-3.5 text-amber-500" />
+                      Verlaufsvergleich
+                    </h4>
+                    {(() => {
+                      const sorted = [...(selectedLocation.images ?? [])].sort(
+                        (a, b) => new Date(a.created_at ?? 0).getTime() - new Date(b.created_at ?? 0).getTime()
+                      );
+                      const oldest = sorted[0];
+                      const newest = sorted[sorted.length - 1];
+                      return (
+                        <div className="space-y-3">
+                          <div className="grid grid-cols-2 gap-4">
+                            <div className="space-y-2">
+                              <div className="relative overflow-hidden rounded-lg border aspect-[4/3] bg-muted">
+                                <img
+                                  src={mockApi.getImageUrl(oldest.image_path)}
+                                  alt="Ältere Aufnahme"
+                                  className="h-full w-full object-cover"
+                                />
+                                <div className="absolute top-2 left-2 rounded-full bg-muted/90 px-2 py-0.5 text-[10px] font-semibold text-foreground backdrop-blur-sm">
+                                  ÄLTER
+                                </div>
+                              </div>
+                              <p className="text-center text-xs text-muted-foreground tabular-nums">
+                                {oldest.created_at ? format(new Date(oldest.created_at), "dd. MMM yyyy", { locale: de }) : "–"}
+                              </p>
+                            </div>
+                            <div className="space-y-2">
+                              <div className="relative overflow-hidden rounded-lg border aspect-[4/3] bg-muted">
+                                <img
+                                  src={mockApi.getImageUrl(newest.image_path)}
+                                  alt="Neuere Aufnahme"
+                                  className="h-full w-full object-cover"
+                                />
+                                <div className="absolute top-2 left-2 rounded-full bg-primary/90 px-2 py-0.5 text-[10px] font-semibold text-primary-foreground backdrop-blur-sm">
+                                  NEUER
+                                </div>
+                              </div>
+                              <p className="text-center text-xs text-muted-foreground tabular-nums">
+                                {newest.created_at ? format(new Date(newest.created_at), "dd. MMM yyyy", { locale: de }) : "–"}
+                              </p>
+                            </div>
+                          </div>
+                          {oldest.created_at && newest.created_at && (
+                            <div className="text-center">
+                              <span className="inline-flex items-center gap-1.5 rounded-full bg-muted px-3 py-1 text-xs font-medium text-muted-foreground">
+                                <Calendar className="h-3 w-3" />
+                                Zeitraum: {getDaysDiff(oldest.created_at, newest.created_at)}
+                              </span>
+                            </div>
+                          )}
+                          {sorted.length > 2 && (
+                            <p className="text-center text-[10px] text-muted-foreground">
+                              {sorted.length} Aufnahmen insgesamt · Alle Fotos unten in der Galerie
+                            </p>
+                          )}
+                        </div>
+                      );
+                    })()}
+                  </div>
+                )}
 
                 {/* Findings */}
                 <div className="rounded-lg border bg-card p-4 space-y-3">
@@ -427,7 +542,7 @@ const PatientDetail = () => {
                   locationId={selectedLocation.id}
                   patientId={patientId}
                   images={selectedLocation.images ?? []}
-                  locationName={selectedLocation.name || `Spot #${selectedLocation.id}`}
+                  locationName={selectedLocation.name || (selectedLocation.type === "region" ? "Region" : `Spot #${selectedLocation.id}`)}
                 />
               </motion.div>
             ) : (
@@ -453,23 +568,35 @@ const PatientDetail = () => {
         <DialogContent>
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
-              <Plus className="h-5 w-5 text-primary" /> Neuen Spot markieren
+              {mapClickDialog?.markType === "region" ? (
+                <><Square className="h-5 w-5 text-amber-500" /> Neue Region markieren</>
+              ) : (
+                <><Plus className="h-5 w-5 text-primary" /> Neuen Spot markieren</>
+              )}
             </DialogTitle>
           </DialogHeader>
           <div className="space-y-4 pt-2">
             <div className="flex items-center gap-4 rounded-md bg-muted p-3 text-sm">
               <div className="flex items-center gap-2 text-muted-foreground">
-                <MapPin className="h-4 w-4" />
+                {mapClickDialog?.markType === "region" ? <Square className="h-4 w-4" /> : <MapPin className="h-4 w-4" />}
                 <span className="font-mono text-xs">x:{mapClickDialog?.x} y:{mapClickDialog?.y}</span>
               </div>
               <Badge variant="outline">{mapClickDialog?.view === "back" ? "Rückseite" : "Vorderseite"}</Badge>
+              {mapClickDialog?.markType === "region" && (
+                <Badge variant="outline" className="text-amber-600 border-amber-300">Region</Badge>
+              )}
             </div>
             <div className="space-y-2">
               <Label htmlFor="locName">Bezeichnung</Label>
-              <Input id="locName" placeholder="z.B. Linker Unterarm, Rücken oben..." value={locationName} onChange={(e) => setLocationName(e.target.value)} />
+              <Input
+                id="locName"
+                placeholder={mapClickDialog?.markType === "region" ? "z.B. Oberer Rücken, Brust, Bauch..." : "z.B. Linker Unterarm, Rücken oben..."}
+                value={locationName}
+                onChange={(e) => setLocationName(e.target.value)}
+              />
             </div>
             <Button className="w-full" onClick={handleCreateLocation} disabled={createLocationMutation.isPending}>
-              {createLocationMutation.isPending ? "Wird erstellt…" : "Spot anlegen"}
+              {createLocationMutation.isPending ? "Wird erstellt…" : mapClickDialog?.markType === "region" ? "Region anlegen" : "Spot anlegen"}
             </Button>
           </div>
         </DialogContent>
@@ -477,5 +604,19 @@ const PatientDetail = () => {
     </div>
   );
 };
+
+function getDaysDiff(dateA: string, dateB: string): string {
+  const a = new Date(dateA);
+  const b = new Date(dateB);
+  const diffMs = Math.abs(b.getTime() - a.getTime());
+  const days = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+  if (days === 0) return "Gleicher Tag";
+  if (days < 30) return `${days} Tage`;
+  const months = Math.floor(days / 30);
+  if (months < 12) return `${months} Monat${months > 1 ? "e" : ""}`;
+  const years = Math.floor(months / 12);
+  const remMonths = months % 12;
+  return remMonths > 0 ? `${years} Jahr${years > 1 ? "e" : ""}, ${remMonths} Mon.` : `${years} Jahr${years > 1 ? "e" : ""}`;
+}
 
 export default PatientDetail;

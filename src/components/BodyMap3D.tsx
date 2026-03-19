@@ -3,7 +3,7 @@ import { Canvas, useFrame, useThree, ThreeEvent } from "@react-three/fiber";
 import { OrbitControls, Html, useGLTF, Center } from "@react-three/drei";
 import * as THREE from "three";
 import { cn } from "@/lib/utils";
-import { RotateCcw, Eye, Hand, Footprints, User, Shirt, CircleDot, ArrowDown, MapPin } from "lucide-react";
+import { RotateCcw, Eye, Hand, Footprints, User, Shirt, CircleDot, ArrowDown, MapPin, Square } from "lucide-react";
 
 /* ─── Types ─── */
 interface Marker {
@@ -14,15 +14,19 @@ interface Marker {
   view?: "front" | "back";
   imageCount?: number;
   findingCount?: number;
+  type?: "spot" | "region";
+  width?: number;
+  height?: number;
 }
 
 type Gender = "female" | "male";
+type MarkType = "spot" | "region";
 
 interface BodyMap3DProps {
   markers: Marker[];
   selectedLocationId: number | null;
   gender?: Gender;
-  onMapClick?: (x: number, y: number, view: "front" | "back") => void;
+  onMapClick?: (x: number, y: number, view: "front" | "back", markType?: MarkType) => void;
   onMarkerClick?: (id: number) => void;
 }
 
@@ -218,6 +222,134 @@ function pointTo2D(point: THREE.Vector3): { x: number; y: number; view: "front" 
   return { x: Math.max(0, Math.min(200, x)), y: Math.max(0, Math.min(500, y)), view };
 }
 
+/* ─── Region Marker (rectangle) ─── */
+function RegionMarker({ position, name, isSelected, onClick, imageCount, findingCount, width, height }: {
+  position: [number, number, number];
+  name?: string;
+  isSelected: boolean;
+  onClick: () => void;
+  imageCount?: number;
+  findingCount?: number;
+  width: number;
+  height: number;
+}) {
+  const groupRef = useRef<THREE.Group>(null);
+  const [hovered, setHovered] = useState(false);
+
+  // Convert 2D width/height to 3D scale
+  const w3d = (width / 200) * 2;
+  const h3d = (height / 500) * 3.5;
+
+  useFrame(() => {
+    if (!groupRef.current) return;
+    if (isSelected) {
+      groupRef.current.scale.setScalar(1 + Math.sin(Date.now() * 0.003) * 0.03);
+    } else {
+      groupRef.current.scale.setScalar(1);
+    }
+  });
+
+  const color = isSelected ? "#0ea5e9" : hovered ? "#38bdf8" : "#f59e0b";
+  const opacity = isSelected ? 0.7 : hovered ? 0.5 : 0.35;
+
+  // Create rectangle outline using EdgesGeometry
+  const shape = useMemo(() => {
+    const s = new THREE.Shape();
+    const hw = w3d / 2;
+    const hh = h3d / 2;
+    s.moveTo(-hw, -hh);
+    s.lineTo(hw, -hh);
+    s.lineTo(hw, hh);
+    s.lineTo(-hw, hh);
+    s.lineTo(-hw, -hh);
+    return s;
+  }, [w3d, h3d]);
+
+  return (
+    <group position={position}>
+      <group
+        ref={groupRef}
+        onClick={(e) => { e.stopPropagation(); onClick(); }}
+        onPointerOver={() => setHovered(true)}
+        onPointerOut={() => setHovered(false)}
+      >
+        {/* Filled rectangle (semi-transparent) */}
+        <mesh>
+          <shapeGeometry args={[shape]} />
+          <meshBasicMaterial
+            color={color}
+            transparent
+            opacity={isSelected ? 0.15 : hovered ? 0.1 : 0.05}
+            side={THREE.DoubleSide}
+            depthTest={false}
+          />
+        </mesh>
+
+        {/* Rectangle border */}
+        <line>
+          <bufferGeometry>
+            <bufferAttribute
+              attach="attributes-position"
+              count={5}
+              array={new Float32Array([
+                -w3d/2, -h3d/2, 0,
+                w3d/2, -h3d/2, 0,
+                w3d/2, h3d/2, 0,
+                -w3d/2, h3d/2, 0,
+                -w3d/2, -h3d/2, 0,
+              ])}
+              itemSize={3}
+            />
+          </bufferGeometry>
+          <lineBasicMaterial color={color} transparent opacity={opacity} linewidth={1} depthTest={false} />
+        </line>
+
+        {/* Corner dots */}
+        {[[-w3d/2, -h3d/2], [w3d/2, -h3d/2], [w3d/2, h3d/2], [-w3d/2, h3d/2]].map(([cx, cy], i) => (
+          <mesh key={i} position={[cx, cy, 0]}>
+            <circleGeometry args={[0.012, 12]} />
+            <meshBasicMaterial color={color} transparent opacity={opacity + 0.2} side={THREE.DoubleSide} depthTest={false} />
+          </mesh>
+        ))}
+      </group>
+
+      {/* Label */}
+      {name && !hovered && !isSelected && (
+        <Html position={[0, h3d / 2 + 0.04, 0]} center style={{ pointerEvents: "none" }}>
+          <div className="rounded bg-amber-500/90 px-1.5 py-0.5 text-[7px] font-semibold text-white shadow whitespace-nowrap">
+            ▭ {name}
+          </div>
+        </Html>
+      )}
+
+      {/* Hover/selected tooltip */}
+      {(isSelected || hovered) && (
+        <Html position={[0, h3d / 2 + 0.06, 0]} center style={{ pointerEvents: "none" }}>
+          <div className="rounded-lg border bg-popover px-3 py-2 shadow-xl whitespace-nowrap backdrop-blur-sm min-w-[130px]">
+            <p className="text-[11px] font-semibold text-popover-foreground flex items-center gap-1.5">
+              <span className="text-amber-500">▭</span> {name || "Region"}
+            </p>
+            <div className="mt-1 flex items-center gap-3 text-[9px] text-muted-foreground">
+              {(imageCount ?? 0) > 0 && (
+                <span>📷 {imageCount} {imageCount === 1 ? "Bild" : "Bilder"}</span>
+              )}
+              {(findingCount ?? 0) > 0 && (
+                <span>📋 {findingCount} {findingCount === 1 ? "Befund" : "Befunde"}</span>
+              )}
+              {(imageCount ?? 0) === 0 && (findingCount ?? 0) === 0 && (
+                <span>Keine Einträge</span>
+              )}
+            </div>
+            {hovered && !isSelected && (
+              <p className="mt-1 text-[8px] text-primary font-medium">Klicken für Verlaufsfotos</p>
+            )}
+          </div>
+        </Html>
+      )}
+    </group>
+  );
+}
+
 /* ─── Convert 2D coords to 3D ─── */
 function coords2Dto3D(x: number, y: number, view?: "front" | "back"): [number, number, number] {
   const x3d = (x / 200) * 2 - 1;
@@ -292,16 +424,19 @@ function LoadingFallback() {
 }
 
 /* ─── Scene ─── */
-function Scene({ markers, selectedLocationId, onMapClick, onMarkerClick, preset, gender, markMode }: BodyMap3DProps & { preset: CameraPreset; gender: Gender; markMode: boolean }) {
+function Scene({ markers, selectedLocationId, onMapClick, onMarkerClick, preset, gender, markMode, markType }: BodyMap3DProps & { preset: CameraPreset; gender: Gender; markMode: boolean; markType: MarkType }) {
   const handleBodyClick = useCallback(
     (e: ThreeEvent<MouseEvent>) => {
       if (!markMode) return;
       e.stopPropagation();
       const { x, y, view } = pointTo2D(e.point);
-      onMapClick?.(x, y, view);
+      onMapClick?.(x, y, view, markType);
     },
-    [onMapClick, markMode],
+    [onMapClick, markMode, markType],
   );
+
+  const spots = markers.filter((m) => m.type !== "region");
+  const regions = markers.filter((m) => m.type === "region");
 
   return (
     <>
@@ -315,7 +450,7 @@ function Scene({ markers, selectedLocationId, onMapClick, onMarkerClick, preset,
         <BodyModel onBodyClick={handleBodyClick} gender={gender} />
       </Suspense>
 
-      {markers.map((m) => (
+      {spots.map((m) => (
         <SpotMarker
           key={m.id}
           position={coords2Dto3D(m.x, m.y, m.view)}
@@ -324,6 +459,20 @@ function Scene({ markers, selectedLocationId, onMapClick, onMarkerClick, preset,
           onClick={() => onMarkerClick?.(m.id)}
           imageCount={m.imageCount}
           findingCount={m.findingCount}
+        />
+      ))}
+
+      {regions.map((m) => (
+        <RegionMarker
+          key={m.id}
+          position={coords2Dto3D(m.x, m.y, m.view)}
+          name={m.name}
+          isSelected={m.id === selectedLocationId}
+          onClick={() => onMarkerClick?.(m.id)}
+          imageCount={m.imageCount}
+          findingCount={m.findingCount}
+          width={m.width ?? 40}
+          height={m.height ?? 30}
         />
       ))}
 
@@ -336,6 +485,7 @@ function Scene({ markers, selectedLocationId, onMapClick, onMarkerClick, preset,
 const BodyMap3D: React.FC<BodyMap3DProps> = (props) => {
   const [activeRegion, setActiveRegion] = useState<Region>("full");
   const [markMode, setMarkMode] = useState(false);
+  const [markType, setMarkType] = useState<MarkType>("spot");
   const gender = props.gender ?? "male";
   const preset = CAMERA_PRESETS[activeRegion];
 
@@ -343,7 +493,7 @@ const BodyMap3D: React.FC<BodyMap3DProps> = (props) => {
     <div className="flex h-full flex-col">
       <div className={cn(
         "relative min-h-[300px] flex-1 overflow-hidden rounded-lg border bg-gradient-to-b from-muted/20 via-muted/40 to-muted/60",
-        markMode && "ring-2 ring-primary/50"
+        markMode && (markType === "region" ? "ring-2 ring-amber-500/50" : "ring-2 ring-primary/50")
       )}>
         <Canvas
           camera={{ position: preset.position, fov: 40, near: 0.1, far: 100 }}
@@ -351,7 +501,7 @@ const BodyMap3D: React.FC<BodyMap3DProps> = (props) => {
           gl={{ antialias: true, alpha: true, toneMapping: THREE.ACESFilmicToneMapping, toneMappingExposure: 1.2 }}
           shadows
         >
-          <Scene {...props} preset={preset} gender={gender} markMode={markMode} />
+          <Scene {...props} preset={preset} gender={gender} markMode={markMode} markType={markType} />
         </Canvas>
 
         {/* Gender indicator */}
@@ -390,26 +540,49 @@ const BodyMap3D: React.FC<BodyMap3DProps> = (props) => {
             <RotateCcw className="h-3 w-3" /> Reset
           </button>
 
-          {/* Mark mode toggle */}
+          {/* Spot mark mode toggle */}
           <button
-            onClick={() => setMarkMode((v) => !v)}
-            title={markMode ? "Markieren beenden" : "Spot markieren"}
+            onClick={() => { setMarkMode(markType === "spot" ? !markMode : true); setMarkType("spot"); }}
+            title="Spot markieren"
             className={cn(
               "flex h-7 items-center gap-1.5 rounded-md px-2.5 text-[10px] font-medium transition-all",
-              markMode
+              markMode && markType === "spot"
                 ? "bg-primary text-primary-foreground shadow-md"
                 : "border border-border/50 bg-card/80 text-muted-foreground hover:text-foreground"
             )}
           >
             <MapPin className="h-3 w-3" />
-            {markMode ? "Markieren aktiv" : "Markieren"}
+            Spot
+          </button>
+
+          {/* Region mark mode toggle */}
+          <button
+            onClick={() => { setMarkMode(markType === "region" ? !markMode : true); setMarkType("region"); }}
+            title="Region markieren"
+            className={cn(
+              "flex h-7 items-center gap-1.5 rounded-md px-2.5 text-[10px] font-medium transition-all",
+              markMode && markType === "region"
+                ? "bg-amber-500 text-white shadow-md"
+                : "border border-border/50 bg-card/80 text-muted-foreground hover:text-foreground"
+            )}
+          >
+            <Square className="h-3 w-3" />
+            Region
           </button>
         </div>
 
         {/* Mark mode indicator */}
         {markMode && (
-          <div className="absolute top-2 left-1/2 -translate-x-1/2 rounded-full bg-primary px-3 py-1 text-[10px] font-semibold text-primary-foreground shadow-lg animate-pulse">
-            Klicken Sie auf den Körper um einen Spot zu setzen
+          <div className={cn(
+            "absolute top-2 left-1/2 -translate-x-1/2 rounded-full px-3 py-1 text-[10px] font-semibold shadow-lg animate-pulse",
+            markType === "region"
+              ? "bg-amber-500 text-white"
+              : "bg-primary text-primary-foreground"
+          )}>
+            {markType === "region"
+              ? "Klicken um Region-Mittelpunkt zu setzen"
+              : "Klicken um Spot zu setzen"
+            }
           </div>
         )}
 
@@ -420,7 +593,12 @@ const BodyMap3D: React.FC<BodyMap3DProps> = (props) => {
       </div>
 
       <p className="mt-2 text-center text-[10px] text-muted-foreground">
-        {markMode ? "Markier-Modus: Klicken um Spot zu setzen · Nochmal klicken zum Beenden" : "Drehen & Zoomen · «Markieren» um Spots zu setzen"}
+        {markMode
+          ? markType === "region"
+            ? "Region-Modus: Klicken für Mittelpunkt · Nochmal klicken zum Beenden"
+            : "Spot-Modus: Klicken um Spot zu setzen · Nochmal klicken zum Beenden"
+          : "Drehen & Zoomen · «Spot» oder «Region» zum Markieren"
+        }
       </p>
     </div>
   );

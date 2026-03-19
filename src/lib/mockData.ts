@@ -51,20 +51,30 @@ let patients: Patient[] = [
 ];
 
 let locations: (Location & { images: LocationImage[]; findings: Finding[] })[] = [
-  { id: 1, patient_id: 1, name: "Linker Unterarm", x: 30.5, y: 35.2, view: "front", created_at: "2025-06-01T10:00:00Z", images: demoImages.filter(i => i.location_id === 1), findings: [{ id: 1, location_id: 1, description: "Verdacht auf Basalzellkarzinom, 5mm Durchmesser", created_at: "2025-06-01T10:00:00Z" }] },
-  { id: 2, patient_id: 1, name: "Rechte Schulter", x: 72.0, y: 20.1, view: "back", created_at: "2025-08-10T09:00:00Z", images: demoImages.filter(i => i.location_id === 2), findings: [{ id: 2, location_id: 2, description: "Melanozytärer Nävus, regelmässig", created_at: "2025-08-10T09:00:00Z" }] },
-  { id: 3, patient_id: 2, name: "Stirn", x: 50.0, y: 5.0, view: "front", created_at: "2025-10-05T16:00:00Z", images: demoImages.filter(i => i.location_id === 3), findings: [] },
-  { id: 4, patient_id: 2, name: "Rücken Mitte", x: 50.0, y: 30.0, view: "back", created_at: "2025-11-01T08:00:00Z", images: demoImages.filter(i => i.location_id === 4), findings: [{ id: 3, location_id: 4, description: "Seborrhoische Keratose", created_at: "2025-11-01T08:00:00Z" }] },
-  { id: 5, patient_id: 3, name: "Linkes Knie", x: 38.0, y: 72.0, view: "front", created_at: "2025-12-01T10:00:00Z", images: [], findings: [] },
+  { id: 1, patient_id: 1, name: "Linker Unterarm", x: 30.5, y: 35.2, view: "front", type: "spot", created_at: "2025-06-01T10:00:00Z", images: demoImages.filter(i => i.location_id === 1), findings: [{ id: 1, location_id: 1, description: "Verdacht auf Basalzellkarzinom, 5mm Durchmesser", created_at: "2025-06-01T10:00:00Z" }] },
+  { id: 2, patient_id: 1, name: "Rechte Schulter", x: 72.0, y: 20.1, view: "back", type: "spot", created_at: "2025-08-10T09:00:00Z", images: demoImages.filter(i => i.location_id === 2), findings: [{ id: 2, location_id: 2, description: "Melanozytärer Nävus, regelmässig", created_at: "2025-08-10T09:00:00Z" }] },
+  { id: 3, patient_id: 2, name: "Stirn", x: 50.0, y: 5.0, view: "front", type: "spot", created_at: "2025-10-05T16:00:00Z", images: demoImages.filter(i => i.location_id === 3), findings: [] },
+  { id: 4, patient_id: 2, name: "Rücken Mitte", x: 50.0, y: 30.0, view: "back", type: "spot", created_at: "2025-11-01T08:00:00Z", images: demoImages.filter(i => i.location_id === 4), findings: [{ id: 3, location_id: 4, description: "Seborrhoische Keratose", created_at: "2025-11-01T08:00:00Z" }] },
+  { id: 5, patient_id: 3, name: "Linkes Knie", x: 38.0, y: 72.0, view: "front", type: "spot", created_at: "2025-12-01T10:00:00Z", images: [], findings: [] },
+  // Region examples
+  { id: 6, patient_id: 1, name: "Oberer Rücken", x: 50.0, y: 18.0, view: "back", type: "region", width: 60, height: 40, created_at: "2025-07-01T10:00:00Z", images: [
+    { id: 8, location_id: 6, image_path: "https://images.unsplash.com/photo-1612776572997-76cc42e058c3?w=600&h=400&fit=crop", created_at: "2025-07-01T10:00:00Z" },
+    { id: 9, location_id: 6, image_path: "https://images.unsplash.com/photo-1576091160550-2173dba999ef?w=600&h=400&fit=crop", created_at: "2025-10-15T14:00:00Z" },
+    { id: 10, location_id: 6, image_path: "https://images.unsplash.com/photo-1559757175-5700dde675bc?w=600&h=400&fit=crop", created_at: "2026-01-20T09:00:00Z" },
+  ], findings: [{ id: 4, location_id: 6, description: "Grossflächige Überwachung, mehrere Nävi im Bereich", created_at: "2025-07-01T10:00:00Z" }] },
+  { id: 7, patient_id: 2, name: "Brust", x: 50.0, y: 28.0, view: "front", type: "region", width: 50, height: 35, created_at: "2025-12-15T11:00:00Z", images: [
+    { id: 11, location_id: 7, image_path: "https://images.unsplash.com/photo-1576091160399-112ba8d25d1d?w=600&h=400&fit=crop", created_at: "2025-12-15T11:00:00Z" },
+    { id: 12, location_id: 7, image_path: "https://images.unsplash.com/photo-1532938911079-1b06ac7ceec7?w=600&h=400&fit=crop", created_at: "2026-03-01T10:00:00Z" },
+  ], findings: [] },
 ];
 
 let nextId = {
   company: 4,
   user: 4,
   patient: 7,
-  location: 6,
-  image: 8,
-  finding: 4,
+  location: 8,
+  image: 13,
+  finding: 5,
 };
 
 // Simulate async delay
@@ -146,7 +156,7 @@ export const mockApi = {
   },
 
   // Locations
-  createLocation: async (patientId: number, data: { name?: string; x: number; y: number; view?: "front" | "back" }) => {
+  createLocation: async (patientId: number, data: { name?: string; x: number; y: number; view?: "front" | "back"; type?: "spot" | "region"; width?: number; height?: number }) => {
     await delay();
     const loc: Location & { images: LocationImage[]; findings: Finding[] } = {
       id: nextId.location++,
@@ -155,6 +165,9 @@ export const mockApi = {
       x: data.x,
       y: data.y,
       view: data.view || "front",
+      type: data.type || "spot",
+      width: data.width,
+      height: data.height,
       created_at: new Date().toISOString(),
       images: [],
       findings: [],
