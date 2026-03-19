@@ -1,4 +1,4 @@
-import { Users, UserPlus, LogOut } from "lucide-react";
+import { Users, UserPlus, LogOut, Building2, UserCog } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
 import { useLocation } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
@@ -18,6 +18,8 @@ import {
 const navItems = [
   { title: "Patienten", url: "/", icon: Users },
   { title: "Neuer Patient", url: "/new-patient", icon: UserPlus },
+  { title: "Firmen", url: "/companies", icon: Building2 },
+  { title: "Benutzer", url: "/users", icon: UserCog },
 ];
 
 export function AppSidebar() {

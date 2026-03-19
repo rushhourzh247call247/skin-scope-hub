@@ -10,7 +10,8 @@ import PatientList from "./pages/PatientList";
 import PatientDetail from "./pages/PatientDetail";
 import NewPatient from "./pages/NewPatient";
 import Login from "./pages/Login";
-import Register from "./pages/Register";
+import CompanyManagement from "./pages/CompanyManagement";
+import UserManagement from "./pages/UserManagement";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient({
@@ -31,7 +32,26 @@ const App = () => (
         <BrowserRouter>
           <Routes>
             <Route path="/login" element={<Login />} />
-            <Route path="/register" element={<Register />} />
+            <Route
+              path="/companies"
+              element={
+                <ProtectedRoute>
+                  <AppLayout>
+                    <CompanyManagement />
+                  </AppLayout>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/users"
+              element={
+                <ProtectedRoute>
+                  <AppLayout>
+                    <UserManagement />
+                  </AppLayout>
+                </ProtectedRoute>
+              }
+            />
             <Route
               path="/"
               element={

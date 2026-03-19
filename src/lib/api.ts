@@ -65,8 +65,19 @@ export const api = {
   login: (data: { email: string; password: string }) =>
     request<{ user: any; token: string }>('/login', { method: 'POST', body: JSON.stringify(data) }),
 
-  register: (data: { name: string; email: string; password: string; company_name: string }) =>
-    request<{ user: any; token: string }>('/register', { method: 'POST', body: JSON.stringify(data) }),
+  // Admin: Companies
+  getCompanies: () => request<any>('/companies'),
+  createCompany: (data: { name: string }) =>
+    request<any>('/companies', { method: 'POST', body: JSON.stringify(data) }),
+  deleteCompany: (id: number) =>
+    request<any>(`/companies/${id}`, { method: 'DELETE' }),
+
+  // Admin: Users
+  getUsers: () => request<any>('/users'),
+  createUser: (data: { name: string; email: string; password: string; company_id: number; role?: string }) =>
+    request<any>('/users', { method: 'POST', body: JSON.stringify(data) }),
+  deleteUser: (id: number) =>
+    request<any>(`/users/${id}`, { method: 'DELETE' }),
 
   // Patients
   getPatients: () => request<any>('/patients'),

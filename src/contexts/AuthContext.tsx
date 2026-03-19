@@ -16,7 +16,7 @@ interface AuthContextType {
   isAuthenticated: boolean;
   isLoading: boolean;
   login: (email: string, password: string) => Promise<void>;
-  register: (data: { name: string; email: string; password: string; company_name: string }) => Promise<void>;
+  
   logout: () => void;
 }
 
@@ -49,15 +49,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     sessionStorage.setItem("auth_user", JSON.stringify(u));
   }, []);
 
-  const register = useCallback(async (data: { name: string; email: string; password: string; company_name: string }) => {
-    const res = await api.register(data);
-    const { user: u, token: t } = res;
-    setUser(u);
-    setToken(t);
-    api.setToken(t);
-    sessionStorage.setItem("auth_token", t);
-    sessionStorage.setItem("auth_user", JSON.stringify(u));
-  }, []);
 
   const logout = useCallback(() => {
     setUser(null);
@@ -68,7 +59,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   return (
-    <AuthContext.Provider value={{ user, token, isAuthenticated: !!token, isLoading, login, register, logout }}>
+    <AuthContext.Provider value={{ user, token, isAuthenticated: !!token, isLoading, login, logout }}>
       {children}
     </AuthContext.Provider>
   );
