@@ -235,7 +235,14 @@ const SpotMarker = React.forwardRef<THREE.Group, SpotMarkerProps>(function SpotM
       {hovered && (
         <Html position={[0, 0.065, 0]} center style={{ pointerEvents: "none" }}>
           <div className="rounded-lg border bg-popover px-3 py-2 shadow-xl whitespace-nowrap backdrop-blur-sm min-w-[120px]">
-            <p className="text-[11px] font-semibold text-popover-foreground">{name || "Spot"}</p>
+            <p className="text-[11px] font-semibold text-popover-foreground flex items-center gap-1.5">
+              {name || "Spot"}
+              {isHighRisk && (
+                <span className="inline-flex items-center gap-0.5 rounded bg-destructive/15 px-1 py-0.5 text-[8px] font-bold text-destructive">
+                  ⚠️ HIGH RISK
+                </span>
+              )}
+            </p>
             <div className="mt-1 flex items-center gap-3 text-[9px] text-muted-foreground">
               {(imageCount ?? 0) > 0 && (
                 <span className="flex items-center gap-0.5">
