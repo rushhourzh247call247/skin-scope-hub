@@ -10,6 +10,7 @@ import { format } from "date-fns";
 import { de } from "date-fns/locale";
 import BodyMap3D from "@/components/BodyMap3D";
 import ImageGallery from "@/components/ImageGallery";
+import ImageCompare from "@/components/ImageCompare";
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle,
 } from "@/components/ui/dialog";
