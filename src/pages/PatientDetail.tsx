@@ -369,7 +369,82 @@ const PatientDetail = () => {
         {/* Center + Right: Content */}
         <div className="flex-1 overflow-y-auto p-6">
           <AnimatePresence mode="wait">
-            {activeTab === "timeline" ? (
+            {activeTab === "fotos" ? (
+              <motion.div
+                key="fotos"
+                initial={{ opacity: 0, y: 8 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -8 }}
+                transition={{ duration: 0.15 }}
+                className="space-y-6"
+              >
+                <h2 className="text-lg font-semibold text-foreground">Alle Fotos ({totalImages})</h2>
+                {totalImages === 0 ? (
+                  <div className="flex flex-col items-center justify-center py-16 text-muted-foreground">
+                    <Camera className="h-10 w-10 mb-3" />
+                    <p className="text-sm">Noch keine Fotos vorhanden</p>
+                    <p className="text-xs mt-1">Wählen Sie einen Spot und laden Sie Bilder hoch</p>
+                  </div>
+                ) : (
+                  <div className="space-y-6">
+                    {locations.filter(loc => (loc.images?.length ?? 0) > 0).map((loc) => {
+                      const locName = loc.name || (loc.type === "region" ? "Region" : `Spot #${loc.id}`);
+                      const sortedImages = [...(loc.images ?? [])].sort(
+                        (a, b) => new Date(b.created_at ?? 0).getTime() - new Date(a.created_at ?? 0).getTime()
+                      );
+                      return (
+                        <div key={loc.id} className="space-y-3">
+                          <div className="flex items-center gap-2">
+                            <div className={cn(
+                              "flex h-5 w-5 items-center justify-center text-[10px] font-bold",
+                              loc.type === "region" ? "rounded bg-amber-500 text-white" : "rounded-full bg-primary text-primary-foreground"
+                            )}>
+                              {loc.type === "region" ? "▭" : <MapPin className="h-3 w-3" />}
+                            </div>
+                            <h3 className="text-sm font-semibold text-foreground">{locName}</h3>
+                            <span className="text-[10px] text-muted-foreground">
+                              {sortedImages.length} {sortedImages.length === 1 ? "Foto" : "Fotos"} · {loc.view === "back" ? "Hinten" : "Vorne"}
+                            </span>
+                          </div>
+                          <div className="grid grid-cols-4 gap-3 sm:grid-cols-5 md:grid-cols-6">
+                            {sortedImages.map((img) => (
+                              <button
+                                key={img.id}
+                                onClick={() => {
+                                  setSelectedLocationId(loc.id);
+                                  setActiveTab("spots");
+                                }}
+                                className="group relative overflow-hidden rounded-lg border bg-card transition-all hover:ring-2 hover:ring-primary hover:shadow-md cursor-pointer"
+                                title={`→ ${locName} anzeigen`}
+                              >
+                                <div className="aspect-square">
+                                  <img
+                                    src={mockApi.getImageUrl(img.image_path)}
+                                    alt={`${locName} – Aufnahme`}
+                                    className="h-full w-full object-cover"
+                                    loading="lazy"
+                                  />
+                                </div>
+                                <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+                                <div className="absolute bottom-0 left-0 right-0 p-1.5 opacity-0 group-hover:opacity-100 transition-opacity">
+                                  <p className="text-[9px] text-white font-medium truncate">{locName}</p>
+                                  <p className="text-[8px] text-white/70 tabular-nums">
+                                    {img.created_at ? format(new Date(img.created_at), "dd.MM.yy", { locale: de }) : "–"}
+                                  </p>
+                                </div>
+                                <div className="absolute top-1 right-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                                  <MapPin className="h-3 w-3 text-white drop-shadow-md" />
+                                </div>
+                              </button>
+                            ))}
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+              </motion.div>
+            ) : activeTab === "timeline" ? (
               <motion.div
                 key="timeline"
                 initial={{ opacity: 0, y: 8 }}
