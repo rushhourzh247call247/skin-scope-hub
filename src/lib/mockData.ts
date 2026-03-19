@@ -64,6 +64,7 @@ let nextId = {
   patient: 7,
   location: 6,
   image: 8,
+  finding: 4,
 };
 
 // Simulate async delay
