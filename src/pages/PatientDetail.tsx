@@ -346,12 +346,18 @@ const PatientDetail = () => {
                       const cls = (loc as any).classification as LesionClassification | undefined;
                       if (!cls || cls === "unclassified") return null;
                       const info = LESION_CLASSIFICATIONS[cls];
+                      const isHighRisk = cls === "melanoma_suspect" || cls === "scc";
                       return (
-                        <span
-                          className="text-[8px] font-bold px-1 rounded"
-                          style={{ backgroundColor: `${info.color}20`, color: info.color }}
-                        >
-                          {info.shortLabel}
+                        <span className="flex items-center gap-0.5">
+                          <span
+                            className="text-[8px] font-bold px-1 rounded"
+                            style={{ backgroundColor: `${info.color}20`, color: info.color }}
+                          >
+                            {info.shortLabel}
+                          </span>
+                          {isHighRisk && (
+                            <span className="text-[8px]">⚠️</span>
+                          )}
                         </span>
                       );
                     })()}
