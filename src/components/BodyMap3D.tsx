@@ -222,6 +222,134 @@ function pointTo2D(point: THREE.Vector3): { x: number; y: number; view: "front" 
   return { x: Math.max(0, Math.min(200, x)), y: Math.max(0, Math.min(500, y)), view };
 }
 
+/* ─── Region Marker (rectangle) ─── */
+function RegionMarker({ position, name, isSelected, onClick, imageCount, findingCount, width, height }: {
+  position: [number, number, number];
+  name?: string;
+  isSelected: boolean;
+  onClick: () => void;
+  imageCount?: number;
+  findingCount?: number;
+  width: number;
+  height: number;
+}) {
+  const groupRef = useRef<THREE.Group>(null);
+  const [hovered, setHovered] = useState(false);
+
+  // Convert 2D width/height to 3D scale
+  const w3d = (width / 200) * 2;
+  const h3d = (height / 500) * 3.5;
+
+  useFrame(() => {
+    if (!groupRef.current) return;
+    if (isSelected) {
+      groupRef.current.scale.setScalar(1 + Math.sin(Date.now() * 0.003) * 0.03);
+    } else {
+      groupRef.current.scale.setScalar(1);
+    }
+  });
+
+  const color = isSelected ? "#0ea5e9" : hovered ? "#38bdf8" : "#f59e0b";
+  const opacity = isSelected ? 0.7 : hovered ? 0.5 : 0.35;
+
+  // Create rectangle outline using EdgesGeometry
+  const shape = useMemo(() => {
+    const s = new THREE.Shape();
+    const hw = w3d / 2;
+    const hh = h3d / 2;
+    s.moveTo(-hw, -hh);
+    s.lineTo(hw, -hh);
+    s.lineTo(hw, hh);
+    s.lineTo(-hw, hh);
+    s.lineTo(-hw, -hh);
+    return s;
+  }, [w3d, h3d]);
+
+  return (
+    <group position={position}>
+      <group
+        ref={groupRef}
+        onClick={(e) => { e.stopPropagation(); onClick(); }}
+        onPointerOver={() => setHovered(true)}
+        onPointerOut={() => setHovered(false)}
+      >
+        {/* Filled rectangle (semi-transparent) */}
+        <mesh>
+          <shapeGeometry args={[shape]} />
+          <meshBasicMaterial
+            color={color}
+            transparent
+            opacity={isSelected ? 0.15 : hovered ? 0.1 : 0.05}
+            side={THREE.DoubleSide}
+            depthTest={false}
+          />
+        </mesh>
+
+        {/* Rectangle border */}
+        <line>
+          <bufferGeometry>
+            <bufferAttribute
+              attach="attributes-position"
+              count={5}
+              array={new Float32Array([
+                -w3d/2, -h3d/2, 0,
+                w3d/2, -h3d/2, 0,
+                w3d/2, h3d/2, 0,
+                -w3d/2, h3d/2, 0,
+                -w3d/2, -h3d/2, 0,
+              ])}
+              itemSize={3}
+            />
+          </bufferGeometry>
+          <lineBasicMaterial color={color} transparent opacity={opacity} linewidth={1} depthTest={false} />
+        </line>
+
+        {/* Corner dots */}
+        {[[-w3d/2, -h3d/2], [w3d/2, -h3d/2], [w3d/2, h3d/2], [-w3d/2, h3d/2]].map(([cx, cy], i) => (
+          <mesh key={i} position={[cx, cy, 0]}>
+            <circleGeometry args={[0.012, 12]} />
+            <meshBasicMaterial color={color} transparent opacity={opacity + 0.2} side={THREE.DoubleSide} depthTest={false} />
+          </mesh>
+        ))}
+      </group>
+
+      {/* Label */}
+      {name && !hovered && !isSelected && (
+        <Html position={[0, h3d / 2 + 0.04, 0]} center style={{ pointerEvents: "none" }}>
+          <div className="rounded bg-amber-500/90 px-1.5 py-0.5 text-[7px] font-semibold text-white shadow whitespace-nowrap">
+            ▭ {name}
+          </div>
+        </Html>
+      )}
+
+      {/* Hover/selected tooltip */}
+      {(isSelected || hovered) && (
+        <Html position={[0, h3d / 2 + 0.06, 0]} center style={{ pointerEvents: "none" }}>
+          <div className="rounded-lg border bg-popover px-3 py-2 shadow-xl whitespace-nowrap backdrop-blur-sm min-w-[130px]">
+            <p className="text-[11px] font-semibold text-popover-foreground flex items-center gap-1.5">
+              <span className="text-amber-500">▭</span> {name || "Region"}
+            </p>
+            <div className="mt-1 flex items-center gap-3 text-[9px] text-muted-foreground">
+              {(imageCount ?? 0) > 0 && (
+                <span>📷 {imageCount} {imageCount === 1 ? "Bild" : "Bilder"}</span>
+              )}
+              {(findingCount ?? 0) > 0 && (
+                <span>📋 {findingCount} {findingCount === 1 ? "Befund" : "Befunde"}</span>
+              )}
+              {(imageCount ?? 0) === 0 && (findingCount ?? 0) === 0 && (
+                <span>Keine Einträge</span>
+              )}
+            </div>
+            {hovered && !isSelected && (
+              <p className="mt-1 text-[8px] text-primary font-medium">Klicken für Verlaufsfotos</p>
+            )}
+          </div>
+        </Html>
+      )}
+    </group>
+  );
+}
+
 /* ─── Convert 2D coords to 3D ─── */
 function coords2Dto3D(x: number, y: number, view?: "front" | "back"): [number, number, number] {
   const x3d = (x / 200) * 2 - 1;
