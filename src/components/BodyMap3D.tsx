@@ -639,6 +639,7 @@ function Scene({ markers, selectedLocationId, onMapClick, onMarkerClick, preset,
             onClick={() => onMarkerClick?.(m.id)}
             imageCount={m.imageCount}
             findingCount={m.findingCount}
+            classificationColor={m.classificationColor}
           />
         </SurfaceProjectedGroup>
       ))}
