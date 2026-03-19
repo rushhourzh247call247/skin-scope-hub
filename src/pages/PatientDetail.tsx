@@ -568,7 +568,46 @@ const PatientDetail = () => {
                   </div>
                 </div>
 
-                {/* Region: Side-by-Side Compare */}
+                {/* Lesion Classification */}
+                {selectedLocation.type !== "region" && (
+                  <div className="rounded-lg border bg-card p-4 space-y-3">
+                    <h4 className="text-xs font-semibold text-foreground uppercase tracking-wider flex items-center gap-2">
+                      <Tag className="h-3.5 w-3.5 text-primary" />
+                      Klassifizierung
+                    </h4>
+                    <div className="flex flex-wrap gap-1.5">
+                      {(Object.entries(LESION_CLASSIFICATIONS) as [LesionClassification, { label: string; color: string; shortLabel: string }][]).map(([key, cls]) => {
+                        const current = (selectedLocation as any).classification || "unclassified";
+                        const isActive = current === key;
+                        return (
+                          <button
+                            key={key}
+                            onClick={() => classifyMutation.mutate({ locationId: selectedLocation.id, classification: key })}
+                            className={cn(
+                              "flex items-center gap-1.5 rounded-full px-3 py-1.5 text-[11px] font-medium border transition-all",
+                              isActive
+                                ? "ring-2 ring-offset-1 ring-offset-background shadow-sm"
+                                : "opacity-60 hover:opacity-100"
+                            )}
+                            style={{
+                              borderColor: cls.color,
+                              backgroundColor: isActive ? `${cls.color}20` : "transparent",
+                              color: cls.color,
+                              ...(isActive ? { ringColor: cls.color } : {}),
+                            }}
+                          >
+                            <span
+                              className="h-2.5 w-2.5 rounded-full shrink-0"
+                              style={{ backgroundColor: cls.color }}
+                            />
+                            {cls.label}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
+
                 {selectedLocation.type === "region" && (selectedLocation.images?.length ?? 0) >= 2 && (
                   <div className="rounded-lg border bg-card p-4 space-y-4">
                     <h4 className="text-xs font-semibold text-foreground uppercase tracking-wider flex items-center gap-2">
