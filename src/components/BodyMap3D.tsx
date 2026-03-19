@@ -485,6 +485,7 @@ function Scene({ markers, selectedLocationId, onMapClick, onMarkerClick, preset,
 const BodyMap3D: React.FC<BodyMap3DProps> = (props) => {
   const [activeRegion, setActiveRegion] = useState<Region>("full");
   const [markMode, setMarkMode] = useState(false);
+  const [markType, setMarkType] = useState<MarkType>("spot");
   const gender = props.gender ?? "male";
   const preset = CAMERA_PRESETS[activeRegion];
 
@@ -492,7 +493,7 @@ const BodyMap3D: React.FC<BodyMap3DProps> = (props) => {
     <div className="flex h-full flex-col">
       <div className={cn(
         "relative min-h-[300px] flex-1 overflow-hidden rounded-lg border bg-gradient-to-b from-muted/20 via-muted/40 to-muted/60",
-        markMode && "ring-2 ring-primary/50"
+        markMode && (markType === "region" ? "ring-2 ring-amber-500/50" : "ring-2 ring-primary/50")
       )}>
         <Canvas
           camera={{ position: preset.position, fov: 40, near: 0.1, far: 100 }}
@@ -500,7 +501,7 @@ const BodyMap3D: React.FC<BodyMap3DProps> = (props) => {
           gl={{ antialias: true, alpha: true, toneMapping: THREE.ACESFilmicToneMapping, toneMappingExposure: 1.2 }}
           shadows
         >
-          <Scene {...props} preset={preset} gender={gender} markMode={markMode} />
+          <Scene {...props} preset={preset} gender={gender} markMode={markMode} markType={markType} />
         </Canvas>
 
         {/* Gender indicator */}
@@ -539,26 +540,49 @@ const BodyMap3D: React.FC<BodyMap3DProps> = (props) => {
             <RotateCcw className="h-3 w-3" /> Reset
           </button>
 
-          {/* Mark mode toggle */}
+          {/* Spot mark mode toggle */}
           <button
-            onClick={() => setMarkMode((v) => !v)}
-            title={markMode ? "Markieren beenden" : "Spot markieren"}
+            onClick={() => { setMarkMode(markType === "spot" ? !markMode : true); setMarkType("spot"); }}
+            title="Spot markieren"
             className={cn(
               "flex h-7 items-center gap-1.5 rounded-md px-2.5 text-[10px] font-medium transition-all",
-              markMode
+              markMode && markType === "spot"
                 ? "bg-primary text-primary-foreground shadow-md"
                 : "border border-border/50 bg-card/80 text-muted-foreground hover:text-foreground"
             )}
           >
             <MapPin className="h-3 w-3" />
-            {markMode ? "Markieren aktiv" : "Markieren"}
+            Spot
+          </button>
+
+          {/* Region mark mode toggle */}
+          <button
+            onClick={() => { setMarkMode(markType === "region" ? !markMode : true); setMarkType("region"); }}
+            title="Region markieren"
+            className={cn(
+              "flex h-7 items-center gap-1.5 rounded-md px-2.5 text-[10px] font-medium transition-all",
+              markMode && markType === "region"
+                ? "bg-amber-500 text-white shadow-md"
+                : "border border-border/50 bg-card/80 text-muted-foreground hover:text-foreground"
+            )}
+          >
+            <Square className="h-3 w-3" />
+            Region
           </button>
         </div>
 
         {/* Mark mode indicator */}
         {markMode && (
-          <div className="absolute top-2 left-1/2 -translate-x-1/2 rounded-full bg-primary px-3 py-1 text-[10px] font-semibold text-primary-foreground shadow-lg animate-pulse">
-            Klicken Sie auf den Körper um einen Spot zu setzen
+          <div className={cn(
+            "absolute top-2 left-1/2 -translate-x-1/2 rounded-full px-3 py-1 text-[10px] font-semibold shadow-lg animate-pulse",
+            markType === "region"
+              ? "bg-amber-500 text-white"
+              : "bg-primary text-primary-foreground"
+          )}>
+            {markType === "region"
+              ? "Klicken um Region-Mittelpunkt zu setzen"
+              : "Klicken um Spot zu setzen"
+            }
           </div>
         )}
 
@@ -569,7 +593,12 @@ const BodyMap3D: React.FC<BodyMap3DProps> = (props) => {
       </div>
 
       <p className="mt-2 text-center text-[10px] text-muted-foreground">
-        {markMode ? "Markier-Modus: Klicken um Spot zu setzen · Nochmal klicken zum Beenden" : "Drehen & Zoomen · «Markieren» um Spots zu setzen"}
+        {markMode
+          ? markType === "region"
+            ? "Region-Modus: Klicken für Mittelpunkt · Nochmal klicken zum Beenden"
+            : "Spot-Modus: Klicken um Spot zu setzen · Nochmal klicken zum Beenden"
+          : "Drehen & Zoomen · «Spot» oder «Region» zum Markieren"
+        }
       </p>
     </div>
   );
