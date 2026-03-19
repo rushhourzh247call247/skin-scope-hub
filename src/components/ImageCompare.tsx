@@ -28,6 +28,16 @@ const ImageCompare = ({ images, locationName, onClose }: ImageCompareProps) => {
   const [overlayScale, setOverlayScale] = useState(100);
   const [overlayOffsetX, setOverlayOffsetX] = useState(0);
   const [overlayOffsetY, setOverlayOffsetY] = useState(0);
+  const [showAlignControls, setShowAlignControls] = useState(false);
+
+  const isAlignmentModified = overlayRotation !== 0 || overlayScale !== 100 || overlayOffsetX !== 0 || overlayOffsetY !== 0;
+
+  const handleAutoAlign = () => {
+    setOverlayRotation(0);
+    setOverlayScale(100);
+    setOverlayOffsetX(0);
+    setOverlayOffsetY(0);
+  };
 
   const sorted = [...images].sort(
     (a, b) => new Date(a.created_at ?? 0).getTime() - new Date(b.created_at ?? 0).getTime()
