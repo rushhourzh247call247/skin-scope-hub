@@ -297,6 +297,8 @@ const PatientDetail = () => {
               onMapClick={handleMapClick}
               selectedLocationId={selectedLocationId}
               onMarkerClick={(id) => setSelectedLocationId(id)}
+              classificationFilter={classificationFilter}
+              onFilterChange={setClassificationFilter}
             />
           </div>
 
