@@ -162,12 +162,13 @@ export const mockApi = {
   },
 
   // Images
-  uploadImage: async (locationId: number, _file: File) => {
+  uploadImage: async (locationId: number, file: File) => {
     await delay(800);
+    const objectUrl = URL.createObjectURL(file);
     const img: LocationImage = {
       id: nextId.image++,
       location_id: locationId,
-      image_path: `https://images.unsplash.com/photo-1576091160550-2173dba999ef?w=300&h=400&fit=crop&t=${Date.now()}`,
+      image_path: objectUrl,
       created_at: new Date().toISOString(),
     };
     const loc = locations.find(l => l.id === locationId);
