@@ -376,65 +376,134 @@ function coords2Dto3D(x: number, y: number, view?: "front" | "back"): [number, n
   return [x3d, y3d, z3d];
 }
 
-/* ─── Surface-projected wrapper: raycasts markers onto body mesh ─── */
-function SurfaceProjectedGroup({ approxPosition, view, children }: {
+/* ─── Surface projection helpers ─── */
+function projectMarkerToBody(
+  scene: THREE.Scene,
+  approxPosition: [number, number, number],
+  view?: "front" | "back",
+): { point: THREE.Vector3; normal: THREE.Vector3 } | null {
+  const bodyMeshes: THREE.Mesh[] = [];
+  scene.traverse((child) => {
+    if ((child as THREE.Mesh).isMesh && (child as THREE.Mesh).userData?.isBodyMesh) {
+      bodyMeshes.push(child as THREE.Mesh);
+    }
+  });
+
+  if (bodyMeshes.length === 0) return null;
+
+  const approx = new THREE.Vector3(...approxPosition);
+  const preferredDirections = view === "back"
+    ? [new THREE.Vector3(0, 0, -1), new THREE.Vector3(0, 0, 1)]
+    : [new THREE.Vector3(0, 0, 1), new THREE.Vector3(0, 0, -1)];
+  const rayDirections = [
+    ...preferredDirections,
+    new THREE.Vector3(1, 0, 0),
+    new THREE.Vector3(-1, 0, 0),
+    new THREE.Vector3(0, 1, 0),
+    new THREE.Vector3(0, -1, 0),
+  ];
+
+  const raycaster = new THREE.Raycaster();
+  let bestHit: { point: THREE.Vector3; normal: THREE.Vector3; distance: number } | null = null;
+
+  for (const fromDir of rayDirections) {
+    const origin = approx.clone().addScaledVector(fromDir, 4);
+    raycaster.set(origin, fromDir.clone().negate());
+    const hits = raycaster.intersectObjects(bodyMeshes, true);
+
+    for (const hit of hits) {
+      const point = hit.point;
+      const normal = hit.face
+        ? hit.face.normal.clone().transformDirection(hit.object.matrixWorld).normalize()
+        : fromDir.clone().negate().normalize();
+      const distance = point.distanceTo(approx);
+
+      if (!bestHit || distance < bestHit.distance) {
+        bestHit = { point, normal, distance };
+      }
+    }
+  }
+
+  return bestHit ? { point: bestHit.point, normal: bestHit.normal } : null;
+}
+
+/* ─── Surface-projected wrapper: keeps markers glued to body mesh ─── */
+type SurfaceProjectedGroupProps = {
   approxPosition: [number, number, number];
   view?: "front" | "back";
+  storedPosition?: [number, number, number];
+  storedNormal?: [number, number, number];
   children: React.ReactNode;
-}) {
+};
+
+const SurfaceProjectedGroup = React.forwardRef<THREE.Group, SurfaceProjectedGroupProps>(function SurfaceProjectedGroup(
+  { approxPosition, view, storedPosition, storedNormal, children },
+  forwardedRef,
+) {
   const { scene } = useThree();
   const groupRef = useRef<THREE.Group>(null);
   const projectedRef = useRef(false);
 
-  // Use useFrame to retry raycasting until body mesh is loaded
+  const setGroupRef = useCallback((node: THREE.Group | null) => {
+    groupRef.current = node;
+    if (typeof forwardedRef === "function") {
+      forwardedRef(node);
+    } else if (forwardedRef) {
+      (forwardedRef as React.MutableRefObject<THREE.Group | null>).current = node;
+    }
+  }, [forwardedRef]);
+
   useFrame(() => {
     if (!groupRef.current || projectedRef.current) return;
 
-    const raycaster = new THREE.Raycaster();
-    const origin = new THREE.Vector3(approxPosition[0], approxPosition[1], view === "back" ? -3 : 3);
-    const direction = new THREE.Vector3(0, 0, view === "back" ? 1 : -1);
-    raycaster.set(origin, direction);
-
-    const meshes: THREE.Mesh[] = [];
-    scene.traverse((child) => {
-      if ((child as THREE.Mesh).isMesh && !(child as any).__isMarker) {
-        meshes.push(child as THREE.Mesh);
-      }
-    });
-
-    if (meshes.length === 0) return; // Model not loaded yet, retry next frame
-
-    const intersections = raycaster.intersectObjects(meshes, true);
-    if (intersections.length > 0) {
-      const hit = intersections[0];
-      const pos = hit.point;
-      const normal = hit.face?.normal;
-
-      groupRef.current.position.set(pos.x, pos.y, pos.z);
-
-      if (normal) {
-        const worldNormal = normal.clone().transformDirection(hit.object.matrixWorld).normalize();
-        groupRef.current.position.addScaledVector(worldNormal, 0.003);
+    if (storedPosition) {
+      groupRef.current.position.set(...storedPosition);
+      if (storedNormal) {
+        const normal = new THREE.Vector3(...storedNormal).normalize();
+        groupRef.current.position.addScaledVector(normal, 0.003);
         groupRef.current.lookAt(
-          pos.x + worldNormal.x,
-          pos.y + worldNormal.y,
-          pos.z + worldNormal.z
+          storedPosition[0] + normal.x,
+          storedPosition[1] + normal.y,
+          storedPosition[2] + normal.z,
         );
       }
       projectedRef.current = true;
-    } else {
-      groupRef.current.position.set(...approxPosition);
-      projectedRef.current = true;
+      return;
     }
+
+    const projected = projectMarkerToBody(scene, approxPosition, view);
+    if (!projected) {
+      groupRef.current.position.set(...approxPosition);
+      return; // keep retrying until body mesh is ready/intersectable
+    }
+
+    groupRef.current.position.copy(projected.point).addScaledVector(projected.normal, 0.003);
+    groupRef.current.lookAt(
+      projected.point.x + projected.normal.x,
+      projected.point.y + projected.normal.y,
+      projected.point.z + projected.normal.z,
+    );
+    projectedRef.current = true;
   });
 
-  // Reset projection flag when position changes
+  // Reset projection when source coordinates change
   useEffect(() => {
     projectedRef.current = false;
-  }, [approxPosition[0], approxPosition[1], approxPosition[2], view]);
+  }, [
+    approxPosition[0],
+    approxPosition[1],
+    approxPosition[2],
+    view,
+    storedPosition?.[0],
+    storedPosition?.[1],
+    storedPosition?.[2],
+    storedNormal?.[0],
+    storedNormal?.[1],
+    storedNormal?.[2],
+  ]);
 
-  return <group ref={groupRef}>{children}</group>;
-}
+  return <group ref={setGroupRef}>{children}</group>;
+});
 
 /* ─── Camera Animator: animate to preset only, then free interaction ─── */
 function CameraAnimator({ preset }: { preset: Pick<CameraPreset, "position" | "target"> }) {
