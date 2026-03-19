@@ -40,6 +40,7 @@ const App = () => (
         <BrowserRouter>
           <Routes>
             <Route path="/login" element={<Login />} />
+            <Route path="/upload" element={<MobileUpload />} />
             <Route path="/" element={<ProtectedPage><Dashboard /></ProtectedPage>} />
             <Route path="/patients" element={<ProtectedPage><PatientList /></ProtectedPage>} />
             <Route path="/new-patient" element={<ProtectedPage><NewPatient /></ProtectedPage>} />
