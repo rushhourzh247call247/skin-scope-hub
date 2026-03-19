@@ -34,9 +34,9 @@ const Login = () => {
       <Card className="w-full max-w-sm">
         <CardHeader className="text-center">
           <div className="mx-auto mb-2 flex h-10 w-10 items-center justify-center rounded-md bg-primary">
-            <span className="text-lg font-bold text-primary-foreground">D</span>
+            <span className="text-lg font-bold text-primary-foreground">d</span>
           </div>
-          <CardTitle className="text-xl">DermTrack</CardTitle>
+          <CardTitle className="text-xl">derm<span className="text-primary">247</span></CardTitle>
           <CardDescription>Melden Sie sich an, um fortzufahren</CardDescription>
         </CardHeader>
         <CardContent>
