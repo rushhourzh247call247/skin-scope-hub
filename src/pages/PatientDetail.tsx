@@ -31,6 +31,10 @@ const PatientDetail = () => {
   const [locationName, setLocationName] = useState("");
   const [activeTab, setActiveTab] = useState<"spots" | "timeline">("spots");
   const [newFindingText, setNewFindingText] = useState("");
+  const [regionWidth, setRegionWidth] = useState(40);
+  const [regionHeight, setRegionHeight] = useState(30);
+  const [spotX, setSpotX] = useState(0);
+  const [spotY, setSpotY] = useState(0);
   const [editingFindingId, setEditingFindingId] = useState<number | null>(null);
   const [editingFindingText, setEditingFindingText] = useState("");
 
