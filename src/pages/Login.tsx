@@ -34,9 +34,9 @@ const Login = () => {
       <Card className="w-full max-w-sm">
         <CardHeader className="text-center">
           <div className="mx-auto mb-2 flex h-10 w-10 items-center justify-center rounded-md bg-primary">
-            <span className="text-lg font-bold text-primary-foreground">D</span>
+            <span className="text-lg font-bold text-primary-foreground">d</span>
           </div>
-          <CardTitle className="text-xl">DermTrack</CardTitle>
+          <CardTitle className="text-xl">derm<span className="text-primary">247</span></CardTitle>
           <CardDescription>Melden Sie sich an, um fortzufahren</CardDescription>
         </CardHeader>
         <CardContent>
@@ -61,6 +61,12 @@ const Login = () => {
               Demo: admin@derm247.ch / demo123
             </p>
           </form>
+          <p className="mt-4 text-center text-[9px] text-muted-foreground/50">
+            designed by{" "}
+            <a href="https://www.techassist.ch" target="_blank" rel="noopener noreferrer" className="font-medium hover:text-muted-foreground transition-colors">
+              techassist.ch
+            </a>
+          </p>
         </CardContent>
       </Card>
     </div>

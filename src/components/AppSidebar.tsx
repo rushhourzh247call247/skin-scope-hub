@@ -32,11 +32,11 @@ export function AppSidebar() {
         {/* Logo */}
         <div className="flex h-14 items-center gap-3 border-b border-sidebar-border px-4">
           <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-primary">
-            <span className="text-sm font-bold text-primary-foreground">D</span>
+            <span className="text-sm font-bold text-primary-foreground">d</span>
           </div>
           {!collapsed && (
             <span className="text-base font-bold tracking-tight text-sidebar-foreground">
-              DERM<span className="text-primary">TRACK</span>
+              derm<span className="text-primary">247</span>
             </span>
           )}
         </div>
@@ -78,8 +78,8 @@ export function AppSidebar() {
         </SidebarGroup>
       </SidebarContent>
 
-      <SidebarFooter className="border-t border-sidebar-border bg-sidebar p-3">
-        <div className="flex items-center gap-2">
+      <SidebarFooter className="border-t border-sidebar-border bg-sidebar">
+        <div className="flex items-center gap-2 px-3 pt-3">
           <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-primary/20 text-xs font-semibold text-primary">
             {user?.name?.split(" ").map((n) => n[0]).join("").slice(0, 2).toUpperCase() ?? "?"}
           </div>
@@ -95,6 +95,18 @@ export function AppSidebar() {
             </div>
           )}
         </div>
+        {!collapsed && (
+          <div className="px-3 pb-3 pt-2">
+            <a
+              href="https://www.techassist.ch"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="block text-center text-[9px] text-sidebar-foreground/30 transition-colors hover:text-sidebar-foreground/60"
+            >
+              designed by <span className="font-medium">techassist.ch</span>
+            </a>
+          </div>
+        )}
       </SidebarFooter>
     </Sidebar>
   );
