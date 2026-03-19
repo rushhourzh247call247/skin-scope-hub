@@ -1,4 +1,4 @@
-import React, { useRef, useState, useCallback, useMemo, Suspense } from "react";
+import React, { useRef, useState, useCallback, useMemo, Suspense, useEffect } from "react";
 import { Canvas, useFrame, useThree, ThreeEvent } from "@react-three/fiber";
 import { OrbitControls, Html, useGLTF, Center } from "@react-three/drei";
 import * as THREE from "three";
@@ -48,27 +48,79 @@ const skinMaterial = new THREE.MeshStandardMaterial({
   emissiveIntensity: 0.06,
 });
 
+/* ─── Make mesh unisex by flattening chest and narrowing hips ─── */
+function makeUnisex(scene: THREE.Object3D) {
+  scene.traverse((child) => {
+    if (!(child as THREE.Mesh).isMesh) return;
+    const mesh = child as THREE.Mesh;
+    const geo = mesh.geometry;
+    if (!geo || !geo.attributes.position) return;
+
+    const pos = geo.attributes.position;
+    const box = new THREE.Box3().setFromObject(scene);
+    const size = box.getSize(new THREE.Vector3());
+    const center = box.getCenter(new THREE.Vector3());
+    const height = size.y;
+
+    // Normalize Y to 0..1 (bottom=0, top=1)
+    for (let i = 0; i < pos.count; i++) {
+      const x = pos.getX(i);
+      const y = pos.getY(i);
+      const z = pos.getZ(i);
+      const ny = (y - box.min.y) / height; // normalized 0..1
+
+      // Chest area (roughly 0.55-0.72 of height) — flatten Z protrusion
+      if (ny > 0.55 && ny < 0.72 && z > center.z) {
+        const chestFactor = Math.sin(((ny - 0.55) / 0.17) * Math.PI);
+        const flatten = 0.35 * chestFactor;
+        const zOffset = (z - center.z) * flatten;
+        pos.setZ(i, z - zOffset);
+      }
+
+      // Hip area (roughly 0.42-0.52) — slightly narrow
+      if (ny > 0.42 && ny < 0.52) {
+        const hipFactor = Math.sin(((ny - 0.42) / 0.10) * Math.PI);
+        const narrow = 0.08 * hipFactor;
+        const xOffset = (x - center.x) * narrow;
+        pos.setX(i, x - xOffset);
+      }
+    }
+
+    pos.needsUpdate = true;
+    geo.computeVertexNormals();
+  });
+}
+
 /* ─── GLB Body Model ─── */
 function BodyModel({ onBodyClick }: { onBodyClick: (e: ThreeEvent<MouseEvent>) => void }) {
   const { scene } = useGLTF(MODEL_URL);
-  const clonedScene = useMemo(() => scene.clone(true), [scene]);
+  const clonedScene = useMemo(() => {
+    const clone = scene.clone(true);
 
-  // Apply skin material and compute scale to normalize height ~2 units
+    // Apply skin material
+    clone.traverse((child) => {
+      if ((child as THREE.Mesh).isMesh) {
+        const mesh = child as THREE.Mesh;
+        // Clone geometry so we can modify vertices
+        mesh.geometry = mesh.geometry.clone();
+        mesh.material = skinMaterial.clone();
+        mesh.castShadow = true;
+        mesh.receiveShadow = true;
+      }
+    });
+
+    // Make unisex
+    makeUnisex(clone);
+
+    return clone;
+  }, [scene]);
+
+  // Compute scale to normalize height ~2.5 units
   const normalizedScale = useMemo(() => {
     const box = new THREE.Box3().setFromObject(clonedScene);
     const size = box.getSize(new THREE.Vector3());
     const height = size.y || 1;
-    const s = 2.5 / height; // normalize to ~2.5 units tall
-
-    clonedScene.traverse((child) => {
-      if ((child as THREE.Mesh).isMesh) {
-        (child as THREE.Mesh).material = skinMaterial.clone();
-        (child as THREE.Mesh).castShadow = true;
-        (child as THREE.Mesh).receiveShadow = true;
-      }
-    });
-
-    return s;
+    return 2.5 / height;
   }, [clonedScene]);
 
   return (
@@ -150,15 +202,28 @@ function coords2Dto3D(x: number, y: number, view?: "front" | "back"): [number, n
   return [x3d, y3d, z3d];
 }
 
-/* ─── Camera Animator ─── */
+/* ─── Camera Animator (lerps BOTH position and target) ─── */
 function CameraAnimator({ preset }: { preset: { position: [number, number, number]; target: [number, number, number] } }) {
   const { camera } = useThree();
   const controlsRef = useRef<any>(null);
   const posVec = useMemo(() => new THREE.Vector3(...preset.position), [preset.position]);
   const tarVec = useMemo(() => new THREE.Vector3(...preset.target), [preset.target]);
+  const currentTarget = useRef(new THREE.Vector3(...preset.target));
+
+  // Reset target immediately when preset changes
+  useEffect(() => {
+    currentTarget.current.copy(tarVec);
+  }, [tarVec]);
 
   useFrame(() => {
+    // Lerp camera position
     camera.position.lerp(posVec, 0.08);
+
+    // Lerp orbit controls target
+    if (controlsRef.current) {
+      controlsRef.current.target.lerp(tarVec, 0.08);
+      controlsRef.current.update();
+    }
   });
 
   return (
@@ -167,7 +232,6 @@ function CameraAnimator({ preset }: { preset: { position: [number, number, numbe
       enablePan={true}
       minDistance={0.3}
       maxDistance={8}
-      target={tarVec}
     />
   );
 }
