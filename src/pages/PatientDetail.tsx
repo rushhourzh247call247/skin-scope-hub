@@ -568,23 +568,35 @@ const PatientDetail = () => {
         <DialogContent>
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
-              <Plus className="h-5 w-5 text-primary" /> Neuen Spot markieren
+              {mapClickDialog?.markType === "region" ? (
+                <><Square className="h-5 w-5 text-amber-500" /> Neue Region markieren</>
+              ) : (
+                <><Plus className="h-5 w-5 text-primary" /> Neuen Spot markieren</>
+              )}
             </DialogTitle>
           </DialogHeader>
           <div className="space-y-4 pt-2">
             <div className="flex items-center gap-4 rounded-md bg-muted p-3 text-sm">
               <div className="flex items-center gap-2 text-muted-foreground">
-                <MapPin className="h-4 w-4" />
+                {mapClickDialog?.markType === "region" ? <Square className="h-4 w-4" /> : <MapPin className="h-4 w-4" />}
                 <span className="font-mono text-xs">x:{mapClickDialog?.x} y:{mapClickDialog?.y}</span>
               </div>
               <Badge variant="outline">{mapClickDialog?.view === "back" ? "Rückseite" : "Vorderseite"}</Badge>
+              {mapClickDialog?.markType === "region" && (
+                <Badge variant="outline" className="text-amber-600 border-amber-300">Region</Badge>
+              )}
             </div>
             <div className="space-y-2">
               <Label htmlFor="locName">Bezeichnung</Label>
-              <Input id="locName" placeholder="z.B. Linker Unterarm, Rücken oben..." value={locationName} onChange={(e) => setLocationName(e.target.value)} />
+              <Input
+                id="locName"
+                placeholder={mapClickDialog?.markType === "region" ? "z.B. Oberer Rücken, Brust, Bauch..." : "z.B. Linker Unterarm, Rücken oben..."}
+                value={locationName}
+                onChange={(e) => setLocationName(e.target.value)}
+              />
             </div>
             <Button className="w-full" onClick={handleCreateLocation} disabled={createLocationMutation.isPending}>
-              {createLocationMutation.isPending ? "Wird erstellt…" : "Spot anlegen"}
+              {createLocationMutation.isPending ? "Wird erstellt…" : mapClickDialog?.markType === "region" ? "Region anlegen" : "Spot anlegen"}
             </Button>
           </div>
         </DialogContent>
@@ -592,5 +604,19 @@ const PatientDetail = () => {
     </div>
   );
 };
+
+function getDaysDiff(dateA: string, dateB: string): string {
+  const a = new Date(dateA);
+  const b = new Date(dateB);
+  const diffMs = Math.abs(b.getTime() - a.getTime());
+  const days = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+  if (days === 0) return "Gleicher Tag";
+  if (days < 30) return `${days} Tage`;
+  const months = Math.floor(days / 30);
+  if (months < 12) return `${months} Monat${months > 1 ? "e" : ""}`;
+  const years = Math.floor(months / 12);
+  const remMonths = months % 12;
+  return remMonths > 0 ? `${years} Jahr${years > 1 ? "e" : ""}, ${remMonths} Mon.` : `${years} Jahr${years > 1 ? "e" : ""}`;
+}
 
 export default PatientDetail;
