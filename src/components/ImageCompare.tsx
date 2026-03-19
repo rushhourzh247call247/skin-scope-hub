@@ -2,7 +2,7 @@ import { useState } from "react";
 import type { LocationImage } from "@/types/patient";
 import { format } from "date-fns";
 import { de } from "date-fns/locale";
-import { ArrowLeft, Calendar, Check, GitCompareArrows, RotateCcw, ZoomIn, Layers, Move, RotateCw } from "lucide-react";
+import { ArrowLeft, Calendar, Check, GitCompareArrows, RotateCcw, ZoomIn, Layers, Move, RotateCw, ChevronDown, Wand2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Slider } from "@/components/ui/slider";
 import { mockApi } from "@/lib/mockData";
@@ -28,6 +28,16 @@ const ImageCompare = ({ images, locationName, onClose }: ImageCompareProps) => {
   const [overlayScale, setOverlayScale] = useState(100);
   const [overlayOffsetX, setOverlayOffsetX] = useState(0);
   const [overlayOffsetY, setOverlayOffsetY] = useState(0);
+  const [showAlignControls, setShowAlignControls] = useState(false);
+
+  const isAlignmentModified = overlayRotation !== 0 || overlayScale !== 100 || overlayOffsetX !== 0 || overlayOffsetY !== 0;
+
+  const handleAutoAlign = () => {
+    setOverlayRotation(0);
+    setOverlayScale(100);
+    setOverlayOffsetX(0);
+    setOverlayOffsetY(0);
+  };
 
   const sorted = [...images].sort(
     (a, b) => new Date(a.created_at ?? 0).getTime() - new Date(b.created_at ?? 0).getTime()
@@ -248,87 +258,92 @@ const ImageCompare = ({ images, locationName, onClose }: ImageCompareProps) => {
                   />
                 </div>
 
-                {/* Alignment Controls */}
-                <div className="rounded-lg border bg-muted/30 p-3 space-y-3">
-                  <div className="flex items-center justify-between">
-                    <h5 className="text-[10px] font-semibold text-foreground flex items-center gap-1.5">
-                      <Move className="h-3 w-3 text-primary" /> Ausrichtung anpassen
-                    </h5>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      className="h-6 px-2 text-[10px]"
-                      onClick={() => {
-                        setOverlayRotation(0);
-                        setOverlayScale(100);
-                        setOverlayOffsetX(0);
-                        setOverlayOffsetY(0);
-                      }}
-                    >
-                      <RotateCcw className="mr-1 h-3 w-3" /> Reset
-                    </Button>
-                  </div>
-
-                  {/* Rotation */}
-                  <div className="space-y-1">
-                    <div className="flex items-center justify-between text-[10px] text-muted-foreground">
-                      <span className="flex items-center gap-1"><RotateCw className="h-3 w-3" /> Rotation</span>
-                      <span className="font-mono">{overlayRotation}°</span>
-                    </div>
-                    <Slider
-                      value={[overlayRotation]}
-                      onValueChange={([v]) => setOverlayRotation(v)}
-                      min={-180}
-                      max={180}
-                      step={1}
-                    />
-                  </div>
-
-                  {/* Scale */}
-                  <div className="space-y-1">
-                    <div className="flex items-center justify-between text-[10px] text-muted-foreground">
-                      <span className="flex items-center gap-1"><ZoomIn className="h-3 w-3" /> Zoom</span>
-                      <span className="font-mono">{overlayScale}%</span>
-                    </div>
-                    <Slider
-                      value={[overlayScale]}
-                      onValueChange={([v]) => setOverlayScale(v)}
-                      min={50}
-                      max={200}
-                      step={1}
-                    />
-                  </div>
-
-                  {/* Offset X */}
-                  <div className="space-y-1">
-                    <div className="flex items-center justify-between text-[10px] text-muted-foreground">
-                      <span>← Horizontal →</span>
-                      <span className="font-mono">{overlayOffsetX}px</span>
-                    </div>
-                    <Slider
-                      value={[overlayOffsetX]}
-                      onValueChange={([v]) => setOverlayOffsetX(v)}
-                      min={-100}
-                      max={100}
-                      step={1}
-                    />
-                  </div>
-
-                  {/* Offset Y */}
-                  <div className="space-y-1">
-                    <div className="flex items-center justify-between text-[10px] text-muted-foreground">
-                      <span>↑ Vertikal ↓</span>
-                      <span className="font-mono">{overlayOffsetY}px</span>
-                    </div>
-                    <Slider
-                      value={[overlayOffsetY]}
-                      onValueChange={([v]) => setOverlayOffsetY(v)}
-                      min={-100}
-                      max={100}
-                      step={1}
-                    />
-                  </div>
+                {/* Quick Actions */}
+                <div className="flex items-center gap-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="h-7 text-[10px] gap-1.5"
+                    onClick={handleAutoAlign}
+                  >
+                    <Wand2 className="h-3 w-3" /> Auto Ausrichten
+                  </Button>
+                  <button
+                    onClick={() => setShowAlignControls(!showAlignControls)}
+                    className={cn(
+                      "flex items-center gap-1.5 rounded-md border px-2.5 py-1 text-[10px] font-medium transition-all",
+                      showAlignControls || isAlignmentModified
+                        ? "border-primary/30 bg-primary/5 text-primary"
+                        : "border-border bg-card text-muted-foreground hover:text-foreground"
+                    )}
+                  >
+                    <Move className="h-3 w-3" />
+                    Manuell
+                    {isAlignmentModified && <span className="h-1.5 w-1.5 rounded-full bg-primary" />}
+                    <ChevronDown className={cn("h-3 w-3 transition-transform", showAlignControls && "rotate-180")} />
+                  </button>
                 </div>
+
+                {/* Collapsible Alignment Controls */}
+                <AnimatePresence>
+                  {showAlignControls && (
+                    <motion.div
+                      initial={{ height: 0, opacity: 0 }}
+                      animate={{ height: "auto", opacity: 1 }}
+                      exit={{ height: 0, opacity: 0 }}
+                      className="overflow-hidden"
+                    >
+                      <div className="rounded-lg border bg-muted/30 p-3 space-y-3">
+                        <div className="flex items-center justify-end">
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="h-6 px-2 text-[10px]"
+                            onClick={handleAutoAlign}
+                          >
+                            <RotateCcw className="mr-1 h-3 w-3" /> Reset
+                          </Button>
+                        </div>
+
+                        {/* Rotation */}
+                        <div className="space-y-1">
+                          <div className="flex items-center justify-between text-[10px] text-muted-foreground">
+                            <span className="flex items-center gap-1"><RotateCw className="h-3 w-3" /> Rotation</span>
+                            <span className="font-mono">{overlayRotation}°</span>
+                          </div>
+                          <Slider value={[overlayRotation]} onValueChange={([v]) => setOverlayRotation(v)} min={-180} max={180} step={1} />
+                        </div>
+
+                        {/* Scale */}
+                        <div className="space-y-1">
+                          <div className="flex items-center justify-between text-[10px] text-muted-foreground">
+                            <span className="flex items-center gap-1"><ZoomIn className="h-3 w-3" /> Zoom</span>
+                            <span className="font-mono">{overlayScale}%</span>
+                          </div>
+                          <Slider value={[overlayScale]} onValueChange={([v]) => setOverlayScale(v)} min={50} max={200} step={1} />
+                        </div>
+
+                        {/* Offset X */}
+                        <div className="space-y-1">
+                          <div className="flex items-center justify-between text-[10px] text-muted-foreground">
+                            <span>← Horizontal →</span>
+                            <span className="font-mono">{overlayOffsetX}px</span>
+                          </div>
+                          <Slider value={[overlayOffsetX]} onValueChange={([v]) => setOverlayOffsetX(v)} min={-100} max={100} step={1} />
+                        </div>
+
+                        {/* Offset Y */}
+                        <div className="space-y-1">
+                          <div className="flex items-center justify-between text-[10px] text-muted-foreground">
+                            <span>↑ Vertikal ↓</span>
+                            <span className="font-mono">{overlayOffsetY}px</span>
+                          </div>
+                          <Slider value={[overlayOffsetY]} onValueChange={([v]) => setOverlayOffsetY(v)} min={-100} max={100} step={1} />
+                        </div>
+                      </div>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
               </div>
             )}
 
