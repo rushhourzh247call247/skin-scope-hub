@@ -130,7 +130,7 @@ type SpotMarkerProps = {
 };
 
 const SpotMarker = React.forwardRef<THREE.Group, SpotMarkerProps>(function SpotMarker(
-  { position, name, isSelected, onClick, imageCount, findingCount, classificationColor },
+  { position, name, isSelected, onClick, imageCount, findingCount, classificationColor, isHighRisk },
   forwardedRef,
 ) {
   const groupRef = useRef<THREE.Group>(null);
@@ -138,7 +138,10 @@ const SpotMarker = React.forwardRef<THREE.Group, SpotMarkerProps>(function SpotM
 
   useFrame(() => {
     if (!groupRef.current) return;
-    if (isSelected) {
+    if (isHighRisk && !isSelected) {
+      // Faster, stronger pulse for high-risk
+      groupRef.current.scale.setScalar(1 + Math.sin(Date.now() * 0.006) * 0.18);
+    } else if (isSelected) {
       groupRef.current.scale.setScalar(1 + Math.sin(Date.now() * 0.004) * 0.1);
     } else {
       groupRef.current.scale.setScalar(hovered ? 1.15 : 1);
