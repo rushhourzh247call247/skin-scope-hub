@@ -288,7 +288,7 @@ const BodyMap3D: React.FC<BodyMap3DProps> = (props) => {
         </div>
 
         {/* Region buttons */}
-        <div className="absolute right-2 top-1/2 flex -translate-y-1/2 flex-col gap-1">
+        <div className="absolute right-1.5 top-1/2 flex -translate-y-1/2 flex-col gap-0.5 max-h-[calc(100%-1rem)] overflow-y-auto scrollbar-none">
           {(Object.entries(CAMERA_PRESETS) as [Region, CameraPreset][]).map(([key, p]) => {
             const Icon = p.icon;
             return (
@@ -297,13 +297,13 @@ const BodyMap3D: React.FC<BodyMap3DProps> = (props) => {
                 onClick={() => setActiveRegion(key)}
                 title={p.label}
                 className={cn(
-                  "flex h-8 w-8 items-center justify-center rounded-md transition-all",
+                  "flex h-6 w-6 shrink-0 items-center justify-center rounded transition-all",
                   activeRegion === key
                     ? "bg-primary text-primary-foreground shadow-md"
                     : "border border-border/50 bg-card/80 text-muted-foreground hover:bg-card hover:text-foreground",
                 )}
               >
-                <Icon className="h-3.5 w-3.5" />
+                <Icon className="h-3 w-3" />
               </button>
             );
           })}
