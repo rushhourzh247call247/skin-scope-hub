@@ -15,7 +15,7 @@ const REGION_VIEWS: Record<BodyRegion, RegionViewBox> = {
   full:  { viewBox: "0 0 200 500", label: "Ganzkörper" },
   head:  { viewBox: "50 0 100 120", label: "Kopf & Hals" },
   torso: { viewBox: "30 65 140 170", label: "Oberkörper" },
-  legs:  { viewBox: "30 200 140 280", label: "Beine & Füsse" },
+  legs:  { viewBox: "30 200 140 290", label: "Beine & Füsse" },
   hands: { viewBox: "0 60 200 140", label: "Arme & Hände" },
 };
 
@@ -207,84 +207,128 @@ const BodyMapSvg = ({
   );
 };
 
+/* ─── Shared skin colors ─── */
+const SKIN = "hsl(30 40% 85%)";
+const SKIN_DARK = "hsl(30 40% 83%)";
+const SKIN_SHADOW = "hsl(30 40% 80%)";
+const STROKE = "hsl(30 20% 70%)";
+const DETAIL = "hsl(30 20% 75%)";
+const DETAIL_LIGHT = "hsl(30 20% 78%)";
+const NAIL = "hsl(30 30% 88%)";
+
 /* ─── Front Body SVG ─── */
 const FrontBody = () => (
   <g>
-    {/* Skin colored body */}
     {/* Head */}
-    <ellipse cx="100" cy="36" rx="22" ry="27" fill="hsl(30 40% 85%)" stroke="hsl(30 20% 70%)" strokeWidth="0.8" />
-    {/* Ears */}
-    <ellipse cx="77" cy="36" rx="4" ry="7" fill="hsl(30 40% 83%)" stroke="hsl(30 20% 70%)" strokeWidth="0.5" />
-    <ellipse cx="123" cy="36" rx="4" ry="7" fill="hsl(30 40% 83%)" stroke="hsl(30 20% 70%)" strokeWidth="0.5" />
-    {/* Hair */}
+    <ellipse cx="100" cy="36" rx="22" ry="27" fill={SKIN} stroke={STROKE} strokeWidth="0.8" />
+    <ellipse cx="77" cy="36" rx="4" ry="7" fill={SKIN_DARK} stroke={STROKE} strokeWidth="0.5" />
+    <ellipse cx="123" cy="36" rx="4" ry="7" fill={SKIN_DARK} stroke={STROKE} strokeWidth="0.5" />
     <path d="M78 28 Q80 12 100 8 Q120 12 122 28 Q115 18 100 16 Q85 18 78 28Z" fill="hsl(30 30% 30%)" opacity="0.3" />
-    {/* Face features */}
     <ellipse cx="91" cy="32" rx="2.5" ry="1.5" fill="hsl(30 20% 65%)" />
     <ellipse cx="109" cy="32" rx="2.5" ry="1.5" fill="hsl(30 20% 65%)" />
     <path d="M96 40 Q100 43 104 40" fill="none" stroke="hsl(30 20% 65%)" strokeWidth="0.8" />
     <line x1="100" y1="35" x2="100" y2="39" stroke="hsl(30 20% 68%)" strokeWidth="0.5" />
 
     {/* Neck */}
-    <rect x="92" y="62" width="16" height="14" rx="3" fill="hsl(30 40% 84%)" stroke="hsl(30 20% 70%)" strokeWidth="0.8" />
+    <rect x="92" y="62" width="16" height="14" rx="3" fill={SKIN_DARK} stroke={STROKE} strokeWidth="0.8" />
 
     {/* Torso */}
-    <path
-      d="M64 76 Q64 74 70 74 L130 74 Q136 74 136 76 L140 190 Q140 216 126 216 L74 216 Q60 216 60 190 Z"
-      fill="hsl(30 40% 85%)" stroke="hsl(30 20% 70%)" strokeWidth="0.8"
-    />
-    {/* Chest details */}
-    <circle cx="85" cy="100" r="3" fill="hsl(30 30% 75%)" opacity="0.4" />
-    <circle cx="115" cy="100" r="3" fill="hsl(30 30% 75%)" opacity="0.4" />
-    <path d="M84 96 Q100 112 116 96" fill="none" stroke="hsl(30 20% 75%)" strokeWidth="0.4" />
-    {/* Abs hint */}
-    <path d="M92 130 L92 180" stroke="hsl(30 20% 78%)" strokeWidth="0.3" />
-    <path d="M108 130 L108 180" stroke="hsl(30 20% 78%)" strokeWidth="0.3" />
-    <path d="M88 145 L112 145" stroke="hsl(30 20% 78%)" strokeWidth="0.2" />
-    <path d="M88 160 L112 160" stroke="hsl(30 20% 78%)" strokeWidth="0.2" />
-    {/* Navel */}
+    <path d="M64 76 Q64 74 70 74 L130 74 Q136 74 136 76 L140 190 Q140 216 126 216 L74 216 Q60 216 60 190 Z" fill={SKIN} stroke={STROKE} strokeWidth="0.8" />
+    <circle cx="85" cy="100" r="3" fill={DETAIL} opacity="0.4" />
+    <circle cx="115" cy="100" r="3" fill={DETAIL} opacity="0.4" />
+    <path d="M84 96 Q100 112 116 96" fill="none" stroke={DETAIL} strokeWidth="0.4" />
+    <path d="M92 130 L92 180" stroke={DETAIL_LIGHT} strokeWidth="0.3" />
+    <path d="M108 130 L108 180" stroke={DETAIL_LIGHT} strokeWidth="0.3" />
+    <path d="M88 145 L112 145" stroke={DETAIL_LIGHT} strokeWidth="0.2" />
+    <path d="M88 160 L112 160" stroke={DETAIL_LIGHT} strokeWidth="0.2" />
     <circle cx="100" cy="175" r="2" fill="hsl(30 25% 72%)" />
+    <path d="M70 78 Q85 82 100 80 Q115 82 130 78" fill="none" stroke="hsl(30 20% 73%)" strokeWidth="0.5" />
 
     {/* Left arm */}
-    <path
-      d="M64 76 Q50 78 40 92 L24 152 Q20 165 24 170 L32 166 Q36 160 40 148 L56 98"
-      fill="hsl(30 40% 85%)" stroke="hsl(30 20% 70%)" strokeWidth="0.8"
-    />
-    {/* Left hand */}
-    <path d="M24 170 Q18 178 20 185 Q22 190 28 188 Q30 184 26 176 L32 166" fill="hsl(30 40% 84%)" stroke="hsl(30 20% 70%)" strokeWidth="0.6" />
-    {/* Fingers hint */}
-    <path d="M20 185 L18 192 M22 186 L21 194 M24 186 L24 193 M26 185 L27 191" stroke="hsl(30 20% 72%)" strokeWidth="0.4" />
+    <path d="M64 76 Q50 78 40 92 L24 152 Q20 162 22 170 L30 168 Q34 160 38 148 L56 98" fill={SKIN} stroke={STROKE} strokeWidth="0.8" />
+    {/* Left wrist */}
+    <path d="M22 170 L20 176 Q19 178 20 180 L28 178 Q30 176 30 174 L30 168" fill={SKIN_DARK} stroke={STROKE} strokeWidth="0.5" />
+    {/* Left palm */}
+    <path d="M20 180 Q17 184 16 190 Q15 196 18 200 Q20 202 24 202 L28 202 Q30 200 30 196 Q30 190 28 184 L28 178" fill={SKIN_DARK} stroke={STROKE} strokeWidth="0.5" />
+    {/* Left thumb */}
+    <path d="M16 190 Q12 186 10 188 Q8 190 9 194 Q10 198 14 200 Q16 199 18 197" fill={SKIN_DARK} stroke={STROKE} strokeWidth="0.4" />
+    <ellipse cx="10" cy="189" rx="2" ry="1.5" fill={NAIL} stroke={DETAIL} strokeWidth="0.3" />
+    {/* Left fingers */}
+    <path d="M18 200 L16 210 Q16 212 17 213 Q18 213 19 212 L20 202" fill={SKIN_DARK} stroke={STROKE} strokeWidth="0.35" />
+    <path d="M20 202 L18 214 Q18 216 19 217 Q20 217 21 216 L22 202" fill={SKIN_DARK} stroke={STROKE} strokeWidth="0.35" />
+    <path d="M22 202 L21 213 Q21 215 22 216 Q23 216 24 215 L24 202" fill={SKIN_DARK} stroke={STROKE} strokeWidth="0.35" />
+    <path d="M24 202 L24 211 Q24 213 25 213 Q26 213 27 212 L27 200" fill={SKIN_DARK} stroke={STROKE} strokeWidth="0.35" />
+    {/* Left finger nails */}
+    <ellipse cx="17" cy="211" rx="1.2" ry="1" fill={NAIL} stroke={DETAIL} strokeWidth="0.2" />
+    <ellipse cx="19.5" cy="215" rx="1.2" ry="1" fill={NAIL} stroke={DETAIL} strokeWidth="0.2" />
+    <ellipse cx="22.5" cy="214" rx="1.2" ry="1" fill={NAIL} stroke={DETAIL} strokeWidth="0.2" />
+    <ellipse cx="25" cy="212" rx="1.2" ry="1" fill={NAIL} stroke={DETAIL} strokeWidth="0.2" />
+    {/* Left palm lines */}
+    <path d="M20 186 Q24 190 28 188" fill="none" stroke={DETAIL} strokeWidth="0.2" />
+    <path d="M18 192 Q22 196 28 194" fill="none" stroke={DETAIL} strokeWidth="0.2" />
 
     {/* Right arm */}
-    <path
-      d="M136 76 Q150 78 160 92 L176 152 Q180 165 176 170 L168 166 Q164 160 160 148 L144 98"
-      fill="hsl(30 40% 85%)" stroke="hsl(30 20% 70%)" strokeWidth="0.8"
-    />
-    {/* Right hand */}
-    <path d="M176 170 Q182 178 180 185 Q178 190 172 188 Q170 184 174 176 L168 166" fill="hsl(30 40% 84%)" stroke="hsl(30 20% 70%)" strokeWidth="0.6" />
-    <path d="M180 185 L182 192 M178 186 L179 194 M176 186 L176 193 M174 185 L173 191" stroke="hsl(30 20% 72%)" strokeWidth="0.4" />
+    <path d="M136 76 Q150 78 160 92 L176 152 Q180 162 178 170 L170 168 Q166 160 162 148 L144 98" fill={SKIN} stroke={STROKE} strokeWidth="0.8" />
+    {/* Right wrist */}
+    <path d="M178 170 L180 176 Q181 178 180 180 L172 178 Q170 176 170 174 L170 168" fill={SKIN_DARK} stroke={STROKE} strokeWidth="0.5" />
+    {/* Right palm */}
+    <path d="M180 180 Q183 184 184 190 Q185 196 182 200 Q180 202 176 202 L172 202 Q170 200 170 196 Q170 190 172 184 L172 178" fill={SKIN_DARK} stroke={STROKE} strokeWidth="0.5" />
+    {/* Right thumb */}
+    <path d="M184 190 Q188 186 190 188 Q192 190 191 194 Q190 198 186 200 Q184 199 182 197" fill={SKIN_DARK} stroke={STROKE} strokeWidth="0.4" />
+    <ellipse cx="190" cy="189" rx="2" ry="1.5" fill={NAIL} stroke={DETAIL} strokeWidth="0.3" />
+    {/* Right fingers */}
+    <path d="M182 200 L184 210 Q184 212 183 213 Q182 213 181 212 L180 202" fill={SKIN_DARK} stroke={STROKE} strokeWidth="0.35" />
+    <path d="M180 202 L182 214 Q182 216 181 217 Q180 217 179 216 L178 202" fill={SKIN_DARK} stroke={STROKE} strokeWidth="0.35" />
+    <path d="M178 202 L179 213 Q179 215 178 216 Q177 216 176 215 L176 202" fill={SKIN_DARK} stroke={STROKE} strokeWidth="0.35" />
+    <path d="M176 202 L176 211 Q176 213 175 213 Q174 213 173 212 L173 200" fill={SKIN_DARK} stroke={STROKE} strokeWidth="0.35" />
+    {/* Right finger nails */}
+    <ellipse cx="183" cy="211" rx="1.2" ry="1" fill={NAIL} stroke={DETAIL} strokeWidth="0.2" />
+    <ellipse cx="180.5" cy="215" rx="1.2" ry="1" fill={NAIL} stroke={DETAIL} strokeWidth="0.2" />
+    <ellipse cx="177.5" cy="214" rx="1.2" ry="1" fill={NAIL} stroke={DETAIL} strokeWidth="0.2" />
+    <ellipse cx="175" cy="212" rx="1.2" ry="1" fill={NAIL} stroke={DETAIL} strokeWidth="0.2" />
+    {/* Right palm lines */}
+    <path d="M180 186 Q176 190 172 188" fill="none" stroke={DETAIL} strokeWidth="0.2" />
+    <path d="M182 192 Q178 196 172 194" fill="none" stroke={DETAIL} strokeWidth="0.2" />
 
     {/* Left leg */}
-    <path
-      d="M74 216 L70 310 Q68 330 65 348 L60 432 Q59 445 66 448 L78 448 Q84 446 82 432 L87 330 L92 216"
-      fill="hsl(30 40% 84%)" stroke="hsl(30 20% 70%)" strokeWidth="0.8"
-    />
-    {/* Left foot */}
-    <path d="M60 432 L56 448 Q54 458 64 460 L80 460 Q86 458 84 448 L82 432" fill="hsl(30 40% 83%)" stroke="hsl(30 20% 70%)" strokeWidth="0.6" />
-    {/* Knee */}
-    <ellipse cx="81" cy="310" rx="8" ry="5" fill="none" stroke="hsl(30 20% 75%)" strokeWidth="0.3" />
+    <path d="M74 216 L70 310 Q68 330 65 348 L62 420 Q61 430 62 440 L84 440 Q83 430 84 420 L87 330 L92 216 Z" fill={SKIN_DARK} stroke={STROKE} strokeWidth="0.8" />
+    <ellipse cx="78" cy="310" rx="8" ry="5" fill="none" stroke={DETAIL} strokeWidth="0.3" />
+    {/* Left foot with toes */}
+    <path d="M58 440 Q56 442 54 448 Q52 454 54 458 Q56 462 62 464 L82 464 Q88 462 88 458 Q88 454 86 448 Q85 444 84 440 Z" fill={SKIN_SHADOW} stroke={STROKE} strokeWidth="0.6" />
+    <circle cx="62" cy="438" r="2.5" fill={SKIN_SHADOW} stroke={DETAIL} strokeWidth="0.3" />
+    <circle cx="84" cy="438" r="2" fill={SKIN_SHADOW} stroke={DETAIL} strokeWidth="0.3" />
+    {/* Left toes */}
+    <ellipse cx="58" cy="464" rx="2.5" ry="3" fill={SKIN_SHADOW} stroke={STROKE} strokeWidth="0.35" />
+    <ellipse cx="63" cy="466" rx="2.8" ry="3.5" fill={SKIN_SHADOW} stroke={STROKE} strokeWidth="0.35" />
+    <ellipse cx="69" cy="467" rx="2.8" ry="3.5" fill={SKIN_SHADOW} stroke={STROKE} strokeWidth="0.35" />
+    <ellipse cx="75" cy="466" rx="2.5" ry="3" fill={SKIN_SHADOW} stroke={STROKE} strokeWidth="0.35" />
+    <ellipse cx="80" cy="464" rx="2.2" ry="2.5" fill={SKIN_SHADOW} stroke={STROKE} strokeWidth="0.35" />
+    {/* Left toenails */}
+    <ellipse cx="58" cy="462.5" rx="1.5" ry="1" fill={NAIL} stroke={DETAIL} strokeWidth="0.2" />
+    <ellipse cx="63" cy="464" rx="1.8" ry="1.2" fill={NAIL} stroke={DETAIL} strokeWidth="0.2" />
+    <ellipse cx="69" cy="465" rx="1.8" ry="1.2" fill={NAIL} stroke={DETAIL} strokeWidth="0.2" />
+    <ellipse cx="75" cy="464" rx="1.5" ry="1" fill={NAIL} stroke={DETAIL} strokeWidth="0.2" />
+    <ellipse cx="80" cy="462.5" rx="1.3" ry="0.8" fill={NAIL} stroke={DETAIL} strokeWidth="0.2" />
 
     {/* Right leg */}
-    <path
-      d="M108 216 L113 330 L118 432 Q119 445 124 448 L136 448 Q142 446 141 432 L138 348 Q135 330 133 310 L129 216"
-      fill="hsl(30 40% 84%)" stroke="hsl(30 20% 70%)" strokeWidth="0.8"
-    />
-    {/* Right foot */}
-    <path d="M118 432 L116 448 Q114 458 120 460 L140 460 Q146 458 144 448 L141 432" fill="hsl(30 40% 83%)" stroke="hsl(30 20% 70%)" strokeWidth="0.6" />
-    {/* Knee */}
-    <ellipse cx="121" cy="310" rx="8" ry="5" fill="none" stroke="hsl(30 20% 75%)" strokeWidth="0.3" />
-
-    {/* Collarbone */}
-    <path d="M70 78 Q85 82 100 80 Q115 82 130 78" fill="none" stroke="hsl(30 20% 73%)" strokeWidth="0.5" />
+    <path d="M108 216 L113 330 L116 420 Q117 430 116 440 L138 440 Q139 430 138 420 L135 348 Q132 330 130 310 L126 216 Z" fill={SKIN_DARK} stroke={STROKE} strokeWidth="0.8" />
+    <ellipse cx="121" cy="310" rx="8" ry="5" fill="none" stroke={DETAIL} strokeWidth="0.3" />
+    {/* Right foot with toes */}
+    <path d="M112 440 Q110 442 108 448 Q106 454 108 458 Q110 462 116 464 L136 464 Q142 462 142 458 Q142 454 140 448 Q139 444 138 440 Z" fill={SKIN_SHADOW} stroke={STROKE} strokeWidth="0.6" />
+    <circle cx="116" cy="438" r="2" fill={SKIN_SHADOW} stroke={DETAIL} strokeWidth="0.3" />
+    <circle cx="138" cy="438" r="2.5" fill={SKIN_SHADOW} stroke={DETAIL} strokeWidth="0.3" />
+    {/* Right toes */}
+    <ellipse cx="120" cy="464" rx="2.2" ry="2.5" fill={SKIN_SHADOW} stroke={STROKE} strokeWidth="0.35" />
+    <ellipse cx="125" cy="466" rx="2.5" ry="3" fill={SKIN_SHADOW} stroke={STROKE} strokeWidth="0.35" />
+    <ellipse cx="131" cy="467" rx="2.8" ry="3.5" fill={SKIN_SHADOW} stroke={STROKE} strokeWidth="0.35" />
+    <ellipse cx="137" cy="466" rx="2.8" ry="3.5" fill={SKIN_SHADOW} stroke={STROKE} strokeWidth="0.35" />
+    <ellipse cx="142" cy="464" rx="2.5" ry="3" fill={SKIN_SHADOW} stroke={STROKE} strokeWidth="0.35" />
+    {/* Right toenails */}
+    <ellipse cx="120" cy="462.5" rx="1.3" ry="0.8" fill={NAIL} stroke={DETAIL} strokeWidth="0.2" />
+    <ellipse cx="125" cy="464" rx="1.5" ry="1" fill={NAIL} stroke={DETAIL} strokeWidth="0.2" />
+    <ellipse cx="131" cy="465" rx="1.8" ry="1.2" fill={NAIL} stroke={DETAIL} strokeWidth="0.2" />
+    <ellipse cx="137" cy="464" rx="1.8" ry="1.2" fill={NAIL} stroke={DETAIL} strokeWidth="0.2" />
+    <ellipse cx="142" cy="462.5" rx="1.5" ry="1" fill={NAIL} stroke={DETAIL} strokeWidth="0.2" />
   </g>
 );
 
@@ -292,56 +336,124 @@ const FrontBody = () => (
 const BackBody = () => (
   <g>
     {/* Head */}
-    <ellipse cx="100" cy="36" rx="22" ry="27" fill="hsl(30 40% 85%)" stroke="hsl(30 20% 70%)" strokeWidth="0.8" />
-    <ellipse cx="77" cy="36" rx="4" ry="7" fill="hsl(30 40% 83%)" stroke="hsl(30 20% 70%)" strokeWidth="0.5" />
-    <ellipse cx="123" cy="36" rx="4" ry="7" fill="hsl(30 40% 83%)" stroke="hsl(30 20% 70%)" strokeWidth="0.5" />
+    <ellipse cx="100" cy="36" rx="22" ry="27" fill={SKIN} stroke={STROKE} strokeWidth="0.8" />
+    <ellipse cx="77" cy="36" rx="4" ry="7" fill={SKIN_DARK} stroke={STROKE} strokeWidth="0.5" />
+    <ellipse cx="123" cy="36" rx="4" ry="7" fill={SKIN_DARK} stroke={STROKE} strokeWidth="0.5" />
     {/* Hair (more visible from back) */}
-    <path d="M78 28 Q80 10 100 6 Q120 10 122 28 Q118 14 100 12 Q82 14 78 28Z" fill="hsl(30 30% 30%)" opacity="0.35" />
-    <path d="M85 48 Q100 55 115 48" fill="hsl(30 30% 30%)" opacity="0.15" />
+    <path d="M78 22 Q80 6 100 2 Q120 6 122 22 Q118 10 100 8 Q82 10 78 22Z" fill="hsl(30 30% 30%)" opacity="0.4" />
+    <path d="M78 22 L78 42 Q82 52 100 56 Q118 52 122 42 L122 22" fill="hsl(30 30% 30%)" opacity="0.25" />
+    <path d="M88 58 Q100 62 112 58" fill="hsl(30 30% 30%)" opacity="0.1" />
 
     {/* Neck */}
-    <rect x="92" y="62" width="16" height="14" rx="3" fill="hsl(30 40% 84%)" stroke="hsl(30 20% 70%)" strokeWidth="0.8" />
+    <rect x="92" y="62" width="16" height="14" rx="3" fill={SKIN_DARK} stroke={STROKE} strokeWidth="0.8" />
+    <circle cx="100" cy="68" r="2" fill={SKIN_SHADOW} stroke={DETAIL} strokeWidth="0.3" />
 
     {/* Torso */}
-    <path
-      d="M64 76 Q64 74 70 74 L130 74 Q136 74 136 76 L140 190 Q140 216 126 216 L74 216 Q60 216 60 190 Z"
-      fill="hsl(30 40% 85%)" stroke="hsl(30 20% 70%)" strokeWidth="0.8"
-    />
-    {/* Spine */}
-    <line x1="100" y1="76" x2="100" y2="208" stroke="hsl(30 20% 73%)" strokeWidth="0.6" strokeDasharray="3 2" />
+    <path d="M64 76 Q64 74 70 74 L130 74 Q136 74 136 76 L140 190 Q140 216 126 216 L74 216 Q60 216 60 190 Z" fill={SKIN} stroke={STROKE} strokeWidth="0.8" />
+    
+    {/* Spine with vertebrae */}
+    <line x1="100" y1="76" x2="100" y2="210" stroke="hsl(30 20% 73%)" strokeWidth="0.5" />
+    {[82,90,98,106,114,122,130,140,150,160,170,180,190,200].map(y => (
+      <circle key={y} cx={100} cy={y} r={y < 130 ? 1.2 : 1.5} fill={SKIN_SHADOW} opacity={y < 106 ? 0.5 : y < 130 ? 0.4 : 0.3} />
+    ))}
+
     {/* Shoulder blades */}
-    <path d="M76 92 Q86 105 82 122 Q78 110 76 92Z" fill="hsl(30 35% 82%)" opacity="0.5" />
-    <path d="M124 92 Q114 105 118 122 Q122 110 124 92Z" fill="hsl(30 35% 82%)" opacity="0.5" />
-    {/* Lower back dimples */}
-    <circle cx="92" cy="200" r="2" fill="hsl(30 25% 78%)" opacity="0.4" />
-    <circle cx="108" cy="200" r="2" fill="hsl(30 25% 78%)" opacity="0.4" />
+    <path d="M74 88 Q80 95 84 108 Q86 118 82 126 Q78 120 76 108 Q74 98 74 88Z" fill={SKIN_SHADOW} opacity="0.4" stroke={DETAIL} strokeWidth="0.2" />
+    <path d="M126 88 Q120 95 116 108 Q114 118 118 126 Q122 120 124 108 Q126 98 126 88Z" fill={SKIN_SHADOW} opacity="0.4" stroke={DETAIL} strokeWidth="0.2" />
+    <path d="M74 92 Q82 98 90 96" fill="none" stroke={DETAIL} strokeWidth="0.3" />
+    <path d="M126 92 Q118 98 110 96" fill="none" stroke={DETAIL} strokeWidth="0.3" />
 
-    {/* Left arm */}
-    <path d="M64 76 Q50 78 40 92 L24 152 Q20 165 24 170 L32 166 Q36 160 40 148 L56 98" fill="hsl(30 40% 85%)" stroke="hsl(30 20% 70%)" strokeWidth="0.8" />
-    <path d="M24 170 Q18 178 20 185 Q22 190 28 188 Q30 184 26 176 L32 166" fill="hsl(30 40% 84%)" stroke="hsl(30 20% 70%)" strokeWidth="0.6" />
-    <path d="M20 185 L18 192 M22 186 L21 194 M24 186 L24 193 M26 185 L27 191" stroke="hsl(30 20% 72%)" strokeWidth="0.4" />
+    {/* Rib hints */}
+    <path d="M76 108 Q88 114 100 112" fill="none" stroke={DETAIL_LIGHT} strokeWidth="0.2" />
+    <path d="M124 108 Q112 114 100 112" fill="none" stroke={DETAIL_LIGHT} strokeWidth="0.2" />
+    <path d="M72 120 Q86 128 100 126" fill="none" stroke={DETAIL_LIGHT} strokeWidth="0.15" />
+    <path d="M128 120 Q114 128 100 126" fill="none" stroke={DETAIL_LIGHT} strokeWidth="0.15" />
 
-    {/* Right arm */}
-    <path d="M136 76 Q150 78 160 92 L176 152 Q180 165 176 170 L168 166 Q164 160 160 148 L144 98" fill="hsl(30 40% 85%)" stroke="hsl(30 20% 70%)" strokeWidth="0.8" />
-    <path d="M176 170 Q182 178 180 185 Q178 190 172 188 Q170 184 174 176 L168 166" fill="hsl(30 40% 84%)" stroke="hsl(30 20% 70%)" strokeWidth="0.6" />
-    <path d="M180 185 L182 192 M178 186 L179 194 M176 186 L176 193 M174 185 L173 191" stroke="hsl(30 20% 72%)" strokeWidth="0.4" />
+    {/* Lower back muscles */}
+    <path d="M80 160 Q90 180 92 200" fill="none" stroke={DETAIL_LIGHT} strokeWidth="0.25" />
+    <path d="M120 160 Q110 180 108 200" fill="none" stroke={DETAIL_LIGHT} strokeWidth="0.25" />
+    
+    {/* Venus dimples & sacrum */}
+    <circle cx="90" cy="202" r="2.5" fill={SKIN_SHADOW} opacity="0.35" />
+    <circle cx="110" cy="202" r="2.5" fill={SKIN_SHADOW} opacity="0.35" />
+    <path d="M94 200 L100 212 L106 200" fill="none" stroke={DETAIL} strokeWidth="0.3" />
+
+    <path d="M70 78 Q85 82 100 80 Q115 82 130 78" fill="none" stroke="hsl(30 20% 73%)" strokeWidth="0.5" />
 
     {/* Buttocks */}
-    <path d="M80 208 Q90 225 100 215 Q110 225 120 208" fill="none" stroke="hsl(30 20% 73%)" strokeWidth="0.5" />
+    <path d="M76 210 Q82 230 100 218 Q118 230 124 210" fill="none" stroke="hsl(30 20% 73%)" strokeWidth="0.5" />
+    <path d="M100 212 L100 222" stroke="hsl(30 20% 73%)" strokeWidth="0.4" />
+    <path d="M80 226 Q88 230 92 226" fill="none" stroke={DETAIL} strokeWidth="0.25" />
+    <path d="M108 226 Q112 230 120 226" fill="none" stroke={DETAIL} strokeWidth="0.25" />
 
-    {/* Left leg */}
-    <path d="M74 216 L70 310 Q68 330 65 348 L60 432 Q59 445 66 448 L78 448 Q84 446 82 432 L87 330 L92 216" fill="hsl(30 40% 84%)" stroke="hsl(30 20% 70%)" strokeWidth="0.8" />
-    <path d="M60 432 L56 448 Q54 458 64 460 L80 460 Q86 458 84 448 L82 432" fill="hsl(30 40% 83%)" stroke="hsl(30 20% 70%)" strokeWidth="0.6" />
-    {/* Calf muscle */}
-    <ellipse cx="78" cy="365" rx="7" ry="18" fill="hsl(30 38% 83%)" opacity="0.3" />
+    {/* Left arm */}
+    <path d="M64 76 Q50 78 40 92 L24 152 Q20 162 22 170 L30 168 Q34 160 38 148 L56 98" fill={SKIN} stroke={STROKE} strokeWidth="0.8" />
+    <ellipse cx="36" cy="140" rx="4" ry="3" fill={SKIN_SHADOW} opacity="0.3" />
+    {/* Left wrist & hand back */}
+    <path d="M22 170 L20 176 Q19 178 20 180 L28 178 Q30 176 30 174 L30 168" fill={SKIN_DARK} stroke={STROKE} strokeWidth="0.5" />
+    <path d="M20 180 Q17 184 16 190 Q15 196 18 200 Q20 202 24 202 L28 202 Q30 200 30 196 Q30 190 28 184 L28 178" fill={SKIN_DARK} stroke={STROKE} strokeWidth="0.5" />
+    {/* Left knuckles */}
+    <circle cx="20" cy="198" r="1.5" fill={SKIN_SHADOW} stroke={DETAIL} strokeWidth="0.2" />
+    <circle cx="23" cy="199" r="1.5" fill={SKIN_SHADOW} stroke={DETAIL} strokeWidth="0.2" />
+    <circle cx="26" cy="198" r="1.5" fill={SKIN_SHADOW} stroke={DETAIL} strokeWidth="0.2" />
+    {/* Left thumb */}
+    <path d="M16 190 Q12 186 10 188 Q8 190 9 194 Q10 198 14 200 Q16 199 18 197" fill={SKIN_DARK} stroke={STROKE} strokeWidth="0.4" />
+    <ellipse cx="10" cy="189" rx="2" ry="1.5" fill={NAIL} stroke={DETAIL} strokeWidth="0.3" />
+    {/* Left fingers */}
+    <path d="M18 200 L16 210 Q16 212 17 213 Q18 213 19 212 L20 202" fill={SKIN_DARK} stroke={STROKE} strokeWidth="0.35" />
+    <path d="M20 202 L18 214 Q18 216 19 217 Q20 217 21 216 L22 202" fill={SKIN_DARK} stroke={STROKE} strokeWidth="0.35" />
+    <path d="M22 202 L21 213 Q21 215 22 216 Q23 216 24 215 L24 202" fill={SKIN_DARK} stroke={STROKE} strokeWidth="0.35" />
+    <path d="M24 202 L24 211 Q24 213 25 213 Q26 213 27 212 L27 200" fill={SKIN_DARK} stroke={STROKE} strokeWidth="0.35" />
+    <ellipse cx="17" cy="211" rx="1.2" ry="1.3" fill={NAIL} stroke={DETAIL} strokeWidth="0.2" />
+    <ellipse cx="19.5" cy="215" rx="1.2" ry="1.3" fill={NAIL} stroke={DETAIL} strokeWidth="0.2" />
+    <ellipse cx="22.5" cy="214" rx="1.2" ry="1.3" fill={NAIL} stroke={DETAIL} strokeWidth="0.2" />
+    <ellipse cx="25" cy="212" rx="1.2" ry="1.3" fill={NAIL} stroke={DETAIL} strokeWidth="0.2" />
 
-    {/* Right leg */}
-    <path d="M108 216 L113 330 L118 432 Q119 445 124 448 L136 448 Q142 446 141 432 L138 348 Q135 330 133 310 L129 216" fill="hsl(30 40% 84%)" stroke="hsl(30 20% 70%)" strokeWidth="0.8" />
-    <path d="M118 432 L116 448 Q114 458 120 460 L140 460 Q146 458 144 448 L141 432" fill="hsl(30 40% 83%)" stroke="hsl(30 20% 70%)" strokeWidth="0.6" />
-    <ellipse cx="125" cy="365" rx="7" ry="18" fill="hsl(30 38% 83%)" opacity="0.3" />
+    {/* Right arm */}
+    <path d="M136 76 Q150 78 160 92 L176 152 Q180 162 178 170 L170 168 Q166 160 162 148 L144 98" fill={SKIN} stroke={STROKE} strokeWidth="0.8" />
+    <ellipse cx="164" cy="140" rx="4" ry="3" fill={SKIN_SHADOW} opacity="0.3" />
+    {/* Right wrist & hand back */}
+    <path d="M178 170 L180 176 Q181 178 180 180 L172 178 Q170 176 170 174 L170 168" fill={SKIN_DARK} stroke={STROKE} strokeWidth="0.5" />
+    <path d="M180 180 Q183 184 184 190 Q185 196 182 200 Q180 202 176 202 L172 202 Q170 200 170 196 Q170 190 172 184 L172 178" fill={SKIN_DARK} stroke={STROKE} strokeWidth="0.5" />
+    <circle cx="174" cy="198" r="1.5" fill={SKIN_SHADOW} stroke={DETAIL} strokeWidth="0.2" />
+    <circle cx="177" cy="199" r="1.5" fill={SKIN_SHADOW} stroke={DETAIL} strokeWidth="0.2" />
+    <circle cx="180" cy="198" r="1.5" fill={SKIN_SHADOW} stroke={DETAIL} strokeWidth="0.2" />
+    {/* Right thumb */}
+    <path d="M184 190 Q188 186 190 188 Q192 190 191 194 Q190 198 186 200 Q184 199 182 197" fill={SKIN_DARK} stroke={STROKE} strokeWidth="0.4" />
+    <ellipse cx="190" cy="189" rx="2" ry="1.5" fill={NAIL} stroke={DETAIL} strokeWidth="0.3" />
+    {/* Right fingers */}
+    <path d="M182 200 L184 210 Q184 212 183 213 Q182 213 181 212 L180 202" fill={SKIN_DARK} stroke={STROKE} strokeWidth="0.35" />
+    <path d="M180 202 L182 214 Q182 216 181 217 Q180 217 179 216 L178 202" fill={SKIN_DARK} stroke={STROKE} strokeWidth="0.35" />
+    <path d="M178 202 L179 213 Q179 215 178 216 Q177 216 176 215 L176 202" fill={SKIN_DARK} stroke={STROKE} strokeWidth="0.35" />
+    <path d="M176 202 L176 211 Q176 213 175 213 Q174 213 173 212 L173 200" fill={SKIN_DARK} stroke={STROKE} strokeWidth="0.35" />
+    <ellipse cx="183" cy="211" rx="1.2" ry="1.3" fill={NAIL} stroke={DETAIL} strokeWidth="0.2" />
+    <ellipse cx="180.5" cy="215" rx="1.2" ry="1.3" fill={NAIL} stroke={DETAIL} strokeWidth="0.2" />
+    <ellipse cx="177.5" cy="214" rx="1.2" ry="1.3" fill={NAIL} stroke={DETAIL} strokeWidth="0.2" />
+    <ellipse cx="175" cy="212" rx="1.2" ry="1.3" fill={NAIL} stroke={DETAIL} strokeWidth="0.2" />
 
-    {/* Collarbone back */}
-    <path d="M70 78 Q85 82 100 80 Q115 82 130 78" fill="none" stroke="hsl(30 20% 73%)" strokeWidth="0.5" />
+    {/* Left leg back */}
+    <path d="M74 216 L70 310 Q68 330 65 348 L62 420 Q61 430 62 440 L84 440 Q83 430 84 420 L87 330 L92 216 Z" fill={SKIN_DARK} stroke={STROKE} strokeWidth="0.8" />
+    <ellipse cx="76" cy="360" rx="8" ry="22" fill={SKIN_SHADOW} opacity="0.3" />
+    <path d="M72 345 Q76 355 80 345" fill="none" stroke={DETAIL_LIGHT} strokeWidth="0.25" />
+    <path d="M72 306 Q78 314 84 306" fill="none" stroke={DETAIL} strokeWidth="0.3" />
+    <path d="M72 420 Q73 432 73 440" fill="none" stroke={DETAIL} strokeWidth="0.3" />
+    {/* Left heel */}
+    <path d="M58 440 Q56 446 56 452 Q56 458 60 462 Q64 464 72 464 L82 464 Q86 462 88 458 Q90 454 88 448 Q87 444 84 440 Z" fill={SKIN_SHADOW} stroke={STROKE} strokeWidth="0.6" />
+    <ellipse cx="71" cy="456" rx="8" ry="5" fill={SKIN_SHADOW} stroke={DETAIL} strokeWidth="0.2" opacity="0.3" />
+    <circle cx="60" cy="436" r="2.5" fill={SKIN_SHADOW} stroke={DETAIL} strokeWidth="0.3" />
+    <circle cx="84" cy="436" r="2" fill={SKIN_SHADOW} stroke={DETAIL} strokeWidth="0.3" />
+
+    {/* Right leg back */}
+    <path d="M108 216 L113 330 L116 420 Q117 430 116 440 L138 440 Q139 430 138 420 L135 348 Q132 330 130 310 L126 216 Z" fill={SKIN_DARK} stroke={STROKE} strokeWidth="0.8" />
+    <ellipse cx="125" cy="360" rx="8" ry="22" fill={SKIN_SHADOW} opacity="0.3" />
+    <path d="M120 345 Q125 355 130 345" fill="none" stroke={DETAIL_LIGHT} strokeWidth="0.25" />
+    <path d="M118 306 Q124 314 130 306" fill="none" stroke={DETAIL} strokeWidth="0.3" />
+    <path d="M128 420 Q127 432 127 440" fill="none" stroke={DETAIL} strokeWidth="0.3" />
+    {/* Right heel */}
+    <path d="M112 440 Q110 446 110 452 Q110 458 114 462 Q118 464 126 464 L136 464 Q140 462 142 458 Q144 454 142 448 Q141 444 138 440 Z" fill={SKIN_SHADOW} stroke={STROKE} strokeWidth="0.6" />
+    <ellipse cx="127" cy="456" rx="8" ry="5" fill={SKIN_SHADOW} stroke={DETAIL} strokeWidth="0.2" opacity="0.3" />
+    <circle cx="116" cy="436" r="2" fill={SKIN_SHADOW} stroke={DETAIL} strokeWidth="0.3" />
+    <circle cx="138" cy="436" r="2.5" fill={SKIN_SHADOW} stroke={DETAIL} strokeWidth="0.3" />
   </g>
 );
 
