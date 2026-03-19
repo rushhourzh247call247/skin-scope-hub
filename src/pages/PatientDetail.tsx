@@ -5,7 +5,7 @@ import type { FullPatient, LesionClassification } from "@/types/patient";
 import { LESION_CLASSIFICATIONS } from "@/types/patient";
 import { useState } from "react";
 import type { LesionClassification as LesionClassificationType } from "@/types/patient";
-import { ArrowLeft, MapPin, Plus, Calendar, ImageIcon, User, Hash, Activity, Mail, Phone, Pencil, Trash2, Save, X, Square, GitCompareArrows, Move, Camera, Tag } from "lucide-react";
+import { ArrowLeft, MapPin, Plus, Calendar, ImageIcon, User, Hash, Activity, Mail, Phone, Pencil, Trash2, Save, X, Square, GitCompareArrows, Move, Camera, Tag, QrCode } from "lucide-react";
 import { Slider } from "@/components/ui/slider";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -14,6 +14,7 @@ import { de } from "date-fns/locale";
 import BodyMap3D from "@/components/BodyMap3D";
 import ImageGallery from "@/components/ImageGallery";
 import ImageCompare from "@/components/ImageCompare";
+import QrUploadDialog from "@/components/QrUploadDialog";
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle,
 } from "@/components/ui/dialog";
@@ -52,6 +53,7 @@ const PatientDetail = () => {
   const [editingFindingId, setEditingFindingId] = useState<number | null>(null);
   const [editingFindingText, setEditingFindingText] = useState("");
   const [classificationFilter, setClassificationFilter] = useState<LesionClassificationType[]>([]);
+  const [qrDialogOpen, setQrDialogOpen] = useState(false);
 
   const { data: patient, isLoading, error } = useQuery({
     queryKey: ["full-patient", patientId],
@@ -603,7 +605,26 @@ const PatientDetail = () => {
                       </p>
                     </div>
                   </div>
+                  {/* QR Upload Button */}
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="gap-1.5 text-xs"
+                    onClick={() => setQrDialogOpen(true)}
+                  >
+                    <QrCode className="h-3.5 w-3.5" /> QR Upload
+                  </Button>
                 </div>
+
+                {/* QR Upload Dialog */}
+                <QrUploadDialog
+                  open={qrDialogOpen}
+                  onOpenChange={setQrDialogOpen}
+                  patientId={patientId}
+                  patientName={patient.name}
+                  locationId={selectedLocation.id}
+                  locationName={selectedLocation.name || `Spot #${selectedLocation.id}`}
+                />
 
                 {/* Lesion Classification */}
                 {selectedLocation.type !== "region" && (

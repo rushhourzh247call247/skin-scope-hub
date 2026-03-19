@@ -101,6 +101,51 @@ export const api = {
     return request<any>('/upload', { method: 'POST', body: formData });
   },
 
+  // Upload Sessions (QR Upload Flow)
+  createUploadSession: (data: { patient_id: number; location_id: number }) =>
+    request<{
+      token: string;
+      expires_at: string;
+      patient_id: number;
+      patient_name: string;
+      location_id: number;
+      location_name: string;
+      upload_url: string;
+    }>('/upload-sessions', { method: 'POST', body: JSON.stringify(data) }),
+
+  validateUploadSession: (token: string) =>
+    request<{
+      valid: boolean;
+      expires_at: string;
+      patient_id: number;
+      patient_name: string;
+      location_id: number;
+      location_name: string;
+      image_count: number;
+      completed: boolean;
+    }>(`/upload-sessions/${token}`),
+
+  uploadSessionImage: (token: string, file: File, order: number) => {
+    const formData = new FormData();
+    formData.append('token', token);
+    formData.append('image', file);
+    formData.append('order', String(order));
+    return request<{
+      id: number;
+      location_id: number;
+      order: number;
+      created_at: string;
+      image_url: string;
+    }>('/upload', { method: 'POST', body: formData });
+  },
+
+  completeUploadSession: (token: string) =>
+    request<{
+      success: boolean;
+      image_count: number;
+      completed_at: string;
+    }>(`/upload-sessions/${token}/complete`, { method: 'POST' }),
+
   // Helper to get full image URL
   getImageUrl: (path: string) => `${getStorageBaseUrl()}/storage/${path}`,
 };
