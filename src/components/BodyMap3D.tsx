@@ -3,7 +3,9 @@ import { Canvas, useFrame, useThree, ThreeEvent } from "@react-three/fiber";
 import { OrbitControls, Html, useGLTF, Center } from "@react-three/drei";
 import * as THREE from "three";
 import { cn } from "@/lib/utils";
-import { RotateCcw, Eye, Hand, Footprints, User, Shirt, CircleDot, ArrowDown, MapPin, Square } from "lucide-react";
+import { RotateCcw, Eye, Hand, Footprints, User, Shirt, CircleDot, ArrowDown, MapPin, Square, Filter } from "lucide-react";
+import type { LesionClassification } from "@/types/patient";
+import { LESION_CLASSIFICATIONS } from "@/types/patient";
 
 /* ─── Types ─── */
 interface Marker {
