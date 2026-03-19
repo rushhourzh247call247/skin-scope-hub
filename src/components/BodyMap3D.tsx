@@ -26,14 +26,14 @@ type Region = "full" | "head" | "torso" | "left_arm" | "right_arm" | "hands" | "
 
 const CAMERA_PRESETS: Record<Region, { position: [number, number, number]; target: [number, number, number]; label: string; icon: React.ElementType }> = {
   full:      { position: [0, 0, 3.5],       target: [0, 0, 0],       label: "Ganzkörper",  icon: User },
-  head:      { position: [0, 1.05, 1.2],    target: [0, 1.05, 0],    label: "Kopf",        icon: Eye },
-  torso:     { position: [0, 0.35, 1.6],    target: [0, 0.35, 0],    label: "Torso",       icon: Shirt },
-  left_arm:  { position: [-1.0, 0.4, 1.2],  target: [-0.4, 0.4, 0],  label: "L. Arm",      icon: Hand },
-  right_arm: { position: [1.0, 0.4, 1.2],   target: [0.4, 0.4, 0],   label: "R. Arm",      icon: Hand },
-  hands:     { position: [0, -0.15, 1.0],   target: [0, -0.15, 0],   label: "Hände",       icon: CircleDot },
-  legs:      { position: [0, -0.55, 2.0],   target: [0, -0.55, 0],   label: "Beine",       icon: Footprints },
-  knees:     { position: [0, -0.75, 1.2],   target: [0, -0.75, 0],   label: "Knie",        icon: ArrowDown },
-  feet:      { position: [0, -1.15, 1.0],   target: [0, -1.15, 0],   label: "Füße",        icon: Footprints },
+  head:      { position: [0, 1.15, 0.8],    target: [0, 1.15, 0],    label: "Kopf",        icon: Eye },
+  torso:     { position: [0, 0.35, 1.4],    target: [0, 0.35, 0],    label: "Torso",       icon: Shirt },
+  left_arm:  { position: [-0.8, 0.4, 1.0],  target: [-0.35, 0.4, 0], label: "L. Arm",      icon: Hand },
+  right_arm: { position: [0.8, 0.4, 1.0],   target: [0.35, 0.4, 0],  label: "R. Arm",      icon: Hand },
+  hands:     { position: [0, -0.2, 0.8],    target: [0, -0.2, 0],    label: "Hände",       icon: CircleDot },
+  legs:      { position: [0, -0.7, 1.6],    target: [0, -0.7, 0],    label: "Beine",       icon: Footprints },
+  knees:     { position: [0, -0.9, 0.9],    target: [0, -0.9, 0],    label: "Knie",        icon: ArrowDown },
+  feet:      { position: [0, -1.35, 0.7],   target: [0, -1.35, 0],   label: "Füße",        icon: Footprints },
   back:      { position: [0, 0, -3.5],      target: [0, 0, 0],       label: "Rücken",      icon: User },
 };
 
