@@ -51,11 +51,11 @@ let patients: Patient[] = [
 ];
 
 let locations: (Location & { images: LocationImage[]; findings: Finding[] })[] = [
-  { id: 1, patient_id: 1, name: "Linker Unterarm", x: 30.5, y: 35.2, created_at: "2025-06-01T10:00:00Z", images: demoImages.filter(i => i.location_id === 1), findings: [{ id: 1, location_id: 1, description: "Verdacht auf Basalzellkarzinom, 5mm Durchmesser", created_at: "2025-06-01T10:00:00Z" }] },
-  { id: 2, patient_id: 1, name: "Rechte Schulter", x: 72.0, y: 20.1, created_at: "2025-08-10T09:00:00Z", images: demoImages.filter(i => i.location_id === 2), findings: [{ id: 2, location_id: 2, description: "Melanozytärer Nävus, regelmässig", created_at: "2025-08-10T09:00:00Z" }] },
-  { id: 3, patient_id: 2, name: "Stirn", x: 50.0, y: 5.0, created_at: "2025-10-05T16:00:00Z", images: demoImages.filter(i => i.location_id === 3), findings: [] },
-  { id: 4, patient_id: 2, name: "Rücken Mitte", x: 50.0, y: 30.0, created_at: "2025-11-01T08:00:00Z", images: demoImages.filter(i => i.location_id === 4), findings: [{ id: 3, location_id: 4, description: "Seborrhoische Keratose", created_at: "2025-11-01T08:00:00Z" }] },
-  { id: 5, patient_id: 3, name: "Linkes Knie", x: 38.0, y: 72.0, created_at: "2025-12-01T10:00:00Z", images: [], findings: [] },
+  { id: 1, patient_id: 1, name: "Linker Unterarm", x: 30.5, y: 35.2, view: "front", created_at: "2025-06-01T10:00:00Z", images: demoImages.filter(i => i.location_id === 1), findings: [{ id: 1, location_id: 1, description: "Verdacht auf Basalzellkarzinom, 5mm Durchmesser", created_at: "2025-06-01T10:00:00Z" }] },
+  { id: 2, patient_id: 1, name: "Rechte Schulter", x: 72.0, y: 20.1, view: "back", created_at: "2025-08-10T09:00:00Z", images: demoImages.filter(i => i.location_id === 2), findings: [{ id: 2, location_id: 2, description: "Melanozytärer Nävus, regelmässig", created_at: "2025-08-10T09:00:00Z" }] },
+  { id: 3, patient_id: 2, name: "Stirn", x: 50.0, y: 5.0, view: "front", created_at: "2025-10-05T16:00:00Z", images: demoImages.filter(i => i.location_id === 3), findings: [] },
+  { id: 4, patient_id: 2, name: "Rücken Mitte", x: 50.0, y: 30.0, view: "back", created_at: "2025-11-01T08:00:00Z", images: demoImages.filter(i => i.location_id === 4), findings: [{ id: 3, location_id: 4, description: "Seborrhoische Keratose", created_at: "2025-11-01T08:00:00Z" }] },
+  { id: 5, patient_id: 3, name: "Linkes Knie", x: 38.0, y: 72.0, view: "front", created_at: "2025-12-01T10:00:00Z", images: [], findings: [] },
 ];
 
 let nextId = {
