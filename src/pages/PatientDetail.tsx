@@ -41,7 +41,7 @@ const PatientDetail = () => {
   });
 
   const createLocationMutation = useMutation({
-    mutationFn: (loc: { name?: string; x: number; y: number; view?: "front" | "back" }) =>
+    mutationFn: (loc: { name?: string; x: number; y: number; view?: "front" | "back"; type?: "spot" | "region"; width?: number; height?: number }) =>
       mockApi.createLocation(patientId, loc),
     onSuccess: (newLoc) => {
       queryClient.invalidateQueries({ queryKey: ["full-patient", patientId] });
