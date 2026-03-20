@@ -470,7 +470,7 @@ const PatientDetail = () => {
               >
                 <button
                   className="flex flex-1 items-center gap-2.5 min-w-0"
-                  onClick={() => setSelectedLocationId(loc.id)}
+                  onClick={() => { setMapClickDialog(null); setSelectedLocationId(loc.id); }}
                 >
                   {(() => {
                     const cls = (loc as any).classification as LesionClassification | undefined;
