@@ -951,21 +951,33 @@ const BodyMap3D: React.FC<BodyMap3DProps> = (props) => {
   const [activeRegion, setActiveRegion] = useState<Region>("full");
   const [markMode, setMarkMode] = useState(false);
   const [markType, setMarkType] = useState<MarkType>("spot");
+  const [placementAnchor, setPlacementAnchor] = useState<{ x: number; y: number; view: "front" | "back" } | null>(null);
   const gender = props.gender ?? "male";
 
-  // Compute camera preset: zoom into placement area when in placement mode
+  // Freeze camera anchor during placement so camera won't jump while marker moves
+  useEffect(() => {
+    if (!props.isPlacementMode) {
+      setPlacementAnchor(null);
+      return;
+    }
+
+    if (props.previewMarker && !placementAnchor) {
+      setPlacementAnchor({ x: props.previewMarker.x, y: props.previewMarker.y, view: props.previewMarker.view });
+    }
+  }, [props.isPlacementMode, props.previewMarker, placementAnchor]);
+
+  // Compute camera preset once per placement session (not on every drag move)
   const placementPreset = useMemo<CameraPreset | null>(() => {
-    if (!props.isPlacementMode || !props.previewMarker) return null;
-    const pm = props.previewMarker;
-    const pos3d = coords2Dto3D(pm.x, pm.y, pm.view);
-    const zDir = pm.view === "back" ? -1 : 1;
+    if (!props.isPlacementMode || !placementAnchor) return null;
+    const pos3d = coords2Dto3D(placementAnchor.x, placementAnchor.y, placementAnchor.view);
+    const zDir = placementAnchor.view === "back" ? -1 : 1;
     return {
       position: [pos3d[0] * 0.5, pos3d[1], pos3d[2] + zDir * 1.2] as [number, number, number],
       target: [pos3d[0] * 0.5, pos3d[1], 0] as [number, number, number],
       label: "Platzierung",
       icon: MapPin,
     };
-  }, [props.isPlacementMode, props.previewMarker?.x, props.previewMarker?.y, props.previewMarker?.view]);
+  }, [props.isPlacementMode, placementAnchor]);
 
   const preset = placementPreset ?? CAMERA_PRESETS[activeRegion];
 
