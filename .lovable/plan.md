@@ -1,52 +1,41 @@
 
 
-# Notizfeld & KI-Diagnose pro Bild
+## Problem: 3D-Body verschwindet beim Klick auf Spots
 
-## Übersicht
+### Ursache
 
-Jedes Bild in der Galerie und im Vergleichsmodus erhält:
-1. **Notizfeld** – Ein kleines Textfeld unter jedem Bild, um eine Notiz zu hinterlegen (gespeichert pro Bild)
-2. **KI-Analyse-Button** – Ein Button der eine KI-gestützte Hautanalyse auslöst und das Ergebnis mit klarem Disclaimer anzeigt
+Wenn ein Spot angeklickt wird, berechnet `selectedMarkerPreset` (Zeile 995-1027) die Kameraposition basierend auf den gespeicherten Normalen (`nx`, `ny`, `nz`). Zwei Szenarien verursachen das Verschwinden:
 
-## Was wird gebaut
+1. **Null-Normalen**: Wenn `nx=0, ny=0, nz=0` in der DB gespeichert sind (nicht `null`, sondern explizit `0`), wird die Kameraposition identisch mit dem Target. Three.js kann damit nicht umgehen und das Rendering bricht ab.
 
-### 1. Datenmodell erweitern
-- `LocationImage` in `types/patient.ts` erhält ein optionales `note?: string` und `ai_analysis?: { result: string; created_at: string }` Feld
-- Mock API in `mockData.ts` bekommt `updateImageNote(imageId, note)` und `analyzeImage(imageId)` Methoden
-- `analyzeImage` liefert vorerst eine Mock-KI-Antwort (strukturierte ABCDE-Analyse) zurück, die später durch eine echte KI-Integration (Lovable AI Gateway) ersetzt werden kann
+2. **NaN durch Zero-Vector normalize()**: In `SurfaceProjectedGroup` (Zeile 524) wird `new THREE.Vector3(...storedNormal).normalize()` aufgerufen. Ein `[0,0,0]` Vektor ergibt nach `normalize()` NaN-Werte, was das gesamte 3D-Rendering zerstört.
 
-### 2. ImageGallery erweitern
-- Unter jedem Bild-Thumbnail ein kleines Textfeld (Textarea, 1-2 Zeilen) für Notizen mit Auto-Save (debounced)
-- Ein kleiner "KI"-Button (Sparkles/Wand2 Icon) neben dem Bild
-- Beim Klick: Loading-State, dann Ergebnis in einem kleinen ausklappbaren Bereich unter dem Bild
-- KI-Ergebnis zeigt einen orangefarbenen Badge "KI-Analyse" mit Disclaimer-Text
+### Lösung
 
-### 3. ImageCompare Timeline erweitern
-- Gleiche Funktionalität in der Timeline-Ansicht: Notizfeld und KI-Button pro Bild-Eintrag
-- Die Karte pro Bild wird etwas höher, um Platz für Notiz und KI-Ergebnis zu schaffen
+**Datei: `src/components/BodyMap3D.tsx`** - 3 Stellen absichern:
 
-### 4. KI-Disclaimer
-- Jede KI-Analyse zeigt prominent: *"⚠️ KI-gestützte Einschätzung – keine ärztliche Diagnose. Dient ausschliesslich als Entscheidungshilfe."*
-- Visuell abgesetzt durch orangefarbenen Rahmen/Badge
+1. **`SurfaceProjectedGroup` (Zeile ~524)**: Vor `normalize()` prüfen ob der Normalenvektor Länge > 0 hat. Falls nicht, Fallback auf `[0, 0, 1]`.
 
-## Technische Details
+2. **`selectedMarkerPreset` (Zeile ~1016-1018)**: Prüfen ob die resultierende Normal-Länge > 0 ist. Falls `nx=0, ny=0, nz=0`, den Fallback `zDir` verwenden statt die gespeicherten Werte.
 
-**Dateien:**
-- `src/types/patient.ts` – `note` und `ai_analysis` Felder auf `LocationImage`
-- `src/lib/mockData.ts` – `updateImageNote()` und `analyzeImage()` Mock-Methoden
-- `src/components/ImageGallery.tsx` – Notiz-Textarea + KI-Button pro Bild
-- `src/components/ImageCompare.tsx` – Notiz-Textarea + KI-Button in Timeline-Einträgen
-- Neuer Shared-Component `src/components/AiAnalysisResult.tsx` für die einheitliche Darstellung des KI-Ergebnisses mit Disclaimer
+3. **`storedNormal`-Übergabe an `SurfaceProjectedGroup` (Zeile ~879)**: Zusätzlich prüfen, dass nicht alle drei Normal-Komponenten exakt `0` sind - in dem Fall `undefined` übergeben, damit der Raycasting-Fallback greift.
 
-**Mock-KI-Antwort-Struktur:**
+### Technische Details
+
 ```text
-Asymmetrie: Symmetrisch
-Begrenzung: Regelmässig, scharf begrenzt
-Farbe: Homogen braun
-Durchmesser: < 6mm
-Einschätzung: Unauffälliger Nävus – Routinekontrolle empfohlen
-Risiko: Niedrig
-```
+Stelle 1 - SurfaceProjectedGroup useFrame:
+  const rawNormal = new THREE.Vector3(...storedNormal);
+  const normal = rawNormal.lengthSq() > 0.0001 
+    ? rawNormal.normalize() 
+    : new THREE.Vector3(0, 0, 1);
 
-**Späterer Ausbau:** Die Mock-Analyse kann durch einen echten Lovable AI Gateway Call (Edge Function mit Gemini Vision) ersetzt werden, der das Bild tatsächlich analysiert.
+Stelle 2 - selectedMarkerPreset:
+  const hasValidNormal = (marker.nx ?? 0) !== 0 || (marker.ny ?? 0) !== 0 || (marker.nz ?? 0) !== 0;
+  const nx = hasValidNormal ? (marker.nx ?? 0) : 0;
+  const ny = hasValidNormal ? (marker.ny ?? 0) : 0;  
+  const nz = hasValidNormal ? (marker.nz ?? 0) : zDir;
+
+Stelle 3 - storedNormal prop:
+  Wenn nx===0 && ny===0 && nz===0 → undefined übergeben (Raycasting-Fallback)
+```
 
