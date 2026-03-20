@@ -1010,7 +1010,7 @@ const BodyMap3D: React.FC<BodyMap3DProps> = (props) => {
       label: "Spot-Fokus",
       icon: MapPin,
     };
-  }, [props.isPlacementMode, props.selectedLocationId, props.markers]);
+  }, [props.isPlacementMode, props.selectedLocationId, props.markers, resetCounter, activeRegion]);
 
   const preset = placementPreset ?? selectedMarkerPreset ?? CAMERA_PRESETS[activeRegion];
 
