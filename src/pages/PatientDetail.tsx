@@ -125,6 +125,38 @@ const PatientDetail = () => {
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ["full-patient", patientId] }),
   });
 
+  const { data: trashedLocations = [] } = useQuery({
+    queryKey: ["trashed-locations", patientId],
+    queryFn: () => mockApi.getTrashedLocations(patientId),
+    enabled: !!patientId,
+  });
+
+  const softDeleteMutation = useMutation({
+    mutationFn: (locationId: number) => mockApi.softDeleteLocation(locationId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["full-patient", patientId] });
+      queryClient.invalidateQueries({ queryKey: ["trashed-locations", patientId] });
+      if (selectedLocationId === deleteConfirmId) setSelectedLocationId(null);
+      setDeleteConfirmId(null);
+    },
+  });
+
+  const restoreMutation = useMutation({
+    mutationFn: (locationId: number) => mockApi.restoreLocation(locationId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["full-patient", patientId] });
+      queryClient.invalidateQueries({ queryKey: ["trashed-locations", patientId] });
+    },
+  });
+
+  const permanentDeleteMutation = useMutation({
+    mutationFn: (locationId: number) => mockApi.permanentDeleteLocation(locationId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["trashed-locations", patientId] });
+      setPermanentDeleteId(null);
+    },
+  });
+
   const locations = patient?.locations ?? [];
   const selectedLocation = locations.find((l) => l.id === selectedLocationId);
   const totalImages = locations.reduce((sum, l) => sum + (l.images?.length ?? 0), 0);
