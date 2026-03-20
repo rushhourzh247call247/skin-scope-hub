@@ -469,6 +469,7 @@ const PatientDetail = () => {
               </button>
             ))}
           </div>
+        </div>
 
 
         {/* Center + Right: Content */}
