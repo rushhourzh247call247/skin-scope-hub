@@ -32,12 +32,22 @@ interface Marker {
 type Gender = "female" | "male";
 type MarkType = "spot" | "region";
 
+interface PreviewMarker {
+  x: number;
+  y: number;
+  view: "front" | "back";
+  type: "spot" | "region";
+  width?: number;
+  height?: number;
+}
+
 interface BodyMap3DProps {
   markers: Marker[];
   selectedLocationId: number | null;
   gender?: Gender;
   classificationFilter?: LesionClassification[];
   onFilterChange?: (filter: LesionClassification[]) => void;
+  previewMarker?: PreviewMarker | null;
   onMapClick?: (
     x: number,
     y: number,
@@ -617,7 +627,7 @@ function LoadingFallback() {
 }
 
 /* ─── Scene ─── */
-function Scene({ markers, selectedLocationId, onMapClick, onMarkerClick, classificationFilter, preset, gender, markMode, markType }: BodyMap3DProps & { preset: CameraPreset; gender: Gender; markMode: boolean; markType: MarkType }) {
+function Scene({ markers, selectedLocationId, onMapClick, onMarkerClick, classificationFilter, previewMarker, preset, gender, markMode, markType }: BodyMap3DProps & { preset: CameraPreset; gender: Gender; markMode: boolean; markType: MarkType }) {
   const handleBodyClick = useCallback(
     (e: ThreeEvent<MouseEvent>) => {
       if (!markMode) return;
@@ -709,6 +719,39 @@ function Scene({ markers, selectedLocationId, onMapClick, onMarkerClick, classif
           />
         </SurfaceProjectedGroup>
       ))}
+
+      {/* Preview marker for spot/region placement */}
+      {previewMarker && previewMarker.type === "spot" && (
+        <SurfaceProjectedGroup
+          key={`preview-spot-${previewMarker.x}-${previewMarker.y}-${previewMarker.view}`}
+          approxPosition={coords2Dto3D(previewMarker.x, previewMarker.y, previewMarker.view)}
+          view={previewMarker.view}
+        >
+          <SpotMarker
+            position={[0, 0, 0]}
+            name="Neuer Spot"
+            isSelected={true}
+            onClick={() => {}}
+            classificationColor="#22c55e"
+          />
+        </SurfaceProjectedGroup>
+      )}
+      {previewMarker && previewMarker.type === "region" && (
+        <SurfaceProjectedGroup
+          key={`preview-region-${previewMarker.x}-${previewMarker.y}-${previewMarker.view}`}
+          approxPosition={coords2Dto3D(previewMarker.x, previewMarker.y, previewMarker.view)}
+          view={previewMarker.view}
+        >
+          <RegionMarker
+            position={[0, 0, 0]}
+            name="Neue Region"
+            isSelected={true}
+            onClick={() => {}}
+            width={previewMarker.width ?? 40}
+            height={previewMarker.height ?? 30}
+          />
+        </SurfaceProjectedGroup>
+      )}
 
       <CameraAnimator preset={preset} />
     </>
