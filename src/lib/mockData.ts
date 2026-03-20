@@ -265,6 +265,43 @@ export const mockApi = {
     return loc;
   },
 
+  // Soft delete (move to trash)
+  softDeleteLocation: async (locationId: number) => {
+    await delay();
+    const idx = locations.findIndex(l => l.id === locationId);
+    if (idx === -1) throw new Error("Stelle nicht gefunden");
+    const [removed] = locations.splice(idx, 1);
+    (removed as any).deleted_at = new Date().toISOString();
+    trashedLocations.push(removed);
+    return { success: true };
+  },
+
+  // Get trashed locations for a patient
+  getTrashedLocations: async (patientId: number) => {
+    await delay();
+    return trashedLocations.filter(l => l.patient_id === patientId);
+  },
+
+  // Restore from trash
+  restoreLocation: async (locationId: number) => {
+    await delay();
+    const idx = trashedLocations.findIndex(l => l.id === locationId);
+    if (idx === -1) throw new Error("Stelle nicht im Papierkorb gefunden");
+    const [restored] = trashedLocations.splice(idx, 1);
+    delete (restored as any).deleted_at;
+    locations.push(restored);
+    return restored;
+  },
+
+  // Permanent delete
+  permanentDeleteLocation: async (locationId: number) => {
+    await delay();
+    const idx = trashedLocations.findIndex(l => l.id === locationId);
+    if (idx === -1) throw new Error("Stelle nicht im Papierkorb gefunden");
+    trashedLocations.splice(idx, 1);
+    return { success: true };
+  },
+
   // Dashboard stats
   getDashboardStats: async () => {
     await delay();
