@@ -576,7 +576,7 @@ const SurfaceProjectedGroup = React.forwardRef<THREE.Group, SurfaceProjectedGrou
 });
 
 /* ─── Camera Animator: animate to preset only, then free interaction ─── */
-function CameraAnimator({ preset, disableControls }: { preset: Pick<CameraPreset, "position" | "target">; disableControls?: boolean }) {
+function CameraAnimator({ preset, resetKey, disableControls }: { preset: Pick<CameraPreset, "position" | "target">; resetKey?: number; disableControls?: boolean }) {
   const { camera } = useThree();
   const controlsRef = useRef<any>(null);
   const targetPositionRef = useRef(new THREE.Vector3(...preset.position));
@@ -587,7 +587,7 @@ function CameraAnimator({ preset, disableControls }: { preset: Pick<CameraPreset
     targetPositionRef.current.set(...preset.position);
     targetLookAtRef.current.set(...preset.target);
     isAnimatingRef.current = true;
-  }, [preset]);
+  }, [preset, resetKey]);
 
   useFrame(() => {
     const controls = controlsRef.current;
@@ -815,7 +815,7 @@ function LoadingFallback() {
 }
 
 /* ─── Scene ─── */
-function Scene({ markers, selectedLocationId, onMapClick, onMarkerClick, classificationFilter, previewMarker, isPlacementMode, onPreviewMove, preset, gender, markMode, markType }: BodyMap3DProps & { preset: CameraPreset; gender: Gender; markMode: boolean; markType: MarkType }) {
+function Scene({ markers, selectedLocationId, onMapClick, onMarkerClick, classificationFilter, previewMarker, isPlacementMode, onPreviewMove, preset, gender, markMode, markType, resetKey }: BodyMap3DProps & { preset: CameraPreset; gender: Gender; markMode: boolean; markType: MarkType; resetKey: number }) {
   const [isDraggingSpot, setIsDraggingSpot] = useState(false);
   const handleBodyClick = useCallback(
     (e: ThreeEvent<MouseEvent>) => {
@@ -941,7 +941,7 @@ function Scene({ markers, selectedLocationId, onMapClick, onMarkerClick, classif
         </SurfaceProjectedGroup>
       )}
 
-      <CameraAnimator preset={preset} disableControls={isDraggingSpot} />
+      <CameraAnimator preset={preset} resetKey={resetKey} disableControls={isDraggingSpot} />
     </>
   );
 }
@@ -1032,7 +1032,7 @@ const BodyMap3D: React.FC<BodyMap3DProps> = (props) => {
           gl={{ antialias: true, alpha: true, toneMapping: THREE.ACESFilmicToneMapping, toneMappingExposure: 1.2 }}
           shadows
         >
-          <Scene {...props} preset={preset} gender={gender} markMode={markMode} markType={markType} />
+          <Scene {...props} preset={preset} gender={gender} markMode={markMode} markType={markType} resetKey={resetCounter} />
         </Canvas>
 
         {/* Gender indicator */}
