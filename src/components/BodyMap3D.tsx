@@ -996,10 +996,13 @@ const BodyMap3D: React.FC<BodyMap3DProps> = (props) => {
     // Use stored 3D coords if available, otherwise approximate from 2D
     let pos3d: [number, number, number];
     let view = marker.view ?? "front";
-    if (marker.x3d !== undefined && marker.y3d !== undefined && marker.z3d !== undefined) {
+    if (marker.x3d != null && marker.y3d != null && marker.z3d != null) {
       pos3d = [marker.x3d, marker.y3d, marker.z3d];
-    } else {
+    } else if (marker.x != null && marker.y != null) {
       pos3d = coords2Dto3D(marker.x, marker.y, view);
+    } else {
+      // No coordinates at all – can't focus, fall back to default view
+      return null;
     }
 
     // Position camera in front of the marker's surface
