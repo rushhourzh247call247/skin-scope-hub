@@ -233,6 +233,10 @@ const UserManagement = () => {
           <form
             onSubmit={(e) => {
               e.preventDefault();
+              if (newPassword !== confirmPassword) {
+                toast.error("Passwörter stimmen nicht überein");
+                return;
+              }
               if (resetUser && newPassword.length >= 6) {
                 resetPasswordMutation.mutate({ userId: resetUser.id, password: newPassword });
               }
@@ -241,17 +245,42 @@ const UserManagement = () => {
           >
             <div className="space-y-2">
               <Label htmlFor="new-pw">Neues Passwort</Label>
-              <Input
-                id="new-pw"
-                type="password"
-                required
-                minLength={6}
-                value={newPassword}
-                onChange={(e) => setNewPassword(e.target.value)}
-                placeholder="Min. 6 Zeichen"
-              />
+              <div className="relative">
+                <Input
+                  id="new-pw"
+                  type={showNewPw ? "text" : "password"}
+                  required
+                  minLength={6}
+                  value={newPassword}
+                  onChange={(e) => setNewPassword(e.target.value)}
+                  placeholder="Min. 6 Zeichen"
+                />
+                <Button type="button" variant="ghost" size="icon" className="absolute right-0 top-0 h-10 w-10" onClick={() => setShowNewPw(!showNewPw)}>
+                  {showNewPw ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                </Button>
+              </div>
             </div>
-            <Button type="submit" className="w-full" disabled={resetPasswordMutation.isPending || newPassword.length < 6}>
+            <div className="space-y-2">
+              <Label htmlFor="confirm-pw">Passwort bestätigen</Label>
+              <div className="relative">
+                <Input
+                  id="confirm-pw"
+                  type={showConfirmPw ? "text" : "password"}
+                  required
+                  minLength={6}
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                  placeholder="Passwort wiederholen"
+                />
+                <Button type="button" variant="ghost" size="icon" className="absolute right-0 top-0 h-10 w-10" onClick={() => setShowConfirmPw(!showConfirmPw)}>
+                  {showConfirmPw ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                </Button>
+              </div>
+              {confirmPassword.length > 0 && newPassword !== confirmPassword && (
+                <p className="text-sm text-destructive">Passwörter stimmen nicht überein</p>
+              )}
+            </div>
+            <Button type="submit" className="w-full" disabled={resetPasswordMutation.isPending || newPassword.length < 6 || newPassword !== confirmPassword}>
               {resetPasswordMutation.isPending ? "Setze zurück…" : "Passwort zurücksetzen"}
             </Button>
           </form>
