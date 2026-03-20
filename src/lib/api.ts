@@ -154,7 +154,7 @@ export const api = {
     request<{
       token: string; expires_at: string; patient_id: number; patient_name: string;
       location_id: number; location_name: string; upload_url: string;
-    }>('/upload-sessions', { method: 'POST', body: JSON.stringify(data) }),
+    }>('/create-upload-session', { method: 'POST', body: JSON.stringify(data) }),
 
   validateUploadSession: (token: string) =>
     request<{
@@ -164,12 +164,11 @@ export const api = {
 
   uploadSessionImage: (token: string, file: File, order: number) => {
     const formData = new FormData();
-    formData.append('token', token);
     formData.append('image', file);
     formData.append('order', String(order));
     return request<{
       id: number; location_id: number; order: number; created_at: string; image_url: string;
-    }>('/upload', { method: 'POST', body: formData });
+    }>(`/upload/${token}`, { method: 'POST', body: formData });
   },
 
   completeUploadSession: (token: string) =>
