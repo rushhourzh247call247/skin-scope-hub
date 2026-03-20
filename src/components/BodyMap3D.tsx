@@ -521,7 +521,10 @@ const SurfaceProjectedGroup = React.forwardRef<THREE.Group, SurfaceProjectedGrou
       if (storedPosition) {
         groupRef.current.position.set(...storedPosition);
         if (storedNormal) {
-          const normal = new THREE.Vector3(...storedNormal).normalize();
+          const rawNormal = new THREE.Vector3(...storedNormal);
+          const normal = rawNormal.lengthSq() > 0.0001
+            ? rawNormal.normalize()
+            : new THREE.Vector3(0, 0, 1);
           normalRef.current.copy(normal);
           groupRef.current.position.addScaledVector(normal, 0.003);
           groupRef.current.lookAt(
