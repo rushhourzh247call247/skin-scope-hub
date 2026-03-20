@@ -1002,28 +1002,48 @@ const BodyMap3D: React.FC<BodyMap3DProps> = (props) => {
     const marker = props.markers.find((m) => m.id === props.selectedLocationId);
     if (!marker) return null;
 
+    const toFiniteNumber = (value: unknown): number | null => {
+      const parsed = typeof value === "number" ? value : Number(value);
+      return Number.isFinite(parsed) ? parsed : null;
+    };
+
     // Use stored 3D coords if available, otherwise approximate from 2D
     let pos3d: [number, number, number];
     let view = marker.view ?? "front";
-    if (marker.x3d != null && marker.y3d != null && marker.z3d != null) {
-      pos3d = [marker.x3d, marker.y3d, marker.z3d];
-    } else if (marker.x != null && marker.y != null) {
-      pos3d = coords2Dto3D(marker.x, marker.y, view);
+    const x3d = toFiniteNumber(marker.x3d);
+    const y3d = toFiniteNumber(marker.y3d);
+    const z3d = toFiniteNumber(marker.z3d);
+
+    if (x3d != null && y3d != null && z3d != null) {
+      pos3d = [x3d, y3d, z3d];
     } else {
-      // No coordinates at all – can't focus, fall back to default view
-      return null;
+      const x2d = toFiniteNumber(marker.x);
+      const y2d = toFiniteNumber(marker.y);
+      if (x2d == null || y2d == null) {
+        // No usable coordinates at all – can't focus, fall back to default view
+        return null;
+      }
+      pos3d = coords2Dto3D(x2d, y2d, view);
     }
 
     // Position camera in front of the marker's surface
     const zDir = view === "back" ? -1 : 1;
-    const hasValidNormal = (marker.nx ?? 0) !== 0 || (marker.ny ?? 0) !== 0 || (marker.nz ?? 0) !== 0;
-    const nx = hasValidNormal ? (marker.nx ?? 0) : 0;
-    const ny = hasValidNormal ? (marker.ny ?? 0) : 0;
-    const nz = hasValidNormal ? (marker.nz ?? 0) : (zDir * 1);
+    const rawNormal = new THREE.Vector3(
+      toFiniteNumber(marker.nx) ?? 0,
+      toFiniteNumber(marker.ny) ?? 0,
+      toFiniteNumber(marker.nz) ?? 0,
+    );
+    const normal = rawNormal.lengthSq() > 0.0001
+      ? rawNormal.normalize()
+      : new THREE.Vector3(0, 0, zDir);
 
     // Camera placed along the surface normal, 1.2 units away from the spot
     return {
-      position: [pos3d[0] + nx * 1.2, pos3d[1] + ny * 1.2, pos3d[2] + nz * 1.2] as [number, number, number],
+      position: [
+        pos3d[0] + normal.x * 1.2,
+        pos3d[1] + normal.y * 1.2,
+        pos3d[2] + normal.z * 1.2,
+      ] as [number, number, number],
       target: [pos3d[0], pos3d[1], pos3d[2]] as [number, number, number],
       label: "Spot-Fokus",
       icon: MapPin,
