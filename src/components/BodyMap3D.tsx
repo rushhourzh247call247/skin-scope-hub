@@ -738,6 +738,11 @@ function DraggableSpotPreview({
     groupRef.current.scale.setScalar(scale);
   });
 
+  // Notify parent of drag state changes
+  useEffect(() => {
+    onDragStateChange?.(isDragging);
+  }, [isDragging, onDragStateChange]);
+
   // Global pointer up listener for drag end
   useEffect(() => {
     if (!isDragging) return;
