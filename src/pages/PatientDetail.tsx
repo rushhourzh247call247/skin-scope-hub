@@ -15,7 +15,6 @@ import BodyMap3D from "@/components/BodyMap3D";
 import ImageGallery from "@/components/ImageGallery";
 import ImageCompare from "@/components/ImageCompare";
 import QrUploadDialog from "@/components/QrUploadDialog";
-import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
