@@ -21,7 +21,10 @@ interface QrUploadDialogProps {
   locationName: string;
 }
 
-const FRONTEND_DOMAIN = "https://app.derm247.ch";
+const getFrontendDomain = () => {
+  if (typeof window !== "undefined") return window.location.origin;
+  return "https://app.derm247.ch";
+};
 
 const QrUploadDialog = ({
   open,
@@ -51,7 +54,7 @@ const QrUploadDialog = ({
       setSession({
         token: result.token,
         expires_at: result.expires_at,
-        upload_url: result.upload_url || `${FRONTEND_DOMAIN}/upload?token=${result.token}`,
+        upload_url: `${getFrontendDomain()}/upload?token=${result.token}`,
       });
     } catch (err: any) {
       setError(err.message || "Session konnte nicht erstellt werden");
