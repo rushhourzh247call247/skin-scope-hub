@@ -31,6 +31,36 @@ const ImageCompare = ({ images, locationName, onClose }: ImageCompareProps) => {
   const [overlayOffsetX, setOverlayOffsetX] = useState(0);
   const [overlayOffsetY, setOverlayOffsetY] = useState(0);
   const [showAlignControls, setShowAlignControls] = useState(false);
+  const [noteValues, setNoteValues] = useState<Record<number, string>>(() => {
+    const initial: Record<number, string> = {};
+    images.forEach(img => { if (img.note) initial[img.id] = img.note; });
+    return initial;
+  });
+  const [analyzingIds, setAnalyzingIds] = useState<Set<number>>(new Set());
+  const [aiResults, setAiResults] = useState<Record<number, LocationImage["ai_analysis"]>>(() => {
+    const initial: Record<number, LocationImage["ai_analysis"]> = {};
+    images.forEach(img => { if (img.ai_analysis) initial[img.id] = img.ai_analysis; });
+    return initial;
+  });
+  const debounceTimers = useRef<Record<number, ReturnType<typeof setTimeout>>>({});
+
+  const handleNoteChange = useCallback((imageId: number, value: string) => {
+    setNoteValues(prev => ({ ...prev, [imageId]: value }));
+    if (debounceTimers.current[imageId]) clearTimeout(debounceTimers.current[imageId]);
+    debounceTimers.current[imageId] = setTimeout(() => {
+      mockApi.updateImageNote(imageId, value);
+    }, 800);
+  }, []);
+
+  const handleAnalyze = useCallback(async (imageId: number) => {
+    setAnalyzingIds(prev => new Set(prev).add(imageId));
+    try {
+      const result = await mockApi.analyzeImage(imageId);
+      setAiResults(prev => ({ ...prev, [imageId]: result }));
+    } finally {
+      setAnalyzingIds(prev => { const next = new Set(prev); next.delete(imageId); return next; });
+    }
+  }, []);
 
   const isAlignmentModified = overlayRotation !== 0 || overlayScale !== 100 || overlayOffsetX !== 0 || overlayOffsetY !== 0;
 
