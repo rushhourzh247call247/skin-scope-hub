@@ -39,6 +39,7 @@ const QrUploadDialog = ({
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
+  const [expiresIn, setExpiresIn] = useState<number | null>(null);
 
   const createSession = async () => {
     setLoading(true);
@@ -48,10 +49,11 @@ const QrUploadDialog = ({
         patient_id: patientId,
         location_id: locationId,
       });
+      const uploadUrl = `${FRONTEND_DOMAIN}/upload?token=${result.token}`;
       setSession({
         token: result.token,
-        expires_at: result.expires_at,
-        upload_url: `${FRONTEND_DOMAIN}/upload?token=${result.token}`,
+        expires_at: result.expires_at || '',
+        upload_url: uploadUrl,
       });
     } catch (err: any) {
       setError(err.message || "Session konnte nicht erstellt werden");
