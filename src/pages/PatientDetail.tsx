@@ -306,8 +306,14 @@ const PatientDetail = () => {
       {/* Main Content */}
       <div className="flex-1 flex overflow-hidden">
         {/* Left: Body Map */}
-        <div className="w-[300px] shrink-0 border-r bg-card p-3 overflow-y-auto flex flex-col">
-          <div className="h-[350px]">
+        <div className={cn(
+          "shrink-0 border-r bg-card p-3 overflow-y-auto flex flex-col transition-all duration-300",
+          mapClickDialog ? "w-[420px]" : "w-[300px]"
+        )}>
+          <div className={cn(
+            "transition-all duration-300",
+            mapClickDialog ? "h-[500px]" : "h-[350px]"
+          )}>
             <BodyMap3D
               markers={locations.map((l) => ({ id: l.id, x: l.x, y: l.y, x3d: l.x3d, y3d: l.y3d, z3d: l.z3d, nx: l.nx, ny: l.ny, nz: l.nz, name: l.name, view: l.view, type: l.type, width: l.width, height: l.height, imageCount: l.images?.length ?? 0, findingCount: l.findings?.length ?? 0, classification: (l as any).classification, classificationColor: LESION_CLASSIFICATIONS[(l as any).classification as LesionClassification || "unclassified"]?.color }))}
               gender={patient.gender}
@@ -316,13 +322,21 @@ const PatientDetail = () => {
               onMarkerClick={(id) => setSelectedLocationId(id)}
               classificationFilter={classificationFilter}
               onFilterChange={setClassificationFilter}
+              isPlacementMode={!!mapClickDialog}
+              onPreviewMove={handlePreviewMove}
               previewMarker={mapClickDialog ? {
-                x: mapClickDialog.markType === "region" ? mapClickDialog.x : spotX,
-                y: mapClickDialog.markType === "region" ? mapClickDialog.y : spotY,
+                x: mapClickDialog.x,
+                y: mapClickDialog.y,
                 view: mapClickDialog.view,
                 type: mapClickDialog.markType || "spot",
                 width: mapClickDialog.markType === "region" ? regionWidth : undefined,
                 height: mapClickDialog.markType === "region" ? regionHeight : undefined,
+                x3d: mapClickDialog.x3d,
+                y3d: mapClickDialog.y3d,
+                z3d: mapClickDialog.z3d,
+                nx: mapClickDialog.nx,
+                ny: mapClickDialog.ny,
+                nz: mapClickDialog.nz,
               } : null}
             />
           </div>
@@ -345,29 +359,12 @@ const PatientDetail = () => {
 
               <div className="flex items-center gap-2 text-[10px] text-muted-foreground">
                 <Badge variant="outline" className="text-[10px]">{mapClickDialog.view === "back" ? "Rückseite" : "Vorderseite"}</Badge>
-                <span className="font-mono">x:{mapClickDialog.markType === "region" ? mapClickDialog.x : spotX} y:{mapClickDialog.markType === "region" ? mapClickDialog.y : spotY}</span>
+                {mapClickDialog.markType !== "region" && (
+                  <span className="flex items-center gap-1 text-green-600 font-medium">
+                    <Move className="h-3 w-3" /> Marker ziehen zum Verschieben
+                  </span>
+                )}
               </div>
-
-              {/* Spot: Position adjustment with live preview */}
-              {mapClickDialog.markType !== "region" && (
-                <div className="space-y-2">
-                  <div className="flex items-center gap-1.5 text-[10px] font-medium text-muted-foreground">
-                    <Move className="h-3 w-3 text-primary" /> Position anpassen
-                  </div>
-                  <div className="space-y-1.5">
-                    <div className="flex items-center gap-2">
-                      <Label className="text-[10px] w-6 shrink-0">X</Label>
-                      <Slider value={[spotX]} onValueChange={([v]) => setSpotX(v)} min={0} max={200} step={1} className="flex-1" />
-                      <span className="text-[10px] text-muted-foreground font-mono w-6 text-right">{spotX}</span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <Label className="text-[10px] w-6 shrink-0">Y</Label>
-                      <Slider value={[spotY]} onValueChange={([v]) => setSpotY(v)} min={0} max={500} step={1} className="flex-1" />
-                      <span className="text-[10px] text-muted-foreground font-mono w-6 text-right">{spotY}</span>
-                    </div>
-                  </div>
-                </div>
-              )}
 
               {/* Region: Size adjustment with live preview */}
               {mapClickDialog.markType === "region" && (
