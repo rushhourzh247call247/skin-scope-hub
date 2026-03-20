@@ -362,7 +362,11 @@ const PatientDetail = () => {
             mapClickDialog ? "h-[560px]" : "h-[450px]"
           )}>
             <BodyMap3D
-              markers={locations.map((l) => ({ id: l.id, x: l.x, y: l.y, x3d: l.x3d, y3d: l.y3d, z3d: l.z3d, nx: l.nx, ny: l.ny, nz: l.nz, name: l.name, view: l.view, type: l.type, width: l.width, height: l.height, imageCount: l.images?.length ?? 0, findingCount: l.findings?.length ?? 0, classification: (l as any).classification, classificationColor: LESION_CLASSIFICATIONS[(l as any).classification as LesionClassification || "unclassified"]?.color }))}
+              markers={locations.map((l) => {
+                const pf = (v: any) => v != null ? parseFloat(String(v)) : null;
+                const pfn = (v: any) => { const n = pf(v); return n != null && !isNaN(n) ? n : null; };
+                return { id: l.id, x: pfn(l.x), y: pfn(l.y), x3d: pfn(l.x3d), y3d: pfn(l.y3d), z3d: pfn(l.z3d), nx: pfn(l.nx), ny: pfn(l.ny), nz: pfn(l.nz), name: l.name, view: l.view, type: l.type, width: l.width, height: l.height, imageCount: l.images?.length ?? 0, findingCount: l.findings?.length ?? 0, classification: (l as any).classification, classificationColor: LESION_CLASSIFICATIONS[(l as any).classification as LesionClassification || "unclassified"]?.color };
+              })}
               gender={patient.gender}
               onMapClick={handleMapClick}
               selectedLocationId={selectedLocationId}
