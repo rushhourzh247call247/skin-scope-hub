@@ -1016,9 +1016,10 @@ const BodyMap3D: React.FC<BodyMap3DProps> = (props) => {
 
     // Position camera in front of the marker's surface
     const zDir = view === "back" ? -1 : 1;
-    const nx = marker.nx ?? 0;
-    const ny = marker.ny ?? 0;
-    const nz = marker.nz ?? (zDir * 1);
+    const hasValidNormal = (marker.nx ?? 0) !== 0 || (marker.ny ?? 0) !== 0 || (marker.nz ?? 0) !== 0;
+    const nx = hasValidNormal ? (marker.nx ?? 0) : 0;
+    const ny = hasValidNormal ? (marker.ny ?? 0) : 0;
+    const nz = hasValidNormal ? (marker.nz ?? 0) : (zDir * 1);
 
     // Camera placed along the surface normal, 1.2 units away from the spot
     return {
