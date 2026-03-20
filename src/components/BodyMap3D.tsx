@@ -979,7 +979,38 @@ const BodyMap3D: React.FC<BodyMap3DProps> = (props) => {
     };
   }, [props.isPlacementMode, placementAnchor]);
 
-  const preset = placementPreset ?? CAMERA_PRESETS[activeRegion];
+  // Auto-focus camera on the selected marker when clicking in the sidebar
+  const selectedMarkerPreset = useMemo<CameraPreset | null>(() => {
+    if (props.isPlacementMode) return null; // placement preset takes priority
+    if (props.selectedLocationId == null) return null;
+    const marker = props.markers.find((m) => m.id === props.selectedLocationId);
+    if (!marker) return null;
+
+    // Use stored 3D coords if available, otherwise approximate from 2D
+    let pos3d: [number, number, number];
+    let view = marker.view ?? "front";
+    if (marker.x3d !== undefined && marker.y3d !== undefined && marker.z3d !== undefined) {
+      pos3d = [marker.x3d, marker.y3d, marker.z3d];
+    } else {
+      pos3d = coords2Dto3D(marker.x, marker.y, view);
+    }
+
+    // Position camera in front of the marker's surface
+    const zDir = view === "back" ? -1 : 1;
+    const nx = marker.nx ?? 0;
+    const ny = marker.ny ?? 0;
+    const nz = marker.nz ?? (zDir * 1);
+
+    // Camera placed along the surface normal, 1.2 units away from the spot
+    return {
+      position: [pos3d[0] + nx * 1.2, pos3d[1] + ny * 1.2, pos3d[2] + nz * 1.2] as [number, number, number],
+      target: [pos3d[0], pos3d[1], pos3d[2]] as [number, number, number],
+      label: "Spot-Fokus",
+      icon: MapPin,
+    };
+  }, [props.isPlacementMode, props.selectedLocationId, props.markers]);
+
+  const preset = placementPreset ?? selectedMarkerPreset ?? CAMERA_PRESETS[activeRegion];
 
   return (
     <div className="flex h-full flex-col">
