@@ -163,7 +163,7 @@ const QrUploadDialog = ({
             {/* Expiry */}
             <div className="flex items-center justify-center gap-1.5 text-xs text-muted-foreground">
               <Clock className="h-3 w-3" />
-              <span>Gültig für {expiresIn} Minuten</span>
+              <span>Gültig für ca. {displayMinutes} Minuten</span>
             </div>
 
             {/* Copy URL */}
