@@ -1079,20 +1079,6 @@ const BodyMap3D: React.FC<BodyMap3DProps> = (props) => {
             Spot
           </button>
 
-          {/* Region mark mode toggle */}
-          <button
-            onClick={() => { setMarkMode(markType === "region" ? !markMode : true); setMarkType("region"); }}
-            title="Region markieren"
-            className={cn(
-              "flex h-7 items-center gap-1.5 rounded-md px-2.5 text-[10px] font-medium transition-all",
-              markMode && markType === "region"
-                ? "bg-amber-500 text-white shadow-md"
-                : "border border-border/50 bg-card/80 text-muted-foreground hover:text-foreground"
-            )}
-          >
-            <Square className="h-3 w-3" />
-            Region
-          </button>
         </div>
 
         {/* Mark mode indicator */}
