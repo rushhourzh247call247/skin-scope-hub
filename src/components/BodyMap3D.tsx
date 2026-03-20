@@ -868,13 +868,15 @@ function Scene({ markers, selectedLocationId, onMapClick, onMarkerClick, classif
       {spots.map((m) => {
         const cls = (m.classification as LesionClassification) || "unclassified";
         const isHighRisk = HIGH_RISK_CLASSIFICATIONS.includes(cls);
+        const hasCoords = m.x != null && m.y != null;
+        if (!hasCoords && m.x3d == null) return null; // skip markers without any position
         return (
           <SurfaceProjectedGroup
             key={`spot-${m.id}`}
-            approxPosition={coords2Dto3D(m.x, m.y, m.view)}
+            approxPosition={hasCoords ? coords2Dto3D(m.x, m.y, m.view) : [m.x3d!, m.y3d!, m.z3d!]}
             view={m.view}
-            storedPosition={m.x3d !== undefined && m.y3d !== undefined && m.z3d !== undefined ? [m.x3d, m.y3d, m.z3d] : undefined}
-            storedNormal={m.nx !== undefined && m.ny !== undefined && m.nz !== undefined ? [m.nx, m.ny, m.nz] : undefined}
+            storedPosition={m.x3d != null && m.y3d != null && m.z3d != null ? [m.x3d, m.y3d, m.z3d] : undefined}
+            storedNormal={m.nx != null && m.ny != null && m.nz != null ? [m.nx, m.ny, m.nz] : undefined}
           >
             <SpotMarker
               position={[0, 0, 0]}
@@ -890,26 +892,30 @@ function Scene({ markers, selectedLocationId, onMapClick, onMarkerClick, classif
         );
       })}
 
-      {regions.map((m) => (
-        <SurfaceProjectedGroup
-          key={`region-${m.id}`}
-          approxPosition={coords2Dto3D(m.x, m.y, m.view)}
-          view={m.view}
-          storedPosition={m.x3d !== undefined && m.y3d !== undefined && m.z3d !== undefined ? [m.x3d, m.y3d, m.z3d] : undefined}
-          storedNormal={m.nx !== undefined && m.ny !== undefined && m.nz !== undefined ? [m.nx, m.ny, m.nz] : undefined}
-        >
-          <RegionMarker
-            position={[0, 0, 0]}
-            name={m.name}
-            isSelected={m.id === selectedLocationId}
-            onClick={() => onMarkerClick?.(m.id)}
-            imageCount={m.imageCount}
-            findingCount={m.findingCount}
-            width={m.width ?? 40}
-            height={m.height ?? 30}
-          />
-        </SurfaceProjectedGroup>
-      ))}
+      {regions.map((m) => {
+        const hasCoords = m.x != null && m.y != null;
+        if (!hasCoords && m.x3d == null) return null;
+        return (
+          <SurfaceProjectedGroup
+            key={`region-${m.id}`}
+            approxPosition={hasCoords ? coords2Dto3D(m.x, m.y, m.view) : [m.x3d!, m.y3d!, m.z3d!]}
+            view={m.view}
+            storedPosition={m.x3d != null && m.y3d != null && m.z3d != null ? [m.x3d, m.y3d, m.z3d] : undefined}
+            storedNormal={m.nx != null && m.ny != null && m.nz != null ? [m.nx, m.ny, m.nz] : undefined}
+          >
+            <RegionMarker
+              position={[0, 0, 0]}
+              name={m.name}
+              isSelected={m.id === selectedLocationId}
+              onClick={() => onMarkerClick?.(m.id)}
+              imageCount={m.imageCount}
+              findingCount={m.findingCount}
+              width={m.width ?? 40}
+              height={m.height ?? 30}
+            />
+          </SurfaceProjectedGroup>
+        );
+      })}
 
       {/* Draggable preview marker for spot placement */}
       {previewMarker && previewMarker.type === "spot" && (
@@ -996,10 +1002,13 @@ const BodyMap3D: React.FC<BodyMap3DProps> = (props) => {
     // Use stored 3D coords if available, otherwise approximate from 2D
     let pos3d: [number, number, number];
     let view = marker.view ?? "front";
-    if (marker.x3d !== undefined && marker.y3d !== undefined && marker.z3d !== undefined) {
+    if (marker.x3d != null && marker.y3d != null && marker.z3d != null) {
       pos3d = [marker.x3d, marker.y3d, marker.z3d];
-    } else {
+    } else if (marker.x != null && marker.y != null) {
       pos3d = coords2Dto3D(marker.x, marker.y, view);
+    } else {
+      // No coordinates at all – can't focus, fall back to default view
+      return null;
     }
 
     // Position camera in front of the marker's surface
