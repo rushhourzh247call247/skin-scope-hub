@@ -576,7 +576,7 @@ const SurfaceProjectedGroup = React.forwardRef<THREE.Group, SurfaceProjectedGrou
 });
 
 /* ─── Camera Animator: animate to preset only, then free interaction ─── */
-function CameraAnimator({ preset, disableControls }: { preset: Pick<CameraPreset, "position" | "target">; disableControls?: boolean }) {
+function CameraAnimator({ preset, resetKey, disableControls }: { preset: Pick<CameraPreset, "position" | "target">; resetKey?: number; disableControls?: boolean }) {
   const { camera } = useThree();
   const controlsRef = useRef<any>(null);
   const targetPositionRef = useRef(new THREE.Vector3(...preset.position));
@@ -587,7 +587,7 @@ function CameraAnimator({ preset, disableControls }: { preset: Pick<CameraPreset
     targetPositionRef.current.set(...preset.position);
     targetLookAtRef.current.set(...preset.target);
     isAnimatingRef.current = true;
-  }, [preset]);
+  }, [preset, resetKey]);
 
   useFrame(() => {
     const controls = controlsRef.current;
