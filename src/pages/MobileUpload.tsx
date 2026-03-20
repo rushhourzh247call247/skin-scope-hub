@@ -2,7 +2,7 @@ import { useState, useEffect, useRef, useCallback } from "react";
 import { useSearchParams } from "react-router-dom";
 import { api } from "@/lib/api";
 import { Button } from "@/components/ui/button";
-import { Camera, CheckCircle, AlertTriangle, Loader2, X, ImageIcon } from "lucide-react";
+import { Camera, CheckCircle, AlertTriangle, Loader2, X, ImageIcon, Images } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { format } from "date-fns";
 import { de } from "date-fns/locale";
