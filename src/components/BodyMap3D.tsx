@@ -39,6 +39,12 @@ interface PreviewMarker {
   type: "spot" | "region";
   width?: number;
   height?: number;
+  x3d?: number;
+  y3d?: number;
+  z3d?: number;
+  nx?: number;
+  ny?: number;
+  nz?: number;
 }
 
 interface BodyMap3DProps {
@@ -48,6 +54,14 @@ interface BodyMap3DProps {
   classificationFilter?: LesionClassification[];
   onFilterChange?: (filter: LesionClassification[]) => void;
   previewMarker?: PreviewMarker | null;
+  isPlacementMode?: boolean;
+  onPreviewMove?: (
+    x: number,
+    y: number,
+    view: "front" | "back",
+    point3d: [number, number, number],
+    normal3d: [number, number, number],
+  ) => void;
   onMapClick?: (
     x: number,
     y: number,
