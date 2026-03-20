@@ -5,7 +5,7 @@ import type { FullPatient, LesionClassification } from "@/types/patient";
 import { LESION_CLASSIFICATIONS } from "@/types/patient";
 import { useState } from "react";
 import type { LesionClassification as LesionClassificationType } from "@/types/patient";
-import { ArrowLeft, MapPin, Plus, Calendar, ImageIcon, User, Hash, Activity, Mail, Phone, Pencil, Trash2, Save, X, Square, GitCompareArrows, Move, Camera, Tag, QrCode } from "lucide-react";
+import { ArrowLeft, MapPin, Plus, Calendar, ImageIcon, User, Hash, Activity, Mail, Phone, Pencil, Trash2, Save, X, Square, GitCompareArrows, Move, Camera, Tag, QrCode, Undo2, AlertTriangle } from "lucide-react";
 import { Slider } from "@/components/ui/slider";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -20,6 +20,16 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { AnimatePresence, motion } from "framer-motion";
 import { cn } from "@/lib/utils";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 const PatientDetail = () => {
   const { id } = useParams<{ id: string }>();
@@ -51,6 +61,9 @@ const PatientDetail = () => {
   const [editingFindingText, setEditingFindingText] = useState("");
   const [classificationFilter, setClassificationFilter] = useState<LesionClassificationType[]>([]);
   const [qrDialogOpen, setQrDialogOpen] = useState(false);
+  const [deleteConfirmId, setDeleteConfirmId] = useState<number | null>(null);
+  const [showTrash, setShowTrash] = useState(false);
+  const [permanentDeleteId, setPermanentDeleteId] = useState<number | null>(null);
 
   const { data: patient, isLoading, error } = useQuery({
     queryKey: ["full-patient", patientId],
@@ -110,6 +123,38 @@ const PatientDetail = () => {
     mutationFn: ({ locationId, classification }: { locationId: number; classification: LesionClassification }) =>
       mockApi.updateClassification(locationId, classification),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ["full-patient", patientId] }),
+  });
+
+  const { data: trashedLocations = [] } = useQuery({
+    queryKey: ["trashed-locations", patientId],
+    queryFn: () => mockApi.getTrashedLocations(patientId),
+    enabled: !!patientId,
+  });
+
+  const softDeleteMutation = useMutation({
+    mutationFn: (locationId: number) => mockApi.softDeleteLocation(locationId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["full-patient", patientId] });
+      queryClient.invalidateQueries({ queryKey: ["trashed-locations", patientId] });
+      if (selectedLocationId === deleteConfirmId) setSelectedLocationId(null);
+      setDeleteConfirmId(null);
+    },
+  });
+
+  const restoreMutation = useMutation({
+    mutationFn: (locationId: number) => mockApi.restoreLocation(locationId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["full-patient", patientId] });
+      queryClient.invalidateQueries({ queryKey: ["trashed-locations", patientId] });
+    },
+  });
+
+  const permanentDeleteMutation = useMutation({
+    mutationFn: (locationId: number) => mockApi.permanentDeleteLocation(locationId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["trashed-locations", patientId] });
+      setPermanentDeleteId(null);
+    },
   });
 
   const locations = patient?.locations ?? [];
@@ -413,61 +458,118 @@ const PatientDetail = () => {
               const cls = ((l as any).classification as LesionClassificationType) || "unclassified";
               return classificationFilter.includes(cls);
             }).map((loc, i) => (
-              <button
+              <div
                 key={loc.id}
-                onClick={() => setSelectedLocationId(loc.id)}
                 className={cn(
-                  "flex w-full items-center gap-2.5 rounded-md px-2.5 py-2 text-left transition-all text-xs",
+                  "group flex w-full items-center gap-2.5 rounded-md px-2.5 py-2 text-left transition-all text-xs",
                   selectedLocationId === loc.id
                     ? "bg-primary/10 text-primary border border-primary/20"
                     : "hover:bg-muted text-foreground border border-transparent"
                 )}
               >
-                {(() => {
-                  const cls = (loc as any).classification as LesionClassification | undefined;
-                  const hasClass = cls && cls !== "unclassified";
-                  const clsColor = hasClass ? LESION_CLASSIFICATIONS[cls]?.color : undefined;
-                  return (
-                    <div
-                      className={cn(
-                        "flex h-5 w-5 shrink-0 items-center justify-center rounded-full text-[10px] font-bold",
-                        !hasClass && (selectedLocationId === loc.id ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground"),
-                      )}
-                      style={hasClass ? { backgroundColor: clsColor, color: "#fff" } : undefined}
-                    >
-                      {i + 1}
-                    </div>
-                  );
-                })()}
-                <div className="min-w-0 flex-1">
-                  <div className="flex items-center gap-1.5">
-                    <p className="truncate font-medium">{loc.name || `Spot ${i + 1}`}</p>
-                    {(() => {
-                      const cls = (loc as any).classification as LesionClassification | undefined;
-                      if (!cls || cls === "unclassified") return null;
-                      const info = LESION_CLASSIFICATIONS[cls];
-                      const isHighRisk = cls === "melanoma_suspect" || cls === "scc";
-                      return (
-                        <span className="flex items-center gap-0.5">
-                          <span
-                            className="text-[8px] font-bold px-1 rounded"
-                            style={{ backgroundColor: `${info.color}20`, color: info.color }}
-                          >
-                            {info.shortLabel}
+                <button
+                  className="flex flex-1 items-center gap-2.5 min-w-0"
+                  onClick={() => setSelectedLocationId(loc.id)}
+                >
+                  {(() => {
+                    const cls = (loc as any).classification as LesionClassification | undefined;
+                    const hasClass = cls && cls !== "unclassified";
+                    const clsColor = hasClass ? LESION_CLASSIFICATIONS[cls]?.color : undefined;
+                    return (
+                      <div
+                        className={cn(
+                          "flex h-5 w-5 shrink-0 items-center justify-center rounded-full text-[10px] font-bold",
+                          !hasClass && (selectedLocationId === loc.id ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground"),
+                        )}
+                        style={hasClass ? { backgroundColor: clsColor, color: "#fff" } : undefined}
+                      >
+                        {i + 1}
+                      </div>
+                    );
+                  })()}
+                  <div className="min-w-0 flex-1">
+                    <div className="flex items-center gap-1.5">
+                      <p className="truncate font-medium">{loc.name || `Spot ${i + 1}`}</p>
+                      {(() => {
+                        const cls = (loc as any).classification as LesionClassification | undefined;
+                        if (!cls || cls === "unclassified") return null;
+                        const info = LESION_CLASSIFICATIONS[cls];
+                        const isHighRisk = cls === "melanoma_suspect" || cls === "scc";
+                        return (
+                          <span className="flex items-center gap-0.5">
+                            <span
+                              className="text-[8px] font-bold px-1 rounded"
+                              style={{ backgroundColor: `${info.color}20`, color: info.color }}
+                            >
+                              {info.shortLabel}
+                            </span>
+                            {isHighRisk && (
+                              <span className="text-[8px]">⚠️</span>
+                            )}
                           </span>
-                          {isHighRisk && (
-                            <span className="text-[8px]">⚠️</span>
-                          )}
-                        </span>
-                      );
-                    })()}
+                        );
+                      })()}
+                    </div>
+                    <p className="text-[10px] text-muted-foreground">
+                      {loc.images?.length ?? 0} Bilder · {loc.view === "back" ? "Hinten" : "Vorne"}
+                    </p>
                   </div>
-                  <p className="text-[10px] text-muted-foreground">
-                    {loc.images?.length ?? 0} Bilder · {loc.view === "back" ? "Hinten" : "Vorne"}
-                  </p>
-                </div>
-              </button>
+                </button>
+                <button
+                  onClick={(e) => { e.stopPropagation(); setDeleteConfirmId(loc.id); }}
+                  className="shrink-0 p-1 rounded opacity-0 group-hover:opacity-100 transition-opacity hover:bg-destructive/10 text-muted-foreground hover:text-destructive"
+                  title="In Papierkorb verschieben"
+                >
+                  <Trash2 className="h-3.5 w-3.5" />
+                </button>
+              </div>
             ))}
+          </div>
+
+          {/* Trash Bin */}
+          <div className="mt-4 border-t pt-3">
+            <button
+              onClick={() => setShowTrash(!showTrash)}
+              className="flex w-full items-center justify-between text-[10px] text-muted-foreground hover:text-foreground transition-colors"
+            >
+              <span className="flex items-center gap-1.5 font-semibold uppercase tracking-wider">
+                <Trash2 className="h-3 w-3" /> Papierkorb
+              </span>
+              <span>{trashedLocations.length}</span>
+            </button>
+            {showTrash && trashedLocations.length > 0 && (
+              <div className="mt-2 space-y-1">
+                {trashedLocations.map((loc) => (
+                  <div
+                    key={loc.id}
+                    className="flex items-center gap-2 rounded-md border border-dashed border-border/50 bg-muted/30 px-2.5 py-1.5 text-xs text-muted-foreground"
+                  >
+                    <Trash2 className="h-3 w-3 shrink-0 opacity-50" />
+                    <div className="min-w-0 flex-1">
+                      <p className="truncate font-medium">{loc.name || "Spot"}</p>
+                      <p className="text-[10px]">{loc.images?.length ?? 0} Bilder</p>
+                    </div>
+                    <button
+                      onClick={() => restoreMutation.mutate(loc.id)}
+                      className="shrink-0 p-1 rounded hover:bg-primary/10 text-muted-foreground hover:text-primary transition-colors"
+                      title="Wiederherstellen"
+                    >
+                      <Undo2 className="h-3.5 w-3.5" />
+                    </button>
+                    <button
+                      onClick={() => setPermanentDeleteId(loc.id)}
+                      className="shrink-0 p-1 rounded hover:bg-destructive/10 text-muted-foreground hover:text-destructive transition-colors"
+                      title="Endgültig löschen"
+                    >
+                      <X className="h-3.5 w-3.5" />
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
+            {showTrash && trashedLocations.length === 0 && (
+              <p className="mt-2 text-[10px] text-muted-foreground italic">Papierkorb ist leer</p>
+            )}
           </div>
         </div>
 
@@ -880,6 +982,70 @@ const PatientDetail = () => {
         </div>
       </div>
 
+      {/* Soft Delete Confirmation */}
+      <AlertDialog open={deleteConfirmId !== null} onOpenChange={(open) => !open && setDeleteConfirmId(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle className="flex items-center gap-2">
+              <AlertTriangle className="h-5 w-5 text-destructive" />
+              Spot in Papierkorb verschieben?
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              {(() => {
+                const loc = locations.find(l => l.id === deleteConfirmId);
+                if (!loc) return "Dieser Spot wird in den Papierkorb verschoben.";
+                return (
+                  <>
+                    <strong>{loc.name || "Dieser Spot"}</strong> wird mit {loc.images?.length ?? 0} Bildern und {loc.findings?.length ?? 0} Befunden in den Papierkorb verschoben. Sie können ihn jederzeit wiederherstellen.
+                  </>
+                );
+              })()}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Abbrechen</AlertDialogCancel>
+            <AlertDialogAction
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              onClick={() => deleteConfirmId && softDeleteMutation.mutate(deleteConfirmId)}
+            >
+              <Trash2 className="mr-1.5 h-4 w-4" />
+              In Papierkorb
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Permanent Delete Confirmation */}
+      <AlertDialog open={permanentDeleteId !== null} onOpenChange={(open) => !open && setPermanentDeleteId(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle className="flex items-center gap-2">
+              <AlertTriangle className="h-5 w-5 text-destructive" />
+              Endgültig löschen?
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              {(() => {
+                const loc = trashedLocations.find(l => l.id === permanentDeleteId);
+                if (!loc) return "Dieser Spot wird unwiderruflich gelöscht.";
+                return (
+                  <>
+                    <strong>{loc.name || "Dieser Spot"}</strong> wird mit allen zugehörigen Bildern und Befunden unwiderruflich gelöscht. Diese Aktion kann nicht rückgängig gemacht werden.
+                  </>
+                );
+              })()}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Abbrechen</AlertDialogCancel>
+            <AlertDialogAction
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              onClick={() => permanentDeleteId && permanentDeleteMutation.mutate(permanentDeleteId)}
+            >
+              Endgültig löschen
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };
