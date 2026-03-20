@@ -301,8 +301,94 @@ const PatientDetail = () => {
               onMarkerClick={(id) => setSelectedLocationId(id)}
               classificationFilter={classificationFilter}
               onFilterChange={setClassificationFilter}
+              previewMarker={mapClickDialog ? {
+                x: mapClickDialog.markType === "region" ? mapClickDialog.x : spotX,
+                y: mapClickDialog.markType === "region" ? mapClickDialog.y : spotY,
+                view: mapClickDialog.view,
+                type: mapClickDialog.markType || "spot",
+                width: mapClickDialog.markType === "region" ? regionWidth : undefined,
+                height: mapClickDialog.markType === "region" ? regionHeight : undefined,
+              } : null}
             />
           </div>
+
+          {/* Inline Spot/Region Creation Panel */}
+          {mapClickDialog && (
+            <div className="mt-3 rounded-lg border bg-card p-3 space-y-3 animate-in slide-in-from-top-2 duration-200">
+              <div className="flex items-center justify-between">
+                <h3 className="text-xs font-semibold text-foreground flex items-center gap-1.5">
+                  {mapClickDialog.markType === "region" ? (
+                    <><Square className="h-3.5 w-3.5 text-amber-500" /> Neue Region</>
+                  ) : (
+                    <><Plus className="h-3.5 w-3.5 text-primary" /> Neuer Spot</>
+                  )}
+                </h3>
+                <Button variant="ghost" size="sm" className="h-6 w-6 p-0" onClick={() => setMapClickDialog(null)}>
+                  <X className="h-3.5 w-3.5" />
+                </Button>
+              </div>
+
+              <div className="flex items-center gap-2 text-[10px] text-muted-foreground">
+                <Badge variant="outline" className="text-[10px]">{mapClickDialog.view === "back" ? "Rückseite" : "Vorderseite"}</Badge>
+                <span className="font-mono">x:{mapClickDialog.markType === "region" ? mapClickDialog.x : spotX} y:{mapClickDialog.markType === "region" ? mapClickDialog.y : spotY}</span>
+              </div>
+
+              {/* Spot: Position adjustment with live preview */}
+              {mapClickDialog.markType !== "region" && (
+                <div className="space-y-2">
+                  <div className="flex items-center gap-1.5 text-[10px] font-medium text-muted-foreground">
+                    <Move className="h-3 w-3 text-primary" /> Position anpassen
+                  </div>
+                  <div className="space-y-1.5">
+                    <div className="flex items-center gap-2">
+                      <Label className="text-[10px] w-6 shrink-0">X</Label>
+                      <Slider value={[spotX]} onValueChange={([v]) => setSpotX(v)} min={0} max={200} step={1} className="flex-1" />
+                      <span className="text-[10px] text-muted-foreground font-mono w-6 text-right">{spotX}</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Label className="text-[10px] w-6 shrink-0">Y</Label>
+                      <Slider value={[spotY]} onValueChange={([v]) => setSpotY(v)} min={0} max={500} step={1} className="flex-1" />
+                      <span className="text-[10px] text-muted-foreground font-mono w-6 text-right">{spotY}</span>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Region: Size adjustment with live preview */}
+              {mapClickDialog.markType === "region" && (
+                <div className="space-y-2">
+                  <div className="flex items-center gap-1.5 text-[10px] font-medium text-muted-foreground">
+                    <Square className="h-3 w-3 text-amber-500" /> Grösse anpassen
+                  </div>
+                  <div className="space-y-1.5">
+                    <div className="flex items-center gap-2">
+                      <Label className="text-[10px] w-10 shrink-0">Breite</Label>
+                      <Slider value={[regionWidth]} onValueChange={([v]) => setRegionWidth(v)} min={10} max={150} step={1} className="flex-1" />
+                      <span className="text-[10px] text-muted-foreground font-mono w-6 text-right">{regionWidth}</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Label className="text-[10px] w-10 shrink-0">Höhe</Label>
+                      <Slider value={[regionHeight]} onValueChange={([v]) => setRegionHeight(v)} min={10} max={150} step={1} className="flex-1" />
+                      <span className="text-[10px] text-muted-foreground font-mono w-6 text-right">{regionHeight}</span>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              <div className="space-y-1.5">
+                <Label className="text-[10px]">Bezeichnung</Label>
+                <Input
+                  placeholder={mapClickDialog.markType === "region" ? "z.B. Oberer Rücken..." : "z.B. Linker Unterarm..."}
+                  value={locationName}
+                  onChange={(e) => setLocationName(e.target.value)}
+                  className="h-8 text-xs"
+                />
+              </div>
+              <Button className="w-full h-8 text-xs" onClick={handleCreateLocation} disabled={createLocationMutation.isPending}>
+                {createLocationMutation.isPending ? "Wird erstellt…" : mapClickDialog.markType === "region" ? "Region anlegen" : "Spot anlegen"}
+              </Button>
+            </div>
+          )}
 
           {/* Spots List */}
           <div className="mt-4 space-y-1">
