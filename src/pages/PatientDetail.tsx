@@ -928,7 +928,14 @@ const PatientDetail = () => {
                         </div>
                       ) : (
                         <div className="flex-1 flex items-start justify-between">
-                          <p className="text-sm text-foreground">{f.description || "–"}</p>
+                          <div>
+                            <p className="text-sm text-foreground">{f.description || "–"}</p>
+                            <p className="text-[11px] text-muted-foreground mt-0.5">
+                              {f.user_name && <span className="font-medium">{f.user_name}</span>}
+                              {f.user_name && f.created_at && " · "}
+                              {f.created_at && new Date(f.created_at).toLocaleDateString("de-CH")}
+                            </p>
+                          </div>
                           <div className="flex gap-1 shrink-0 ml-2">
                             <button onClick={() => { setEditingFindingId(f.id); setEditingFindingText(f.description || ""); }} className="p-1 rounded hover:bg-muted text-muted-foreground hover:text-foreground">
                               <Pencil className="h-3.5 w-3.5" />

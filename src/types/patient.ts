@@ -78,6 +78,7 @@ export interface Finding {
   id: number;
   location_id: number;
   description?: string;
+  user_name?: string;
   created_at?: string;
   updated_at?: string;
 }
