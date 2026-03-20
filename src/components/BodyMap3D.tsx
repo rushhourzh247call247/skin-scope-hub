@@ -777,7 +777,7 @@ function LoadingFallback() {
 }
 
 /* ─── Scene ─── */
-function Scene({ markers, selectedLocationId, onMapClick, onMarkerClick, classificationFilter, previewMarker, preset, gender, markMode, markType }: BodyMap3DProps & { preset: CameraPreset; gender: Gender; markMode: boolean; markType: MarkType }) {
+function Scene({ markers, selectedLocationId, onMapClick, onMarkerClick, classificationFilter, previewMarker, isPlacementMode, onPreviewMove, preset, gender, markMode, markType }: BodyMap3DProps & { preset: CameraPreset; gender: Gender; markMode: boolean; markType: MarkType }) {
   const handleBodyClick = useCallback(
     (e: ThreeEvent<MouseEvent>) => {
       if (!markMode) return;
@@ -870,22 +870,18 @@ function Scene({ markers, selectedLocationId, onMapClick, onMarkerClick, classif
         </SurfaceProjectedGroup>
       ))}
 
-      {/* Preview marker for spot/region placement */}
+      {/* Draggable preview marker for spot placement */}
       {previewMarker && previewMarker.type === "spot" && (
-        <SurfaceProjectedGroup
-          key={`preview-spot-${previewMarker.x}-${previewMarker.y}-${previewMarker.view}`}
-          approxPosition={coords2Dto3D(previewMarker.x, previewMarker.y, previewMarker.view)}
+        <DraggableSpotPreview
+          initialPosition={coords2Dto3D(previewMarker.x, previewMarker.y, previewMarker.view)}
           view={previewMarker.view}
-        >
-          <SpotMarker
-            position={[0, 0, 0]}
-            name="Neuer Spot"
-            isSelected={true}
-            onClick={() => {}}
-            classificationColor="#22c55e"
-          />
-        </SurfaceProjectedGroup>
+          storedPosition={previewMarker.x3d !== undefined && previewMarker.y3d !== undefined && previewMarker.z3d !== undefined ? [previewMarker.x3d, previewMarker.y3d, previewMarker.z3d] : undefined}
+          storedNormal={previewMarker.nx !== undefined && previewMarker.ny !== undefined && previewMarker.nz !== undefined ? [previewMarker.nx, previewMarker.ny, previewMarker.nz] : undefined}
+          onMove={onPreviewMove}
+        />
       )}
+
+      {/* Region preview (not draggable, uses size sliders) */}
       {previewMarker && previewMarker.type === "region" && (
         <SurfaceProjectedGroup
           key={`preview-region-${previewMarker.x}-${previewMarker.y}-${previewMarker.view}`}
@@ -903,7 +899,7 @@ function Scene({ markers, selectedLocationId, onMapClick, onMarkerClick, classif
         </SurfaceProjectedGroup>
       )}
 
-      <CameraAnimator preset={preset} />
+      <CameraAnimator preset={preset} disableControls={false} />
     </>
   );
 }
