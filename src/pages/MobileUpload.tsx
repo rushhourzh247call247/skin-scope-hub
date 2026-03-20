@@ -244,34 +244,50 @@ const MobileUpload = () => {
       {/* Session Info */}
       <SessionInfoCard session={session} />
 
-      {/* Hidden file input – camera capture (structured for future Camera API extension) */}
+      {/* Hidden file inputs */}
       <input
-        ref={fileInputRef}
+        ref={cameraInputRef}
         type="file"
         accept="image/*"
         capture="environment"
+        className="hidden"
+        onChange={handleFiles}
+      />
+      <input
+        ref={galleryInputRef}
+        type="file"
+        accept="image/*"
         multiple
         className="hidden"
         onChange={handleFiles}
       />
 
-      {/* Capture Button */}
-      <Button
-        size="lg"
-        className="w-full h-14 text-base gap-2 rounded-xl shadow-lg"
-        onClick={handleCapture}
-        disabled={uploadingCount > 0}
-      >
-        {uploadingCount > 0 ? (
-          <>
-            <Loader2 className="h-5 w-5 animate-spin" /> Wird hochgeladen…
-          </>
-        ) : (
-          <>
-            <Camera className="h-5 w-5" /> Foto aufnehmen
-          </>
-        )}
-      </Button>
+      {/* Capture Buttons */}
+      <div className="grid grid-cols-2 gap-3">
+        <Button
+          size="lg"
+          className="h-14 text-sm gap-2 rounded-xl shadow-lg"
+          onClick={handleOpenCamera}
+          disabled={uploadingCount > 0}
+        >
+          {uploadingCount > 0 ? (
+            <Loader2 className="h-5 w-5 animate-spin" />
+          ) : (
+            <>
+              <Camera className="h-5 w-5" /> Kamera
+            </>
+          )}
+        </Button>
+        <Button
+          size="lg"
+          variant="outline"
+          className="h-14 text-sm gap-2 rounded-xl shadow-lg"
+          onClick={handleOpenGallery}
+          disabled={uploadingCount > 0}
+        >
+          <Images className="h-5 w-5" /> Galerie
+        </Button>
+      </div>
 
       {/* Photos Grid */}
       {photos.length > 0 && (
