@@ -171,6 +171,34 @@ const MobileUpload = () => {
     setPhotos((prev) => prev.filter((p) => p.order !== order));
   }, [photos]);
 
+  const retryFailedUploads = useCallback(async () => {
+    if (!token || session.status !== "active") return;
+    const failed = photos.filter((p) => p.error);
+    for (const photo of failed) {
+      setPhotos((prev) =>
+        prev.map((p) => (p.order === photo.order ? { ...p, uploading: true, error: undefined } : p))
+      );
+      try {
+        const result = await api.uploadSessionImage(token, photo.file, photo.order);
+        setPhotos((prev) =>
+          prev.map((p) =>
+            p.order === photo.order
+              ? { ...p, uploading: false, uploaded: true, id: result.id, created_at: result.created_at, image_url: result.image_url }
+              : p
+          )
+        );
+      } catch (err: any) {
+        setPhotos((prev) =>
+          prev.map((p) =>
+            p.order === photo.order
+              ? { ...p, uploading: false, error: err.message || "Upload fehlgeschlagen" }
+              : p
+          )
+        );
+      }
+    }
+  }, [token, session, photos]);
+
   const handleComplete = async () => {
     if (!token) return;
     setCompleting(true);
@@ -295,9 +323,29 @@ const MobileUpload = () => {
           <div className="flex items-center justify-between">
             <h2 className="text-xs font-semibold text-foreground flex items-center gap-1.5">
               <ImageIcon className="h-3.5 w-3.5 text-primary" />
-              {uploadedCount} {uploadedCount === 1 ? "Foto" : "Fotos"} aufgenommen
+              {uploadedCount} von {photos.length} {photos.length === 1 ? "Foto" : "Fotos"} hochgeladen
             </h2>
           </div>
+
+          {/* Show error summary if uploads failed */}
+          {photos.some((p) => p.error) && (
+            <div className="rounded-lg border border-destructive/30 bg-destructive/5 p-3 space-y-2">
+              <p className="text-xs text-destructive font-medium">
+                {photos.filter((p) => p.error).length} Upload(s) fehlgeschlagen
+              </p>
+              <p className="text-[10px] text-destructive/80">
+                {photos.find((p) => p.error)?.error}
+              </p>
+              <Button
+                variant="outline"
+                size="sm"
+                className="text-xs gap-1.5 border-destructive/30 text-destructive"
+                onClick={() => retryFailedUploads()}
+              >
+                <AlertTriangle className="h-3 w-3" /> Fehlgeschlagene erneut versuchen
+              </Button>
+            </div>
+          )}
 
           <div className="grid grid-cols-3 gap-2">
             {photos.map((photo) => (
@@ -311,7 +359,7 @@ const MobileUpload = () => {
         </div>
       )}
 
-      {/* Complete Button */}
+      {/* Complete Button – show when at least some photos uploaded */}
       {uploadedCount > 0 && (
         <Button
           variant="default"
