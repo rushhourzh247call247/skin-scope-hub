@@ -1,49 +1,52 @@
 
 
-## Plan: Filter-System + Risiko-Pulsieren + Farblegende, dann Auto-Alignment
+# Notizfeld & KI-Diagnose pro Bild
 
-### Teil 1: Filter-System mit Farblegende und Risiko-Pulsierung
+## Übersicht
 
-**1. Farblegende auf der Body Map** (`BodyMap3D.tsx`)
-- Neue Legende unten-rechts im Canvas-Container mit allen aktiven Klassifizierungen (farbiger Punkt + Kurzlabel)
-- Nur Klassifizierungen anzeigen, die bei aktuellen Markern tatsaechlich vorkommen
+Jedes Bild in der Galerie und im Vergleichsmodus erhält:
+1. **Notizfeld** – Ein kleines Textfeld unter jedem Bild, um eine Notiz zu hinterlegen (gespeichert pro Bild)
+2. **KI-Analyse-Button** – Ein Button der eine KI-gestützte Hautanalyse auslöst und das Ergebnis mit klarem Disclaimer anzeigt
 
-**2. Filter-Buttons** (`BodyMap3D.tsx`)
-- Legende ist gleichzeitig Filter: Klick auf eine Klassifizierung toggelt deren Sichtbarkeit
-- Durchgestrichene/gedimmte Darstellung fuer deaktivierte Filter
-- "Alle" Button zum Zuruecksetzen
-- Filter-State wird als neues Prop oder interner State verwaltet
+## Was wird gebaut
 
-**3. Risiko-Pulsieren** (`BodyMap3D.tsx` - `SpotMarker`)
-- Marker mit `melanoma_suspect` oder `scc` Klassifizierung erhalten eine staerkere Puls-Animation (groessere Amplitude, schnellere Frequenz)
-- Zusaetzlicher aeusserer Glow-Ring in Rot fuer Risiko-Spots
+### 1. Datenmodell erweitern
+- `LocationImage` in `types/patient.ts` erhält ein optionales `note?: string` und `ai_analysis?: { result: string; created_at: string }` Feld
+- Mock API in `mockData.ts` bekommt `updateImageNote(imageId, note)` und `analyzeImage(imageId)` Methoden
+- `analyzeImage` liefert vorerst eine Mock-KI-Antwort (strukturierte ABCDE-Analyse) zurück, die später durch eine echte KI-Integration (Lovable AI Gateway) ersetzt werden kann
 
-**4. Filter in Sidebar-Liste** (`PatientDetail.tsx`)
-- Sidebar-Spots-Liste respektiert den aktiven Filter
-- Neuer Filter-State wird von PatientDetail verwaltet und an BodyMap3D weitergereicht
+### 2. ImageGallery erweitern
+- Unter jedem Bild-Thumbnail ein kleines Textfeld (Textarea, 1-2 Zeilen) für Notizen mit Auto-Save (debounced)
+- Ein kleiner "KI"-Button (Sparkles/Wand2 Icon) neben dem Bild
+- Beim Klick: Loading-State, dann Ergebnis in einem kleinen ausklappbaren Bereich unter dem Bild
+- KI-Ergebnis zeigt einen orangefarbenen Badge "KI-Analyse" mit Disclaimer-Text
 
-### Teil 2: Auto-Alignment fuer Overlay-Vergleich
+### 3. ImageCompare Timeline erweitern
+- Gleiche Funktionalität in der Timeline-Ansicht: Notizfeld und KI-Button pro Bild-Eintrag
+- Die Karte pro Bild wird etwas höher, um Platz für Notiz und KI-Ergebnis zu schaffen
 
-**5. Bild-Ausrichtung im Overlay** (`ImageCompare.tsx`)
-- Canvas-basierter Ansatz: Beim Overlay-Modus koennen Benutzer manuell Rotation, Zoom und Position des oberen Bildes anpassen
-- Steuerelemente: Rotation-Slider (-180 bis +180 Grad), Zoom-Slider (50%-200%), Drag zum Verschieben
-- CSS `transform` auf dem Overlay-Bild (rotate + scale + translate)
-- Reset-Button zum Zuruecksetzen der Ausrichtung
+### 4. KI-Disclaimer
+- Jede KI-Analyse zeigt prominent: *"⚠️ KI-gestützte Einschätzung – keine ärztliche Diagnose. Dient ausschliesslich als Entscheidungshilfe."*
+- Visuell abgesetzt durch orangefarbenen Rahmen/Badge
 
-### Technische Details
-
-**Neue Props/State:**
-- `BodyMap3D`: neues Prop `classificationFilter?: LesionClassification[]` + `onFilterChange`
-- `SpotMarker`: neues Prop `isHighRisk?: boolean` fuer Puls-Logik
-- `ImageCompare`: neue States `overlayRotation`, `overlayScale`, `overlayOffset`
-
-**Filter-Logik:**
-- Wenn Filter aktiv: Marker mit nicht-matchender Klassifizierung bekommen `visible = false`
-- Sidebar-Liste wird analog gefiltert
-- Legende zeigt Anzahl Spots pro Klassifizierung
+## Technische Details
 
 **Dateien:**
-- `src/components/BodyMap3D.tsx` - Legende, Filter, Risiko-Puls
-- `src/pages/PatientDetail.tsx` - Filter-State, Sidebar-Filter
-- `src/components/ImageCompare.tsx` - Manuelle Ausrichtungs-Controls
+- `src/types/patient.ts` – `note` und `ai_analysis` Felder auf `LocationImage`
+- `src/lib/mockData.ts` – `updateImageNote()` und `analyzeImage()` Mock-Methoden
+- `src/components/ImageGallery.tsx` – Notiz-Textarea + KI-Button pro Bild
+- `src/components/ImageCompare.tsx` – Notiz-Textarea + KI-Button in Timeline-Einträgen
+- Neuer Shared-Component `src/components/AiAnalysisResult.tsx` für die einheitliche Darstellung des KI-Ergebnisses mit Disclaimer
+
+**Mock-KI-Antwort-Struktur:**
+```text
+Asymmetrie: Symmetrisch
+Begrenzung: Regelmässig, scharf begrenzt
+Farbe: Homogen braun
+Durchmesser: < 6mm
+Einschätzung: Unauffälliger Nävus – Routinekontrolle empfohlen
+Risiko: Niedrig
+```
+
+**Späterer Ausbau:** Die Mock-Analyse kann durch einen echten Lovable AI Gateway Call (Edge Function mit Gemini Vision) ersetzt werden, der das Bild tatsächlich analysiert.
 
