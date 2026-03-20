@@ -302,6 +302,43 @@ export const mockApi = {
     return { success: true };
   },
 
+  // Update image note
+  updateImageNote: async (imageId: number, note: string) => {
+    await delay();
+    for (const loc of locations) {
+      const img = loc.images.find(i => i.id === imageId);
+      if (img) {
+        img.note = note;
+        img.updated_at = new Date().toISOString();
+        return img;
+      }
+    }
+    throw new Error("Bild nicht gefunden");
+  },
+
+  // KI-Analyse (Mock)
+  analyzeImage: async (imageId: number) => {
+    await delay(1500);
+    const mockResults = [
+      { result: "Asymmetrie: Symmetrisch\nBegrenzung: Regelmässig, scharf begrenzt\nFarbe: Homogen braun\nDurchmesser: < 6mm\nEinschätzung: Unauffälliger Nävus – Routinekontrolle empfohlen", risk: "Niedrig" },
+      { result: "Asymmetrie: Leicht asymmetrisch\nBegrenzung: Leicht unregelmässig\nFarbe: Zwei Brauntöne\nDurchmesser: ~5mm\nEinschätzung: Dysplastischer Nävus – Kontrolle in 3 Monaten empfohlen", risk: "Mittel" },
+      { result: "Asymmetrie: Asymmetrisch\nBegrenzung: Unregelmässig, ausgefranst\nFarbe: Mehrfarbig (braun, schwarz, rötlich)\nDurchmesser: > 6mm\nEinschätzung: Verdächtige Läsion – dermatoskopische Abklärung dringend empfohlen", risk: "Hoch" },
+    ];
+    const analysis = {
+      ...mockResults[Math.floor(Math.random() * mockResults.length)],
+      created_at: new Date().toISOString(),
+    };
+    // Store on the image
+    for (const loc of locations) {
+      const img = loc.images.find(i => i.id === imageId);
+      if (img) {
+        (img as any).ai_analysis = analysis;
+        break;
+      }
+    }
+    return analysis;
+  },
+
   // Dashboard stats
   getDashboardStats: async () => {
     await delay();
