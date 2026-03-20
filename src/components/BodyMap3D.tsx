@@ -646,54 +646,89 @@ function DraggableSpotPreview({
   const groupRef = useRef<THREE.Group>(null);
   const [isDragging, setIsDragging] = useState(false);
   const [hovered, setHovered] = useState(false);
-  const projectedRef = useRef(false);
+  const initializedRef = useRef(false);
   const normalRef = useRef(new THREE.Vector3(0, 0, 1));
+  // Store the actual 3D position internally – this is the source of truth
+  const position3dRef = useRef(new THREE.Vector3());
 
-  // Initial projection to body surface
+  // Helper: find body meshes
+  const getBodyMeshes = useCallback(() => {
+    const meshes: THREE.Mesh[] = [];
+    scene.traverse((child) => {
+      if ((child as THREE.Mesh).isMesh && (child as THREE.Mesh).userData?.isBodyMesh) {
+        meshes.push(child as THREE.Mesh);
+      }
+    });
+    return meshes;
+  }, [scene]);
+
+  // Helper: orient marker to face along surface normal
+  const orientToNormal = useCallback((group: THREE.Group, pos: THREE.Vector3, normal: THREE.Vector3) => {
+    group.position.copy(pos).addScaledVector(normal, 0.004);
+    group.lookAt(pos.x + normal.x, pos.y + normal.y, pos.z + normal.z);
+  }, []);
+
+  // One-time initialization: project to body surface
   useFrame(() => {
     if (!groupRef.current) return;
 
-    if (!projectedRef.current) {
-      if (storedPosition) {
-        groupRef.current.position.set(...storedPosition);
-        if (storedNormal) {
-          const normal = new THREE.Vector3(...storedNormal).normalize();
-          normalRef.current.copy(normal);
-          groupRef.current.position.addScaledVector(normal, 0.003);
-        }
-        projectedRef.current = true;
+    // --- INITIALIZE (once) ---
+    if (!initializedRef.current) {
+      if (storedPosition && storedNormal) {
+        // We have exact 3D coords – use them directly
+        const pos = new THREE.Vector3(...storedPosition);
+        const nrm = new THREE.Vector3(...storedNormal).normalize();
+        position3dRef.current.copy(pos);
+        normalRef.current.copy(nrm);
+        orientToNormal(groupRef.current, pos, nrm);
+        initializedRef.current = true;
       } else {
+        // Project from approximate 2D coords to body surface
         const projected = projectMarkerToBody(scene, initialPosition, view);
         if (!projected) {
           groupRef.current.position.set(...initialPosition);
-          return;
+          return; // body mesh not ready yet, try again next frame
         }
+        position3dRef.current.copy(projected.point);
         normalRef.current.copy(projected.normal);
-        groupRef.current.position.copy(projected.point).addScaledVector(projected.normal, 0.003);
-        projectedRef.current = true;
+        orientToNormal(groupRef.current, projected.point, projected.normal);
+        initializedRef.current = true;
+        // Report the projected 3D position back
+        const { x, y, view: v } = pointTo2D(projected.point);
+        onMove?.(x, y, v,
+          [projected.point.x, projected.point.y, projected.point.z],
+          [projected.normal.x, projected.normal.y, projected.normal.z],
+        );
       }
     }
 
-    // During drag: raycast from pointer to body
+    // --- DRAG: raycast from pointer to body surface ---
     if (isDragging) {
       raycaster.setFromCamera(pointer, camera);
-      const bodyMeshes: THREE.Mesh[] = [];
-      scene.traverse((child) => {
-        if ((child as THREE.Mesh).isMesh && (child as THREE.Mesh).userData?.isBodyMesh) {
-          bodyMeshes.push(child as THREE.Mesh);
-        }
-      });
-      const hits = raycaster.intersectObjects(bodyMeshes, true);
+      const hits = raycaster.intersectObjects(getBodyMeshes(), true);
       if (hits.length > 0) {
         const hit = hits[0];
         const normal = hit.face
           ? hit.face.normal.clone().transformDirection(hit.object.matrixWorld).normalize()
           : normalRef.current.clone();
+        position3dRef.current.copy(hit.point);
         normalRef.current.copy(normal);
-        groupRef.current.position.copy(hit.point).addScaledVector(normal, 0.003);
+        orientToNormal(groupRef.current, hit.point, normal);
         const { x, y, view: hitView } = pointTo2D(hit.point);
-        onMove?.(x, y, hitView, [hit.point.x, hit.point.y, hit.point.z], [normal.x, normal.y, normal.z]);
+        onMove?.(x, y, hitView,
+          [hit.point.x, hit.point.y, hit.point.z],
+          [normal.x, normal.y, normal.z],
+        );
       }
+    }
+
+    // --- OCCLUSION: hide when facing away from camera ---
+    if (initializedRef.current && !isDragging) {
+      const cameraDir = new THREE.Vector3().subVectors(camera.position, position3dRef.current).normalize();
+      const dot = normalRef.current.dot(cameraDir);
+      groupRef.current.visible = dot > 0.05;
+    } else {
+      if (groupRef.current) groupRef.current.visible = true;
     }
 
     // Pulse animation
@@ -701,11 +736,7 @@ function DraggableSpotPreview({
     groupRef.current.scale.setScalar(scale);
   });
 
-  useEffect(() => {
-    projectedRef.current = false;
-  }, [initialPosition[0], initialPosition[1], initialPosition[2], view, storedPosition?.[0], storedPosition?.[1], storedPosition?.[2]]);
-
-  // Global pointer up listener
+  // Global pointer up listener for drag end
   useEffect(() => {
     if (!isDragging) return;
     const handleUp = () => setIsDragging(false);
