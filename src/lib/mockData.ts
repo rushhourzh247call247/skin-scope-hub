@@ -320,12 +320,13 @@ export const mockApi = {
   analyzeImage: async (imageId: number) => {
     await delay(1500);
     const mockResults = [
-      { result: "Asymmetrie: Symmetrisch\nBegrenzung: Regelmässig, scharf begrenzt\nFarbe: Homogen braun\nDurchmesser: < 6mm\nEinschätzung: Unauffälliger Nävus – Routinekontrolle empfohlen", risk: "Niedrig" },
-      { result: "Asymmetrie: Leicht asymmetrisch\nBegrenzung: Leicht unregelmässig\nFarbe: Zwei Brauntöne\nDurchmesser: ~5mm\nEinschätzung: Dysplastischer Nävus – Kontrolle in 3 Monaten empfohlen", risk: "Mittel" },
-      { result: "Asymmetrie: Asymmetrisch\nBegrenzung: Unregelmässig, ausgefranst\nFarbe: Mehrfarbig (braun, schwarz, rötlich)\nDurchmesser: > 6mm\nEinschätzung: Verdächtige Läsion – dermatoskopische Abklärung dringend empfohlen", risk: "Hoch" },
+      { result: "Asymmetrie: Symmetrisch\nBegrenzung: Regelmässig, scharf begrenzt\nFarbe: Homogen braun\nEinschätzung: Unauffälliger Nävus – Routinekontrolle empfohlen", risk: "Niedrig" },
+      { result: "Asymmetrie: Leicht asymmetrisch\nBegrenzung: Leicht unregelmässig\nFarbe: Zwei Brauntöne\nEinschätzung: Dysplastischer Nävus – Kontrolle in 3 Monaten empfohlen", risk: "Mittel" },
+      { result: "Asymmetrie: Asymmetrisch\nBegrenzung: Unregelmässig, ausgefranst\nFarbe: Mehrfarbig (braun, schwarz, rötlich)\nEinschätzung: Verdächtige Läsion – dermatoskopische Abklärung dringend empfohlen", risk: "Hoch" },
     ];
+    // Deterministic: same imageId always gets the same result
     const analysis = {
-      ...mockResults[Math.floor(Math.random() * mockResults.length)],
+      ...mockResults[imageId % mockResults.length],
       created_at: new Date().toISOString(),
     };
     // Store on the image
