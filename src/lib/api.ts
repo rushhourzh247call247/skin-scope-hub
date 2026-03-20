@@ -80,6 +80,12 @@ export const api = {
     request<any>('/users', { method: 'POST', body: JSON.stringify(data) }),
   deleteUser: (id: number) =>
     request<any>(`/users/${id}`, { method: 'DELETE' }),
+  // Admin: Reset user password
+  adminResetPassword: (userId: number, password: string) =>
+    request<any>(`/users/${userId}/reset-password`, { method: 'PUT', body: JSON.stringify({ password }) }),
+  // User: Change own password
+  changeOwnPassword: (current_password: string, password: string, password_confirmation: string) =>
+    request<any>('/change-password', { method: 'PUT', body: JSON.stringify({ current_password, password, password_confirmation }) }),
 
   // Patients
   getPatients: () => request<any[]>('/patients'),
