@@ -815,7 +815,7 @@ function LoadingFallback() {
 }
 
 /* ─── Scene ─── */
-function Scene({ markers, selectedLocationId, onMapClick, onMarkerClick, classificationFilter, previewMarker, isPlacementMode, onPreviewMove, preset, gender, markMode, markType }: BodyMap3DProps & { preset: CameraPreset; gender: Gender; markMode: boolean; markType: MarkType }) {
+function Scene({ markers, selectedLocationId, onMapClick, onMarkerClick, classificationFilter, previewMarker, isPlacementMode, onPreviewMove, preset, gender, markMode, markType, resetKey }: BodyMap3DProps & { preset: CameraPreset; gender: Gender; markMode: boolean; markType: MarkType; resetKey: number }) {
   const [isDraggingSpot, setIsDraggingSpot] = useState(false);
   const handleBodyClick = useCallback(
     (e: ThreeEvent<MouseEvent>) => {
