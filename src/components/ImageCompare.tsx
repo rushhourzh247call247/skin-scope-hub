@@ -142,36 +142,68 @@ const ImageCompare = ({ images, locationName, onClose }: ImageCompareProps) => {
                     <Calendar className="h-3.5 w-3.5" />
                   )}
                 </button>
-                <div
-                  onClick={() => toggleSelect(img.id)}
-                  className={cn(
-                    "flex flex-1 cursor-pointer items-center gap-4 rounded-lg border p-3 transition-all duration-200",
-                    isSelected
-                      ? "border-primary/30 bg-primary/5 ring-1 ring-primary/20"
-                      : "border-border bg-card hover:bg-muted/50"
-                  )}
-                >
-                  <div className="relative h-16 w-16 shrink-0 overflow-hidden rounded-full border-2 border-border shadow-sm">
-                    <img
-                      src={mockApi.getImageUrl(img.image_path)}
-                      alt={`Aufnahme #${img.id}`}
-                      className="h-full w-full object-cover"
-                    />
-                    {isSelected && (
-                      <div className="absolute inset-0 flex items-center justify-center bg-primary/20">
-                        <Check className="h-5 w-5 text-primary" />
-                      </div>
+                <div className="flex-1 space-y-2">
+                  <div
+                    onClick={() => toggleSelect(img.id)}
+                    className={cn(
+                      "flex cursor-pointer items-center gap-4 rounded-lg border p-3 transition-all duration-200",
+                      isSelected
+                        ? "border-primary/30 bg-primary/5 ring-1 ring-primary/20"
+                        : "border-border bg-card hover:bg-muted/50"
                     )}
+                  >
+                    <div className="relative h-16 w-16 shrink-0 overflow-hidden rounded-full border-2 border-border shadow-sm">
+                      <img
+                        src={mockApi.getImageUrl(img.image_path)}
+                        alt={`Aufnahme #${img.id}`}
+                        className="h-full w-full object-cover"
+                      />
+                      {isSelected && (
+                        <div className="absolute inset-0 flex items-center justify-center bg-primary/20">
+                          <Check className="h-5 w-5 text-primary" />
+                        </div>
+                      )}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-medium text-foreground">Aufnahme #{index + 1}</p>
+                      <p className="text-xs text-muted-foreground tabular-nums">
+                        {img.created_at ? format(new Date(img.created_at), "dd. MMMM yyyy, HH:mm", { locale: de }) : "–"}
+                      </p>
+                    </div>
+                    <Button variant="ghost" size="icon" className="shrink-0" onClick={(e) => { e.stopPropagation(); setZoomedImage(img); }}>
+                      <ZoomIn className="h-4 w-4" />
+                    </Button>
                   </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium text-foreground">Aufnahme #{index + 1}</p>
-                    <p className="text-xs text-muted-foreground tabular-nums">
-                      {img.created_at ? format(new Date(img.created_at), "dd. MMMM yyyy, HH:mm", { locale: de }) : "–"}
-                    </p>
+                  {/* Note + KI row */}
+                  <div className="flex items-start gap-2 pl-1">
+                    <Textarea
+                      placeholder="Notiz…"
+                      className="min-h-[32px] h-8 text-[11px] resize-none bg-muted/30 border-muted flex-1"
+                      value={noteValues[img.id] ?? ""}
+                      onChange={(e) => { e.stopPropagation(); handleNoteChange(img.id, e.target.value); }}
+                      onClick={(e) => e.stopPropagation()}
+                      rows={1}
+                    />
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="h-8 text-[10px] gap-1 shrink-0 px-2"
+                      onClick={(e) => { e.stopPropagation(); handleAnalyze(img.id); }}
+                      disabled={analyzingIds.has(img.id)}
+                    >
+                      {analyzingIds.has(img.id) ? (
+                        <Loader2 className="h-3 w-3 animate-spin" />
+                      ) : (
+                        <><Sparkles className="h-3 w-3" /> KI</>
+                      )}
+                    </Button>
                   </div>
-                  <Button variant="ghost" size="icon" className="shrink-0" onClick={(e) => { e.stopPropagation(); setZoomedImage(img); }}>
-                    <ZoomIn className="h-4 w-4" />
-                  </Button>
+                  {/* AI result */}
+                  {(aiResults[img.id] || img.ai_analysis) && (
+                    <div className="pl-1">
+                      <AiAnalysisResult analysis={(aiResults[img.id] || img.ai_analysis)!} />
+                    </div>
+                  )}
                 </div>
               </motion.div>
             );
