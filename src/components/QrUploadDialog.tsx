@@ -39,6 +39,7 @@ const QrUploadDialog = ({
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
+  const [expiresIn, setExpiresIn] = useState<number | null>(null);
 
   const createSession = async () => {
     setLoading(true);
@@ -48,10 +49,11 @@ const QrUploadDialog = ({
         patient_id: patientId,
         location_id: locationId,
       });
+      const uploadUrl = `${FRONTEND_DOMAIN}/upload?token=${result.token}`;
       setSession({
         token: result.token,
-        expires_at: result.expires_at,
-        upload_url: `${FRONTEND_DOMAIN}/upload?token=${result.token}`,
+        expires_at: result.expires_at || '',
+        upload_url: uploadUrl,
       });
     } catch (err: any) {
       setError(err.message || "Session konnte nicht erstellt werden");
@@ -67,8 +69,27 @@ const QrUploadDialog = ({
     if (!open) {
       setSession(null);
       setError(null);
+      setExpiresIn(null);
     }
   }, [open]);
+
+  // Live countdown for expiry
+  useEffect(() => {
+    if (!session?.expires_at) {
+      // If no expires_at from API, show ~30 min default
+      if (session && !session.expires_at) {
+        setExpiresIn(30);
+      }
+      return;
+    }
+    const update = () => {
+      const mins = Math.max(0, Math.round((new Date(session.expires_at).getTime() - Date.now()) / 60000));
+      setExpiresIn(mins);
+    };
+    update();
+    const interval = setInterval(update, 30000);
+    return () => clearInterval(interval);
+  }, [session?.expires_at]);
 
   const handleOpen = (isOpen: boolean) => {
     onOpenChange(isOpen);
@@ -81,9 +102,7 @@ const QrUploadDialog = ({
     setTimeout(() => setCopied(false), 2000);
   };
 
-  const expiresIn = session?.expires_at
-    ? Math.max(0, Math.round((new Date(session.expires_at).getTime() - Date.now()) / 60000))
-    : 0;
+  const displayMinutes = expiresIn ?? 30;
 
   return (
     <Dialog open={open} onOpenChange={handleOpen}>
@@ -144,7 +163,7 @@ const QrUploadDialog = ({
             {/* Expiry */}
             <div className="flex items-center justify-center gap-1.5 text-xs text-muted-foreground">
               <Clock className="h-3 w-3" />
-              <span>Gültig für {expiresIn} Minuten</span>
+              <span>Gültig für ca. {displayMinutes} Minuten</span>
             </div>
 
             {/* Copy URL */}
