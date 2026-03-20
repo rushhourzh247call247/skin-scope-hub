@@ -917,6 +917,7 @@ function Scene({ markers, selectedLocationId, onMapClick, onMarkerClick, classif
           storedPosition={previewMarker.x3d !== undefined && previewMarker.y3d !== undefined && previewMarker.z3d !== undefined ? [previewMarker.x3d, previewMarker.y3d, previewMarker.z3d] : undefined}
           storedNormal={previewMarker.nx !== undefined && previewMarker.ny !== undefined && previewMarker.nz !== undefined ? [previewMarker.nx, previewMarker.ny, previewMarker.nz] : undefined}
           onMove={onPreviewMove}
+          onDragStateChange={setIsDraggingSpot}
         />
       )}
 
