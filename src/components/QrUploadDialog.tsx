@@ -51,7 +51,7 @@ const QrUploadDialog = ({
       setSession({
         token: result.token,
         expires_at: result.expires_at,
-        upload_url: `${getFrontendDomain()}/upload?token=${result.token}`,
+        upload_url: `${FRONTEND_DOMAIN}/upload?token=${result.token}`,
       });
     } catch (err: any) {
       setError(err.message || "Session konnte nicht erstellt werden");
