@@ -635,12 +635,14 @@ function DraggableSpotPreview({
   storedPosition,
   storedNormal,
   onMove,
+  onDragStateChange,
 }: {
   initialPosition: [number, number, number];
   view: "front" | "back";
   storedPosition?: [number, number, number];
   storedNormal?: [number, number, number];
   onMove?: (x: number, y: number, view: "front" | "back", point3d: [number, number, number], normal3d: [number, number, number]) => void;
+  onDragStateChange?: (dragging: boolean) => void;
 }) {
   const { scene, camera, raycaster, pointer, gl } = useThree();
   const groupRef = useRef<THREE.Group>(null);
