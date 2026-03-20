@@ -635,12 +635,14 @@ function DraggableSpotPreview({
   storedPosition,
   storedNormal,
   onMove,
+  onDragStateChange,
 }: {
   initialPosition: [number, number, number];
   view: "front" | "back";
   storedPosition?: [number, number, number];
   storedNormal?: [number, number, number];
   onMove?: (x: number, y: number, view: "front" | "back", point3d: [number, number, number], normal3d: [number, number, number]) => void;
+  onDragStateChange?: (dragging: boolean) => void;
 }) {
   const { scene, camera, raycaster, pointer, gl } = useThree();
   const groupRef = useRef<THREE.Group>(null);
@@ -736,6 +738,11 @@ function DraggableSpotPreview({
     groupRef.current.scale.setScalar(scale);
   });
 
+  // Notify parent of drag state changes
+  useEffect(() => {
+    onDragStateChange?.(isDragging);
+  }, [isDragging, onDragStateChange]);
+
   // Global pointer up listener for drag end
   useEffect(() => {
     if (!isDragging) return;
@@ -809,6 +816,7 @@ function LoadingFallback() {
 
 /* ─── Scene ─── */
 function Scene({ markers, selectedLocationId, onMapClick, onMarkerClick, classificationFilter, previewMarker, isPlacementMode, onPreviewMove, preset, gender, markMode, markType }: BodyMap3DProps & { preset: CameraPreset; gender: Gender; markMode: boolean; markType: MarkType }) {
+  const [isDraggingSpot, setIsDraggingSpot] = useState(false);
   const handleBodyClick = useCallback(
     (e: ThreeEvent<MouseEvent>) => {
       if (!markMode) return;
@@ -909,6 +917,7 @@ function Scene({ markers, selectedLocationId, onMapClick, onMarkerClick, classif
           storedPosition={previewMarker.x3d !== undefined && previewMarker.y3d !== undefined && previewMarker.z3d !== undefined ? [previewMarker.x3d, previewMarker.y3d, previewMarker.z3d] : undefined}
           storedNormal={previewMarker.nx !== undefined && previewMarker.ny !== undefined && previewMarker.nz !== undefined ? [previewMarker.nx, previewMarker.ny, previewMarker.nz] : undefined}
           onMove={onPreviewMove}
+          onDragStateChange={setIsDraggingSpot}
         />
       )}
 
@@ -930,7 +939,7 @@ function Scene({ markers, selectedLocationId, onMapClick, onMarkerClick, classif
         </SurfaceProjectedGroup>
       )}
 
-      <CameraAnimator preset={preset} disableControls={false} />
+      <CameraAnimator preset={preset} disableControls={isDraggingSpot} />
     </>
   );
 }
