@@ -89,8 +89,12 @@ const MobileUpload = () => {
     validate();
   }, [token]);
 
-  const handleCapture = useCallback(() => {
-    fileInputRef.current?.click();
+  const handleOpenCamera = useCallback(() => {
+    cameraInputRef.current?.click();
+  }, []);
+
+  const handleOpenGallery = useCallback(() => {
+    galleryInputRef.current?.click();
   }, []);
 
   const handleFiles = useCallback(
