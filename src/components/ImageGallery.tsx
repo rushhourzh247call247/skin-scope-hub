@@ -1,6 +1,6 @@
 import { useState, useRef, useCallback } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { mockApi } from "@/lib/mockData";
+import { api } from "@/lib/api";
 import type { LocationImage } from "@/types/patient";
 import { Upload, Calendar, ImageIcon, GitCompareArrows, Sparkles, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -38,7 +38,7 @@ const ImageGallery = ({ locationId, patientId, images, locationName, locationTyp
   const debounceTimers = useRef<Record<number, ReturnType<typeof setTimeout>>>({});
 
   const uploadMutation = useMutation({
-    mutationFn: (file: File) => mockApi.uploadImage(locationId, file),
+    mutationFn: (file: File) => api.uploadImage(locationId, file),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["full-patient", patientId] });
       setUploading(false);
@@ -57,14 +57,14 @@ const ImageGallery = ({ locationId, patientId, images, locationName, locationTyp
     setNoteValues(prev => ({ ...prev, [imageId]: value }));
     if (debounceTimers.current[imageId]) clearTimeout(debounceTimers.current[imageId]);
     debounceTimers.current[imageId] = setTimeout(() => {
-      mockApi.updateImageNote(imageId, value);
+      api.updateImageNote(imageId, value).catch(() => {});
     }, 800);
   }, []);
 
   const handleAnalyze = useCallback(async (imageId: number) => {
     setAnalyzingIds(prev => new Set(prev).add(imageId));
     try {
-      const result = await mockApi.analyzeImage(imageId);
+      const result = await api.analyzeImage(imageId);
       setAiResults(prev => ({ ...prev, [imageId]: result }));
       setExpandedAi(prev => new Set(prev).add(imageId));
     } finally {
@@ -122,7 +122,7 @@ const ImageGallery = ({ locationId, patientId, images, locationName, locationTyp
                   <div className="flex flex-col items-center gap-1.5">
                     <div className="relative h-20 w-20 overflow-hidden rounded-full border-2 border-border shadow-sm">
                       <img
-                        src={mockApi.getImageUrl(img.image_path)}
+                        src={api.getImageUrl(img.image_path)}
                         alt={`Aufnahme #${img.id}`}
                         className="h-full w-full object-cover"
                         loading="lazy"
@@ -136,7 +136,7 @@ const ImageGallery = ({ locationId, patientId, images, locationName, locationTyp
                   <div>
                     <div className="aspect-[3/4] overflow-hidden rounded-md">
                       <img
-                        src={mockApi.getImageUrl(img.image_path)}
+                        src={api.getImageUrl(img.image_path)}
                         alt={`Aufnahme #${img.id}`}
                         className="h-full w-full object-cover"
                         loading="lazy"

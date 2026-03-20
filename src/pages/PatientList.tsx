@@ -1,5 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
-import { mockApi } from "@/lib/mockData";
+import { api } from "@/lib/api";
 import type { Patient } from "@/types/patient";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
@@ -14,10 +14,10 @@ const PatientList = () => {
 
   const { data: patients = [], isLoading, error } = useQuery({
     queryKey: ["patients"],
-    queryFn: mockApi.getPatients,
+    queryFn: api.getPatients,
   });
 
-  const filtered = patients.filter((p) =>
+  const filtered = patients.filter((p: Patient) =>
     p.name.toLowerCase().includes(search.toLowerCase())
   );
 
@@ -77,7 +77,7 @@ const PatientList = () => {
                   </td>
                 </tr>
               ) : (
-                filtered.map((patient) => (
+                filtered.map((patient: Patient) => (
                   <tr
                     key={patient.id}
                     onClick={() => navigate(`/patient/${patient.id}`)}

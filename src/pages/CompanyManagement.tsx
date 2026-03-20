@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { mockApi } from "@/lib/mockData";
+import { api } from "@/lib/api";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -17,11 +17,11 @@ const CompanyManagement = () => {
 
   const { data: companies = [], isLoading } = useQuery({
     queryKey: ["companies"],
-    queryFn: mockApi.getCompanies,
+    queryFn: api.getCompanies,
   });
 
   const createMutation = useMutation({
-    mutationFn: mockApi.createCompany,
+    mutationFn: api.createCompany,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["companies"] });
       queryClient.invalidateQueries({ queryKey: ["dashboard-stats"] });
@@ -32,7 +32,7 @@ const CompanyManagement = () => {
   });
 
   const deleteMutation = useMutation({
-    mutationFn: mockApi.deleteCompany,
+    mutationFn: api.deleteCompany,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["companies"] });
       toast.success("Firma gelöscht");
@@ -86,7 +86,7 @@ const CompanyManagement = () => {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {companies.map((c) => (
+                {companies.map((c: any) => (
                   <TableRow key={c.id}>
                     <TableCell className="font-mono text-xs text-muted-foreground">{c.id}</TableCell>
                     <TableCell className="font-medium">{c.name}</TableCell>

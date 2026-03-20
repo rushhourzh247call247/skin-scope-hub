@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { mockApi } from "@/lib/mockData";
+import { api } from "@/lib/api";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -22,16 +22,16 @@ const UserManagement = () => {
 
   const { data: users = [], isLoading } = useQuery({
     queryKey: ["users"],
-    queryFn: mockApi.getUsers,
+    queryFn: api.getUsers,
   });
 
   const { data: companies = [] } = useQuery({
     queryKey: ["companies"],
-    queryFn: mockApi.getCompanies,
+    queryFn: api.getCompanies,
   });
 
   const createMutation = useMutation({
-    mutationFn: mockApi.createUser,
+    mutationFn: api.createUser,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["users"] });
       queryClient.invalidateQueries({ queryKey: ["dashboard-stats"] });
@@ -42,7 +42,7 @@ const UserManagement = () => {
   });
 
   const deleteMutation = useMutation({
-    mutationFn: mockApi.deleteUser,
+    mutationFn: api.deleteUser,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["users"] });
       toast.success("Benutzer gelöscht");
@@ -80,7 +80,7 @@ const UserManagement = () => {
                 <Select value={companyId} onValueChange={setCompanyId} required>
                   <SelectTrigger><SelectValue placeholder="Firma wählen" /></SelectTrigger>
                   <SelectContent>
-                    {companies.map((c) => (
+                    {companies.map((c: any) => (
                       <SelectItem key={c.id} value={String(c.id)}>{c.name}</SelectItem>
                     ))}
                   </SelectContent>
@@ -127,7 +127,7 @@ const UserManagement = () => {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {users.map((u) => (
+                {users.map((u: any) => (
                   <TableRow key={u.id}>
                     <TableCell className="font-medium">{u.name}</TableCell>
                     <TableCell className="text-muted-foreground">{u.email}</TableCell>
