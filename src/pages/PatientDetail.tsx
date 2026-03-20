@@ -365,7 +365,7 @@ const PatientDetail = () => {
               gender={patient.gender}
               onMapClick={handleMapClick}
               selectedLocationId={selectedLocationId}
-              onMarkerClick={(id) => setSelectedLocationId(id)}
+              onMarkerClick={(id) => { setMapClickDialog(null); setSelectedLocationId(id); }}
               classificationFilter={classificationFilter}
               onFilterChange={setClassificationFilter}
               isPlacementMode={!!mapClickDialog}
