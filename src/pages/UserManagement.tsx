@@ -74,6 +74,8 @@ const UserManagement = () => {
       setConfirmPassword("");
       setShowNewPw(false);
       setShowConfirmPw(false);
+    },
+    onError: () => toast.error("Fehler beim Zurücksetzen"),
   });
 
   return (
