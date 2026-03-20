@@ -982,6 +982,70 @@ const PatientDetail = () => {
         </div>
       </div>
 
+      {/* Soft Delete Confirmation */}
+      <AlertDialog open={deleteConfirmId !== null} onOpenChange={(open) => !open && setDeleteConfirmId(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle className="flex items-center gap-2">
+              <AlertTriangle className="h-5 w-5 text-destructive" />
+              Spot in Papierkorb verschieben?
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              {(() => {
+                const loc = locations.find(l => l.id === deleteConfirmId);
+                if (!loc) return "Dieser Spot wird in den Papierkorb verschoben.";
+                return (
+                  <>
+                    <strong>{loc.name || "Dieser Spot"}</strong> wird mit {loc.images?.length ?? 0} Bildern und {loc.findings?.length ?? 0} Befunden in den Papierkorb verschoben. Sie können ihn jederzeit wiederherstellen.
+                  </>
+                );
+              })()}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Abbrechen</AlertDialogCancel>
+            <AlertDialogAction
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              onClick={() => deleteConfirmId && softDeleteMutation.mutate(deleteConfirmId)}
+            >
+              <Trash2 className="mr-1.5 h-4 w-4" />
+              In Papierkorb
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Permanent Delete Confirmation */}
+      <AlertDialog open={permanentDeleteId !== null} onOpenChange={(open) => !open && setPermanentDeleteId(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle className="flex items-center gap-2">
+              <AlertTriangle className="h-5 w-5 text-destructive" />
+              Endgültig löschen?
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              {(() => {
+                const loc = trashedLocations.find(l => l.id === permanentDeleteId);
+                if (!loc) return "Dieser Spot wird unwiderruflich gelöscht.";
+                return (
+                  <>
+                    <strong>{loc.name || "Dieser Spot"}</strong> wird mit allen zugehörigen Bildern und Befunden unwiderruflich gelöscht. Diese Aktion kann nicht rückgängig gemacht werden.
+                  </>
+                );
+              })()}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Abbrechen</AlertDialogCancel>
+            <AlertDialogAction
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              onClick={() => permanentDeleteId && permanentDeleteMutation.mutate(permanentDeleteId)}
+            >
+              Endgültig löschen
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };
