@@ -103,7 +103,7 @@ export const api = {
     x3d?: number; y3d?: number; z3d?: number;
     nx?: number; ny?: number; nz?: number;
   }) =>
-    request<any>(`/patients/${patientId}/locations`, { method: 'POST', body: JSON.stringify(data) }),
+    request<any>('/locations', { method: 'POST', body: JSON.stringify({ patient_id: patientId, ...data }) }),
 
   // Findings
   createFinding: (locationId: number, description: string) =>
