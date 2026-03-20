@@ -941,7 +941,7 @@ function Scene({ markers, selectedLocationId, onMapClick, onMarkerClick, classif
         </SurfaceProjectedGroup>
       )}
 
-      <CameraAnimator preset={preset} disableControls={isDraggingSpot} />
+      <CameraAnimator preset={preset} resetKey={resetCounter} disableControls={isDraggingSpot} />
     </>
   );
 }
