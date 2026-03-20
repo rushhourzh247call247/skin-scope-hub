@@ -1060,7 +1060,7 @@ const BodyMap3D: React.FC<BodyMap3DProps> = (props) => {
         {/* Bottom controls */}
         <div className="absolute bottom-2 left-2 flex items-center gap-1.5">
           <button
-            onClick={() => setActiveRegion("full")}
+            onClick={() => { setActiveRegion("full"); setResetCounter(c => c + 1); if (props.onMarkerClick) props.onMarkerClick(undefined as any); }}
             className="flex h-7 items-center gap-1 rounded-md border border-border/50 bg-card/80 px-2 text-[10px] text-muted-foreground transition-all hover:text-foreground"
           >
             <RotateCcw className="h-3 w-3" /> Reset
