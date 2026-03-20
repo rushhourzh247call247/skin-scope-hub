@@ -32,12 +32,22 @@ interface Marker {
 type Gender = "female" | "male";
 type MarkType = "spot" | "region";
 
+interface PreviewMarker {
+  x: number;
+  y: number;
+  view: "front" | "back";
+  type: "spot" | "region";
+  width?: number;
+  height?: number;
+}
+
 interface BodyMap3DProps {
   markers: Marker[];
   selectedLocationId: number | null;
   gender?: Gender;
   classificationFilter?: LesionClassification[];
   onFilterChange?: (filter: LesionClassification[]) => void;
+  previewMarker?: PreviewMarker | null;
   onMapClick?: (
     x: number,
     y: number,
