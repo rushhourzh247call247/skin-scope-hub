@@ -166,24 +166,21 @@ const PatientDetail = () => {
   const handleCreateLocation = () => {
     if (!mapClickDialog) return;
     const isRegion = mapClickDialog.markType === "region";
-    const finalX = isRegion ? mapClickDialog.x : spotX;
-    const finalY = isRegion ? mapClickDialog.y : spotY;
-    const spotMoved = !isRegion && (spotX !== mapClickDialog.x || spotY !== mapClickDialog.y);
 
     createLocationMutation.mutate({
       name: locationName.trim() || undefined,
-      x: finalX,
-      y: finalY,
+      x: mapClickDialog.x,
+      y: mapClickDialog.y,
       view: mapClickDialog.view,
       type: mapClickDialog.markType || "spot",
       width: isRegion ? regionWidth : undefined,
       height: isRegion ? regionHeight : undefined,
-      x3d: spotMoved ? undefined : mapClickDialog.x3d,
-      y3d: spotMoved ? undefined : mapClickDialog.y3d,
-      z3d: spotMoved ? undefined : mapClickDialog.z3d,
-      nx: spotMoved ? undefined : mapClickDialog.nx,
-      ny: spotMoved ? undefined : mapClickDialog.ny,
-      nz: spotMoved ? undefined : mapClickDialog.nz,
+      x3d: mapClickDialog.x3d,
+      y3d: mapClickDialog.y3d,
+      z3d: mapClickDialog.z3d,
+      nx: mapClickDialog.nx,
+      ny: mapClickDialog.ny,
+      nz: mapClickDialog.nz,
     });
   };
 
