@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { QRCodeSVG } from "qrcode.react";
 import { api } from "@/lib/api";
 import { Button } from "@/components/ui/button";
@@ -60,14 +60,17 @@ const QrUploadDialog = ({
     }
   };
 
-  const handleOpen = (isOpen: boolean) => {
-    if (isOpen && !session && !loading) {
+  useEffect(() => {
+    if (open && !session && !loading && !error) {
       createSession();
     }
-    if (!isOpen) {
+    if (!open) {
       setSession(null);
       setError(null);
     }
+  }, [open]);
+
+  const handleOpen = (isOpen: boolean) => {
     onOpenChange(isOpen);
   };
 
