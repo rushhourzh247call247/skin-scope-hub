@@ -1032,7 +1032,7 @@ const BodyMap3D: React.FC<BodyMap3DProps> = (props) => {
           gl={{ antialias: true, alpha: true, toneMapping: THREE.ACESFilmicToneMapping, toneMappingExposure: 1.2 }}
           shadows
         >
-          <Scene {...props} preset={preset} gender={gender} markMode={markMode} markType={markType} />
+          <Scene {...props} preset={preset} gender={gender} markMode={markMode} markType={markType} resetKey={resetCounter} />
         </Canvas>
 
         {/* Gender indicator */}
