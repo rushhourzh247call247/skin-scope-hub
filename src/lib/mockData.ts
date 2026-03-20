@@ -68,6 +68,9 @@ let locations: (Location & { images: LocationImage[]; findings: Finding[]; class
   ], findings: [] },
 ];
 
+// Trash for soft-deleted locations
+let trashedLocations: typeof locations = [];
+
 let nextId = {
   company: 4,
   user: 4,
