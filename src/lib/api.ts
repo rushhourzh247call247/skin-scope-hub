@@ -1,4 +1,4 @@
-const DEFAULT_API_BASE_URL = 'https://api.derm247.ch/api';
+const DEFAULT_API_BASE_URL = 'http://83.228.246.191:8001/api';
 
 let authToken: string | null = null;
 
