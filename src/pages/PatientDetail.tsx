@@ -158,7 +158,7 @@ const PatientDetail = () => {
     },
   });
 
-  const locations = patient?.locations ?? [];
+  const locations = (patient?.locations ?? []).filter((l: any) => !l.deleted_at);
   const selectedLocation = locations.find((l) => l.id === selectedLocationId);
   const totalImages = locations.reduce((sum, l) => sum + (l.images?.length ?? 0), 0);
 
