@@ -70,6 +70,7 @@ const PatientDetail = () => {
     queryKey: ["full-patient", patientId],
     queryFn: () => api.getFullPatient(patientId),
     enabled: !!patientId,
+    refetchInterval: qrDialogOpen ? 5000 : false,
   });
 
   const createLocationMutation = useMutation({
