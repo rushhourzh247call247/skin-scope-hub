@@ -838,7 +838,7 @@ function Scene({ markers, selectedLocationId, onMapClick, onMarkerClick, classif
         worldNormal ? [worldNormal.x, worldNormal.y, worldNormal.z] : undefined,
       );
     },
-    [onMapClick, markMode, markType],
+    [onMapClick, markMode, markType, isPlacementMode],
   );
 
   const hasFilter = classificationFilter && classificationFilter.length > 0;
