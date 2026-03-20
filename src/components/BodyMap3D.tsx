@@ -910,17 +910,33 @@ const BodyMap3D: React.FC<BodyMap3DProps> = (props) => {
   const [markMode, setMarkMode] = useState(false);
   const [markType, setMarkType] = useState<MarkType>("spot");
   const gender = props.gender ?? "male";
-  const preset = CAMERA_PRESETS[activeRegion];
+
+  // Compute camera preset: zoom into placement area when in placement mode
+  const placementPreset = useMemo<CameraPreset | null>(() => {
+    if (!props.isPlacementMode || !props.previewMarker) return null;
+    const pm = props.previewMarker;
+    const pos3d = coords2Dto3D(pm.x, pm.y, pm.view);
+    const zDir = pm.view === "back" ? -1 : 1;
+    return {
+      position: [pos3d[0] * 0.5, pos3d[1], pos3d[2] + zDir * 1.2] as [number, number, number],
+      target: [pos3d[0] * 0.5, pos3d[1], 0] as [number, number, number],
+      label: "Platzierung",
+      icon: MapPin,
+    };
+  }, [props.isPlacementMode, props.previewMarker?.x, props.previewMarker?.y, props.previewMarker?.view]);
+
+  const preset = placementPreset ?? CAMERA_PRESETS[activeRegion];
 
   return (
     <div className="flex h-full flex-col">
       <div className={cn(
         "relative min-h-[300px] flex-1 overflow-hidden rounded-lg border bg-gradient-to-b from-muted/20 via-muted/40 to-muted/60",
-        markMode && (markType === "region" ? "ring-2 ring-amber-500/50" : "ring-2 ring-primary/50")
+        markMode && (markType === "region" ? "ring-2 ring-amber-500/50" : "ring-2 ring-primary/50"),
+        props.isPlacementMode && "ring-2 ring-green-500/50"
       )}>
         <Canvas
           camera={{ position: preset.position, fov: 40, near: 0.1, far: 100 }}
-          style={{ width: "100%", height: "100%", cursor: markMode ? "crosshair" : "grab" }}
+          style={{ width: "100%", height: "100%", cursor: props.isPlacementMode ? "default" : markMode ? "crosshair" : "grab" }}
           gl={{ antialias: true, alpha: true, toneMapping: THREE.ACESFilmicToneMapping, toneMappingExposure: 1.2 }}
           shadows
         >
