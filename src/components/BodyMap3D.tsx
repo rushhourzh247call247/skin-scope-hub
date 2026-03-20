@@ -967,6 +967,11 @@ const BodyMap3D: React.FC<BodyMap3DProps> = (props) => {
     }
   }, [props.isPlacementMode, props.previewMarker, placementAnchor]);
 
+  // Clear reset flag when a new marker is selected so camera can focus on it
+  useEffect(() => {
+    if (props.selectedLocationId != null) setResetCounter(0);
+  }, [props.selectedLocationId]);
+
   // Compute camera preset once per placement session (not on every drag move)
   const placementPreset = useMemo<CameraPreset | null>(() => {
     if (!props.isPlacementMode || !placementAnchor) return null;
