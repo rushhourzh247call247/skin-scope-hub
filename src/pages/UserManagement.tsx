@@ -9,7 +9,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
-import { UserCog, Plus, Trash2, KeyRound } from "lucide-react";
+import { UserCog, Plus, Trash2, KeyRound, Eye, EyeOff } from "lucide-react";
 import { toast } from "sonner";
 
 const UserManagement = () => {
@@ -27,6 +27,10 @@ const UserManagement = () => {
   // Password reset dialog
   const [resetUser, setResetUser] = useState<{ id: number; name: string } | null>(null);
   const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [showNewPw, setShowNewPw] = useState(false);
+  const [showConfirmPw, setShowConfirmPw] = useState(false);
+  const [showCreatePw, setShowCreatePw] = useState(false);
 
   const { data: users = [], isLoading } = useQuery({
     queryKey: ["users"],
@@ -67,6 +71,9 @@ const UserManagement = () => {
       toast.success("Passwort wurde zurückgesetzt");
       setResetUser(null);
       setNewPassword("");
+      setConfirmPassword("");
+      setShowNewPw(false);
+      setShowConfirmPw(false);
     },
     onError: () => toast.error("Fehler beim Zurücksetzen"),
   });
@@ -95,7 +102,12 @@ const UserManagement = () => {
               </div>
               <div className="space-y-2">
                 <Label htmlFor="user-password">Passwort</Label>
-                <Input id="user-password" type="password" required value={password} onChange={(e) => setPassword(e.target.value)} placeholder="••••••••" />
+                <div className="relative">
+                  <Input id="user-password" type={showCreatePw ? "text" : "password"} required value={password} onChange={(e) => setPassword(e.target.value)} placeholder="••••••••" />
+                  <Button type="button" variant="ghost" size="icon" className="absolute right-0 top-0 h-10 w-10" onClick={() => setShowCreatePw(!showCreatePw)}>
+                    {showCreatePw ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                  </Button>
+                </div>
               </div>
               <div className="space-y-2">
                 <Label>Firma</Label>
@@ -221,6 +233,10 @@ const UserManagement = () => {
           <form
             onSubmit={(e) => {
               e.preventDefault();
+              if (newPassword !== confirmPassword) {
+                toast.error("Passwörter stimmen nicht überein");
+                return;
+              }
               if (resetUser && newPassword.length >= 6) {
                 resetPasswordMutation.mutate({ userId: resetUser.id, password: newPassword });
               }
@@ -229,17 +245,42 @@ const UserManagement = () => {
           >
             <div className="space-y-2">
               <Label htmlFor="new-pw">Neues Passwort</Label>
-              <Input
-                id="new-pw"
-                type="password"
-                required
-                minLength={6}
-                value={newPassword}
-                onChange={(e) => setNewPassword(e.target.value)}
-                placeholder="Min. 6 Zeichen"
-              />
+              <div className="relative">
+                <Input
+                  id="new-pw"
+                  type={showNewPw ? "text" : "password"}
+                  required
+                  minLength={6}
+                  value={newPassword}
+                  onChange={(e) => setNewPassword(e.target.value)}
+                  placeholder="Min. 6 Zeichen"
+                />
+                <Button type="button" variant="ghost" size="icon" className="absolute right-0 top-0 h-10 w-10" onClick={() => setShowNewPw(!showNewPw)}>
+                  {showNewPw ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                </Button>
+              </div>
             </div>
-            <Button type="submit" className="w-full" disabled={resetPasswordMutation.isPending || newPassword.length < 6}>
+            <div className="space-y-2">
+              <Label htmlFor="confirm-pw">Passwort bestätigen</Label>
+              <div className="relative">
+                <Input
+                  id="confirm-pw"
+                  type={showConfirmPw ? "text" : "password"}
+                  required
+                  minLength={6}
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                  placeholder="Passwort wiederholen"
+                />
+                <Button type="button" variant="ghost" size="icon" className="absolute right-0 top-0 h-10 w-10" onClick={() => setShowConfirmPw(!showConfirmPw)}>
+                  {showConfirmPw ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                </Button>
+              </div>
+              {confirmPassword.length > 0 && newPassword !== confirmPassword && (
+                <p className="text-sm text-destructive">Passwörter stimmen nicht überein</p>
+              )}
+            </div>
+            <Button type="submit" className="w-full" disabled={resetPasswordMutation.isPending || newPassword.length < 6 || newPassword !== confirmPassword}>
               {resetPasswordMutation.isPending ? "Setze zurück…" : "Passwort zurücksetzen"}
             </Button>
           </form>
