@@ -43,7 +43,8 @@ const MobileUpload = () => {
   const [session, setSession] = useState<SessionState>({ status: "loading" });
   const [photos, setPhotos] = useState<UploadedPhoto[]>([]);
   const [completing, setCompleting] = useState(false);
-  const fileInputRef = useRef<HTMLInputElement>(null);
+  const cameraInputRef = useRef<HTMLInputElement>(null);
+  const galleryInputRef = useRef<HTMLInputElement>(null);
   const orderRef = useRef(0);
 
   // Validate token on mount
