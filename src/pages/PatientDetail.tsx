@@ -142,6 +142,27 @@ const PatientDetail = () => {
     });
   };
 
+  const handlePreviewMove = (
+    x: number,
+    y: number,
+    view: "front" | "back",
+    point3d: [number, number, number],
+    normal3d: [number, number, number],
+  ) => {
+    setSpotX(x);
+    setSpotY(y);
+    setMapClickDialog((prev) => prev ? {
+      ...prev,
+      x, y, view,
+      x3d: point3d[0],
+      y3d: point3d[1],
+      z3d: point3d[2],
+      nx: normal3d[0],
+      ny: normal3d[1],
+      nz: normal3d[2],
+    } : null);
+  };
+
   const handleCreateLocation = () => {
     if (!mapClickDialog) return;
     const isRegion = mapClickDialog.markType === "region";
