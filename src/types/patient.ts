@@ -36,10 +36,18 @@ export interface Patient {
   updated_at?: string;
 }
 
+export interface AiAnalysis {
+  result: string;
+  risk: string;
+  created_at: string;
+}
+
 export interface LocationImage {
   id: number;
   location_id: number;
   image_path: string;
+  note?: string;
+  ai_analysis?: AiAnalysis;
   created_at?: string;
   updated_at?: string;
 }
