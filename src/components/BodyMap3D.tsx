@@ -39,6 +39,12 @@ interface PreviewMarker {
   type: "spot" | "region";
   width?: number;
   height?: number;
+  x3d?: number;
+  y3d?: number;
+  z3d?: number;
+  nx?: number;
+  ny?: number;
+  nz?: number;
 }
 
 interface BodyMap3DProps {
@@ -48,6 +54,14 @@ interface BodyMap3DProps {
   classificationFilter?: LesionClassification[];
   onFilterChange?: (filter: LesionClassification[]) => void;
   previewMarker?: PreviewMarker | null;
+  isPlacementMode?: boolean;
+  onPreviewMove?: (
+    x: number,
+    y: number,
+    view: "front" | "back",
+    point3d: [number, number, number],
+    normal3d: [number, number, number],
+  ) => void;
   onMapClick?: (
     x: number,
     y: number,
@@ -562,7 +576,7 @@ const SurfaceProjectedGroup = React.forwardRef<THREE.Group, SurfaceProjectedGrou
 });
 
 /* ─── Camera Animator: animate to preset only, then free interaction ─── */
-function CameraAnimator({ preset }: { preset: Pick<CameraPreset, "position" | "target"> }) {
+function CameraAnimator({ preset, disableControls }: { preset: Pick<CameraPreset, "position" | "target">; disableControls?: boolean }) {
   const { camera } = useThree();
   const controlsRef = useRef<any>(null);
   const targetPositionRef = useRef(new THREE.Vector3(...preset.position));
@@ -599,9 +613,9 @@ function CameraAnimator({ preset }: { preset: Pick<CameraPreset, "position" | "t
   return (
     <OrbitControls
       ref={controlsRef}
-      enablePan
+      enablePan={!disableControls}
       enableZoom
-      enableRotate
+      enableRotate={!disableControls}
       enableDamping
       dampingFactor={0.08}
       rotateSpeed={0.9}
@@ -611,6 +625,142 @@ function CameraAnimator({ preset }: { preset: Pick<CameraPreset, "position" | "t
       minPolarAngle={0}
       maxPolarAngle={Math.PI}
     />
+  );
+}
+
+/* ─── Draggable Spot Preview: drag directly on body surface ─── */
+function DraggableSpotPreview({
+  initialPosition,
+  view,
+  storedPosition,
+  storedNormal,
+  onMove,
+}: {
+  initialPosition: [number, number, number];
+  view: "front" | "back";
+  storedPosition?: [number, number, number];
+  storedNormal?: [number, number, number];
+  onMove?: (x: number, y: number, view: "front" | "back", point3d: [number, number, number], normal3d: [number, number, number]) => void;
+}) {
+  const { scene, camera, raycaster, pointer, gl } = useThree();
+  const groupRef = useRef<THREE.Group>(null);
+  const [isDragging, setIsDragging] = useState(false);
+  const [hovered, setHovered] = useState(false);
+  const projectedRef = useRef(false);
+  const normalRef = useRef(new THREE.Vector3(0, 0, 1));
+
+  // Initial projection to body surface
+  useFrame(() => {
+    if (!groupRef.current) return;
+
+    if (!projectedRef.current) {
+      if (storedPosition) {
+        groupRef.current.position.set(...storedPosition);
+        if (storedNormal) {
+          const normal = new THREE.Vector3(...storedNormal).normalize();
+          normalRef.current.copy(normal);
+          groupRef.current.position.addScaledVector(normal, 0.003);
+        }
+        projectedRef.current = true;
+      } else {
+        const projected = projectMarkerToBody(scene, initialPosition, view);
+        if (!projected) {
+          groupRef.current.position.set(...initialPosition);
+          return;
+        }
+        normalRef.current.copy(projected.normal);
+        groupRef.current.position.copy(projected.point).addScaledVector(projected.normal, 0.003);
+        projectedRef.current = true;
+      }
+    }
+
+    // During drag: raycast from pointer to body
+    if (isDragging) {
+      raycaster.setFromCamera(pointer, camera);
+      const bodyMeshes: THREE.Mesh[] = [];
+      scene.traverse((child) => {
+        if ((child as THREE.Mesh).isMesh && (child as THREE.Mesh).userData?.isBodyMesh) {
+          bodyMeshes.push(child as THREE.Mesh);
+        }
+      });
+      const hits = raycaster.intersectObjects(bodyMeshes, true);
+      if (hits.length > 0) {
+        const hit = hits[0];
+        const normal = hit.face
+          ? hit.face.normal.clone().transformDirection(hit.object.matrixWorld).normalize()
+          : normalRef.current.clone();
+        normalRef.current.copy(normal);
+        groupRef.current.position.copy(hit.point).addScaledVector(normal, 0.003);
+        const { x, y, view: hitView } = pointTo2D(hit.point);
+        onMove?.(x, y, hitView, [hit.point.x, hit.point.y, hit.point.z], [normal.x, normal.y, normal.z]);
+      }
+    }
+
+    // Pulse animation
+    const scale = isDragging ? 1.3 : hovered ? 1.2 : 1 + Math.sin(Date.now() * 0.004) * 0.1;
+    groupRef.current.scale.setScalar(scale);
+  });
+
+  useEffect(() => {
+    projectedRef.current = false;
+  }, [initialPosition[0], initialPosition[1], initialPosition[2], view, storedPosition?.[0], storedPosition?.[1], storedPosition?.[2]]);
+
+  // Global pointer up listener
+  useEffect(() => {
+    if (!isDragging) return;
+    const handleUp = () => setIsDragging(false);
+    gl.domElement.addEventListener("pointerup", handleUp);
+    gl.domElement.style.cursor = "grabbing";
+    return () => {
+      gl.domElement.removeEventListener("pointerup", handleUp);
+      gl.domElement.style.cursor = "";
+    };
+  }, [isDragging, gl]);
+
+  return (
+    <group ref={groupRef}>
+      <group
+        onPointerDown={(e) => {
+          e.stopPropagation();
+          setIsDragging(true);
+        }}
+        onPointerOver={() => { setHovered(true); gl.domElement.style.cursor = "grab"; }}
+        onPointerOut={() => { setHovered(false); if (!isDragging) gl.domElement.style.cursor = ""; }}
+      >
+        {/* Outer glow ring */}
+        <mesh>
+          <ringGeometry args={[0.038, 0.05, 48]} />
+          <meshBasicMaterial color="#22c55e" transparent opacity={isDragging ? 0.6 : 0.3} side={THREE.DoubleSide} depthTest={false} />
+        </mesh>
+        {/* Main ring */}
+        <mesh>
+          <ringGeometry args={[0.028, 0.038, 48]} />
+          <meshBasicMaterial color="#22c55e" transparent opacity={0.9} side={THREE.DoubleSide} depthTest={false} />
+        </mesh>
+        {/* Center dot */}
+        <mesh>
+          <circleGeometry args={[0.008, 16]} />
+          <meshBasicMaterial color="#22c55e" transparent opacity={0.8} side={THREE.DoubleSide} depthTest={false} />
+        </mesh>
+        {/* Large invisible click target */}
+        <mesh>
+          <circleGeometry args={[0.07, 16]} />
+          <meshBasicMaterial transparent opacity={0} side={THREE.DoubleSide} depthTest={false} />
+        </mesh>
+      </group>
+
+      {/* Label */}
+      <Html position={[0, 0.065, 0]} center style={{ pointerEvents: "none" }}>
+        <div className={cn(
+          "rounded-lg border px-2.5 py-1 shadow-lg whitespace-nowrap backdrop-blur-sm text-[10px] font-semibold",
+          isDragging
+            ? "bg-green-500 text-white border-green-400"
+            : "bg-card/90 text-foreground border-border/50"
+        )}>
+          {isDragging ? "Loslassen zum Platzieren" : "Ziehen zum Verschieben"}
+        </div>
+      </Html>
+    </group>
   );
 }
 
@@ -627,7 +777,7 @@ function LoadingFallback() {
 }
 
 /* ─── Scene ─── */
-function Scene({ markers, selectedLocationId, onMapClick, onMarkerClick, classificationFilter, previewMarker, preset, gender, markMode, markType }: BodyMap3DProps & { preset: CameraPreset; gender: Gender; markMode: boolean; markType: MarkType }) {
+function Scene({ markers, selectedLocationId, onMapClick, onMarkerClick, classificationFilter, previewMarker, isPlacementMode, onPreviewMove, preset, gender, markMode, markType }: BodyMap3DProps & { preset: CameraPreset; gender: Gender; markMode: boolean; markType: MarkType }) {
   const handleBodyClick = useCallback(
     (e: ThreeEvent<MouseEvent>) => {
       if (!markMode) return;
@@ -720,22 +870,18 @@ function Scene({ markers, selectedLocationId, onMapClick, onMarkerClick, classif
         </SurfaceProjectedGroup>
       ))}
 
-      {/* Preview marker for spot/region placement */}
+      {/* Draggable preview marker for spot placement */}
       {previewMarker && previewMarker.type === "spot" && (
-        <SurfaceProjectedGroup
-          key={`preview-spot-${previewMarker.x}-${previewMarker.y}-${previewMarker.view}`}
-          approxPosition={coords2Dto3D(previewMarker.x, previewMarker.y, previewMarker.view)}
+        <DraggableSpotPreview
+          initialPosition={coords2Dto3D(previewMarker.x, previewMarker.y, previewMarker.view)}
           view={previewMarker.view}
-        >
-          <SpotMarker
-            position={[0, 0, 0]}
-            name="Neuer Spot"
-            isSelected={true}
-            onClick={() => {}}
-            classificationColor="#22c55e"
-          />
-        </SurfaceProjectedGroup>
+          storedPosition={previewMarker.x3d !== undefined && previewMarker.y3d !== undefined && previewMarker.z3d !== undefined ? [previewMarker.x3d, previewMarker.y3d, previewMarker.z3d] : undefined}
+          storedNormal={previewMarker.nx !== undefined && previewMarker.ny !== undefined && previewMarker.nz !== undefined ? [previewMarker.nx, previewMarker.ny, previewMarker.nz] : undefined}
+          onMove={onPreviewMove}
+        />
       )}
+
+      {/* Region preview (not draggable, uses size sliders) */}
       {previewMarker && previewMarker.type === "region" && (
         <SurfaceProjectedGroup
           key={`preview-region-${previewMarker.x}-${previewMarker.y}-${previewMarker.view}`}
@@ -753,7 +899,7 @@ function Scene({ markers, selectedLocationId, onMapClick, onMarkerClick, classif
         </SurfaceProjectedGroup>
       )}
 
-      <CameraAnimator preset={preset} />
+      <CameraAnimator preset={preset} disableControls={false} />
     </>
   );
 }
@@ -764,17 +910,33 @@ const BodyMap3D: React.FC<BodyMap3DProps> = (props) => {
   const [markMode, setMarkMode] = useState(false);
   const [markType, setMarkType] = useState<MarkType>("spot");
   const gender = props.gender ?? "male";
-  const preset = CAMERA_PRESETS[activeRegion];
+
+  // Compute camera preset: zoom into placement area when in placement mode
+  const placementPreset = useMemo<CameraPreset | null>(() => {
+    if (!props.isPlacementMode || !props.previewMarker) return null;
+    const pm = props.previewMarker;
+    const pos3d = coords2Dto3D(pm.x, pm.y, pm.view);
+    const zDir = pm.view === "back" ? -1 : 1;
+    return {
+      position: [pos3d[0] * 0.5, pos3d[1], pos3d[2] + zDir * 1.2] as [number, number, number],
+      target: [pos3d[0] * 0.5, pos3d[1], 0] as [number, number, number],
+      label: "Platzierung",
+      icon: MapPin,
+    };
+  }, [props.isPlacementMode, props.previewMarker?.x, props.previewMarker?.y, props.previewMarker?.view]);
+
+  const preset = placementPreset ?? CAMERA_PRESETS[activeRegion];
 
   return (
     <div className="flex h-full flex-col">
       <div className={cn(
         "relative min-h-[300px] flex-1 overflow-hidden rounded-lg border bg-gradient-to-b from-muted/20 via-muted/40 to-muted/60",
-        markMode && (markType === "region" ? "ring-2 ring-amber-500/50" : "ring-2 ring-primary/50")
+        markMode && (markType === "region" ? "ring-2 ring-amber-500/50" : "ring-2 ring-primary/50"),
+        props.isPlacementMode && "ring-2 ring-green-500/50"
       )}>
         <Canvas
           camera={{ position: preset.position, fov: 40, near: 0.1, far: 100 }}
-          style={{ width: "100%", height: "100%", cursor: markMode ? "crosshair" : "grab" }}
+          style={{ width: "100%", height: "100%", cursor: props.isPlacementMode ? "default" : markMode ? "crosshair" : "grab" }}
           gl={{ antialias: true, alpha: true, toneMapping: THREE.ACESFilmicToneMapping, toneMappingExposure: 1.2 }}
           shadows
         >
