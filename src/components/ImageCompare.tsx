@@ -6,7 +6,7 @@ import { ArrowLeft, Calendar, Check, GitCompareArrows, RotateCcw, ZoomIn, Layers
 import { Button } from "@/components/ui/button";
 import { Slider } from "@/components/ui/slider";
 import { Textarea } from "@/components/ui/textarea";
-import { mockApi } from "@/lib/mockData";
+import { api } from "@/lib/api";
 import { cn } from "@/lib/utils";
 import { motion, AnimatePresence } from "framer-motion";
 import AiAnalysisResult from "@/components/AiAnalysisResult";
@@ -48,14 +48,14 @@ const ImageCompare = ({ images, locationName, onClose }: ImageCompareProps) => {
     setNoteValues(prev => ({ ...prev, [imageId]: value }));
     if (debounceTimers.current[imageId]) clearTimeout(debounceTimers.current[imageId]);
     debounceTimers.current[imageId] = setTimeout(() => {
-      mockApi.updateImageNote(imageId, value);
+      api.updateImageNote(imageId, value);
     }, 800);
   }, []);
 
   const handleAnalyze = useCallback(async (imageId: number) => {
     setAnalyzingIds(prev => new Set(prev).add(imageId));
     try {
-      const result = await mockApi.analyzeImage(imageId);
+      const result = await api.analyzeImage(imageId);
       setAiResults(prev => ({ ...prev, [imageId]: result }));
     } finally {
       setAnalyzingIds(prev => { const next = new Set(prev); next.delete(imageId); return next; });
@@ -154,7 +154,7 @@ const ImageCompare = ({ images, locationName, onClose }: ImageCompareProps) => {
                   >
                     <div className="relative h-16 w-16 shrink-0 overflow-hidden rounded-full border-2 border-border shadow-sm">
                       <img
-                        src={mockApi.getImageUrl(img.image_path)}
+                        src={api.getImageUrl(img.image_path)}
                         alt={`Aufnahme #${img.id}`}
                         className="h-full w-full object-cover"
                       />
@@ -258,7 +258,7 @@ const ImageCompare = ({ images, locationName, onClose }: ImageCompareProps) => {
                 {compareImages.map((img, i) => (
                   <div key={img.id} className="space-y-2">
                     <div className="relative overflow-hidden rounded-lg border aspect-square bg-muted">
-                      <img src={mockApi.getImageUrl(img.image_path)} alt={`Vergleich ${i + 1}`} className="h-full w-full object-contain" />
+                      <img src={api.getImageUrl(img.image_path)} alt={`Vergleich ${i + 1}`} className="h-full w-full object-contain" />
                       <div className={cn(
                         "absolute top-2 left-2 flex h-6 w-6 items-center justify-center rounded-full text-xs font-bold",
                         i === 0 ? "bg-primary text-primary-foreground" : "bg-accent text-accent-foreground"
@@ -278,13 +278,13 @@ const ImageCompare = ({ images, locationName, onClose }: ImageCompareProps) => {
                 <div className="relative overflow-hidden rounded-lg border aspect-square bg-muted">
                   {/* Base image (older) */}
                   <img
-                    src={mockApi.getImageUrl(compareImages[0].image_path)}
+                    src={api.getImageUrl(compareImages[0].image_path)}
                     alt="Ältere Aufnahme"
                     className="absolute inset-0 h-full w-full object-contain"
                   />
                   {/* Overlay image (newer) with adjustable opacity */}
                   <img
-                    src={mockApi.getImageUrl(compareImages[1].image_path)}
+                    src={api.getImageUrl(compareImages[1].image_path)}
                     alt="Neuere Aufnahme"
                     className="absolute inset-0 h-full w-full object-contain"
                     style={{
@@ -429,7 +429,7 @@ const ImageCompare = ({ images, locationName, onClose }: ImageCompareProps) => {
         <DialogContent className="max-w-2xl p-2">
           {zoomedImage && (
             <div className="space-y-2">
-              <img src={mockApi.getImageUrl(zoomedImage.image_path)} alt="Vergrössert" className="w-full rounded-md object-contain" />
+              <img src={api.getImageUrl(zoomedImage.image_path)} alt="Vergrössert" className="w-full rounded-md object-contain" />
               <p className="text-center text-xs text-muted-foreground tabular-nums">
                 {zoomedImage.created_at ? format(new Date(zoomedImage.created_at), "dd. MMMM yyyy, HH:mm", { locale: de }) : "–"}
               </p>

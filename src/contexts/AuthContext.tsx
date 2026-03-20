@@ -1,5 +1,5 @@
 import { createContext, useContext, useState, useCallback, useEffect, type ReactNode } from "react";
-import { mockApi } from "@/lib/mockData";
+import { api } from "@/lib/api";
 
 interface User {
   id: number;
@@ -32,15 +32,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     if (savedToken && savedUser) {
       setToken(savedToken);
       setUser(JSON.parse(savedUser));
+      api.setToken(savedToken);
     }
     setIsLoading(false);
   }, []);
 
   const login = useCallback(async (email: string, password: string) => {
-    const res = await mockApi.login({ email, password });
+    const res = await api.login({ email, password });
     const { user: u, token: t } = res;
     setUser(u);
     setToken(t);
+    api.setToken(t);
     sessionStorage.setItem("auth_token", t);
     sessionStorage.setItem("auth_user", JSON.stringify(u));
   }, []);
@@ -48,6 +50,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const logout = useCallback(() => {
     setUser(null);
     setToken(null);
+    api.setToken(null);
     sessionStorage.removeItem("auth_token");
     sessionStorage.removeItem("auth_user");
   }, []);

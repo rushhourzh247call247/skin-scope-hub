@@ -1,6 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useParams, useNavigate } from "react-router-dom";
-import { mockApi } from "@/lib/mockData";
+import { api } from "@/lib/api";
 import type { FullPatient, LesionClassification } from "@/types/patient";
 import { LESION_CLASSIFICATIONS } from "@/types/patient";
 import { useState } from "react";
@@ -67,7 +67,7 @@ const PatientDetail = () => {
 
   const { data: patient, isLoading, error } = useQuery({
     queryKey: ["full-patient", patientId],
-    queryFn: () => mockApi.getFullPatient(patientId),
+    queryFn: () => api.getFullPatient(patientId),
     enabled: !!patientId,
   });
 
@@ -86,7 +86,7 @@ const PatientDetail = () => {
       nx?: number;
       ny?: number;
       nz?: number;
-    }) => mockApi.createLocation(patientId, loc),
+    }) => api.createLocation(patientId, loc),
     onSuccess: (newLoc) => {
       queryClient.invalidateQueries({ queryKey: ["full-patient", patientId] });
       setMapClickDialog(null);
@@ -97,7 +97,7 @@ const PatientDetail = () => {
 
   const createFindingMutation = useMutation({
     mutationFn: ({ locationId, description }: { locationId: number; description: string }) =>
-      mockApi.createFinding(locationId, description),
+      api.createFinding(locationId, description),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["full-patient", patientId] });
       setNewFindingText("");
@@ -106,7 +106,7 @@ const PatientDetail = () => {
 
   const updateFindingMutation = useMutation({
     mutationFn: ({ findingId, description }: { findingId: number; description: string }) =>
-      mockApi.updateFinding(findingId, description),
+      api.updateFinding(findingId, description),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["full-patient", patientId] });
       setEditingFindingId(null);
@@ -115,24 +115,24 @@ const PatientDetail = () => {
   });
 
   const deleteFindingMutation = useMutation({
-    mutationFn: (findingId: number) => mockApi.deleteFinding(findingId),
+    mutationFn: (findingId: number) => api.deleteFinding(findingId),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ["full-patient", patientId] }),
   });
 
   const classifyMutation = useMutation({
     mutationFn: ({ locationId, classification }: { locationId: number; classification: LesionClassification }) =>
-      mockApi.updateClassification(locationId, classification),
+      api.updateClassification(locationId, classification),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ["full-patient", patientId] }),
   });
 
   const { data: trashedLocations = [] } = useQuery({
     queryKey: ["trashed-locations", patientId],
-    queryFn: () => mockApi.getTrashedLocations(patientId),
+    queryFn: () => api.getTrashedLocations(patientId),
     enabled: !!patientId,
   });
 
   const softDeleteMutation = useMutation({
-    mutationFn: (locationId: number) => mockApi.softDeleteLocation(locationId),
+    mutationFn: (locationId: number) => api.softDeleteLocation(locationId),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["full-patient", patientId] });
       queryClient.invalidateQueries({ queryKey: ["trashed-locations", patientId] });
@@ -142,7 +142,7 @@ const PatientDetail = () => {
   });
 
   const restoreMutation = useMutation({
-    mutationFn: (locationId: number) => mockApi.restoreLocation(locationId),
+    mutationFn: (locationId: number) => api.restoreLocation(locationId),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["full-patient", patientId] });
       queryClient.invalidateQueries({ queryKey: ["trashed-locations", patientId] });
@@ -150,7 +150,7 @@ const PatientDetail = () => {
   });
 
   const permanentDeleteMutation = useMutation({
-    mutationFn: (locationId: number) => mockApi.permanentDeleteLocation(locationId),
+    mutationFn: (locationId: number) => api.permanentDeleteLocation(locationId),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["trashed-locations", patientId] });
       setPermanentDeleteId(null);
@@ -627,7 +627,7 @@ const PatientDetail = () => {
                               >
                                 <div className="aspect-square">
                                   <img
-                                    src={mockApi.getImageUrl(img.image_path)}
+                                    src={api.getImageUrl(img.image_path)}
                                     alt={`${locName} – Aufnahme`}
                                     className="h-full w-full object-cover"
                                     loading="lazy"
@@ -714,7 +714,7 @@ const PatientDetail = () => {
                             {ev.detail && <p className="text-sm text-muted-foreground">{ev.detail}</p>}
                             {ev.imagePath && (
                               <img
-                                src={mockApi.getImageUrl(ev.imagePath)}
+                                src={api.getImageUrl(ev.imagePath)}
                                 alt="Aufnahme"
                                 className="h-24 w-20 rounded object-cover border mt-1"
                                 loading="lazy"
@@ -848,7 +848,7 @@ const PatientDetail = () => {
                             <div className="space-y-2">
                               <div className="relative overflow-hidden rounded-lg border aspect-[3/4] bg-muted">
                                 <img
-                                  src={mockApi.getImageUrl(oldest.image_path)}
+                                  src={api.getImageUrl(oldest.image_path)}
                                   alt="Ältere Aufnahme"
                                   className="h-full w-full object-cover"
                                 />
@@ -863,7 +863,7 @@ const PatientDetail = () => {
                             <div className="space-y-2">
                               <div className="relative overflow-hidden rounded-lg border aspect-[3/4] bg-muted">
                                 <img
-                                  src={mockApi.getImageUrl(newest.image_path)}
+                                  src={api.getImageUrl(newest.image_path)}
                                   alt="Neuere Aufnahme"
                                   className="h-full w-full object-cover"
                                 />

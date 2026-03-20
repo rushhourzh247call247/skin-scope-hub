@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { mockApi } from "@/lib/mockData";
+import { api } from "@/lib/api";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -24,7 +24,8 @@ const NewPatient = () => {
   const [notes, setNotes] = useState("");
 
   const createMutation = useMutation({
-    mutationFn: (data: Parameters<typeof mockApi.createPatient>[0]) => mockApi.createPatient(data),
+    mutationFn: (data: { name: string; birth_date: string; gender?: string; email?: string; phone?: string; insurance_number?: string; notes?: string }) =>
+      api.createPatient(data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["patients"] });
       queryClient.invalidateQueries({ queryKey: ["dashboard-stats"] });
