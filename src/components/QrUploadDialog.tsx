@@ -69,8 +69,27 @@ const QrUploadDialog = ({
     if (!open) {
       setSession(null);
       setError(null);
+      setExpiresIn(null);
     }
   }, [open]);
+
+  // Live countdown for expiry
+  useEffect(() => {
+    if (!session?.expires_at) {
+      // If no expires_at from API, show ~30 min default
+      if (session && !session.expires_at) {
+        setExpiresIn(30);
+      }
+      return;
+    }
+    const update = () => {
+      const mins = Math.max(0, Math.round((new Date(session.expires_at).getTime() - Date.now()) / 60000));
+      setExpiresIn(mins);
+    };
+    update();
+    const interval = setInterval(update, 30000);
+    return () => clearInterval(interval);
+  }, [session?.expires_at]);
 
   const handleOpen = (isOpen: boolean) => {
     onOpenChange(isOpen);
