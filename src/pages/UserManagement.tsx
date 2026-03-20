@@ -8,7 +8,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { UserCog, Plus, Trash2 } from "lucide-react";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
+import { UserCog, Plus, Trash2, KeyRound } from "lucide-react";
 import { toast } from "sonner";
 
 const UserManagement = () => {
@@ -19,6 +20,13 @@ const UserManagement = () => {
   const [password, setPassword] = useState("");
   const [companyId, setCompanyId] = useState("");
   const [role, setRole] = useState("user");
+
+  // Delete confirm
+  const [deleteUserId, setDeleteUserId] = useState<number | null>(null);
+
+  // Password reset dialog
+  const [resetUser, setResetUser] = useState<{ id: number; name: string } | null>(null);
+  const [newPassword, setNewPassword] = useState("");
 
   const { data: users = [], isLoading } = useQuery({
     queryKey: ["users"],
@@ -39,6 +47,7 @@ const UserManagement = () => {
       setName(""); setEmail(""); setPassword(""); setCompanyId(""); setRole("user");
       setDialogOpen(false);
     },
+    onError: () => toast.error("Fehler beim Erstellen"),
   });
 
   const deleteMutation = useMutation({
@@ -46,7 +55,20 @@ const UserManagement = () => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["users"] });
       toast.success("Benutzer gelöscht");
+      setDeleteUserId(null);
     },
+    onError: () => toast.error("Fehler beim Löschen"),
+  });
+
+  const resetPasswordMutation = useMutation({
+    mutationFn: ({ userId, password }: { userId: number; password: string }) =>
+      api.adminResetPassword(userId, password),
+    onSuccess: () => {
+      toast.success("Passwort wurde zurückgesetzt");
+      setResetUser(null);
+      setNewPassword("");
+    },
+    onError: () => toast.error("Fehler beim Zurücksetzen"),
   });
 
   return (
@@ -54,7 +76,7 @@ const UserManagement = () => {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold text-foreground">Benutzer</h1>
-          <p className="text-sm text-muted-foreground">Benutzer erstellen und verwalten</p>
+          <p className="text-sm text-muted-foreground">Benutzer erstellen, verwalten und Passwörter zurücksetzen</p>
         </div>
         <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
           <DialogTrigger asChild>
@@ -123,7 +145,7 @@ const UserManagement = () => {
                   <TableHead>E-Mail</TableHead>
                   <TableHead>Firma</TableHead>
                   <TableHead>Rolle</TableHead>
-                  <TableHead className="w-[80px]">Aktion</TableHead>
+                  <TableHead className="w-[120px] text-right">Aktionen</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -137,10 +159,26 @@ const UserManagement = () => {
                         {u.role === "admin" ? "Admin" : "Benutzer"}
                       </span>
                     </TableCell>
-                    <TableCell>
-                      <Button variant="ghost" size="icon" onClick={() => deleteMutation.mutate(u.id)} className="text-destructive hover:text-destructive">
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
+                    <TableCell className="text-right">
+                      <div className="flex justify-end gap-1">
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          title="Passwort zurücksetzen"
+                          onClick={() => { setResetUser({ id: u.id, name: u.name }); setNewPassword(""); }}
+                        >
+                          <KeyRound className="h-4 w-4" />
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="text-destructive hover:text-destructive"
+                          title="Benutzer löschen"
+                          onClick={() => setDeleteUserId(u.id)}
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </div>
                     </TableCell>
                   </TableRow>
                 ))}
@@ -149,6 +187,64 @@ const UserManagement = () => {
           )}
         </CardContent>
       </Card>
+
+      {/* Delete Confirmation */}
+      <AlertDialog open={deleteUserId !== null} onOpenChange={(open) => !open && setDeleteUserId(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Benutzer löschen?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Dieser Benutzer wird unwiderruflich gelöscht. Diese Aktion kann nicht rückgängig gemacht werden.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Abbrechen</AlertDialogCancel>
+            <AlertDialogAction
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              onClick={() => deleteUserId && deleteMutation.mutate(deleteUserId)}
+            >
+              Löschen
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Password Reset Dialog */}
+      <Dialog open={resetUser !== null} onOpenChange={(open) => !open && setResetUser(null)}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Passwort zurücksetzen</DialogTitle>
+          </DialogHeader>
+          <p className="text-sm text-muted-foreground">
+            Neues Passwort für <span className="font-semibold text-foreground">{resetUser?.name}</span> festlegen:
+          </p>
+          <form
+            onSubmit={(e) => {
+              e.preventDefault();
+              if (resetUser && newPassword.length >= 6) {
+                resetPasswordMutation.mutate({ userId: resetUser.id, password: newPassword });
+              }
+            }}
+            className="space-y-4"
+          >
+            <div className="space-y-2">
+              <Label htmlFor="new-pw">Neues Passwort</Label>
+              <Input
+                id="new-pw"
+                type="password"
+                required
+                minLength={6}
+                value={newPassword}
+                onChange={(e) => setNewPassword(e.target.value)}
+                placeholder="Min. 6 Zeichen"
+              />
+            </div>
+            <Button type="submit" className="w-full" disabled={resetPasswordMutation.isPending || newPassword.length < 6}>
+              {resetPasswordMutation.isPending ? "Setze zurück…" : "Passwort zurücksetzen"}
+            </Button>
+          </form>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
