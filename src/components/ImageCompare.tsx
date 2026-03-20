@@ -119,7 +119,7 @@ const ImageCompare = ({ images, locationName, onClose }: ImageCompareProps) => {
                       : "border-border bg-card hover:bg-muted/50"
                   )}
                 >
-                  <div className="relative h-16 w-16 shrink-0 overflow-hidden rounded-md border">
+                  <div className="relative h-16 w-16 shrink-0 overflow-hidden rounded-full border-2 border-border shadow-sm">
                     <img
                       src={mockApi.getImageUrl(img.image_path)}
                       alt={`Aufnahme #${img.id}`}
