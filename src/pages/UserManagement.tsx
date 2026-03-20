@@ -102,7 +102,12 @@ const UserManagement = () => {
               </div>
               <div className="space-y-2">
                 <Label htmlFor="user-password">Passwort</Label>
-                <Input id="user-password" type="password" required value={password} onChange={(e) => setPassword(e.target.value)} placeholder="••••••••" />
+                <div className="relative">
+                  <Input id="user-password" type={showCreatePw ? "text" : "password"} required value={password} onChange={(e) => setPassword(e.target.value)} placeholder="••••••••" />
+                  <Button type="button" variant="ghost" size="icon" className="absolute right-0 top-0 h-10 w-10" onClick={() => setShowCreatePw(!showCreatePw)}>
+                    {showCreatePw ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                  </Button>
+                </div>
               </div>
               <div className="space-y-2">
                 <Label>Firma</Label>
