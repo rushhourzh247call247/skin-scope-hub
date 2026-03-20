@@ -171,6 +171,34 @@ const MobileUpload = () => {
     setPhotos((prev) => prev.filter((p) => p.order !== order));
   }, [photos]);
 
+  const retryFailedUploads = useCallback(async () => {
+    if (!token || session.status !== "active") return;
+    const failed = photos.filter((p) => p.error);
+    for (const photo of failed) {
+      setPhotos((prev) =>
+        prev.map((p) => (p.order === photo.order ? { ...p, uploading: true, error: undefined } : p))
+      );
+      try {
+        const result = await api.uploadSessionImage(token, photo.file, photo.order);
+        setPhotos((prev) =>
+          prev.map((p) =>
+            p.order === photo.order
+              ? { ...p, uploading: false, uploaded: true, id: result.id, created_at: result.created_at, image_url: result.image_url }
+              : p
+          )
+        );
+      } catch (err: any) {
+        setPhotos((prev) =>
+          prev.map((p) =>
+            p.order === photo.order
+              ? { ...p, uploading: false, error: err.message || "Upload fehlgeschlagen" }
+              : p
+          )
+        );
+      }
+    }
+  }, [token, session, photos]);
+
   const handleComplete = async () => {
     if (!token) return;
     setCompleting(true);
