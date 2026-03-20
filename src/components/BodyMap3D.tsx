@@ -949,6 +949,7 @@ function Scene({ markers, selectedLocationId, onMapClick, onMarkerClick, classif
 /* ─── Main Component ─── */
 const BodyMap3D: React.FC<BodyMap3DProps> = (props) => {
   const [activeRegion, setActiveRegion] = useState<Region>("full");
+  const [resetCounter, setResetCounter] = useState(0);
   const [markMode, setMarkMode] = useState(false);
   const [markType, setMarkType] = useState<MarkType>("spot");
   const [placementAnchor, setPlacementAnchor] = useState<{ x: number; y: number; view: "front" | "back" } | null>(null);
