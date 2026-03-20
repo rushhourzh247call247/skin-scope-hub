@@ -720,6 +720,39 @@ function Scene({ markers, selectedLocationId, onMapClick, onMarkerClick, classif
         </SurfaceProjectedGroup>
       ))}
 
+      {/* Preview marker for spot/region placement */}
+      {previewMarker && previewMarker.type === "spot" && (
+        <SurfaceProjectedGroup
+          key={`preview-spot-${previewMarker.x}-${previewMarker.y}-${previewMarker.view}`}
+          approxPosition={coords2Dto3D(previewMarker.x, previewMarker.y, previewMarker.view)}
+          view={previewMarker.view}
+        >
+          <SpotMarker
+            position={[0, 0, 0]}
+            name="Neuer Spot"
+            isSelected={true}
+            onClick={() => {}}
+            classificationColor="#22c55e"
+          />
+        </SurfaceProjectedGroup>
+      )}
+      {previewMarker && previewMarker.type === "region" && (
+        <SurfaceProjectedGroup
+          key={`preview-region-${previewMarker.x}-${previewMarker.y}-${previewMarker.view}`}
+          approxPosition={coords2Dto3D(previewMarker.x, previewMarker.y, previewMarker.view)}
+          view={previewMarker.view}
+        >
+          <RegionMarker
+            position={[0, 0, 0]}
+            name="Neue Region"
+            isSelected={true}
+            onClick={() => {}}
+            width={previewMarker.width ?? 40}
+            height={previewMarker.height ?? 30}
+          />
+        </SurfaceProjectedGroup>
+      )}
+
       <CameraAnimator preset={preset} />
     </>
   );
