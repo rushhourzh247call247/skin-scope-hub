@@ -27,6 +27,10 @@ const UserManagement = () => {
   // Password reset dialog
   const [resetUser, setResetUser] = useState<{ id: number; name: string } | null>(null);
   const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [showNewPw, setShowNewPw] = useState(false);
+  const [showConfirmPw, setShowConfirmPw] = useState(false);
+  const [showCreatePw, setShowCreatePw] = useState(false);
 
   const { data: users = [], isLoading } = useQuery({
     queryKey: ["users"],
