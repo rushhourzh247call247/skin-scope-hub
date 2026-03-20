@@ -1,9 +1,9 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Route, Routes } from "react-router-dom";
+import { BrowserRouter, Route, Routes, Navigate } from "react-router-dom";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
-import { AuthProvider } from "@/contexts/AuthContext";
+import { AuthProvider, useAuth } from "@/contexts/AuthContext";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import { AppLayout } from "@/components/AppLayout";
 import Dashboard from "./pages/Dashboard";
@@ -31,6 +31,12 @@ const ProtectedPage = ({ children }: { children: React.ReactNode }) => (
   </ProtectedRoute>
 );
 
+const AdminRoute = ({ children }: { children: React.ReactNode }) => {
+  const { user } = useAuth();
+  if (user?.role !== "admin") return <Navigate to="/" replace />;
+  return <>{children}</>;
+};
+
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <AuthProvider>
@@ -45,8 +51,8 @@ const App = () => (
             <Route path="/patients" element={<ProtectedPage><PatientList /></ProtectedPage>} />
             <Route path="/new-patient" element={<ProtectedPage><NewPatient /></ProtectedPage>} />
             <Route path="/patient/:id" element={<ProtectedPage><PatientDetail /></ProtectedPage>} />
-            <Route path="/companies" element={<ProtectedPage><CompanyManagement /></ProtectedPage>} />
-            <Route path="/users" element={<ProtectedPage><UserManagement /></ProtectedPage>} />
+            <Route path="/companies" element={<ProtectedPage><AdminRoute><CompanyManagement /></AdminRoute></ProtectedPage>} />
+            <Route path="/users" element={<ProtectedPage><AdminRoute><UserManagement /></AdminRoute></ProtectedPage>} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>

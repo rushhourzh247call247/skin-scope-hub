@@ -1,7 +1,8 @@
 import { useQuery } from "@tanstack/react-query";
 import { api } from "@/lib/api";
 import { useNavigate } from "react-router-dom";
-import { Users, MapPin, ImageIcon, Building2, UserCog, ArrowRight } from "lucide-react";
+import { useAuth } from "@/contexts/AuthContext";
+import { Users, MapPin, ImageIcon, Building2, ArrowRight } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { format } from "date-fns";
@@ -23,6 +24,9 @@ const StatCard = ({ title, value, icon: Icon, color }: { title: string; value: n
 
 const Dashboard = () => {
   const navigate = useNavigate();
+  const { user } = useAuth();
+  const isAdmin = user?.role === "admin";
+
   const { data, isLoading } = useQuery({
     queryKey: ["dashboard-stats"],
     queryFn: api.getDashboardStats,
@@ -44,11 +48,13 @@ const Dashboard = () => {
       </div>
 
       {/* Stats Grid */}
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+      <div className={`grid gap-4 sm:grid-cols-2 ${isAdmin ? "lg:grid-cols-4" : "lg:grid-cols-3"}`}>
         <StatCard title="Patienten" value={data.totalPatients ?? 0} icon={Users} color="bg-primary/10 text-primary" />
         <StatCard title="Körperstellen" value={data.totalLocations ?? 0} icon={MapPin} color="bg-accent/10 text-accent" />
         <StatCard title="Aufnahmen" value={data.totalImages ?? 0} icon={ImageIcon} color="bg-[hsl(var(--clinical-warning))]/10 text-[hsl(var(--clinical-warning))]" />
-        <StatCard title="Firmen" value={data.totalCompanies ?? 0} icon={Building2} color="bg-secondary text-secondary-foreground" />
+        {isAdmin && (
+          <StatCard title="Firmen" value={data.totalCompanies ?? 0} icon={Building2} color="bg-secondary text-secondary-foreground" />
+        )}
       </div>
 
       {/* Recent Patients */}
