@@ -458,61 +458,118 @@ const PatientDetail = () => {
               const cls = ((l as any).classification as LesionClassificationType) || "unclassified";
               return classificationFilter.includes(cls);
             }).map((loc, i) => (
-              <button
+              <div
                 key={loc.id}
-                onClick={() => setSelectedLocationId(loc.id)}
                 className={cn(
-                  "flex w-full items-center gap-2.5 rounded-md px-2.5 py-2 text-left transition-all text-xs",
+                  "group flex w-full items-center gap-2.5 rounded-md px-2.5 py-2 text-left transition-all text-xs",
                   selectedLocationId === loc.id
                     ? "bg-primary/10 text-primary border border-primary/20"
                     : "hover:bg-muted text-foreground border border-transparent"
                 )}
               >
-                {(() => {
-                  const cls = (loc as any).classification as LesionClassification | undefined;
-                  const hasClass = cls && cls !== "unclassified";
-                  const clsColor = hasClass ? LESION_CLASSIFICATIONS[cls]?.color : undefined;
-                  return (
-                    <div
-                      className={cn(
-                        "flex h-5 w-5 shrink-0 items-center justify-center rounded-full text-[10px] font-bold",
-                        !hasClass && (selectedLocationId === loc.id ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground"),
-                      )}
-                      style={hasClass ? { backgroundColor: clsColor, color: "#fff" } : undefined}
-                    >
-                      {i + 1}
-                    </div>
-                  );
-                })()}
-                <div className="min-w-0 flex-1">
-                  <div className="flex items-center gap-1.5">
-                    <p className="truncate font-medium">{loc.name || `Spot ${i + 1}`}</p>
-                    {(() => {
-                      const cls = (loc as any).classification as LesionClassification | undefined;
-                      if (!cls || cls === "unclassified") return null;
-                      const info = LESION_CLASSIFICATIONS[cls];
-                      const isHighRisk = cls === "melanoma_suspect" || cls === "scc";
-                      return (
-                        <span className="flex items-center gap-0.5">
-                          <span
-                            className="text-[8px] font-bold px-1 rounded"
-                            style={{ backgroundColor: `${info.color}20`, color: info.color }}
-                          >
-                            {info.shortLabel}
+                <button
+                  className="flex flex-1 items-center gap-2.5 min-w-0"
+                  onClick={() => setSelectedLocationId(loc.id)}
+                >
+                  {(() => {
+                    const cls = (loc as any).classification as LesionClassification | undefined;
+                    const hasClass = cls && cls !== "unclassified";
+                    const clsColor = hasClass ? LESION_CLASSIFICATIONS[cls]?.color : undefined;
+                    return (
+                      <div
+                        className={cn(
+                          "flex h-5 w-5 shrink-0 items-center justify-center rounded-full text-[10px] font-bold",
+                          !hasClass && (selectedLocationId === loc.id ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground"),
+                        )}
+                        style={hasClass ? { backgroundColor: clsColor, color: "#fff" } : undefined}
+                      >
+                        {i + 1}
+                      </div>
+                    );
+                  })()}
+                  <div className="min-w-0 flex-1">
+                    <div className="flex items-center gap-1.5">
+                      <p className="truncate font-medium">{loc.name || `Spot ${i + 1}`}</p>
+                      {(() => {
+                        const cls = (loc as any).classification as LesionClassification | undefined;
+                        if (!cls || cls === "unclassified") return null;
+                        const info = LESION_CLASSIFICATIONS[cls];
+                        const isHighRisk = cls === "melanoma_suspect" || cls === "scc";
+                        return (
+                          <span className="flex items-center gap-0.5">
+                            <span
+                              className="text-[8px] font-bold px-1 rounded"
+                              style={{ backgroundColor: `${info.color}20`, color: info.color }}
+                            >
+                              {info.shortLabel}
+                            </span>
+                            {isHighRisk && (
+                              <span className="text-[8px]">⚠️</span>
+                            )}
                           </span>
-                          {isHighRisk && (
-                            <span className="text-[8px]">⚠️</span>
-                          )}
-                        </span>
-                      );
-                    })()}
+                        );
+                      })()}
+                    </div>
+                    <p className="text-[10px] text-muted-foreground">
+                      {loc.images?.length ?? 0} Bilder · {loc.view === "back" ? "Hinten" : "Vorne"}
+                    </p>
                   </div>
-                  <p className="text-[10px] text-muted-foreground">
-                    {loc.images?.length ?? 0} Bilder · {loc.view === "back" ? "Hinten" : "Vorne"}
-                  </p>
-                </div>
-              </button>
+                </button>
+                <button
+                  onClick={(e) => { e.stopPropagation(); setDeleteConfirmId(loc.id); }}
+                  className="shrink-0 p-1 rounded opacity-0 group-hover:opacity-100 transition-opacity hover:bg-destructive/10 text-muted-foreground hover:text-destructive"
+                  title="In Papierkorb verschieben"
+                >
+                  <Trash2 className="h-3.5 w-3.5" />
+                </button>
+              </div>
             ))}
+          </div>
+
+          {/* Trash Bin */}
+          <div className="mt-4 border-t pt-3">
+            <button
+              onClick={() => setShowTrash(!showTrash)}
+              className="flex w-full items-center justify-between text-[10px] text-muted-foreground hover:text-foreground transition-colors"
+            >
+              <span className="flex items-center gap-1.5 font-semibold uppercase tracking-wider">
+                <Trash2 className="h-3 w-3" /> Papierkorb
+              </span>
+              <span>{trashedLocations.length}</span>
+            </button>
+            {showTrash && trashedLocations.length > 0 && (
+              <div className="mt-2 space-y-1">
+                {trashedLocations.map((loc) => (
+                  <div
+                    key={loc.id}
+                    className="flex items-center gap-2 rounded-md border border-dashed border-border/50 bg-muted/30 px-2.5 py-1.5 text-xs text-muted-foreground"
+                  >
+                    <Trash2 className="h-3 w-3 shrink-0 opacity-50" />
+                    <div className="min-w-0 flex-1">
+                      <p className="truncate font-medium">{loc.name || "Spot"}</p>
+                      <p className="text-[10px]">{loc.images?.length ?? 0} Bilder</p>
+                    </div>
+                    <button
+                      onClick={() => restoreMutation.mutate(loc.id)}
+                      className="shrink-0 p-1 rounded hover:bg-primary/10 text-muted-foreground hover:text-primary transition-colors"
+                      title="Wiederherstellen"
+                    >
+                      <Undo2 className="h-3.5 w-3.5" />
+                    </button>
+                    <button
+                      onClick={() => setPermanentDeleteId(loc.id)}
+                      className="shrink-0 p-1 rounded hover:bg-destructive/10 text-muted-foreground hover:text-destructive transition-colors"
+                      title="Endgültig löschen"
+                    >
+                      <X className="h-3.5 w-3.5" />
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
+            {showTrash && trashedLocations.length === 0 && (
+              <p className="mt-2 text-[10px] text-muted-foreground italic">Papierkorb ist leer</p>
+            )}
           </div>
         </div>
 
