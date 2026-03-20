@@ -820,6 +820,8 @@ function Scene({ markers, selectedLocationId, onMapClick, onMarkerClick, classif
   const handleBodyClick = useCallback(
     (e: ThreeEvent<MouseEvent>) => {
       if (!markMode) return;
+      // Don't register new clicks when already placing a preview marker
+      if (isPlacementMode) return;
       e.stopPropagation();
       const { x, y, view } = pointTo2D(e.point);
 
@@ -836,7 +838,7 @@ function Scene({ markers, selectedLocationId, onMapClick, onMarkerClick, classif
         worldNormal ? [worldNormal.x, worldNormal.y, worldNormal.z] : undefined,
       );
     },
-    [onMapClick, markMode, markType],
+    [onMapClick, markMode, markType, isPlacementMode],
   );
 
   const hasFilter = classificationFilter && classificationFilter.length > 0;
