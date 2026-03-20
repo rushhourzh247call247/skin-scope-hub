@@ -949,6 +949,7 @@ function Scene({ markers, selectedLocationId, onMapClick, onMarkerClick, classif
 /* ─── Main Component ─── */
 const BodyMap3D: React.FC<BodyMap3DProps> = (props) => {
   const [activeRegion, setActiveRegion] = useState<Region>("full");
+  const [resetCounter, setResetCounter] = useState(0);
   const [markMode, setMarkMode] = useState(false);
   const [markType, setMarkType] = useState<MarkType>("spot");
   const [placementAnchor, setPlacementAnchor] = useState<{ x: number; y: number; view: "front" | "back" } | null>(null);
@@ -966,6 +967,11 @@ const BodyMap3D: React.FC<BodyMap3DProps> = (props) => {
     }
   }, [props.isPlacementMode, props.previewMarker, placementAnchor]);
 
+  // Clear reset flag when a new marker is selected so camera can focus on it
+  useEffect(() => {
+    if (props.selectedLocationId != null) setResetCounter(0);
+  }, [props.selectedLocationId]);
+
   // Compute camera preset once per placement session (not on every drag move)
   const placementPreset = useMemo<CameraPreset | null>(() => {
     if (!props.isPlacementMode || !placementAnchor) return null;
@@ -981,7 +987,8 @@ const BodyMap3D: React.FC<BodyMap3DProps> = (props) => {
 
   // Auto-focus camera on the selected marker when clicking in the sidebar
   const selectedMarkerPreset = useMemo<CameraPreset | null>(() => {
-    if (props.isPlacementMode) return null; // placement preset takes priority
+    if (props.isPlacementMode) return null;
+    if (resetCounter > 0 && activeRegion === "full") return null;
     if (props.selectedLocationId == null) return null;
     const marker = props.markers.find((m) => m.id === props.selectedLocationId);
     if (!marker) return null;
@@ -1008,7 +1015,7 @@ const BodyMap3D: React.FC<BodyMap3DProps> = (props) => {
       label: "Spot-Fokus",
       icon: MapPin,
     };
-  }, [props.isPlacementMode, props.selectedLocationId, props.markers]);
+  }, [props.isPlacementMode, props.selectedLocationId, props.markers, resetCounter, activeRegion]);
 
   const preset = placementPreset ?? selectedMarkerPreset ?? CAMERA_PRESETS[activeRegion];
 
@@ -1058,7 +1065,7 @@ const BodyMap3D: React.FC<BodyMap3DProps> = (props) => {
         {/* Bottom controls */}
         <div className="absolute bottom-2 left-2 flex items-center gap-1.5">
           <button
-            onClick={() => setActiveRegion("full")}
+            onClick={() => { setActiveRegion("full"); setResetCounter(c => c + 1); if (props.onMarkerClick) props.onMarkerClick(undefined as any); }}
             className="flex h-7 items-center gap-1 rounded-md border border-border/50 bg-card/80 px-2 text-[10px] text-muted-foreground transition-all hover:text-foreground"
           >
             <RotateCcw className="h-3 w-3" /> Reset
