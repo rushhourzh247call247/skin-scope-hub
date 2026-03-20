@@ -521,7 +521,10 @@ const SurfaceProjectedGroup = React.forwardRef<THREE.Group, SurfaceProjectedGrou
       if (storedPosition) {
         groupRef.current.position.set(...storedPosition);
         if (storedNormal) {
-          const normal = new THREE.Vector3(...storedNormal).normalize();
+          const rawNormal = new THREE.Vector3(...storedNormal);
+          const normal = rawNormal.lengthSq() > 0.0001
+            ? rawNormal.normalize()
+            : new THREE.Vector3(0, 0, 1);
           normalRef.current.copy(normal);
           groupRef.current.position.addScaledVector(normal, 0.003);
           groupRef.current.lookAt(
@@ -876,7 +879,7 @@ function Scene({ markers, selectedLocationId, onMapClick, onMarkerClick, classif
             approxPosition={hasCoords ? coords2Dto3D(m.x, m.y, m.view) : [m.x3d!, m.y3d!, m.z3d!]}
             view={m.view}
             storedPosition={m.x3d != null && m.y3d != null && m.z3d != null ? [m.x3d, m.y3d, m.z3d] : undefined}
-            storedNormal={m.nx != null && m.ny != null && m.nz != null ? [m.nx, m.ny, m.nz] : undefined}
+            storedNormal={m.nx != null && m.ny != null && m.nz != null && (m.nx !== 0 || m.ny !== 0 || m.nz !== 0) ? [m.nx, m.ny, m.nz] : undefined}
           >
             <SpotMarker
               position={[0, 0, 0]}
@@ -1013,9 +1016,10 @@ const BodyMap3D: React.FC<BodyMap3DProps> = (props) => {
 
     // Position camera in front of the marker's surface
     const zDir = view === "back" ? -1 : 1;
-    const nx = marker.nx ?? 0;
-    const ny = marker.ny ?? 0;
-    const nz = marker.nz ?? (zDir * 1);
+    const hasValidNormal = (marker.nx ?? 0) !== 0 || (marker.ny ?? 0) !== 0 || (marker.nz ?? 0) !== 0;
+    const nx = hasValidNormal ? (marker.nx ?? 0) : 0;
+    const ny = hasValidNormal ? (marker.ny ?? 0) : 0;
+    const nz = hasValidNormal ? (marker.nz ?? 0) : (zDir * 1);
 
     // Camera placed along the surface normal, 1.2 units away from the spot
     return {
