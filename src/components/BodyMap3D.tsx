@@ -983,7 +983,7 @@ const BodyMap3D: React.FC<BodyMap3DProps> = (props) => {
   // Auto-focus camera on the selected marker when clicking in the sidebar
   const selectedMarkerPreset = useMemo<CameraPreset | null>(() => {
     if (props.isPlacementMode) return null;
-    if (resetCounter > 0 && activeRegion === "full") return null; // reset clears marker focus
+    if (resetCounter > 0 && activeRegion === "full") return null;
     if (props.selectedLocationId == null) return null;
     const marker = props.markers.find((m) => m.id === props.selectedLocationId);
     if (!marker) return null;
