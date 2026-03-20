@@ -174,7 +174,13 @@ const SpotMarker = React.forwardRef<THREE.Group, SpotMarkerProps>(function SpotM
 
   const baseColor = classificationColor || "#64748b";
   const ringColor = isSelected ? "#0ea5e9" : hovered ? baseColor : baseColor;
-  const ringOpacity = isSelected ? 0.9 : hovered ? 0.85 : 0.7;
+  const ringOpacity = isSelected ? 1.0 : hovered ? 0.9 : 0.8;
+
+  // Sizes: selected markers are larger and more prominent
+  const innerRadius = isSelected ? 0.032 : 0.022;
+  const outerRadius = isSelected ? 0.042 : 0.030;
+  const dotRadius = isSelected ? 0.010 : 0.006;
+  const clickRadius = isSelected ? 0.055 : 0.045;
 
   return (
     <group ref={forwardedRef} position={position}>
@@ -187,9 +193,9 @@ const SpotMarker = React.forwardRef<THREE.Group, SpotMarkerProps>(function SpotM
         onPointerOver={() => setHovered(true)}
         onPointerOut={() => setHovered(false)}
       >
-        {/* Main circle ring - like DermEngine */}
+        {/* Main circle ring */}
         <mesh rotation={[0, 0, 0]}>
-          <ringGeometry args={[0.028, 0.035, 48]} />
+          <ringGeometry args={[innerRadius, outerRadius, 48]} />
           <meshBasicMaterial
             color={ringColor}
             transparent
@@ -199,26 +205,26 @@ const SpotMarker = React.forwardRef<THREE.Group, SpotMarkerProps>(function SpotM
           />
         </mesh>
 
-        {/* Tiny center dot */}
+        {/* Center dot - filled for better visibility */}
         <mesh>
-          <circleGeometry args={[0.006, 16]} />
+          <circleGeometry args={[dotRadius, 16]} />
           <meshBasicMaterial
             color={ringColor}
             transparent
-            opacity={isSelected ? 0.8 : 0.4}
+            opacity={isSelected ? 0.9 : 0.6}
             side={THREE.DoubleSide}
             depthTest={false}
           />
         </mesh>
 
-        {/* Selected: outer highlight ring */}
+        {/* Selected: outer highlight ring (double ring effect) */}
         {isSelected && (
           <mesh rotation={[0, 0, 0]}>
-            <ringGeometry args={[0.038, 0.043, 48]} />
+            <ringGeometry args={[0.046, 0.052, 48]} />
             <meshBasicMaterial
               color="#0ea5e9"
               transparent
-              opacity={0.4}
+              opacity={0.5}
               side={THREE.DoubleSide}
               depthTest={false}
             />
@@ -228,7 +234,7 @@ const SpotMarker = React.forwardRef<THREE.Group, SpotMarkerProps>(function SpotM
         {/* High-risk outer glow ring */}
         {isHighRisk && !isSelected && (
           <mesh rotation={[0, 0, 0]}>
-            <ringGeometry args={[0.038, 0.046, 48]} />
+            <ringGeometry args={[0.033, 0.040, 48]} />
             <meshBasicMaterial
               color="#ef4444"
               transparent
@@ -241,7 +247,7 @@ const SpotMarker = React.forwardRef<THREE.Group, SpotMarkerProps>(function SpotM
 
         {/* Invisible click target (larger) */}
         <mesh>
-          <circleGeometry args={[0.045, 16]} />
+          <circleGeometry args={[clickRadius, 16]} />
           <meshBasicMaterial transparent opacity={0} side={THREE.DoubleSide} depthTest={false} />
         </mesh>
       </group>
