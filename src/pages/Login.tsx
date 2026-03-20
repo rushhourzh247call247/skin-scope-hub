@@ -56,7 +56,7 @@ const Login = () => {
               {loading ? "Anmeldung…" : <><LogIn className="mr-2 h-4 w-4" /> Anmelden</>}
             </Button>
             <p className="text-center text-xs text-muted-foreground">
-              Demo: admin@derm247.ch / 123456
+              Demo: admin@derm247.ch / demo123
             </p>
           </form>
           <p className="mt-4 text-center text-[9px] text-muted-foreground/50">
