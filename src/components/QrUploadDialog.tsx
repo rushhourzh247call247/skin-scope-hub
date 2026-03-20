@@ -102,9 +102,7 @@ const QrUploadDialog = ({
     setTimeout(() => setCopied(false), 2000);
   };
 
-  const expiresIn = session?.expires_at
-    ? Math.max(0, Math.round((new Date(session.expires_at).getTime() - Date.now()) / 60000))
-    : 0;
+  const displayMinutes = expiresIn ?? 30;
 
   return (
     <Dialog open={open} onOpenChange={handleOpen}>
