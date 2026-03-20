@@ -12,7 +12,7 @@ const Login = () => {
   const { login } = useAuth();
   const navigate = useNavigate();
   const [email, setEmail] = useState("admin@derm247.ch");
-  const [password, setPassword] = useState("123456");
+  const [password, setPassword] = useState("demo123");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
