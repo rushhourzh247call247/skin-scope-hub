@@ -868,13 +868,15 @@ function Scene({ markers, selectedLocationId, onMapClick, onMarkerClick, classif
       {spots.map((m) => {
         const cls = (m.classification as LesionClassification) || "unclassified";
         const isHighRisk = HIGH_RISK_CLASSIFICATIONS.includes(cls);
+        const hasCoords = m.x != null && m.y != null;
+        if (!hasCoords && m.x3d == null) return null; // skip markers without any position
         return (
           <SurfaceProjectedGroup
             key={`spot-${m.id}`}
-            approxPosition={coords2Dto3D(m.x, m.y, m.view)}
+            approxPosition={hasCoords ? coords2Dto3D(m.x, m.y, m.view) : [m.x3d!, m.y3d!, m.z3d!]}
             view={m.view}
-            storedPosition={m.x3d !== undefined && m.y3d !== undefined && m.z3d !== undefined ? [m.x3d, m.y3d, m.z3d] : undefined}
-            storedNormal={m.nx !== undefined && m.ny !== undefined && m.nz !== undefined ? [m.nx, m.ny, m.nz] : undefined}
+            storedPosition={m.x3d != null && m.y3d != null && m.z3d != null ? [m.x3d, m.y3d, m.z3d] : undefined}
+            storedNormal={m.nx != null && m.ny != null && m.nz != null ? [m.nx, m.ny, m.nz] : undefined}
           >
             <SpotMarker
               position={[0, 0, 0]}
@@ -890,26 +892,30 @@ function Scene({ markers, selectedLocationId, onMapClick, onMarkerClick, classif
         );
       })}
 
-      {regions.map((m) => (
-        <SurfaceProjectedGroup
-          key={`region-${m.id}`}
-          approxPosition={coords2Dto3D(m.x, m.y, m.view)}
-          view={m.view}
-          storedPosition={m.x3d !== undefined && m.y3d !== undefined && m.z3d !== undefined ? [m.x3d, m.y3d, m.z3d] : undefined}
-          storedNormal={m.nx !== undefined && m.ny !== undefined && m.nz !== undefined ? [m.nx, m.ny, m.nz] : undefined}
-        >
-          <RegionMarker
-            position={[0, 0, 0]}
-            name={m.name}
-            isSelected={m.id === selectedLocationId}
-            onClick={() => onMarkerClick?.(m.id)}
-            imageCount={m.imageCount}
-            findingCount={m.findingCount}
-            width={m.width ?? 40}
-            height={m.height ?? 30}
-          />
-        </SurfaceProjectedGroup>
-      ))}
+      {regions.map((m) => {
+        const hasCoords = m.x != null && m.y != null;
+        if (!hasCoords && m.x3d == null) return null;
+        return (
+          <SurfaceProjectedGroup
+            key={`region-${m.id}`}
+            approxPosition={hasCoords ? coords2Dto3D(m.x, m.y, m.view) : [m.x3d!, m.y3d!, m.z3d!]}
+            view={m.view}
+            storedPosition={m.x3d != null && m.y3d != null && m.z3d != null ? [m.x3d, m.y3d, m.z3d] : undefined}
+            storedNormal={m.nx != null && m.ny != null && m.nz != null ? [m.nx, m.ny, m.nz] : undefined}
+          >
+            <RegionMarker
+              position={[0, 0, 0]}
+              name={m.name}
+              isSelected={m.id === selectedLocationId}
+              onClick={() => onMarkerClick?.(m.id)}
+              imageCount={m.imageCount}
+              findingCount={m.findingCount}
+              width={m.width ?? 40}
+              height={m.height ?? 30}
+            />
+          </SurfaceProjectedGroup>
+        );
+      })}
 
       {/* Draggable preview marker for spot placement */}
       {previewMarker && previewMarker.type === "spot" && (
