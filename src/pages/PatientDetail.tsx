@@ -249,8 +249,6 @@ const PatientDetail = () => {
     );
   }
 
-  const [mobileMapExpanded, setMobileMapExpanded] = useState(true);
-
   return (
     <div className="flex flex-col h-full">
       {/* Patient Header Bar */}
