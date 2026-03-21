@@ -720,7 +720,7 @@ const PatientDetail = () => {
                             {ev.detail && <p className="text-sm text-muted-foreground">{ev.detail}</p>}
                             {ev.imagePath && (
                               <img
-                                src={api.getImageUrl(ev.imagePath)}
+                                src={ev.imageUrl || api.getImageUrl(ev.imagePath)}
                                 alt="Aufnahme"
                                 className="h-24 w-20 rounded object-cover border mt-1"
                                 loading="lazy"
