@@ -248,16 +248,19 @@ const PatientDetail = () => {
     );
   }
 
+  const [mobileMapExpanded, setMobileMapExpanded] = useState(true);
+
   return (
     <div className="flex flex-col h-full">
-      {/* Patient Header Bar - DermEngine style */}
-      <div className="border-b bg-card px-4 py-3">
-        <div className="flex items-center gap-4">
-          <Button variant="ghost" size="sm" onClick={() => navigate("/patients")} className="gap-1.5">
-            <ArrowLeft className="h-4 w-4" /> Zurück
+      {/* Patient Header Bar */}
+      <div className="border-b bg-card px-3 py-2 lg:px-4 lg:py-3">
+        {/* Top row: back + name + tabs */}
+        <div className="flex items-center gap-2 lg:gap-4">
+          <Button variant="ghost" size="sm" onClick={() => navigate("/patients")} className="gap-1 shrink-0 h-8 px-2 lg:gap-1.5 lg:h-9 lg:px-3">
+            <ArrowLeft className="h-4 w-4" /> <span className="hidden sm:inline">Zurück</span>
           </Button>
 
-          <div className="h-6 w-px bg-border" />
+          <div className="h-6 w-px bg-border hidden sm:block" />
 
           <div className="flex items-center gap-3">
             <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary/10 text-sm font-semibold text-primary">
