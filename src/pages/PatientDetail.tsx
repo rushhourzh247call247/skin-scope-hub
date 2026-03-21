@@ -633,7 +633,7 @@ const PatientDetail = () => {
                               >
                                 <div className="aspect-square">
                                   <img
-                                    src={api.getImageUrl(img.image_path)}
+                                    src={api.resolveImageSrc(img)}
                                     alt={`${locName} – Aufnahme`}
                                     className="h-full w-full object-cover"
                                     loading="lazy"

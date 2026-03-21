@@ -45,7 +45,9 @@ export interface AiAnalysis {
 export interface LocationImage {
   id: number;
   location_id: number;
-  image_path: string;
+  image_path?: string;
+  file_path?: string;
+  image_url?: string;
   note?: string;
   ai_analysis?: AiAnalysis;
   created_at?: string;

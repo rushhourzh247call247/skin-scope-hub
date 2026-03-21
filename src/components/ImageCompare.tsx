@@ -154,7 +154,7 @@ const ImageCompare = ({ images, locationName, onClose }: ImageCompareProps) => {
                   >
                     <div className="relative h-16 w-16 shrink-0 overflow-hidden rounded-full border-2 border-border shadow-sm">
                       <img
-                        src={api.getImageUrl(img.image_path)}
+                        src={api.resolveImageSrc(img)}
                         alt={`Aufnahme #${img.id}`}
                         className="h-full w-full object-cover"
                       />
@@ -258,7 +258,7 @@ const ImageCompare = ({ images, locationName, onClose }: ImageCompareProps) => {
                 {compareImages.map((img, i) => (
                   <div key={img.id} className="space-y-2">
                     <div className="relative overflow-hidden rounded-lg border aspect-square bg-muted">
-                      <img src={api.getImageUrl(img.image_path)} alt={`Vergleich ${i + 1}`} className="h-full w-full object-contain" />
+                      <img src={api.resolveImageSrc(img)} alt={`Vergleich ${i + 1}`} className="h-full w-full object-contain" />
                       <div className={cn(
                         "absolute top-2 left-2 flex h-6 w-6 items-center justify-center rounded-full text-xs font-bold",
                         i === 0 ? "bg-primary text-primary-foreground" : "bg-accent text-accent-foreground"

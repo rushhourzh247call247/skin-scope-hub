@@ -174,10 +174,18 @@ export const api = {
   completeUploadSession: (token: string) =>
     request<{ success: boolean; image_count: number; completed_at: string }>(`/upload-sessions/${token}/complete`, { method: 'POST' }),
 
-  // Helper to get full image URL from a path
-  getImageUrl: (path: string) => {
+  // Helper to get full image URL from a path or image object
+  getImageUrl: (pathOrUrl: string) => {
+    if (!pathOrUrl) return '';
+    if (pathOrUrl.startsWith('http://') || pathOrUrl.startsWith('https://')) return pathOrUrl;
+    return `${getStorageBaseUrl()}/storage/${pathOrUrl}`;
+  },
+
+  // Resolve the best URL from a LocationImage object
+  resolveImageSrc: (img: { image_url?: string; file_path?: string; image_path?: string }) => {
+    if (img.image_url) return img.image_url;
+    const path = img.file_path || img.image_path || '';
     if (!path) return '';
-    // If already a full URL, return as-is
     if (path.startsWith('http://') || path.startsWith('https://')) return path;
     return `${getStorageBaseUrl()}/storage/${path}`;
   },
