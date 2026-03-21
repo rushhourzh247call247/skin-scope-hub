@@ -453,8 +453,8 @@ const PatientDetail = () => {
             </div>
           )}
 
-          {/* Spots List */}
-          <div className="mt-4 space-y-1">
+          {/* Spots List - collapsible on mobile when map is collapsed */}
+          <div className={cn("mt-3 lg:mt-4 space-y-1", !mobileMapExpanded && "lg:block")}>
             <div className="flex items-center justify-between mb-2">
               <h3 className="text-xs font-semibold text-foreground uppercase tracking-wider">Spots</h3>
               <span className="text-[10px] text-muted-foreground">{locations.filter(l => l.type !== "region").length} Stellen</span>
