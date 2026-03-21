@@ -261,93 +261,78 @@ const PatientDetail = () => {
 
           <div className="h-6 w-px bg-border hidden sm:block" />
 
-          <div className="flex items-center gap-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary/10 text-sm font-semibold text-primary">
+          <div className="flex items-center gap-2 lg:gap-3 min-w-0">
+            <div className="flex h-8 w-8 lg:h-10 lg:w-10 items-center justify-center rounded-full bg-primary/10 text-xs lg:text-sm font-semibold text-primary shrink-0">
               {patient.name.split(" ").map((n) => n[0]).join("").slice(0, 2).toUpperCase()}
             </div>
-            <div>
-              <div className="flex items-center gap-2">
-                <h1 className="text-sm font-semibold text-foreground">{patient.name}</h1>
-                <Badge variant="outline" className="text-[10px] px-1.5 py-0">Aktiv</Badge>
+            <div className="min-w-0">
+              <div className="flex items-center gap-1.5">
+                <h1 className="text-sm font-semibold text-foreground truncate">{patient.name}</h1>
+                <Badge variant="outline" className="text-[10px] px-1.5 py-0 shrink-0">Aktiv</Badge>
               </div>
-              <p className="text-xs text-muted-foreground">Patient</p>
+              <p className="text-xs text-muted-foreground hidden sm:block">Patient</p>
             </div>
           </div>
 
-          <div className="h-6 w-px bg-border" />
-
-          <div className="flex items-center gap-6 text-xs">
-            <div>
-              <span className="text-muted-foreground">ID</span>
-              <p className="font-mono font-medium text-foreground">{patient.id}</p>
-            </div>
-            <div>
-              <span className="text-muted-foreground">Geschlecht</span>
-              <p className="font-medium text-foreground">{patient.gender === "female" ? "Weiblich" : "Männlich"}</p>
-            </div>
-            <div>
-              <span className="text-muted-foreground">Geburtsdatum</span>
-              <p className="font-medium text-foreground tabular-nums">
-                {patient.birth_date ? format(new Date(patient.birth_date), "dd.MM.yyyy", { locale: de }) : "–"}
-              </p>
-            </div>
-            {patient.email && (
-              <div className="flex items-center gap-1">
-                <Mail className="h-3 w-3 text-muted-foreground" />
-                <p className="font-medium text-foreground">{patient.email}</p>
-              </div>
-            )}
-            {patient.phone && (
-              <div className="flex items-center gap-1">
-                <Phone className="h-3 w-3 text-muted-foreground" />
-                <p className="font-medium text-foreground">{patient.phone}</p>
-              </div>
-            )}
-            <div>
-              <span className="text-muted-foreground">Stellen</span>
-              <p className="font-medium text-foreground">{locations.length}</p>
-            </div>
-            <div>
-              <span className="text-muted-foreground">Aufnahmen</span>
-              <p className="font-medium text-foreground">{totalImages}</p>
-            </div>
+          {/* Mode tabs - push right */}
+          <div className="ml-auto flex items-center gap-1 rounded-lg bg-muted p-0.5 lg:p-1 shrink-0">
+            {[
+              { key: "spots" as const, icon: MapPin, label: "SPOTS" },
+              { key: "fotos" as const, icon: Camera, label: "FOTOS" },
+              { key: "timeline" as const, icon: Activity, label: "TIMELINE" },
+            ].map(tab => (
+              <button
+                key={tab.key}
+                onClick={() => setActiveTab(tab.key)}
+                className={cn(
+                  "flex items-center gap-1 rounded-md px-2 py-1 lg:px-3 lg:py-1.5 text-[10px] lg:text-xs font-medium transition-all",
+                  activeTab === tab.key
+                    ? "bg-primary text-primary-foreground shadow-sm"
+                    : "text-muted-foreground hover:text-foreground"
+                )}
+              >
+                <tab.icon className="h-3 w-3 lg:h-3.5 lg:w-3.5" />
+                <span className="hidden sm:inline">{tab.label}</span>
+              </button>
+            ))}
           </div>
+        </div>
 
-          {/* Mode tabs */}
-          <div className="ml-auto flex items-center gap-1 rounded-lg bg-muted p-1">
-            <button
-              onClick={() => setActiveTab("spots")}
-              className={cn(
-                "flex items-center gap-1.5 rounded-md px-3 py-1.5 text-xs font-medium transition-all",
-                activeTab === "spots"
-                  ? "bg-primary text-primary-foreground shadow-sm"
-                  : "text-muted-foreground hover:text-foreground"
-              )}
-            >
-              <MapPin className="h-3.5 w-3.5" /> SPOTS
-            </button>
-            <button
-              onClick={() => setActiveTab("fotos")}
-              className={cn(
-                "flex items-center gap-1.5 rounded-md px-3 py-1.5 text-xs font-medium transition-all",
-                activeTab === "fotos"
-                  ? "bg-primary text-primary-foreground shadow-sm"
-                  : "text-muted-foreground hover:text-foreground"
-              )}
-            >
-              <Camera className="h-3.5 w-3.5" /> FOTOS
-            </button>
-            <button
-              onClick={() => setActiveTab("timeline")}
-              className={cn(
-                "flex items-center gap-1.5 rounded-md px-3 py-1.5 text-xs font-medium transition-all",
-                activeTab === "timeline"
-                  ? "bg-primary text-primary-foreground shadow-sm"
-                  : "text-muted-foreground hover:text-foreground"
-              )}
-            >
-              <Activity className="h-3.5 w-3.5" /> TIMELINE
-            </button>
+        {/* Patient details row - hidden on mobile, shown on desktop */}
+        <div className="hidden lg:flex items-center gap-6 text-xs mt-2 pl-[52px]">
+          <div>
+            <span className="text-muted-foreground">ID</span>
+            <p className="font-mono font-medium text-foreground">{patient.id}</p>
+          </div>
+          <div>
+            <span className="text-muted-foreground">Geschlecht</span>
+            <p className="font-medium text-foreground">{patient.gender === "female" ? "Weiblich" : "Männlich"}</p>
+          </div>
+          <div>
+            <span className="text-muted-foreground">Geburtsdatum</span>
+            <p className="font-medium text-foreground tabular-nums">
+              {patient.birth_date ? format(new Date(patient.birth_date), "dd.MM.yyyy", { locale: de }) : "–"}
+            </p>
+          </div>
+          {patient.email && (
+            <div className="flex items-center gap-1">
+              <Mail className="h-3 w-3 text-muted-foreground" />
+              <p className="font-medium text-foreground">{patient.email}</p>
+            </div>
+          )}
+          {patient.phone && (
+            <div className="flex items-center gap-1">
+              <Phone className="h-3 w-3 text-muted-foreground" />
+              <p className="font-medium text-foreground">{patient.phone}</p>
+            </div>
+          )}
+          <div>
+            <span className="text-muted-foreground">Stellen</span>
+            <p className="font-medium text-foreground">{locations.length}</p>
+          </div>
+          <div>
+            <span className="text-muted-foreground">Aufnahmen</span>
+            <p className="font-medium text-foreground">{totalImages}</p>
           </div>
         </div>
       </div>
