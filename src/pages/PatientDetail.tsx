@@ -854,7 +854,7 @@ const PatientDetail = () => {
                             <div className="space-y-2">
                               <div className="relative overflow-hidden rounded-lg border aspect-[3/4] bg-muted">
                                 <img
-                                  src={api.getImageUrl(oldest.image_path)}
+                                  src={api.resolveImageSrc(oldest)}
                                   alt="Ältere Aufnahme"
                                   className="h-full w-full object-cover"
                                 />
