@@ -670,14 +670,14 @@ const PatientDetail = () => {
                 <h2 className="text-lg font-semibold text-foreground mb-4">Chronologischer Verlauf</h2>
                 {(() => {
                   // Collect all events from all locations
-                  const events: { date: string; type: "image" | "finding" | "location"; label: string; detail?: string; locationName: string; locationId: number; imagePath?: string }[] = [];
+                  const events: { date: string; type: "image" | "finding" | "location"; label: string; detail?: string; locationName: string; locationId: number; imagePath?: string; imageUrl?: string }[] = [];
                   locations.forEach((loc) => {
                     const locName = loc.name || `Spot #${loc.id}`;
                     // Location creation
                     events.push({ date: loc.created_at ?? "", type: "location", label: "Spot erstellt", detail: locName, locationName: locName, locationId: loc.id });
                     // Images
                     (loc.images ?? []).forEach((img) => {
-                      events.push({ date: img.created_at ?? "", type: "image", label: "Bild hochgeladen", locationName: locName, locationId: loc.id, imagePath: img.image_path });
+                      events.push({ date: img.created_at ?? "", type: "image", label: "Bild hochgeladen", locationName: locName, locationId: loc.id, imagePath: img.image_path, imageUrl: img.image_url });
                     });
                     // Findings
                     (loc.findings ?? []).forEach((f) => {
@@ -720,7 +720,7 @@ const PatientDetail = () => {
                             {ev.detail && <p className="text-sm text-muted-foreground">{ev.detail}</p>}
                             {ev.imagePath && (
                               <img
-                                src={api.getImageUrl(ev.imagePath)}
+                                src={ev.imageUrl || api.getImageUrl(ev.imagePath)}
                                 alt="Aufnahme"
                                 className="h-24 w-20 rounded object-cover border mt-1"
                                 loading="lazy"
@@ -854,7 +854,7 @@ const PatientDetail = () => {
                             <div className="space-y-2">
                               <div className="relative overflow-hidden rounded-lg border aspect-[3/4] bg-muted">
                                 <img
-                                  src={api.getImageUrl(oldest.image_path)}
+                                  src={api.resolveImageSrc(oldest)}
                                   alt="Ältere Aufnahme"
                                   className="h-full w-full object-cover"
                                 />
@@ -869,7 +869,7 @@ const PatientDetail = () => {
                             <div className="space-y-2">
                               <div className="relative overflow-hidden rounded-lg border aspect-[3/4] bg-muted">
                                 <img
-                                  src={api.getImageUrl(newest.image_path)}
+                                  src={api.resolveImageSrc(newest)}
                                   alt="Neuere Aufnahme"
                                   className="h-full w-full object-cover"
                                 />

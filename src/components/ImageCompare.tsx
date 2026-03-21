@@ -278,13 +278,13 @@ const ImageCompare = ({ images, locationName, onClose }: ImageCompareProps) => {
                 <div className="relative overflow-hidden rounded-lg border aspect-square bg-muted">
                   {/* Base image (older) */}
                   <img
-                    src={api.getImageUrl(compareImages[0].image_path)}
+                    src={api.resolveImageSrc(compareImages[0])}
                     alt="Ältere Aufnahme"
                     className="absolute inset-0 h-full w-full object-contain"
                   />
                   {/* Overlay image (newer) with adjustable opacity */}
                   <img
-                    src={api.getImageUrl(compareImages[1].image_path)}
+                    src={api.resolveImageSrc(compareImages[1])}
                     alt="Neuere Aufnahme"
                     className="absolute inset-0 h-full w-full object-contain"
                     style={{
@@ -429,7 +429,7 @@ const ImageCompare = ({ images, locationName, onClose }: ImageCompareProps) => {
         <DialogContent className="max-w-2xl p-2">
           {zoomedImage && (
             <div className="space-y-2">
-              <img src={api.getImageUrl(zoomedImage.image_path)} alt="Vergrössert" className="w-full rounded-md object-contain" />
+              <img src={api.resolveImageSrc(zoomedImage)} alt="Vergrössert" className="w-full rounded-md object-contain" />
               <p className="text-center text-xs text-muted-foreground tabular-nums">
                 {zoomedImage.created_at ? format(new Date(zoomedImage.created_at), "dd. MMMM yyyy, HH:mm", { locale: de }) : "–"}
               </p>
