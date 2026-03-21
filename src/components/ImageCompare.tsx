@@ -278,7 +278,7 @@ const ImageCompare = ({ images, locationName, onClose }: ImageCompareProps) => {
                 <div className="relative overflow-hidden rounded-lg border aspect-square bg-muted">
                   {/* Base image (older) */}
                   <img
-                    src={api.getImageUrl(compareImages[0].image_path)}
+                    src={api.resolveImageSrc(compareImages[0])}
                     alt="Ältere Aufnahme"
                     className="absolute inset-0 h-full w-full object-contain"
                   />
