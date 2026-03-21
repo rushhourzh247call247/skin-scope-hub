@@ -338,15 +338,28 @@ const PatientDetail = () => {
       </div>
 
       {/* Main Content */}
-      <div className="flex-1 flex overflow-hidden">
+      <div className="flex-1 flex flex-col lg:flex-row overflow-hidden">
         {/* Left: Body Map */}
         <div className={cn(
-          "shrink-0 border-r bg-card p-3 overflow-y-auto flex flex-col transition-all duration-300",
-          mapClickDialog ? "w-[480px]" : "w-[360px]"
+          "shrink-0 border-b lg:border-b-0 lg:border-r bg-card p-2 lg:p-3 overflow-y-auto flex flex-col transition-all duration-300",
+          "w-full lg:w-auto",
+          mapClickDialog ? "lg:w-[480px]" : "lg:w-[360px]"
         )}>
+          {/* Mobile toggle for map */}
+          <button
+            className="lg:hidden flex items-center justify-between w-full py-1 text-xs font-semibold text-foreground"
+            onClick={() => setMobileMapExpanded(!mobileMapExpanded)}
+          >
+            <span className="flex items-center gap-1.5">
+              <MapPin className="h-3.5 w-3.5 text-primary" /> Body Map
+            </span>
+            <span className="text-muted-foreground">{mobileMapExpanded ? "▲" : "▼"}</span>
+          </button>
+
           <div className={cn(
             "transition-all duration-300",
-            mapClickDialog ? "h-[560px]" : "h-[450px]"
+            mobileMapExpanded ? "h-[300px] lg:h-[450px]" : "h-0 overflow-hidden lg:h-[450px]",
+            mapClickDialog && mobileMapExpanded && "h-[350px] lg:h-[560px]"
           )}>
             <BodyMap3D
               markers={locations.map((l) => {
