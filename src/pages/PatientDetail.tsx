@@ -581,7 +581,7 @@ const PatientDetail = () => {
 
 
         {/* Center + Right: Content */}
-        <div className="flex-1 overflow-y-auto p-6">
+        <div className="flex-1 overflow-y-auto p-3 lg:p-6">
           <AnimatePresence mode="wait">
             {activeTab === "fotos" ? (
               <motion.div
