@@ -284,7 +284,7 @@ const ImageCompare = ({ images, locationName, onClose }: ImageCompareProps) => {
                   />
                   {/* Overlay image (newer) with adjustable opacity */}
                   <img
-                    src={api.getImageUrl(compareImages[1].image_path)}
+                    src={api.resolveImageSrc(compareImages[1])}
                     alt="Neuere Aufnahme"
                     className="absolute inset-0 h-full w-full object-contain"
                     style={{
