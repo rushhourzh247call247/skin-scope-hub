@@ -670,14 +670,14 @@ const PatientDetail = () => {
                 <h2 className="text-lg font-semibold text-foreground mb-4">Chronologischer Verlauf</h2>
                 {(() => {
                   // Collect all events from all locations
-                  const events: { date: string; type: "image" | "finding" | "location"; label: string; detail?: string; locationName: string; locationId: number; imagePath?: string }[] = [];
+                  const events: { date: string; type: "image" | "finding" | "location"; label: string; detail?: string; locationName: string; locationId: number; imagePath?: string; imageUrl?: string }[] = [];
                   locations.forEach((loc) => {
                     const locName = loc.name || `Spot #${loc.id}`;
                     // Location creation
                     events.push({ date: loc.created_at ?? "", type: "location", label: "Spot erstellt", detail: locName, locationName: locName, locationId: loc.id });
                     // Images
                     (loc.images ?? []).forEach((img) => {
-                      events.push({ date: img.created_at ?? "", type: "image", label: "Bild hochgeladen", locationName: locName, locationId: loc.id, imagePath: img.image_path });
+                      events.push({ date: img.created_at ?? "", type: "image", label: "Bild hochgeladen", locationName: locName, locationId: loc.id, imagePath: img.image_path, imageUrl: img.image_url });
                     });
                     // Findings
                     (loc.findings ?? []).forEach((f) => {
