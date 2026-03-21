@@ -429,7 +429,7 @@ const ImageCompare = ({ images, locationName, onClose }: ImageCompareProps) => {
         <DialogContent className="max-w-2xl p-2">
           {zoomedImage && (
             <div className="space-y-2">
-              <img src={api.getImageUrl(zoomedImage.image_path)} alt="Vergrössert" className="w-full rounded-md object-contain" />
+              <img src={api.resolveImageSrc(zoomedImage)} alt="Vergrössert" className="w-full rounded-md object-contain" />
               <p className="text-center text-xs text-muted-foreground tabular-nums">
                 {zoomedImage.created_at ? format(new Date(zoomedImage.created_at), "dd. MMMM yyyy, HH:mm", { locale: de }) : "–"}
               </p>
