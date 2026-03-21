@@ -1,4 +1,4 @@
-import { useState, useRef, useCallback } from "react";
+import { useState, useRef, useCallback, useEffect } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { api } from "@/lib/api";
 import type { LocationImage } from "@/types/patient";
@@ -9,6 +9,7 @@ import { format } from "date-fns";
 import { de } from "date-fns/locale";
 import ImageCompare from "@/components/ImageCompare";
 import AiAnalysisResult from "@/components/AiAnalysisResult";
+import { toast } from "sonner";
 
 interface ImageGalleryProps {
   locationId: number;
@@ -23,19 +24,32 @@ const ImageGallery = ({ locationId, patientId, images, locationName, locationTyp
   const fileRef = useRef<HTMLInputElement>(null);
   const [uploading, setUploading] = useState(false);
   const [compareMode, setCompareMode] = useState(false);
-  const [noteValues, setNoteValues] = useState<Record<number, string>>(() => {
-    const initial: Record<number, string> = {};
-    images.forEach(img => { if (img.note) initial[img.id] = img.note; });
-    return initial;
-  });
+  const [noteValues, setNoteValues] = useState<Record<number, string>>({});
   const [analyzingIds, setAnalyzingIds] = useState<Set<number>>(new Set());
-  const [aiResults, setAiResults] = useState<Record<number, LocationImage["ai_analysis"]>>(() => {
-    const initial: Record<number, LocationImage["ai_analysis"]> = {};
-    images.forEach(img => { if (img.ai_analysis) initial[img.id] = img.ai_analysis; });
-    return initial;
-  });
+  const [aiResults, setAiResults] = useState<Record<number, LocationImage["ai_analysis"]>>({});
   const [expandedAi, setExpandedAi] = useState<Set<number>>(new Set());
   const debounceTimers = useRef<Record<number, ReturnType<typeof setTimeout>>>({});
+
+  // Sync note values and AI results from API data whenever images prop changes
+  useEffect(() => {
+    const notes: Record<number, string> = {};
+    const ai: Record<number, LocationImage["ai_analysis"]> = {};
+    images.forEach(img => {
+      notes[img.id] = img.note ?? "";
+      if (img.ai_analysis) ai[img.id] = img.ai_analysis;
+    });
+    setNoteValues(prev => {
+      const merged = { ...notes };
+      Object.keys(prev).forEach(key => {
+        const id = Number(key);
+        if (debounceTimers.current[id]) {
+          merged[id] = prev[id];
+        }
+      });
+      return merged;
+    });
+    setAiResults(prev => ({ ...prev, ...ai }));
+  }, [images]);
 
   const uploadMutation = useMutation({
     mutationFn: (file: File) => api.uploadImage(locationId, file),
@@ -56,10 +70,16 @@ const ImageGallery = ({ locationId, patientId, images, locationName, locationTyp
   const handleNoteChange = useCallback((imageId: number, value: string) => {
     setNoteValues(prev => ({ ...prev, [imageId]: value }));
     if (debounceTimers.current[imageId]) clearTimeout(debounceTimers.current[imageId]);
-    debounceTimers.current[imageId] = setTimeout(() => {
-      api.updateImageNote(imageId, value).catch(() => {});
+    debounceTimers.current[imageId] = setTimeout(async () => {
+      delete debounceTimers.current[imageId];
+      try {
+        await api.updateImageNote(imageId, value);
+        queryClient.invalidateQueries({ queryKey: ["full-patient", patientId] });
+      } catch {
+        toast.error("Notiz konnte nicht gespeichert werden");
+      }
     }, 800);
-  }, []);
+  }, [patientId, queryClient]);
 
   const handleAnalyze = useCallback(async (imageId: number) => {
     setAnalyzingIds(prev => new Set(prev).add(imageId));
@@ -67,10 +87,15 @@ const ImageGallery = ({ locationId, patientId, images, locationName, locationTyp
       const result = await api.analyzeImage(imageId);
       setAiResults(prev => ({ ...prev, [imageId]: result }));
       setExpandedAi(prev => new Set(prev).add(imageId));
+      queryClient.invalidateQueries({ queryKey: ["full-patient", patientId] });
+    } catch (err: any) {
+      toast.error(err?.message?.includes("500")
+        ? "KI-Analyse ist serverseitig noch nicht eingerichtet"
+        : "KI-Analyse fehlgeschlagen");
     } finally {
       setAnalyzingIds(prev => { const next = new Set(prev); next.delete(imageId); return next; });
     }
-  }, []);
+  }, [patientId, queryClient]);
 
   if (compareMode && images.length >= 2) {
     return (
@@ -110,7 +135,7 @@ const ImageGallery = ({ locationId, patientId, images, locationName, locationTyp
           <p className="text-sm">Noch keine Bilder vorhanden</p>
         </div>
       ) : (
-        <div className={locationType === "spot" ? "grid grid-cols-2 gap-4 sm:grid-cols-3" : "grid grid-cols-2 gap-4 sm:grid-cols-3"}>
+        <div className="grid grid-cols-2 gap-4 sm:grid-cols-3">
           {sorted.map((img) => {
             const isAnalyzing = analyzingIds.has(img.id);
             const aiResult = aiResults[img.id] || img.ai_analysis;
