@@ -122,7 +122,7 @@ const ImageGallery = ({ locationId, patientId, images, locationName, locationTyp
                   <div className="flex flex-col items-center gap-1.5">
                     <div className="relative h-20 w-20 overflow-hidden rounded-full border-2 border-border shadow-sm">
                       <img
-                        src={api.getImageUrl(img.image_path)}
+                        src={api.resolveImageSrc(img)}
                         alt={`Aufnahme #${img.id}`}
                         className="h-full w-full object-cover"
                         loading="lazy"
@@ -136,7 +136,7 @@ const ImageGallery = ({ locationId, patientId, images, locationName, locationTyp
                   <div>
                     <div className="aspect-[3/4] overflow-hidden rounded-md">
                       <img
-                        src={api.getImageUrl(img.image_path)}
+                        src={api.resolveImageSrc(img)}
                         alt={`Aufnahme #${img.id}`}
                         className="h-full w-full object-cover"
                         loading="lazy"
