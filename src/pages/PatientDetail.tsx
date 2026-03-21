@@ -66,7 +66,6 @@ const PatientDetail = () => {
   const [showTrash, setShowTrash] = useState(false);
   const [permanentDeleteId, setPermanentDeleteId] = useState<number | null>(null);
   const [mobileMapExpanded, setMobileMapExpanded] = useState(true);
-  const [permanentDeleteId, setPermanentDeleteId] = useState<number | null>(null);
 
   const { data: patient, isLoading, error } = useQuery({
     queryKey: ["full-patient", patientId],
