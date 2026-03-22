@@ -20,6 +20,19 @@ function getRiskLabel(level: string | null | undefined): string {
   return "Hoch";
 }
 
+function resolveDoctorName(doctorName?: string): string | null {
+  if (doctorName?.trim()) return doctorName.trim();
+
+  try {
+    const rawUser = sessionStorage.getItem("auth_user");
+    if (!rawUser) return null;
+    const parsed = JSON.parse(rawUser) as { name?: unknown };
+    return typeof parsed.name === "string" && parsed.name.trim() ? parsed.name.trim() : null;
+  } catch {
+    return null;
+  }
+}
+
 function getAbcdeLabel(img: LocationImage): string[] {
   const lines: string[] = [];
   if (img.abc_asymmetry != null)
