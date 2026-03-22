@@ -60,6 +60,43 @@ async function request<T>(path: string, options?: RequestInit): Promise<T> {
   return res.json();
 }
 
+async function requestBlob(path: string, options?: RequestInit): Promise<Blob> {
+  const headers: Record<string, string> = {
+    Accept: 'application/pdf, application/octet-stream, */*',
+    ...(!options?.body || options.body instanceof FormData ? {} : { 'Content-Type': 'application/json' }),
+  };
+
+  if (authToken) {
+    headers.Authorization = `Bearer ${authToken}`;
+  }
+
+  let res: Response;
+  try {
+    res = await fetch(`${getApiBaseUrl()}${path}`, {
+      ...options,
+      headers: {
+        ...headers,
+        ...options?.headers,
+      },
+    });
+  } catch {
+    throw new Error('Verbindung zur API fehlgeschlagen. Bitte prüfen Sie HTTPS/CORS und ob der Server erreichbar ist.');
+  }
+
+  if (!res.ok) {
+    if (res.status === 401) {
+      sessionStorage.removeItem('auth_token');
+      sessionStorage.removeItem('auth_user');
+      window.location.href = '/login';
+      throw new Error('Sitzung abgelaufen');
+    }
+    const errorBody = await res.text().catch(() => '');
+    throw new Error(`API Error: ${res.status} ${res.statusText} ${errorBody}`);
+  }
+
+  return res.blob();
+}
+
 export const api = {
   setToken,
 
@@ -193,6 +230,10 @@ export const api = {
 
   completeUploadSession: (token: string) =>
     request<{ success: boolean; image_count: number; completed_at: string }>(`/upload-sessions/${token}/complete`, { method: 'POST' }),
+
+  // Patient PDF (server-side)
+  downloadPatientPdf: (patientId: number) =>
+    requestBlob(`/patients/${patientId}/pdf`, { method: 'GET' }),
 
   // Helper to get full image URL from a path or image object
   getImageUrl: (pathOrUrl: string) => {

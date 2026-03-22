@@ -84,11 +84,23 @@ const PatientDetail = () => {
     if (!patient) return;
     setPdfLoading(true);
     try {
-      const url = await generatePatientPDF(patient, "preview", user?.name);
-      if (url) {
-        // Open PDF in new tab - blob URLs work natively there
-        window.open(url, "_blank");
-        toast.success("PDF geöffnet");
+      const filename = getPatientPdfFilename(patient);
+
+      try {
+        const pdfBlob = await api.downloadPatientPdf(patient.id);
+        const downloadUrl = URL.createObjectURL(pdfBlob);
+        const link = document.createElement("a");
+        link.href = downloadUrl;
+        link.download = filename;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        setTimeout(() => URL.revokeObjectURL(downloadUrl), 1500);
+        toast.success("PDF heruntergeladen");
+        return;
+      } catch {
+        await generatePatientPDF(patient, "download", user?.name);
+        toast.success("PDF heruntergeladen");
       }
     } catch {
       toast.error("PDF konnte nicht erstellt werden");

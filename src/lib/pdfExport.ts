@@ -388,13 +388,10 @@ export async function generatePatientPDF(patient: FullPatient, mode: "preview" |
     const link = document.createElement("a");
     link.href = blobUrl;
     link.download = filename;
-    link.target = "_blank";
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
-    if (/Mobi|Android|iPhone|iPad/i.test(navigator.userAgent)) {
-      window.open(blobUrl, "_blank");
-    }
+    setTimeout(() => URL.revokeObjectURL(blobUrl), 1500);
   } catch {
     doc.save(filename);
   }
