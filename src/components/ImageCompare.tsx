@@ -70,7 +70,6 @@ const ImageCompare = ({ images, locationName, onClose }: ImageCompareProps) => {
     }, 800);
     return () => { if (alignSaveTimer.current) clearTimeout(alignSaveTimer.current); };
   }, [overlayRotation, overlayScale, overlayOffsetX, overlayOffsetY, selected]);
-  }, [overlayRotation, overlayScale, overlayOffsetX, overlayOffsetY, selected]);
 
   const handleNoteChange = useCallback((imageId: number, value: string) => {
     setNoteValues(prev => ({ ...prev, [imageId]: value }));
