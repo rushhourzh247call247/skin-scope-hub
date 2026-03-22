@@ -68,7 +68,7 @@ export async function generatePatientPDF(patient: FullPatient, mode: "preview" |
   doc.text("Derm247", margin, 12);
   doc.setFontSize(9);
   doc.setFont("helvetica", "normal");
-  doc.text(`Patientenbericht – ${format(new Date(), "dd.MM.yyyy HH:mm", { locale: de })}`, margin, 20);
+  doc.text(clean(`Patientenbericht - ${format(new Date(), "dd.MM.yyyy HH:mm", { locale: de })}`), margin, 20);
   doc.setTextColor(0, 0, 0);
   y = 36;
 
