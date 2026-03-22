@@ -42,18 +42,17 @@ const ImageCompare = ({ images, locationName, onClose }: ImageCompareProps) => {
   // Load saved alignment when two images are selected
   useEffect(() => {
     if (selected.length === 2) {
-      const saved = loadAlignment(selected[0], selected[1]);
-      if (saved) {
-        setOverlayRotation(saved.rotation);
-        setOverlayScale(saved.scale);
-        setOverlayOffsetX(saved.offsetX);
-        setOverlayOffsetY(saved.offsetY);
-      } else {
+      api.getImageAlignment(selected[0], selected[1]).then(saved => {
+        setOverlayRotation(saved.rotation ?? 0);
+        setOverlayScale(saved.scale ?? 100);
+        setOverlayOffsetX(saved.offset_x ?? 0);
+        setOverlayOffsetY(saved.offset_y ?? 0);
+      }).catch(() => {
         setOverlayRotation(0);
         setOverlayScale(100);
         setOverlayOffsetX(0);
         setOverlayOffsetY(0);
-      }
+      });
     }
   }, [selected]);
 
@@ -62,14 +61,15 @@ const ImageCompare = ({ images, locationName, onClose }: ImageCompareProps) => {
     if (selected.length !== 2) return;
     if (alignSaveTimer.current) clearTimeout(alignSaveTimer.current);
     alignSaveTimer.current = setTimeout(() => {
-      saveAlignment(selected[0], selected[1], {
+      api.saveImageAlignment(selected[0], selected[1], {
         rotation: overlayRotation,
         scale: overlayScale,
-        offsetX: overlayOffsetX,
-        offsetY: overlayOffsetY,
+        offset_x: overlayOffsetX,
+        offset_y: overlayOffsetY,
       });
-    }, 500);
+    }, 800);
     return () => { if (alignSaveTimer.current) clearTimeout(alignSaveTimer.current); };
+  }, [overlayRotation, overlayScale, overlayOffsetX, overlayOffsetY, selected]);
   }, [overlayRotation, overlayScale, overlayOffsetX, overlayOffsetY, selected]);
 
   const handleNoteChange = useCallback((imageId: number, value: string) => {
