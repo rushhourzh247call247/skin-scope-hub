@@ -68,6 +68,8 @@ const RiskCard = ({
     <button
       onClick={onClick}
       className={`rounded-lg border p-4 text-left transition-all ${cfg.bgClass} ${
+        count === 0 ? "opacity-40" : ""
+      } ${
         active ? "ring-2 ring-ring shadow-md scale-[1.02]" : "hover:shadow-sm hover:scale-[1.01]"
       }`}
     >
