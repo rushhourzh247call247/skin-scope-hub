@@ -299,5 +299,24 @@ export async function generatePatientPDF(patient: FullPatient): Promise<void> {
     );
   }
 
-  doc.save(`Derm247_${patient.name.replace(/\s+/g, "_")}_${format(new Date(), "yyyy-MM-dd")}.pdf`);
+  const filename = `Derm247_${patient.name.replace(/\s+/g, "_")}_${format(new Date(), "yyyy-MM-dd")}.pdf`;
+
+  // On mobile / iframe, open in new tab; otherwise download
+  try {
+    const blob = doc.output("blob");
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = filename;
+    link.target = "_blank";
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    // Also try opening in new tab as fallback for mobile
+    if (/Mobi|Android|iPhone|iPad/i.test(navigator.userAgent)) {
+      window.open(url, "_blank");
+    }
+  } catch {
+    doc.save(filename);
+  }
 }
