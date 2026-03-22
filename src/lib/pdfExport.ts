@@ -6,8 +6,16 @@ import { api } from "@/lib/api";
 import { format } from "date-fns";
 import { de } from "date-fns/locale";
 
+/** Replace Umlaute for jsPDF compatibility */
+function clean(text: string): string {
+  return text
+    .replace(/ä/g, "ae").replace(/ö/g, "oe").replace(/ü/g, "ue")
+    .replace(/Ä/g, "Ae").replace(/Ö/g, "Oe").replace(/Ü/g, "Ue")
+    .replace(/–/g, "-").replace(/≥/g, ">=").replace(/⚠/g, "!");
+}
+
 function getRiskLabel(level: string | null | undefined): string {
-  if (!level) return "–";
+  if (!level) return "-";
   if (level === "low") return "Niedrig";
   if (level === "medium") return "Mittel";
   return "Hoch";
