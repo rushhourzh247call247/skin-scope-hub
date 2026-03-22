@@ -2,7 +2,7 @@ import { useState, useRef, useCallback } from "react";
 import type { LocationImage } from "@/types/patient";
 import { format } from "date-fns";
 import { de } from "date-fns/locale";
-import { ArrowLeft, Calendar, Check, GitCompareArrows, RotateCcw, ZoomIn, Layers, Move, RotateCw, ChevronDown, Wand2, Sparkles, Loader2 } from "lucide-react";
+import { ArrowLeft, Calendar, Check, GitCompareArrows, RotateCcw, ZoomIn, Layers, Move, RotateCw, ChevronDown, Wand2, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Slider } from "@/components/ui/slider";
 import { Textarea } from "@/components/ui/textarea";
