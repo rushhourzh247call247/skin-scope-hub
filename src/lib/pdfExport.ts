@@ -44,6 +44,7 @@ async function loadImageAsBase64(url: string): Promise<string | null> {
 }
 
 export async function generatePatientPDF(patient: FullPatient): Promise<void> {
+  const imageCache: Record<number, string | null> = {};
   const doc = new jsPDF({ orientation: "portrait", unit: "mm", format: "a4" });
   const pageWidth = doc.internal.pageSize.getWidth();
   const margin = 15;
