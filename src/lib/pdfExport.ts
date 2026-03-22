@@ -296,7 +296,7 @@ export async function generatePatientPDF(patient: FullPatient, mode: "preview" |
     if (latestImg.note) {
       doc.setFontSize(8);
       doc.setFont("helvetica", "italic");
-      doc.text(`Notiz: ${latestImg.note}`, margin + 2, y);
+      doc.text(clean(`Notiz: ${latestImg.note}`), margin + 2, y);
       doc.setFont("helvetica", "normal");
       y += 5;
     }
