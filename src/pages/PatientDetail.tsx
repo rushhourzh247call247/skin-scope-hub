@@ -773,6 +773,7 @@ const PatientDetail = () => {
                                 {ev.date ? format(new Date(ev.date), "dd.MM.yyyy HH:mm", { locale: de }) : "–"}
                               </span>
                             </div>
+                            {ev.userName && <p className="text-xs text-muted-foreground italic">von {ev.userName}</p>}
                             {ev.detail && <p className="text-sm text-muted-foreground">{ev.detail}</p>}
                             {ev.imagePath && (
                               <img
