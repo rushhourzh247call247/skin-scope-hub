@@ -22,6 +22,8 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { AnimatePresence, motion } from "framer-motion";
 import { cn } from "@/lib/utils";
+import { generatePatientPDF } from "@/lib/pdfExport";
+import { toast } from "sonner";
 import {
   AlertDialog,
   AlertDialogAction,
