@@ -216,7 +216,6 @@ const PatientList = () => {
         </div>
       )}
     </div>
-    </div>
 
     {/* Admin: Delete Patient Confirmation */}
     <AlertDialog open={deletePatientId !== null} onOpenChange={(open) => !open && setDeletePatientId(null)}>
