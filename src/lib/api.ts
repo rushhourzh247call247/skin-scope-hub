@@ -123,6 +123,9 @@ export const api = {
   // User: Change own password
   changeOwnPassword: (current_password: string, password: string, password_confirmation: string) =>
     request<any>('/change-password', { method: 'PUT', body: JSON.stringify({ current_password, password, password_confirmation }) }),
+  // Admin: Reset user 2FA
+  adminReset2FA: (userId: number) =>
+    request<{ success: boolean }>(`/admin/users/${userId}/reset-2fa`, { method: 'POST' }),
 
   // Patients
   getPatients: () => request<any[]>('/patients'),
