@@ -232,7 +232,7 @@ export async function generatePatientPDF(patient: FullPatient, mode: "preview" |
         imgX = margin + 2;
       }
 
-      const imgUrl = api.resolveImageSrc(img);
+      const imgUrl = img.image_url || api.resolveImageSrc(img);
       if (imageCache[img.id] === undefined) {
         imageCache[img.id] = await loadImageAsBase64(imgUrl);
       }
@@ -242,8 +242,14 @@ export async function generatePatientPDF(patient: FullPatient, mode: "preview" |
         try {
           doc.addImage(base64, "JPEG", imgX, y, imgSize, imgSize);
         } catch {
-          // Skip broken images
+          doc.setFontSize(7);
+          doc.text("Bild nicht ladbar", imgX + 2, y + imgSize / 2);
         }
+      } else {
+        doc.setDrawColor(200, 200, 200);
+        doc.rect(imgX, y, imgSize, imgSize);
+        doc.setFontSize(7);
+        doc.text("Bild nicht ladbar", imgX + 2, y + imgSize / 2);
       }
 
       // Date under image
