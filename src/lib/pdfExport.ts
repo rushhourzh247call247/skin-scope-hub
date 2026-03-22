@@ -43,7 +43,7 @@ async function loadImageAsBase64(url: string): Promise<string | null> {
   }
 }
 
-export async function generatePatientPDF(patient: FullPatient): Promise<void> {
+export async function generatePatientPDF(patient: FullPatient, mode: "preview" | "download" = "download"): Promise<string | void> {
   const imageCache: Record<number, string | null> = {};
   const doc = new jsPDF({ orientation: "portrait", unit: "mm", format: "a4" });
   const pageWidth = doc.internal.pageSize.getWidth();
@@ -300,23 +300,29 @@ export async function generatePatientPDF(patient: FullPatient): Promise<void> {
   }
 
   const filename = `Derm247_${patient.name.replace(/\s+/g, "_")}_${format(new Date(), "yyyy-MM-dd")}.pdf`;
+  const blob = doc.output("blob");
+  const blobUrl = URL.createObjectURL(blob);
 
-  // On mobile / iframe, open in new tab; otherwise download
+  if (mode === "preview") {
+    return blobUrl;
+  }
+
   try {
-    const blob = doc.output("blob");
-    const url = URL.createObjectURL(blob);
     const link = document.createElement("a");
-    link.href = url;
+    link.href = blobUrl;
     link.download = filename;
     link.target = "_blank";
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
-    // Also try opening in new tab as fallback for mobile
     if (/Mobi|Android|iPhone|iPad/i.test(navigator.userAgent)) {
-      window.open(url, "_blank");
+      window.open(blobUrl, "_blank");
     }
   } catch {
     doc.save(filename);
   }
+}
+
+export function getPatientPdfFilename(patient: { name: string }): string {
+  return `Derm247_${patient.name.replace(/\s+/g, "_")}_${format(new Date(), "yyyy-MM-dd")}.pdf`;
 }

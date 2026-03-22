@@ -22,8 +22,14 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { AnimatePresence, motion } from "framer-motion";
 import { cn } from "@/lib/utils";
-import { generatePatientPDF } from "@/lib/pdfExport";
+import { generatePatientPDF, getPatientPdfFilename } from "@/lib/pdfExport";
 import { toast } from "sonner";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -70,18 +76,37 @@ const PatientDetail = () => {
   const [permanentDeleteId, setPermanentDeleteId] = useState<number | null>(null);
   const [mobileMapExpanded, setMobileMapExpanded] = useState(true);
   const [pdfLoading, setPdfLoading] = useState(false);
+  const [pdfPreviewUrl, setPdfPreviewUrl] = useState<string | null>(null);
 
   const handlePdfExport = async () => {
     if (!patient) return;
     setPdfLoading(true);
     try {
-      await generatePatientPDF(patient);
-      toast.success("PDF erstellt");
+      const url = await generatePatientPDF(patient, "preview");
+      if (url) {
+        setPdfPreviewUrl(url);
+      }
     } catch {
       toast.error("PDF konnte nicht erstellt werden");
     } finally {
       setPdfLoading(false);
     }
+  };
+
+  const handlePdfDownload = () => {
+    if (!pdfPreviewUrl || !patient) return;
+    const link = document.createElement("a");
+    link.href = pdfPreviewUrl;
+    link.download = getPatientPdfFilename(patient);
+    link.target = "_blank";
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    // Mobile fallback
+    if (/Mobi|Android|iPhone|iPad/i.test(navigator.userAgent)) {
+      window.open(pdfPreviewUrl, "_blank");
+    }
+    toast.success("PDF heruntergeladen");
   };
 
   const { data: patient, isLoading, error } = useQuery({
@@ -1096,6 +1121,29 @@ const PatientDetail = () => {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* PDF Preview Dialog */}
+      <Dialog open={!!pdfPreviewUrl} onOpenChange={(open) => { if (!open) { if (pdfPreviewUrl) URL.revokeObjectURL(pdfPreviewUrl); setPdfPreviewUrl(null); } }}>
+        <DialogContent className="max-w-3xl h-[85vh] flex flex-col p-0">
+          <DialogHeader className="px-4 pt-4 pb-2">
+            <DialogTitle className="flex items-center justify-between">
+              <span className="text-sm">PDF Vorschau</span>
+              <Button size="sm" onClick={handlePdfDownload} className="gap-1.5">
+                <FileDown className="h-3.5 w-3.5" /> Herunterladen
+              </Button>
+            </DialogTitle>
+          </DialogHeader>
+          <div className="flex-1 px-4 pb-4">
+            {pdfPreviewUrl && (
+              <iframe
+                src={pdfPreviewUrl}
+                className="w-full h-full rounded-md border"
+                title="PDF Vorschau"
+              />
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
