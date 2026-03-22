@@ -3,20 +3,34 @@ import { api } from "@/lib/api";
 import type { Patient } from "@/types/patient";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Search, Calendar, Hash, EyeOff, Eye, Power, PowerOff } from "lucide-react";
+import { Search, Calendar, Hash, Power, PowerOff, Trash2 } from "lucide-react";
+import { useAuth } from "@/contexts/AuthContext";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { Badge } from "@/components/ui/badge";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { toast } from "sonner";
 import { format } from "date-fns";
 import { de } from "date-fns/locale";
 
 const PatientList = () => {
+  const { user } = useAuth();
+  const isAdmin = user?.role === "admin";
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const [search, setSearch] = useState("");
   const [showDeactivated, setShowDeactivated] = useState(false);
+  const [deletePatientId, setDeletePatientId] = useState<number | null>(null);
 
   const { data: patients = [], isLoading, error } = useQuery({
     queryKey: ["patients"],
@@ -39,6 +53,16 @@ const PatientList = () => {
     },
   });
 
+  const deleteMutation = useMutation({
+    mutationFn: (id: number) => api.deletePatient(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["patients"] });
+      toast.success("Patient gelöscht");
+      setDeletePatientId(null);
+    },
+    onError: () => toast.error("Fehler beim Löschen"),
+  });
+
   const activePatients = patients.filter((p: any) => !p.deactivated_at);
   const deactivatedPatients = patients.filter((p: any) => !!p.deactivated_at);
 
@@ -48,6 +72,7 @@ const PatientList = () => {
   );
 
   return (
+    <>
     <div className="container py-8">
       <div className="mb-6 flex items-start justify-between">
         <div>
@@ -151,25 +176,37 @@ const PatientList = () => {
                       {patient.created_at ? format(new Date(patient.created_at), "dd.MM.yyyy", { locale: de }) : "–"}
                     </td>
                     <td className="px-4 py-3 text-right">
-                      {(patient as any).deactivated_at ? (
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          className="h-7 gap-1 text-xs"
-                          onClick={(e) => { e.stopPropagation(); activateMutation.mutate(patient.id); }}
-                        >
-                          <Power className="h-3 w-3" /> Aktivieren
-                        </Button>
-                      ) : (
-                        <Button
-                          size="sm"
-                          variant="ghost"
-                          className="h-7 gap-1 text-xs text-muted-foreground hover:text-destructive"
-                          onClick={(e) => { e.stopPropagation(); deactivateMutation.mutate(patient.id); }}
-                        >
-                          <PowerOff className="h-3 w-3" /> Deaktivieren
-                        </Button>
-                      )}
+                      <div className="flex justify-end gap-1">
+                        {(patient as any).deactivated_at ? (
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            className="h-7 gap-1 text-xs"
+                            onClick={(e) => { e.stopPropagation(); activateMutation.mutate(patient.id); }}
+                          >
+                            <Power className="h-3 w-3" /> Aktivieren
+                          </Button>
+                        ) : (
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            className="h-7 gap-1 text-xs text-muted-foreground hover:text-destructive"
+                            onClick={(e) => { e.stopPropagation(); deactivateMutation.mutate(patient.id); }}
+                          >
+                            <PowerOff className="h-3 w-3" /> Deaktivieren
+                          </Button>
+                        )}
+                        {isAdmin && (
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            className="h-7 w-7 p-0 text-muted-foreground hover:text-destructive"
+                            onClick={(e) => { e.stopPropagation(); setDeletePatientId(patient.id); }}
+                          >
+                            <Trash2 className="h-3 w-3" />
+                          </Button>
+                        )}
+                      </div>
                     </td>
                   </tr>
                 ))
@@ -179,6 +216,33 @@ const PatientList = () => {
         </div>
       )}
     </div>
+
+    {/* Admin: Delete Patient Confirmation */}
+    <AlertDialog open={deletePatientId !== null} onOpenChange={(open) => !open && setDeletePatientId(null)}>
+      <AlertDialogContent>
+        <AlertDialogHeader>
+          <AlertDialogTitle>Patient endgültig löschen?</AlertDialogTitle>
+          <AlertDialogDescription>
+            {(() => {
+              const p = patients.find((p: any) => p.id === deletePatientId);
+              return p
+                ? <><strong>{p.name}</strong> und alle zugehörigen Daten (Spots, Bilder, Befunde) werden unwiderruflich gelöscht.</>
+                : "Dieser Patient wird unwiderruflich gelöscht.";
+            })()}
+          </AlertDialogDescription>
+        </AlertDialogHeader>
+        <AlertDialogFooter>
+          <AlertDialogCancel>Abbrechen</AlertDialogCancel>
+          <AlertDialogAction
+            className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            onClick={() => deletePatientId && deleteMutation.mutate(deletePatientId)}
+          >
+            Endgültig löschen
+          </AlertDialogAction>
+        </AlertDialogFooter>
+      </AlertDialogContent>
+    </AlertDialog>
+    </>
   );
 };
 

@@ -132,6 +132,8 @@ export const api = {
     request<{ success: boolean }>(`/patients/${id}/deactivate`, { method: 'PUT' }),
   activatePatient: (id: number) =>
     request<{ success: boolean }>(`/patients/${id}/activate`, { method: 'PUT' }),
+  deletePatient: (id: number) =>
+    request<{ success: boolean }>(`/patients/${id}`, { method: 'DELETE' }),
 
   // Full Patient
   getFullPatient: (id: number) => request<any>(`/full-patient/${id}`),
