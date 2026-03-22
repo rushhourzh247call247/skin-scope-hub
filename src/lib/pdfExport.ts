@@ -39,7 +39,7 @@ function getAbcdeLabel(img: LocationImage): string[] {
 async function loadImageAsBase64(url: string): Promise<string | null> {
   // Try fetching with auth token first (bypasses CORS issues with storage)
   try {
-    const token = localStorage.getItem("auth_token");
+    const token = sessionStorage.getItem("auth_token");
     const headers: Record<string, string> = {};
     if (token) {
       headers.Authorization = `Bearer ${token}`;
