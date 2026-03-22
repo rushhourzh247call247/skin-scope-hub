@@ -1,64 +1,62 @@
 
 
-# DERM247 Marketing-Video — 60s, Deutsch, Marktreif
+# DERM247 Marketing-Video — Mit echten Website-Screenshots
 
-## Kreative Richtung
+## Konzept
 
-**Stil:** Medical-Tech Premium — sauber, vertrauenswürdig, Schweizer Qualitat
-**Stimmung:** "Ihr Werkzeug fur die Zukunft der Dermatologie"
-**Emotionaler Bogen:** Neugier → Staunen → Vertrauen → Handlungsimpuls
+Statt programmierter Mockups verwende ich **echte Screenshots** deiner App. Ich navigiere durch die Lovable-Preview (gleiche UI wie app.derm247.ch) und mache hochaufgelöste Screenshots von jeder wichtigen Seite. Diese werden dann im Video mit professionellen Zoom-, Pan- und Slide-Animationen präsentiert.
 
-### Farbpalette
-- Primary: `#1a9e8f` (DERM247 Teal)
-- Dark BG: `#0f1a24` (Tiefes Dunkelblau)
-- Light: `#f0f5f4` (Helles Mint-Grau)
-- Akzent Rot: `#ef4444` / Gelb: `#eab308` / Grun: `#22c55e` (Risiko-Ampel)
-- Weiss: `#ffffff`
+## Screenshot-Aufnahmen (1920×1080)
 
-### Fonts
-- **Space Grotesk** (Headlines, Logo) via `@remotion/google-fonts`
-- **Inter** (Body/Beschreibungen) via `@remotion/google-fonts`
+Ich navigiere durch folgende Routen und mache Screenshots:
 
-### Motion System
-- **Eintritt:** Spring slide-up + fade (damping: 20, stiffness: 200)
-- **Austritt:** Fade-out + leichter scale-down
-- **Ubergange:** `wipe` und `slide` aus `@remotion/transitions`
-- **Akzent-Motion:** Grosserer spring-overshoot fur Hero-Elemente
+| # | Route / Ansicht | Was zu sehen ist |
+|---|----------------|------------------|
+| 1 | `/login` | Login-Seite mit DERM247 Branding |
+| 2 | `/` (Dashboard) | Statistiken, Risiko-Ampel, Übersicht |
+| 3 | `/patients` | Patientenliste mit Suche |
+| 4 | `/patients/new` | Neuen Patient anlegen (Formular) |
+| 5 | `/patients/:id` | Patientendetail mit 3D Body Map |
+| 6 | `/patients/:id` (Spots) | Spot-Details, Bilder, ABCDE-Bewertung |
+| 7 | `/patients/:id` (Vergleich) | Bild-Overlay / Vergleichsansicht |
+| 8 | `/settings` | Einstellungen / Sicherheit |
 
-### Visuelle Motive
-- Teal-Gradient-Streifen als wiederkehrendes Branding-Element
-- Abgerundete UI-Card-Mockups (wie echte App-Screens)
-- Schweizer Kreuz als Trust-Symbol
-- Subtiles Grid-Pattern im Hintergrund
+Zusätzlich generiere ich per AI 2-3 professionelle Muttermal-Nahaufnahmen für die ABCDE- und Vergleichs-Szenen.
 
-## Bilder
+## Szenenplan (~60 Sekunden)
 
-Ich generiere per AI passende dermatologische Bilder (Muttermale/Navi auf Haut) — keine echten Patientendaten oder DB-Bilder. Diese werden als medizinisch-professionelle Illustrationen verwendet.
+| # | Szene | Dauer | Visuell | Text-Overlay |
+|---|-------|-------|---------|-------------|
+| 1 | **Intro** | 4s | Logo-Reveal auf dunklem Teal-Gradient | "Hautveränderungen. Sicher dokumentiert. In der Schweiz." 🇨🇭 |
+| 2 | **Das Problem** | 5s | Text-Animation | "Papierakten. Verstreute Fotos. Keine Verlaufskontrolle." → "Es geht besser." |
+| 3 | **Patient anlegen** | 6s | Screenshot vom Formular mit Zoom-In | "Neuer Patient — in Sekunden erfasst" |
+| 4 | **3D Körperkarte** | 7s | Screenshot Body Map mit Ken-Burns Pan | "Spots direkt auf dem 3D-Körper markieren. Klassifikation inklusive." |
+| 5 | **QR Foto-Upload** | 6s | Screenshot QR-Dialog + Handy-Andeutung | "QR scannen. Foto machen. Automatisch zugeordnet. Kein Login nötig." |
+| 6 | **ABCDE & Risiko** | 6s | Screenshot ABCDE-Formular + Muttermale | "ABCDE-Bewertung mit Risiko-Score. Grün. Gelb. Rot." |
+| 7 | **Bildvergleich** | 6s | Screenshot Overlay-Vergleich | "Vorher. Nachher. Veränderungen sofort erkennen." |
+| 8 | **Verlauf & PDF** | 5s | Screenshot Dashboard + PDF-Mockup | "Verlaufsdokumentation. PDF-Export für Überweisungen." |
+| 9 | **Sicherheit & Preise** | 7s | Icons + Text auf dunklem BG | "Schweizer Server. 2FA. Mandantenfähig." + "Flexible Preismodelle: Pro Praxis, Pro Benutzer oder Komplettlösung." |
+| 10 | **Outro** | 5s | Logo gross + URL | "derm247.ch — Die Zukunft der dermatologischen Dokumentation" |
 
-## Szenenplan (~60 Sekunden, 1800 Frames @ 30fps)
+## Animationstechnik für Screenshots
 
-| # | Szene | Dauer | Inhalt |
-|---|-------|-------|--------|
-| 1 | **Intro** | 4s | DERM247-Logo reveal + Tagline: "Hautveranderungen. Sicher dokumentiert. In der Schweiz." + Schweizer Flagge |
-| 2 | **Das Problem** | 5s | "Papierakten. Unubersichtliche Fotos. Keine Verlaufskontrolle." → Durchgestrichen → "Es geht besser." |
-| 3 | **Patient anlegen** | 6s | Animiertes Formular-Mockup: Name, Geburtsdatum, Geschlecht → "In Sekunden erfasst" |
-| 4 | **Spots auf 3D-Korper** | 7s | 3D-Korper-Silhouette mit animierten Markern, Klassifikation-Labels (Navus, BCC, Melanom-Verdacht) |
-| 5 | **QR-Code Foto-Upload** | 6s | QR-Code erscheint → Handy-Mockup scannt → Foto wird automatisch zugeordnet. "Kein Login. Kein Aufwand." |
-| 6 | **ABCDE & Risiko** | 6s | ABCDE-Kriterien einzeln eingeblendet → Risiko-Score animiert (Grun→Gelb→Rot) |
-| 7 | **Bildvergleich & Overlay** | 6s | Zwei Muttermal-Bilder nebeneinander → Overlay-Slider → Veranderung sichtbar |
-| 8 | **Verlauf & PDF** | 5s | Timeline-Chart mit Risiko-Progression → PDF-Export animiert → "Fur Uberweisungen & Dokumentation" |
-| 9 | **Sicherheit & Preise** | 7s | Schweizer Server, 2FA, Mandantenfahig → "Flexible Preismodelle: Pro Praxis, Pro Benutzer oder als Komplettlosung" |
-| 10 | **Outro** | 5s | Logo gross + "derm247.ch" + "Die Zukunft der dermatologischen Dokumentation" |
+Die Screenshots werden nicht einfach statisch gezeigt, sondern professionell animiert:
+
+- **Ken-Burns-Effekt**: Langsamer Zoom + leichter Pan über den Screenshot — wie ein Kameraschwenk
+- **Focus-Zoom**: Reinzoomen auf spezifische UI-Elemente (z.B. Risiko-Ampel, ABCDE-Formular)
+- **Slide-In**: Screenshots gleiten von der Seite herein, in einem MacOS-artigen Fensterrahmen
+- **Overlay-Text**: Beschreibender Text wird neben oder über dem Screenshot eingeblendet
 
 ## Technische Umsetzung
 
-1. **Projekt-Setup:** `/tmp/derm-video/`, Remotion + Dependencies installieren
-2. **AI-Bilder generieren:** 3-4 professionelle Muttermal-Nahaufnahmen via Nano banana (fur Szenen 6 & 7)
-3. **10 Szenen-Komponenten** unter `src/scenes/`
-4. **Persistenter Hintergrund** mit Teal-Gradient und Grid
-5. **TransitionSeries** mit wipe/slide-Ubergangen
-6. **Render** via `scripts/render.mjs` → `/mnt/documents/derm247-promo.mp4`
+1. Screenshots via Browser-Tools aufnehmen (Lovable Preview, 1920×1080)
+2. AI-Muttermal-Bilder generieren (für Szenen 6 & 7)
+3. Remotion-Projekt in `/tmp/derm-video/` mit allen Screenshots als `staticFile`
+4. 10 Szenen-Komponenten mit Ken-Burns-Animationen auf echten Screenshots
+5. TransitionSeries mit Wipe/Slide-Übergängen
+6. Render → `/mnt/documents/derm247-promo.mp4`
 
-## Sprache
-Komplett Deutsch, klar und direkt, fur Dermatologen geschrieben. Keine technischen Fachbegriffe zur Software — Fokus auf Nutzen und Workflow.
+## Ergebnis
+
+Ein professionelles 60-Sekunden-Video das die **echte App** zeigt — authentisch, vertrauenswürdig, und sofort verständlich für jeden Dermatologen.
 
