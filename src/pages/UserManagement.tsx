@@ -9,7 +9,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
-import { UserCog, Plus, Trash2, KeyRound, Eye, EyeOff } from "lucide-react";
+import { UserCog, Plus, Trash2, KeyRound, Eye, EyeOff, ShieldOff } from "lucide-react";
 import { toast } from "sonner";
 
 const UserManagement = () => {
@@ -32,6 +32,8 @@ const UserManagement = () => {
   const [showConfirmPw, setShowConfirmPw] = useState(false);
   const [showCreatePw, setShowCreatePw] = useState(false);
 
+  // 2FA reset confirm
+  const [reset2faUser, setReset2faUser] = useState<{ id: number; name: string } | null>(null);
   const { data: users = [], isLoading } = useQuery({
     queryKey: ["users"],
     queryFn: api.getUsers,
@@ -76,6 +78,16 @@ const UserManagement = () => {
       setShowConfirmPw(false);
     },
     onError: () => toast.error("Fehler beim Zurücksetzen"),
+  });
+
+  const reset2faMutation = useMutation({
+    mutationFn: (userId: number) => api.adminReset2FA(userId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["users"] });
+      toast.success(`2FA für ${reset2faUser?.name} wurde zurückgesetzt`);
+      setReset2faUser(null);
+    },
+    onError: () => toast.error("Fehler beim Zurücksetzen der 2FA"),
   });
 
   return (
@@ -173,6 +185,16 @@ const UserManagement = () => {
                     </TableCell>
                     <TableCell className="text-right">
                       <div className="flex justify-end gap-1">
+                        {u.two_factor_enabled && (
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            title="2FA zurücksetzen"
+                            onClick={() => setReset2faUser({ id: u.id, name: u.name })}
+                          >
+                            <ShieldOff className="h-4 w-4" />
+                          </Button>
+                        )}
                         <Button
                           variant="ghost"
                           size="icon"
@@ -216,6 +238,27 @@ const UserManagement = () => {
               onClick={() => deleteUserId && deleteMutation.mutate(deleteUserId)}
             >
               Löschen
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+
+      {/* 2FA Reset Confirmation */}
+      <AlertDialog open={reset2faUser !== null} onOpenChange={(open) => !open && setReset2faUser(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>2FA zurücksetzen?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Die Zwei-Faktor-Authentifizierung für <span className="font-semibold">{reset2faUser?.name}</span> wird deaktiviert. Der Benutzer kann sich dann ohne Code anmelden und 2FA neu einrichten.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Abbrechen</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => reset2faUser && reset2faMutation.mutate(reset2faUser.id)}
+            >
+              2FA deaktivieren
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
