@@ -210,7 +210,10 @@ export async function generatePatientPDF(patient: FullPatient): Promise<void> {
       }
 
       const imgUrl = api.resolveImageSrc(img);
-      const base64 = await loadImageAsBase64(imgUrl);
+      if (imageCache[img.id] === undefined) {
+        imageCache[img.id] = await loadImageAsBase64(imgUrl);
+      }
+      const base64 = imageCache[img.id];
 
       if (base64) {
         try {
