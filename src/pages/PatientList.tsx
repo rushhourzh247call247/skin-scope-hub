@@ -66,13 +66,14 @@ const PatientList = () => {
                     <Calendar className="h-3 w-3" /> Geburtsdatum
                   </div>
                 </th>
+                <th className="px-4 py-3">Letzter Arzt</th>
                 <th className="px-4 py-3">Erstellt</th>
               </tr>
             </thead>
             <tbody>
               {filtered.length === 0 ? (
                 <tr>
-                  <td colSpan={4} className="px-4 py-12 text-center text-sm text-muted-foreground">
+                  <td colSpan={5} className="px-4 py-12 text-center text-sm text-muted-foreground">
                     {search ? "Keine Patienten gefunden." : "Noch keine Patienten vorhanden."}
                   </td>
                 </tr>
@@ -96,6 +97,9 @@ const PatientList = () => {
                     </td>
                     <td className="px-4 py-3 tabular-nums text-sm text-muted-foreground">
                       {patient.birth_date ? format(new Date(patient.birth_date), "dd. MMM yyyy", { locale: de }) : "–"}
+                    </td>
+                    <td className="px-4 py-3 text-sm text-muted-foreground">
+                      {(patient as any).last_doctor || <span className="text-muted-foreground/50">–</span>}
                     </td>
                     <td className="px-4 py-3 tabular-nums text-sm text-muted-foreground">
                       {patient.created_at ? format(new Date(patient.created_at), "dd.MM.yyyy", { locale: de }) : "–"}
