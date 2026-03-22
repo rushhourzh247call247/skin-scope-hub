@@ -142,9 +142,17 @@ export const api = {
   updateImageNote: (imageId: number, note: string) =>
     request<any>(`/images/${imageId}/note`, { method: 'PUT', body: JSON.stringify({ note }) }),
 
-  // AI Analysis
-  analyzeImage: (imageId: number) =>
-    request<any>(`/images/${imageId}/analyze`, { method: 'POST' }),
+  // ABCDE Assessment
+  updateAbcde: (imageId: number, data: {
+    abc_asymmetry: boolean;
+    abc_border: string;
+    abc_color: string;
+    abc_diameter: string;
+    abc_evolution: string;
+  }) =>
+    request<{ success: boolean; risk_score: number; risk_level: string }>(
+      `/images/${imageId}/abcde`, { method: 'PUT', body: JSON.stringify(data) }
+    ),
 
   // Dashboard
   getDashboardStats: () => request<any>('/dashboard'),
