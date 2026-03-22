@@ -98,6 +98,9 @@ const PatientList = () => {
                     <td className="px-4 py-3 tabular-nums text-sm text-muted-foreground">
                       {patient.birth_date ? format(new Date(patient.birth_date), "dd. MMM yyyy", { locale: de }) : "–"}
                     </td>
+                    <td className="px-4 py-3 text-sm text-muted-foreground">
+                      {(patient as any).last_doctor || <span className="text-muted-foreground/50">–</span>}
+                    </td>
                     <td className="px-4 py-3 tabular-nums text-sm text-muted-foreground">
                       {patient.created_at ? format(new Date(patient.created_at), "dd.MM.yyyy", { locale: de }) : "–"}
                     </td>
