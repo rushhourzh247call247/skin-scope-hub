@@ -114,6 +114,13 @@ const RiskProgression = ({ images, locationName }: RiskProgressionProps) => {
         )}
       </div>
 
+      {/* Critical history warning */}
+      {everHigh && (
+        <div className="flex items-center gap-1.5 rounded-md border border-red-200 bg-red-50 px-2 py-1.5 text-[11px] font-medium text-red-700">
+          ⚠️ Früher hoher Risikowert erkannt (Score ≥ 4)
+        </div>
+      )}
+
       {/* Mini Chart */}
       {hasAnyScore && chartData.length >= 2 && (
         <div className="h-28 w-full">
