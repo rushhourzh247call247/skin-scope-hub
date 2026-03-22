@@ -291,39 +291,39 @@ const PatientDetail = () => {
             </div>
           </div>
 
-          {/* PDF Export */}
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={handlePdfExport}
-            disabled={pdfLoading}
-            className="shrink-0 h-8 px-2 lg:px-3 gap-1 text-[10px] lg:text-xs"
-          >
-            {pdfLoading ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <FileDown className="h-3.5 w-3.5" />}
-            <span className="hidden sm:inline">PDF</span>
-          </Button>
-
-          {/* Mode tabs - push right */}
-          <div className="ml-auto flex items-center gap-1 rounded-lg bg-muted p-0.5 lg:p-1 shrink-0">
-            {[
-              { key: "spots" as const, icon: MapPin, label: "SPOTS" },
-              { key: "fotos" as const, icon: Camera, label: "FOTOS" },
-              { key: "timeline" as const, icon: Activity, label: "TIMELINE" },
-            ].map(tab => (
-              <button
-                key={tab.key}
-                onClick={() => setActiveTab(tab.key)}
-                className={cn(
-                  "flex items-center gap-1 rounded-md px-2 py-1 lg:px-3 lg:py-1.5 text-[10px] lg:text-xs font-medium transition-all",
-                  activeTab === tab.key
-                    ? "bg-primary text-primary-foreground shadow-sm"
-                    : "text-muted-foreground hover:text-foreground"
-                )}
-              >
-                <tab.icon className="h-3 w-3 lg:h-3.5 lg:w-3.5" />
-                <span className="hidden sm:inline">{tab.label}</span>
-              </button>
-            ))}
+          {/* Mode tabs + PDF - push right */}
+          <div className="ml-auto flex items-center gap-1.5 shrink-0">
+            <div className="flex items-center gap-1 rounded-lg bg-muted p-0.5 lg:p-1">
+              {[
+                { key: "spots" as const, icon: MapPin, label: "SPOTS" },
+                { key: "fotos" as const, icon: Camera, label: "FOTOS" },
+                { key: "timeline" as const, icon: Activity, label: "TIMELINE" },
+              ].map(tab => (
+                <button
+                  key={tab.key}
+                  onClick={() => setActiveTab(tab.key)}
+                  className={cn(
+                    "flex items-center gap-1 rounded-md px-2 py-1 lg:px-3 lg:py-1.5 text-[10px] lg:text-xs font-medium transition-all",
+                    activeTab === tab.key
+                      ? "bg-primary text-primary-foreground shadow-sm"
+                      : "text-muted-foreground hover:text-foreground"
+                  )}
+                >
+                  <tab.icon className="h-3 w-3 lg:h-3.5 lg:w-3.5" />
+                  <span className="hidden sm:inline">{tab.label}</span>
+                </button>
+              ))}
+            </div>
+            <Button
+              variant="outline"
+              size="icon"
+              onClick={handlePdfExport}
+              disabled={pdfLoading}
+              className="h-7 w-7 lg:h-8 lg:w-8"
+              title="PDF Export"
+            >
+              {pdfLoading ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <FileDown className="h-3.5 w-3.5" />}
+            </Button>
           </div>
         </div>
 
