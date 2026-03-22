@@ -6,7 +6,7 @@ import type { FullPatient, LesionClassification } from "@/types/patient";
 import { LESION_CLASSIFICATIONS } from "@/types/patient";
 import { useState } from "react";
 import type { LesionClassification as LesionClassificationType } from "@/types/patient";
-import { ArrowLeft, MapPin, Plus, Calendar, ImageIcon, User, Hash, Activity, Mail, Phone, Pencil, Trash2, Save, X, Square, GitCompareArrows, Move, Camera, Tag, QrCode, Undo2, AlertTriangle } from "lucide-react";
+import { ArrowLeft, MapPin, Plus, Calendar, ImageIcon, User, Hash, Activity, Mail, Phone, Pencil, Trash2, Save, X, Square, GitCompareArrows, Move, Camera, Tag, QrCode, Undo2, AlertTriangle, FileDown, Loader2 } from "lucide-react";
 import { Slider } from "@/components/ui/slider";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -22,6 +22,8 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { AnimatePresence, motion } from "framer-motion";
 import { cn } from "@/lib/utils";
+import { generatePatientPDF } from "@/lib/pdfExport";
+import { toast } from "sonner";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -67,6 +69,20 @@ const PatientDetail = () => {
   const [showTrash, setShowTrash] = useState(false);
   const [permanentDeleteId, setPermanentDeleteId] = useState<number | null>(null);
   const [mobileMapExpanded, setMobileMapExpanded] = useState(true);
+  const [pdfLoading, setPdfLoading] = useState(false);
+
+  const handlePdfExport = async () => {
+    if (!patient) return;
+    setPdfLoading(true);
+    try {
+      await generatePatientPDF(patient);
+      toast.success("PDF erstellt");
+    } catch {
+      toast.error("PDF konnte nicht erstellt werden");
+    } finally {
+      setPdfLoading(false);
+    }
+  };
 
   const { data: patient, isLoading, error } = useQuery({
     queryKey: ["full-patient", patientId],
@@ -274,6 +290,18 @@ const PatientDetail = () => {
               <p className="text-xs text-muted-foreground hidden sm:block">Patient</p>
             </div>
           </div>
+
+          {/* PDF Export */}
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={handlePdfExport}
+            disabled={pdfLoading}
+            className="shrink-0 h-8 px-2 lg:px-3 gap-1 text-[10px] lg:text-xs"
+          >
+            {pdfLoading ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <FileDown className="h-3.5 w-3.5" />}
+            <span className="hidden sm:inline">PDF</span>
+          </Button>
 
           {/* Mode tabs - push right */}
           <div className="ml-auto flex items-center gap-1 rounded-lg bg-muted p-0.5 lg:p-1 shrink-0">
