@@ -16,15 +16,15 @@ function getRiskLabel(level: string | null | undefined): string {
 function getAbcdeLabel(img: LocationImage): string[] {
   const lines: string[] = [];
   if (img.abc_asymmetry != null)
-    lines.push(`A: ${img.abc_asymmetry ? "Asymmetrisch" : "Symmetrisch"}`);
+    lines.push(`A – ${img.abc_asymmetry ? "Asymmetrisch" : "Symmetrisch"}`);
   if (img.abc_border)
-    lines.push(`B: ${img.abc_border === "unregelmaessig" ? "Unregelmässig" : "Regelmässig"}`);
+    lines.push(`B – ${img.abc_border === "unregelmaessig" ? "Unregelmaessig" : "Regelmaessig"}`);
   if (img.abc_color)
-    lines.push(`C: ${img.abc_color === "mehrfarbig" ? "Mehrfarbig" : "Einfarbig"}`);
+    lines.push(`C – ${img.abc_color === "mehrfarbig" ? "Mehrfarbig" : "Einfarbig"}`);
   if (img.abc_diameter)
-    lines.push(`D: ${img.abc_diameter === "groesser_6mm" ? "> 6mm" : "< 6mm"}`);
+    lines.push(`D – ${img.abc_diameter === "groesser_6mm" ? "> 6mm" : "< 6mm"}`);
   if (img.abc_evolution)
-    lines.push(`E: ${img.abc_evolution === "veraendert" ? "Verändert" : "Stabil"}`);
+    lines.push(`E – ${img.abc_evolution === "veraendert" ? "Veraendert" : "Stabil"}`);
   return lines;
 }
 
