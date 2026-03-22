@@ -160,26 +160,7 @@ const ImageCompare = ({ images, locationName, onClose }: ImageCompareProps) => {
                       onClick={(e) => e.stopPropagation()}
                       rows={1}
                     />
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      className="h-8 text-[10px] gap-1 shrink-0 px-2"
-                      onClick={(e) => { e.stopPropagation(); handleAnalyze(img.id); }}
-                      disabled={analyzingIds.has(img.id)}
-                    >
-                      {analyzingIds.has(img.id) ? (
-                        <Loader2 className="h-3 w-3 animate-spin" />
-                      ) : (
-                        <><Sparkles className="h-3 w-3" /> KI</>
-                      )}
-                    </Button>
                   </div>
-                  {/* AI result */}
-                  {(aiResults[img.id] || img.ai_analysis) && (
-                    <div className="pl-1">
-                      <AiAnalysisResult analysis={(aiResults[img.id] || img.ai_analysis)!} />
-                    </div>
-                  )}
                 </div>
               </motion.div>
             );
