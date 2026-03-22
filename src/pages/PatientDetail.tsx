@@ -84,7 +84,7 @@ const PatientDetail = () => {
     if (!patient) return;
     setPdfLoading(true);
     try {
-      const url = await generatePatientPDF(patient, "preview");
+      const url = await generatePatientPDF(patient, "preview", user?.name);
       if (url) {
         setPdfPreviewUrl(url);
       }
