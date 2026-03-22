@@ -51,6 +51,13 @@
     --clinical-warning: 38 92% 50%;
     --clinical-change: 280 60% 55%;
     --clinical-no-change: 152 60% 42%;
+
+    --risk-low: 152 60% 42%;
+    --risk-low-bg: 152 60% 96%;
+    --risk-medium: 38 92% 50%;
+    --risk-medium-bg: 38 92% 96%;
+    --risk-high: 0 84% 60%;
+    --risk-high-bg: 0 84% 96%;
   }
 
   .dark {
