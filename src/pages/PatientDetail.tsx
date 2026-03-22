@@ -291,6 +291,18 @@ const PatientDetail = () => {
             </div>
           </div>
 
+          {/* PDF Export */}
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={handlePdfExport}
+            disabled={pdfLoading}
+            className="shrink-0 h-8 px-2 lg:px-3 gap-1 text-[10px] lg:text-xs"
+          >
+            {pdfLoading ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <FileDown className="h-3.5 w-3.5" />}
+            <span className="hidden sm:inline">PDF</span>
+          </Button>
+
           {/* Mode tabs - push right */}
           <div className="ml-auto flex items-center gap-1 rounded-lg bg-muted p-0.5 lg:p-1 shrink-0">
             {[
