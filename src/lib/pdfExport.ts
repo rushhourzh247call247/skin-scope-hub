@@ -2,7 +2,6 @@ import jsPDF from "jspdf";
 import "jspdf-autotable";
 import type { FullPatient, LocationImage } from "@/types/patient";
 import { LESION_CLASSIFICATIONS } from "@/types/patient";
-import { api } from "@/lib/api";
 import { format } from "date-fns";
 import { de } from "date-fns/locale";
 
@@ -37,27 +36,56 @@ function getAbcdeLabel(img: LocationImage): string[] {
 }
 
 async function loadImageAsBase64(url: string): Promise<string | null> {
-  return new Promise((resolve) => {
-    const img = new Image();
-    img.onload = () => {
-      try {
-        const canvas = document.createElement("canvas");
-        canvas.width = img.width;
-        canvas.height = img.height;
-        const ctx = canvas.getContext("2d");
-        if (!ctx) return resolve(null);
-        ctx.drawImage(img, 0, 0);
-        resolve(canvas.toDataURL("image/jpeg", 0.9));
-      } catch {
-        resolve(null);
-      }
-    };
-    img.onerror = () => {
-      console.error("Image failed:", url);
-      resolve(null);
-    };
-    img.src = url;
-  });
+  const blobToDataUrl = (blob: Blob): Promise<string | null> =>
+    new Promise((resolve) => {
+      const reader = new FileReader();
+      reader.onloadend = () => resolve(reader.result as string);
+      reader.onerror = () => resolve(null);
+      reader.readAsDataURL(blob);
+    });
+
+  const loadViaImage = (): Promise<string | null> =>
+    new Promise((resolve) => {
+      const img = new Image();
+      img.crossOrigin = "anonymous";
+      img.onload = () => {
+        try {
+          const canvas = document.createElement("canvas");
+          canvas.width = img.naturalWidth;
+          canvas.height = img.naturalHeight;
+          const ctx = canvas.getContext("2d");
+          if (!ctx) return resolve(null);
+          ctx.drawImage(img, 0, 0);
+          resolve(canvas.toDataURL("image/jpeg", 0.9));
+        } catch {
+          resolve(null);
+        }
+      };
+      img.onerror = () => resolve(null);
+      img.src = url;
+    });
+
+  const tryFetch = async (withAuth: boolean): Promise<string | null> => {
+    try {
+      const token = sessionStorage.getItem("auth_token");
+      const headers: HeadersInit = withAuth && token
+        ? { Authorization: `Bearer ${token}` }
+        : {};
+      const res = await fetch(url, { method: "GET", mode: "cors", headers });
+      if (!res.ok) return null;
+      return await blobToDataUrl(await res.blob());
+    } catch {
+      return null;
+    }
+  };
+
+  const imageResult = await loadViaImage();
+  if (imageResult) return imageResult;
+
+  const authFetchResult = await tryFetch(true);
+  if (authFetchResult) return authFetchResult;
+
+  return await tryFetch(false);
 }
 
 export async function generatePatientPDF(patient: FullPatient, mode: "preview" | "download" = "download"): Promise<string | void> {
