@@ -69,6 +69,20 @@ const PatientDetail = () => {
   const [showTrash, setShowTrash] = useState(false);
   const [permanentDeleteId, setPermanentDeleteId] = useState<number | null>(null);
   const [mobileMapExpanded, setMobileMapExpanded] = useState(true);
+  const [pdfLoading, setPdfLoading] = useState(false);
+
+  const handlePdfExport = async () => {
+    if (!patient) return;
+    setPdfLoading(true);
+    try {
+      await generatePatientPDF(patient);
+      toast.success("PDF erstellt");
+    } catch {
+      toast.error("PDF konnte nicht erstellt werden");
+    } finally {
+      setPdfLoading(false);
+    }
+  };
 
   const { data: patient, isLoading, error } = useQuery({
     queryKey: ["full-patient", patientId],
