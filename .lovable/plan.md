@@ -1,39 +1,45 @@
 
+Ziel: Login wieder stabil machen (insb. Admin), nachdem `routes/api.php` mehrfach per `sed` verändert wurde.
 
-## Plan: Duplikate der 2FA-Route aufräumen
+1) Sofortdiagnose auf dem Server (ohne weitere Änderungen)
+- Prüfen, ob `api.php` syntaktisch sauber ist:
+  - `php -l ~/derm-api/routes/api.php`
+- Prüfen, ob die Login-Route korrekt registriert ist:
+  - `cd ~/derm-api && php artisan route:list | grep -E "POST.*api/login|login"`
+- Reale API-Antwort prüfen (Status/Body statt Frontend-Fehlermeldung):
+  - `curl -i -X POST https://api.derm247.ch/api/login -H "Content-Type: application/json" -d '{"email":"ADMIN_MAIL","password":"ADMIN_PASS"}'`
 
-### Problem
-Die Route `POST /admin/users/{id}/reset-2fa` wurde 8x eingefügt (Zeilen 25, 69, 93, 106, 739, 767, 788, 1060). Nur eine wird gebraucht. Ausserdem schliessen einige davon fälschlicherweise eine `});`-Klammer, was andere Routen kaputt machen könnte.
+2) Fehlerursache exakt eingrenzen (parallel beim Login-Versuch)
+- Laravel-Log live beobachten:
+  - `tail -f ~/derm-api/storage/logs/laravel.log`
+- Dann Login erneut ausführen und prüfen:
+  - 401 => Credentials/Account-Status
+  - 422 => Request-Validierung
+  - 500 => Route/Codefehler durch frühere Datei-Edits
 
-### Lösung
-Alle 7 Duplikate löschen, nur die letzte (Zeile 1060) behalten. Das ist die sauberste, da sie am Ende der Datei steht und keine andere Route unterbricht.
+3) Admin-Account verifizieren (häufigster Grund bei „nur Admin betroffen“)
+- In DB prüfen: existiert Admin, richtige E-Mail, Rolle, 2FA-Flags:
+  - `SELECT id,name,email,role,two_factor_enabled,two_factor_secret FROM users WHERE role='admin';`
+- Falls nötig: Admin-Passwort auf bekannten Wert setzen (bcrypt/Hash::make), danach Login direkt testen.
+- Falls 2FA inkonsistent (enabled=1 aber Secret leer/ungültig): Flags sauber zurücksetzen und neu einrichten.
 
-### Befehl (ein einziger sed-Aufruf)
+4) Recovery-Fix (wenn Login sofort benötigt wird)
+- Minimal-invasiv:
+  - Admin-Passwort resetten
+  - `two_factor_enabled=0`, `two_factor_secret=NULL` für den betroffenen Admin
+- Danach End-to-End testen:
+  - Login → Dashboard
+  - optional 2FA neu aktivieren in Einstellungen
+  - Login erneut mit 2FA prüfen
 
-Da die Blöcke jeweils 8 Zeilen + 1 leere Zeile umfassen und teilweise eine extra `});` haben, lösche ich die Zeilen gezielt:
+5) Nachhaltige Stabilisierung (nach erfolgreichem Recovery)
+- `routes/api.php` bereinigen (nur eine Route pro Endpoint, keine Copy-Paste-Duplikate).
+- Kritische Routen (login, users, reset-2fa) in Controller auslagern statt in großer `api.php`.
+- Frontend-Fehlertext verbessern:
+  - statt immer „Zugangsdaten falsch“ auch Statuscode-abhängige Meldungen anzeigen (401/422/500), damit Diagnosen künftig schneller gehen.
 
-```bash
-# Backup zuerst
-sudo cp ~/derm-api/routes/api.php ~/derm-api/routes/api.php.bak-$(date +%Y%m%d-%H%M%S)
-
-# Dann die 7 Duplikate entfernen (Zeilen 23-33, 67-78, 91-101, 104-114, 737-748, 765-775, 786-796)
-# WICHTIG: Von unten nach oben löschen damit Zeilennummern stabil bleiben
-sudo sed -i '786,796d;765,775d;737,748d;104,114d;91,101d;67,78d;23,33d' ~/derm-api/routes/api.php
-
-# PHP neu laden
-sudo systemctl reload php8.3-fpm
-
-# Verifizieren
-grep -n 'reset-2fa' ~/derm-api/routes/api.php
-```
-
-Erwartetes Ergebnis: Nur noch **eine** Zeile mit `reset-2fa`.
-
-### Wichtig
-- Backup wird vorher erstellt
-- Falls etwas schiefgeht: `sudo cp ~/derm-api/routes/api.php.bak-... ~/derm-api/routes/api.php`
-- Nach dem Aufräumen nochmal `two_factor_enabled` in der Benutzerverwaltung testen
-
-### Hinweis zu den Zeilennummern
-Die exakten Bereiche müssen ggf. um 1-2 Zeilen angepasst werden. Sicherer wäre es, die Datei erst komplett anzuzeigen (`cat -n`) und die Bereiche genau zu bestätigen. Alternativ: Datei lokal öffnen und manuell die Blöcke löschen.
-
+Technische Details
+- Aktueller Frontend-Code zeigt bei jedem Login-Fehler denselben Text (`catch` in `src/pages/Login.tsx`), daher kann ein 500 oder 422 wie „falsches Passwort“ wirken.
+- Da Fehler laut dir in Public + Preview auftritt, ist reine Preview-CORS-Ursache unwahrscheinlich.
+- Da „nur Admin“ betroffen ist, ist Account-Zustand (Passwort/2FA/Datensatz) wahrscheinlicher als globaler API-Ausfall.
+- Nach den manuellen `sed`-Operationen bleibt dennoch ein Syntax-/Routing-Check Pflicht, um versteckte Seiteneffekte auszuschließen.
