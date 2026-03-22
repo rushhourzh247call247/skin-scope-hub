@@ -66,6 +66,7 @@ const PatientList = () => {
                     <Calendar className="h-3 w-3" /> Geburtsdatum
                   </div>
                 </th>
+                <th className="px-4 py-3">Letzter Arzt</th>
                 <th className="px-4 py-3">Erstellt</th>
               </tr>
             </thead>
