@@ -163,6 +163,12 @@ export const api = {
   verify2FA: (code: string) => request<{ success: boolean; message?: string }>('/2fa/verify', { method: 'POST', body: JSON.stringify({ code }) }),
   disable2FA: () => request<{ success: boolean }>('/2fa/disable', { method: 'POST' }),
 
+  // Image Alignment
+  getImageAlignment: (id1: number, id2: number) =>
+    request<{ rotation: number; scale: number; offset_x: number; offset_y: number }>(`/image-alignment/${Math.min(id1, id2)}/${Math.max(id1, id2)}`),
+  saveImageAlignment: (id1: number, id2: number, data: { rotation: number; scale: number; offset_x: number; offset_y: number }) =>
+    request<{ success: boolean }>(`/image-alignment/${Math.min(id1, id2)}/${Math.max(id1, id2)}`, { method: 'PUT', body: JSON.stringify(data) }),
+
   // Upload Sessions (QR Upload Flow)
   createUploadSession: (data: { patient_id: number; location_id: number }) =>
     request<{
