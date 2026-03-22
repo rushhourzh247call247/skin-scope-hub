@@ -1,4 +1,4 @@
-import { useState, useRef, useCallback } from "react";
+import { useState, useRef, useCallback, useEffect } from "react";
 import type { LocationImage } from "@/types/patient";
 import { format } from "date-fns";
 import { de } from "date-fns/locale";
@@ -14,6 +14,30 @@ import {
   Dialog,
   DialogContent,
 } from "@/components/ui/dialog";
+
+interface AlignmentSettings {
+  rotation: number;
+  scale: number;
+  offsetX: number;
+  offsetY: number;
+}
+
+function getAlignmentKey(id1: number, id2: number) {
+  return `img-align-${Math.min(id1, id2)}-${Math.max(id1, id2)}`;
+}
+
+function loadAlignment(id1: number, id2: number): AlignmentSettings | null {
+  try {
+    const raw = localStorage.getItem(getAlignmentKey(id1, id2));
+    return raw ? JSON.parse(raw) : null;
+  } catch { return null; }
+}
+
+function saveAlignment(id1: number, id2: number, settings: AlignmentSettings) {
+  try {
+    localStorage.setItem(getAlignmentKey(id1, id2), JSON.stringify(settings));
+  } catch {}
+}
 
 interface ImageCompareProps {
   images: LocationImage[];
@@ -37,6 +61,40 @@ const ImageCompare = ({ images, locationName, onClose }: ImageCompareProps) => {
     return initial;
   });
   const debounceTimers = useRef<Record<number, ReturnType<typeof setTimeout>>>({});
+  const alignSaveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // Load saved alignment when two images are selected
+  useEffect(() => {
+    if (selected.length === 2) {
+      const saved = loadAlignment(selected[0], selected[1]);
+      if (saved) {
+        setOverlayRotation(saved.rotation);
+        setOverlayScale(saved.scale);
+        setOverlayOffsetX(saved.offsetX);
+        setOverlayOffsetY(saved.offsetY);
+      } else {
+        setOverlayRotation(0);
+        setOverlayScale(100);
+        setOverlayOffsetX(0);
+        setOverlayOffsetY(0);
+      }
+    }
+  }, [selected]);
+
+  // Auto-save alignment on change (debounced)
+  useEffect(() => {
+    if (selected.length !== 2) return;
+    if (alignSaveTimer.current) clearTimeout(alignSaveTimer.current);
+    alignSaveTimer.current = setTimeout(() => {
+      saveAlignment(selected[0], selected[1], {
+        rotation: overlayRotation,
+        scale: overlayScale,
+        offsetX: overlayOffsetX,
+        offsetY: overlayOffsetY,
+      });
+    }, 500);
+    return () => { if (alignSaveTimer.current) clearTimeout(alignSaveTimer.current); };
+  }, [overlayRotation, overlayScale, overlayOffsetX, overlayOffsetY, selected]);
 
   const handleNoteChange = useCallback((imageId: number, value: string) => {
     setNoteValues(prev => ({ ...prev, [imageId]: value }));
@@ -53,6 +111,9 @@ const ImageCompare = ({ images, locationName, onClose }: ImageCompareProps) => {
     setOverlayScale(100);
     setOverlayOffsetX(0);
     setOverlayOffsetY(0);
+    if (selected.length === 2) {
+      saveAlignment(selected[0], selected[1], { rotation: 0, scale: 100, offsetX: 0, offsetY: 0 });
+    }
   };
 
   const sorted = [...images].sort(
