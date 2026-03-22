@@ -1138,11 +1138,18 @@ const PatientDetail = () => {
           </DialogHeader>
           <div className="flex-1 px-4 pb-4">
             {pdfPreviewUrl && (
-              <iframe
-                src={pdfPreviewUrl}
+              <object
+                data={pdfPreviewUrl}
+                type="application/pdf"
                 className="w-full h-full rounded-md border"
-                title="PDF Vorschau"
-              />
+              >
+                <div className="flex flex-col items-center justify-center h-full gap-3 text-muted-foreground">
+                  <p className="text-sm">PDF-Vorschau wird nicht unterstützt.</p>
+                  <Button size="sm" onClick={handlePdfDownload} className="gap-1.5">
+                    <FileDown className="h-3.5 w-3.5" /> Direkt herunterladen
+                  </Button>
+                </div>
+              </object>
             )}
           </div>
         </DialogContent>
