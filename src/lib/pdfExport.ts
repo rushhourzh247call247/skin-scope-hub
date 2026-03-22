@@ -183,7 +183,7 @@ export async function generatePatientPDF(patient: FullPatient, mode: "preview" |
             y += 4;
           }
         } else {
-          doc.text("Stabil (keine Veraenderung)", margin + 2, y);
+          doc.text("Verlauf: stabil", margin + 2, y);
           y += 4;
         }
       }
@@ -205,7 +205,7 @@ export async function generatePatientPDF(patient: FullPatient, mode: "preview" |
       if (maxScore >= 4) doc.setTextColor(220, 38, 38);
       else if (maxScore >= 2) doc.setTextColor(202, 138, 4);
       else doc.setTextColor(22, 163, 74);
-      doc.text(`Maximaler Score: ${maxScore}`, margin + 2, y);
+      doc.text(`Hoechster Score: ${maxScore}`, margin + 2, y);
       doc.setTextColor(0, 0, 0);
       doc.setFont("helvetica", "normal");
       y += 5;
@@ -268,7 +268,7 @@ export async function generatePatientPDF(patient: FullPatient, mode: "preview" |
     if (abcdeLines.length > 0) {
       doc.setFontSize(8);
       doc.setFont("helvetica", "bold");
-      doc.text("ABCDE-Bewertung (aktuell):", margin + 2, y);
+      doc.text("ABCDE-Bewertung (letzte Aufnahme):", margin + 2, y);
       y += 4;
       doc.setFont("helvetica", "normal");
       for (const line of abcdeLines) {
