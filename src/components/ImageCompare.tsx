@@ -9,7 +9,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { api } from "@/lib/api";
 import { cn } from "@/lib/utils";
 import { motion, AnimatePresence } from "framer-motion";
-import AiAnalysisResult from "@/components/AiAnalysisResult";
+
 import {
   Dialog,
   DialogContent,
