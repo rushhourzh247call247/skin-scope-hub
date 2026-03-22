@@ -20,6 +20,19 @@ function getRiskLabel(level: string | null | undefined): string {
   return "Hoch";
 }
 
+function resolveDoctorName(doctorName?: string): string | null {
+  if (doctorName?.trim()) return doctorName.trim();
+
+  try {
+    const rawUser = sessionStorage.getItem("auth_user");
+    if (!rawUser) return null;
+    const parsed = JSON.parse(rawUser) as { name?: unknown };
+    return typeof parsed.name === "string" && parsed.name.trim() ? parsed.name.trim() : null;
+  } catch {
+    return null;
+  }
+}
+
 function getAbcdeLabel(img: LocationImage): string[] {
   const lines: string[] = [];
   if (img.abc_asymmetry != null)
@@ -96,11 +109,10 @@ export async function generatePatientPDF(patient: FullPatient, mode: "preview" |
   doc.text("Derm247", margin, 12);
   doc.setFontSize(9);
   doc.setFont("helvetica", "normal");
-  const headerRight = doctorName ? clean(`Arzt: ${doctorName}`) : "";
+  const resolvedDoctorName = resolveDoctorName(doctorName);
+  const headerRight = clean(`Arzt: ${resolvedDoctorName ?? "-"}`);
   doc.text(clean(`Patientenbericht - ${format(new Date(), "dd.MM.yyyy HH:mm", { locale: de })}`), margin, 20);
-  if (headerRight) {
-    doc.text(headerRight, pageWidth - margin, 20, { align: "right" });
-  }
+  doc.text(headerRight, pageWidth - margin, 20, { align: "right" });
   doc.setTextColor(0, 0, 0);
   y = 36;
 
