@@ -1121,6 +1121,29 @@ const PatientDetail = () => {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* PDF Preview Dialog */}
+      <Dialog open={!!pdfPreviewUrl} onOpenChange={(open) => { if (!open) { if (pdfPreviewUrl) URL.revokeObjectURL(pdfPreviewUrl); setPdfPreviewUrl(null); } }}>
+        <DialogContent className="max-w-3xl h-[85vh] flex flex-col p-0">
+          <DialogHeader className="px-4 pt-4 pb-2">
+            <DialogTitle className="flex items-center justify-between">
+              <span className="text-sm">PDF Vorschau</span>
+              <Button size="sm" onClick={handlePdfDownload} className="gap-1.5">
+                <FileDown className="h-3.5 w-3.5" /> Herunterladen
+              </Button>
+            </DialogTitle>
+          </DialogHeader>
+          <div className="flex-1 px-4 pb-4">
+            {pdfPreviewUrl && (
+              <iframe
+                src={pdfPreviewUrl}
+                className="w-full h-full rounded-md border"
+                title="PDF Vorschau"
+              />
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
