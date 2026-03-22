@@ -15,30 +15,6 @@ import {
   DialogContent,
 } from "@/components/ui/dialog";
 
-interface AlignmentSettings {
-  rotation: number;
-  scale: number;
-  offsetX: number;
-  offsetY: number;
-}
-
-function getAlignmentKey(id1: number, id2: number) {
-  return `img-align-${Math.min(id1, id2)}-${Math.max(id1, id2)}`;
-}
-
-function loadAlignment(id1: number, id2: number): AlignmentSettings | null {
-  try {
-    const raw = localStorage.getItem(getAlignmentKey(id1, id2));
-    return raw ? JSON.parse(raw) : null;
-  } catch { return null; }
-}
-
-function saveAlignment(id1: number, id2: number, settings: AlignmentSettings) {
-  try {
-    localStorage.setItem(getAlignmentKey(id1, id2), JSON.stringify(settings));
-  } catch {}
-}
-
 interface ImageCompareProps {
   images: LocationImage[];
   locationName: string;
