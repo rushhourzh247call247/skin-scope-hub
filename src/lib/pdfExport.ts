@@ -37,28 +37,27 @@ function getAbcdeLabel(img: LocationImage): string[] {
 }
 
 async function loadImageAsBase64(url: string): Promise<string | null> {
-  try {
-    const token = sessionStorage.getItem("auth_token");
-    const headers: Record<string, string> = {};
-    if (token) {
-      headers.Authorization = `Bearer ${token}`;
-    }
-    const res = await fetch(url, { method: "GET", headers });
-    if (!res.ok) {
-      console.error("Bild fetch fehlgeschlagen:", res.status);
-      return null;
-    }
-    const blob = await res.blob();
-    return new Promise((resolve) => {
-      const reader = new FileReader();
-      reader.onloadend = () => resolve(reader.result as string);
-      reader.onerror = () => resolve(null);
-      reader.readAsDataURL(blob);
-    });
-  } catch (e) {
-    console.error("Bild Fehler:", e);
-    return null;
-  }
+  return new Promise((resolve) => {
+    const img = new Image();
+    img.onload = () => {
+      try {
+        const canvas = document.createElement("canvas");
+        canvas.width = img.width;
+        canvas.height = img.height;
+        const ctx = canvas.getContext("2d");
+        if (!ctx) return resolve(null);
+        ctx.drawImage(img, 0, 0);
+        resolve(canvas.toDataURL("image/jpeg", 0.9));
+      } catch {
+        resolve(null);
+      }
+    };
+    img.onerror = () => {
+      console.error("Image failed:", url);
+      resolve(null);
+    };
+    img.src = url;
+  });
 }
 
 export async function generatePatientPDF(patient: FullPatient, mode: "preview" | "download" = "download"): Promise<string | void> {
