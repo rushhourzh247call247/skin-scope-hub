@@ -268,7 +268,7 @@ export async function generatePatientPDF(patient: FullPatient, mode: "preview" |
     if (abcdeLines.length > 0) {
       doc.setFontSize(8);
       doc.setFont("helvetica", "bold");
-      doc.text("ABCDE-Bewertung (aktuell):", margin + 2, y);
+      doc.text("ABCDE-Bewertung (letzte Aufnahme):", margin + 2, y);
       y += 4;
       doc.setFont("helvetica", "normal");
       for (const line of abcdeLines) {
