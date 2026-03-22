@@ -196,11 +196,16 @@ export async function generatePatientPDF(patient: FullPatient, mode: "preview" |
         y += 5;
       }
 
-      // Max score
+      // Max score with color coding
       const maxScore = Math.max(...scores);
-      doc.setFont("helvetica", "normal");
       doc.setFontSize(8);
+      doc.setFont("helvetica", "bold");
+      if (maxScore >= 4) doc.setTextColor(220, 38, 38);
+      else if (maxScore >= 2) doc.setTextColor(202, 138, 4);
+      else doc.setTextColor(22, 163, 74);
       doc.text(`Maximaler Score bisher: ${maxScore}`, margin + 2, y);
+      doc.setTextColor(0, 0, 0);
+      doc.setFont("helvetica", "normal");
       y += 5;
     }
 
