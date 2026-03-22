@@ -80,6 +80,16 @@ const UserManagement = () => {
     onError: () => toast.error("Fehler beim Zurücksetzen"),
   });
 
+  const reset2faMutation = useMutation({
+    mutationFn: (userId: number) => api.adminReset2FA(userId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["users"] });
+      toast.success(`2FA für ${reset2faUser?.name} wurde zurückgesetzt`);
+      setReset2faUser(null);
+    },
+    onError: () => toast.error("Fehler beim Zurücksetzen der 2FA"),
+  });
+
   return (
     <div className="container py-8 space-y-6">
       <div className="flex items-center justify-between">
