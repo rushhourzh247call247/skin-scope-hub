@@ -5,6 +5,7 @@ import { api } from "@/lib/api";
 import type { FullPatient, LesionClassification } from "@/types/patient";
 import { LESION_CLASSIFICATIONS } from "@/types/patient";
 import { useState } from "react";
+import { useAuth } from "@/contexts/AuthContext";
 import type { LesionClassification as LesionClassificationType } from "@/types/patient";
 import { ArrowLeft, MapPin, Plus, Calendar, ImageIcon, User, Hash, Activity, Mail, Phone, Pencil, Trash2, Save, X, Square, GitCompareArrows, Move, Camera, Tag, QrCode, Undo2, AlertTriangle, FileDown, Loader2 } from "lucide-react";
 import { Slider } from "@/components/ui/slider";
@@ -42,6 +43,7 @@ import {
 } from "@/components/ui/alert-dialog";
 
 const PatientDetail = () => {
+  const { user } = useAuth();
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
@@ -82,7 +84,7 @@ const PatientDetail = () => {
     if (!patient) return;
     setPdfLoading(true);
     try {
-      const url = await generatePatientPDF(patient, "preview");
+      const url = await generatePatientPDF(patient, "preview", user?.name);
       if (url) {
         setPdfPreviewUrl(url);
       }

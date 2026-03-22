@@ -79,7 +79,7 @@ async function loadImageAsBase64(url: string): Promise<string | null> {
   return await loadViaFetch();
 }
 
-export async function generatePatientPDF(patient: FullPatient, mode: "preview" | "download" = "download"): Promise<string | void> {
+export async function generatePatientPDF(patient: FullPatient, mode: "preview" | "download" = "download", doctorName?: string): Promise<string | void> {
   const imageCache: Record<number, string | null> = {};
   const doc = new jsPDF({ orientation: "portrait", unit: "mm", format: "a4" });
   const pageWidth = doc.internal.pageSize.getWidth();
@@ -96,7 +96,11 @@ export async function generatePatientPDF(patient: FullPatient, mode: "preview" |
   doc.text("Derm247", margin, 12);
   doc.setFontSize(9);
   doc.setFont("helvetica", "normal");
+  const headerRight = doctorName ? clean(`Arzt: ${doctorName}`) : "";
   doc.text(clean(`Patientenbericht - ${format(new Date(), "dd.MM.yyyy HH:mm", { locale: de })}`), margin, 20);
+  if (headerRight) {
+    doc.text(headerRight, pageWidth - margin, 20, { align: "right" });
+  }
   doc.setTextColor(0, 0, 0);
   y = 36;
 
