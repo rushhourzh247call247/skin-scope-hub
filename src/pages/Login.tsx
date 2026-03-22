@@ -10,15 +10,17 @@ import { DermLogo } from "@/components/DermLogo";
 import { LogIn, Shield } from "lucide-react";
 
 const Login = () => {
-  const { login } = useAuth();
+  const { setSession } = useAuth();
   const navigate = useNavigate();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
-  // 2FA state
+  // 2FA state — token held temporarily until verified
   const [needs2FA, setNeeds2FA] = useState(false);
+  const [pendingUser, setPendingUser] = useState<any>(null);
+  const [pendingToken, setPendingToken] = useState<string>("");
   const [totpCode, setTotpCode] = useState("");
   const [verifying2FA, setVerifying2FA] = useState(false);
 
@@ -27,17 +29,19 @@ const Login = () => {
     setError("");
     setLoading(true);
     try {
-      await login(email, password);
-      // Check if user has 2FA enabled
-      const savedUser = sessionStorage.getItem("auth_user");
-      const user = savedUser ? JSON.parse(savedUser) : null;
-      if (user?.two_factor_enabled) {
+      const res = await api.login({ email, password });
+      if (res.user?.two_factor_enabled) {
+        // Hold credentials — don't authenticate yet
+        setPendingUser(res.user);
+        setPendingToken(res.token);
+        api.setToken(res.token); // needed for /2fa/verify call
         setNeeds2FA(true);
-        setLoading(false);
-        return;
+      } else {
+        // No 2FA — login immediately
+        setSession(res.user, res.token);
+        navigate("/");
       }
-      navigate("/");
-    } catch (err: any) {
+    } catch {
       setError("Login fehlgeschlagen. Bitte prüfen Sie Ihre Zugangsdaten.");
     } finally {
       setLoading(false);
@@ -51,12 +55,23 @@ const Login = () => {
     setVerifying2FA(true);
     try {
       await api.verify2FA(totpCode);
+      // 2FA passed — now fully authenticate
+      setSession(pendingUser, pendingToken);
       navigate("/");
     } catch {
       setError("Ungültiger Code. Bitte erneut versuchen.");
     } finally {
       setVerifying2FA(false);
     }
+  };
+
+  const handleBack = () => {
+    setNeeds2FA(false);
+    setTotpCode("");
+    setError("");
+    setPendingUser(null);
+    setPendingToken("");
+    api.setToken(null);
   };
 
   return (
@@ -119,7 +134,7 @@ const Login = () => {
               <Button className="w-full" type="submit" disabled={totpCode.length !== 6 || verifying2FA}>
                 {verifying2FA ? "Wird geprüft…" : <><Shield className="mr-2 h-4 w-4" /> Bestätigen</>}
               </Button>
-              <button type="button" onClick={() => { setNeeds2FA(false); setTotpCode(""); setError(""); }} className="w-full text-sm text-muted-foreground hover:text-foreground transition-colors">
+              <button type="button" onClick={handleBack} className="w-full text-sm text-muted-foreground hover:text-foreground transition-colors">
                 ← Zurück zum Login
               </button>
             </form>
