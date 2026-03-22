@@ -95,7 +95,7 @@ export async function generatePatientPDF(patient: FullPatient): Promise<void> {
   y += 6;
 
   // Summary
-  const locations = patient.locations?.filter(l => !l.deleted_at) ?? [];
+  const locations = patient.locations ?? [];
   const totalImages = locations.reduce((sum, l) => sum + (l.images?.length ?? 0), 0);
   const highRiskSpots = locations.filter(l =>
     l.images?.some(img => (img.risk_score ?? 0) >= 4)
