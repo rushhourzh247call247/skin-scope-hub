@@ -75,19 +75,37 @@ const PatientDetail = () => {
   const [showTrash, setShowTrash] = useState(false);
   const [permanentDeleteId, setPermanentDeleteId] = useState<number | null>(null);
   const [mobileMapExpanded, setMobileMapExpanded] = useState(true);
-  const [pdfLoading, setPdfLoading] = useState(false);
+  const [pdfPreviewUrl, setPdfPreviewUrl] = useState<string | null>(null);
 
   const handlePdfExport = async () => {
     if (!patient) return;
     setPdfLoading(true);
     try {
-      await generatePatientPDF(patient);
-      toast.success("PDF erstellt");
+      const url = await generatePatientPDF(patient, "preview");
+      if (url) {
+        setPdfPreviewUrl(url);
+      }
     } catch {
       toast.error("PDF konnte nicht erstellt werden");
     } finally {
       setPdfLoading(false);
     }
+  };
+
+  const handlePdfDownload = () => {
+    if (!pdfPreviewUrl || !patient) return;
+    const link = document.createElement("a");
+    link.href = pdfPreviewUrl;
+    link.download = getPatientPdfFilename(patient);
+    link.target = "_blank";
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    // Mobile fallback
+    if (/Mobi|Android|iPhone|iPad/i.test(navigator.userAgent)) {
+      window.open(pdfPreviewUrl, "_blank");
+    }
+    toast.success("PDF heruntergeladen");
   };
 
   const { data: patient, isLoading, error } = useQuery({
