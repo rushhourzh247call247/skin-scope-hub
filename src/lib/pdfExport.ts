@@ -315,7 +315,7 @@ export async function generatePatientPDF(patient: FullPatient, mode: "preview" |
     doc.setFontSize(7);
     doc.setTextColor(150, 150, 150);
     doc.text(
-      `Derm247 – Patientenbericht – Seite ${i}/${totalPages}`,
+      clean(`Derm247 - Patientenbericht - Seite ${i}/${totalPages}`),
       pageWidth / 2,
       doc.internal.pageSize.getHeight() - 8,
       { align: "center" }
