@@ -242,7 +242,7 @@ export async function generatePatientPDF(patient: FullPatient, mode: "preview" |
         imgX = margin + 2;
       }
 
-      const imgUrl = img.image_url || api.resolveImageSrc(img);
+      const imgUrl = `https://api.derm247.ch/storage/${img.file_path}`;
       if (imageCache[img.id] === undefined) {
         imageCache[img.id] = await loadImageAsBase64(imgUrl);
       }
