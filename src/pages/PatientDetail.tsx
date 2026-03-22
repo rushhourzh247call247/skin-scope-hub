@@ -86,7 +86,9 @@ const PatientDetail = () => {
     try {
       const url = await generatePatientPDF(patient, "preview", user?.name);
       if (url) {
-        setPdfPreviewUrl(url);
+        // Open PDF in new tab - blob URLs work natively there
+        window.open(url, "_blank");
+        toast.success("PDF geöffnet");
       }
     } catch {
       toast.error("PDF konnte nicht erstellt werden");
