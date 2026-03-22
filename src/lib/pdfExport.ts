@@ -85,7 +85,7 @@ export async function generatePatientPDF(patient: FullPatient, mode: "preview" |
     : "–";
   doc.text(clean(`Geburtsdatum: ${birthDate}`), margin, y);
   if (patient.insurance_number) {
-    doc.text(`Versicherungsnr.: ${patient.insurance_number}`, margin + 80, y);
+    doc.text(clean(`Versicherungsnr.: ${patient.insurance_number}`), margin + 80, y);
   }
   y += 5;
   if (patient.email) {
