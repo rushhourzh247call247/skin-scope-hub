@@ -2,11 +2,12 @@ import { useQuery } from "@tanstack/react-query";
 import { api } from "@/lib/api";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
-import { Users, MapPin, ImageIcon, Building2, ArrowRight } from "lucide-react";
+import { Users, MapPin, ImageIcon, Building2, ArrowRight, ShieldAlert, Eye, ShieldCheck } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { format } from "date-fns";
 import { de } from "date-fns/locale";
+import { useState } from "react";
 
 const StatCard = ({ title, value, icon: Icon, color }: { title: string; value: number; icon: any; color: string }) => (
   <Card>
@@ -22,15 +23,85 @@ const StatCard = ({ title, value, icon: Icon, color }: { title: string; value: n
   </Card>
 );
 
+type RiskLevel = "high" | "medium" | "low" | null;
+
+const riskConfig = {
+  high: {
+    label: "Kritisch",
+    emoji: "🔴",
+    icon: ShieldAlert,
+    bgClass: "bg-[hsl(var(--risk-high-bg))] border-[hsl(var(--risk-high))]/20",
+    textClass: "text-[hsl(var(--risk-high))]",
+    countClass: "text-[hsl(var(--risk-high))]",
+  },
+  medium: {
+    label: "Beobachten",
+    emoji: "🟡",
+    icon: Eye,
+    bgClass: "bg-[hsl(var(--risk-medium-bg))] border-[hsl(var(--risk-medium))]/20",
+    textClass: "text-[hsl(var(--risk-medium))]",
+    countClass: "text-[hsl(var(--risk-medium))]",
+  },
+  low: {
+    label: "Unauffällig",
+    emoji: "🟢",
+    icon: ShieldCheck,
+    bgClass: "bg-[hsl(var(--risk-low-bg))] border-[hsl(var(--risk-low))]/20",
+    textClass: "text-[hsl(var(--risk-low))]",
+    countClass: "text-[hsl(var(--risk-low))]",
+  },
+};
+
+const RiskCard = ({
+  level,
+  count,
+  active,
+  onClick,
+}: {
+  level: "high" | "medium" | "low";
+  count: number;
+  active: boolean;
+  onClick: () => void;
+}) => {
+  const cfg = riskConfig[level];
+  return (
+    <button
+      onClick={onClick}
+      className={`rounded-lg border p-4 text-left transition-all ${cfg.bgClass} ${
+        active ? "ring-2 ring-ring shadow-md scale-[1.02]" : "hover:shadow-sm hover:scale-[1.01]"
+      }`}
+    >
+      <div className={`flex items-center gap-2 text-sm font-semibold ${cfg.textClass}`}>
+        <cfg.icon className="h-4 w-4" />
+        {cfg.emoji} {cfg.label}
+      </div>
+      <p className={`mt-1 text-3xl font-bold tabular-nums ${cfg.countClass}`}>{count}</p>
+      <p className="text-xs text-muted-foreground mt-0.5">
+        {count === 1 ? "Stelle" : "Stellen"}
+      </p>
+    </button>
+  );
+};
+
 const Dashboard = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
   const isAdmin = user?.role === "admin";
+  const [riskFilter, setRiskFilter] = useState<RiskLevel>(null);
 
   const { data, isLoading } = useQuery({
     queryKey: ["dashboard-stats"],
     queryFn: api.getDashboardStats,
   });
+
+  const { data: riskStats } = useQuery({
+    queryKey: ["dashboard-risk"],
+    queryFn: api.getRiskStats,
+  });
+
+  const toggleFilter = (level: RiskLevel) => {
+    setRiskFilter((prev) => (prev === level ? null : level));
+  };
 
   if (isLoading || !data) {
     return (
@@ -40,11 +111,32 @@ const Dashboard = () => {
     );
   }
 
+  const risk = riskStats ?? { low: 0, medium: 0, high: 0 };
+
   return (
     <div className="container py-8 space-y-8">
       <div>
         <h1 className="text-2xl font-semibold tracking-tight text-foreground">Dashboard</h1>
         <p className="text-sm text-muted-foreground">Übersicht über Ihre DermTrack-Daten</p>
+      </div>
+
+      {/* Ampel-System */}
+      <div>
+        <h2 className="mb-3 text-sm font-medium text-muted-foreground uppercase tracking-wider">Risiko-Übersicht</h2>
+        <div className="grid grid-cols-3 gap-3">
+          <RiskCard level="high" count={risk.high} active={riskFilter === "high"} onClick={() => toggleFilter("high")} />
+          <RiskCard level="medium" count={risk.medium} active={riskFilter === "medium"} onClick={() => toggleFilter("medium")} />
+          <RiskCard level="low" count={risk.low} active={riskFilter === "low"} onClick={() => toggleFilter("low")} />
+        </div>
+        {riskFilter && (
+          <p className="mt-2 text-xs text-muted-foreground">
+            Filter aktiv: <span className={`font-medium ${riskConfig[riskFilter].textClass}`}>{riskConfig[riskFilter].label}</span>
+            {" · "}
+            <button onClick={() => setRiskFilter(null)} className="underline hover:text-foreground transition-colors">
+              Zurücksetzen
+            </button>
+          </p>
+        )}
       </div>
 
       {/* Stats Grid */}

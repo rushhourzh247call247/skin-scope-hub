@@ -156,6 +156,7 @@ export const api = {
 
   // Dashboard
   getDashboardStats: () => request<any>('/dashboard'),
+  getRiskStats: () => request<{ low: number; medium: number; high: number }>('/dashboard/risk'),
 
   // 2FA
   enable2FA: () => request<{ secret: string; qr: string }>('/2fa/enable', { method: 'POST' }),
