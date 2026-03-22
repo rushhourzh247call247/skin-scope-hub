@@ -241,6 +241,18 @@ export const api = {
   downloadPatientPdf: (patientId: number) =>
     requestBlob(`/patients/${patientId}/pdf`, { method: 'GET' }),
 
+  // Snapshots (Admin)
+  getSnapshots: () => request<any[]>('/snapshots'),
+  getSnapshotCompanies: (date: string) => request<any[]>(`/snapshots/${date}/companies`),
+  getSnapshotPatients: (date: string, companyId?: number) =>
+    request<any[]>(`/snapshots/${date}/patients${companyId ? `?company_id=${companyId}` : ''}`),
+  getSnapshotPatientDetail: (date: string, patientId: number) =>
+    request<any>(`/snapshots/${date}/patients/${patientId}`),
+  restorePatientFromSnapshot: (date: string, patientId: number) =>
+    request<{ success: boolean; message: string }>(`/snapshots/${date}/restore/patient/${patientId}`, { method: 'POST' }),
+  restoreCompanyFromSnapshot: (date: string, companyId: number) =>
+    request<{ success: boolean; message: string }>(`/snapshots/${date}/restore/company/${companyId}`, { method: 'POST' }),
+
   // Helper to get full image URL from a path or image object
   getImageUrl: (pathOrUrl: string) => {
     if (!pathOrUrl) return '';
