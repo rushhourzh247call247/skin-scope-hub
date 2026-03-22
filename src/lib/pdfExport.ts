@@ -256,7 +256,7 @@ export async function generatePatientPDF(patient: FullPatient, mode: "preview" |
       doc.setFontSize(7);
       const dateStr = img.created_at
         ? format(new Date(img.created_at), "dd.MM.yy", { locale: de })
-        : "–";
+        : "-";
       doc.text(dateStr, imgX + imgSize / 2, y + imgSize + 3, { align: "center" });
 
       // Score badge
