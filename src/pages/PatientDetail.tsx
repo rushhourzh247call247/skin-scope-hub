@@ -15,6 +15,7 @@ import { de } from "date-fns/locale";
 import BodyMap3D from "@/components/BodyMap3D";
 import ImageGallery from "@/components/ImageGallery";
 import ImageCompare from "@/components/ImageCompare";
+import RiskProgression from "@/components/RiskProgression";
 import QrUploadDialog from "@/components/QrUploadDialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -967,6 +968,14 @@ const PatientDetail = () => {
                     </Button>
                   </div>
                 </div>
+
+                {/* Risk Progression */}
+                {(selectedLocation.images?.length ?? 0) > 0 && (
+                  <RiskProgression
+                    images={selectedLocation.images ?? []}
+                    locationName={selectedLocation.name || `Spot #${selectedLocation.id}`}
+                  />
+                )}
 
                 {/* Image Gallery */}
                 <ImageGallery
