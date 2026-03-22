@@ -15,7 +15,8 @@ interface AuthContextType {
   token: string | null;
   isAuthenticated: boolean;
   isLoading: boolean;
-  login: (email: string, password: string) => Promise<void>;
+  login: (email: string, password: string) => Promise<{ user: User; token: string }>;
+  setSession: (user: User, token: string) => void;
   logout: () => void;
 }
 
@@ -37,14 +38,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setIsLoading(false);
   }, []);
 
-  const login = useCallback(async (email: string, password: string) => {
-    const res = await api.login({ email, password });
-    const { user: u, token: t } = res;
+  const setSession = useCallback((u: User, t: string) => {
     setUser(u);
     setToken(t);
     api.setToken(t);
     sessionStorage.setItem("auth_token", t);
     sessionStorage.setItem("auth_user", JSON.stringify(u));
+  }, []);
+
+  const login = useCallback(async (email: string, password: string) => {
+    const res = await api.login({ email, password });
+    // Don't auto-set session — caller decides (2FA check)
+    return res;
   }, []);
 
   const logout = useCallback(() => {
@@ -56,7 +61,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   return (
-    <AuthContext.Provider value={{ user, token, isAuthenticated: !!token, isLoading, login, logout }}>
+    <AuthContext.Provider value={{ user, token, isAuthenticated: !!token, isLoading, login, setSession, logout }}>
       {children}
     </AuthContext.Provider>
   );
