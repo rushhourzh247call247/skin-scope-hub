@@ -21,7 +21,7 @@ interface QrUploadDialogProps {
   locationName: string;
 }
 
-const FRONTEND_DOMAIN = typeof window !== 'undefined' ? window.location.origin : "https://app.derm247.ch";
+const FRONTEND_DOMAIN = "https://app.derm247.ch";
 
 const QrUploadDialog = ({
   open,
