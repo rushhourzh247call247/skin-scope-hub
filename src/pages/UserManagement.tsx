@@ -185,7 +185,7 @@ const UserManagement = () => {
                     </TableCell>
                     <TableCell className="text-right">
                       <div className="flex justify-end gap-1">
-                        {u.two_factor_enabled && (
+                        {!!u.two_factor_enabled && (
                           <Button
                             variant="ghost"
                             size="icon"
