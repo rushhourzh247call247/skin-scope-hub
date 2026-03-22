@@ -185,6 +185,16 @@ const UserManagement = () => {
                     </TableCell>
                     <TableCell className="text-right">
                       <div className="flex justify-end gap-1">
+                        {u.two_factor_enabled && (
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            title="2FA zurücksetzen"
+                            onClick={() => setReset2faUser({ id: u.id, name: u.name })}
+                          >
+                            <ShieldOff className="h-4 w-4" />
+                          </Button>
+                        )}
                         <Button
                           variant="ghost"
                           size="icon"
