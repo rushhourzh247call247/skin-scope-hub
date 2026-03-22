@@ -6,8 +6,16 @@ import { api } from "@/lib/api";
 import { format } from "date-fns";
 import { de } from "date-fns/locale";
 
+/** Replace Umlaute for jsPDF compatibility */
+function clean(text: string): string {
+  return text
+    .replace(/ä/g, "ae").replace(/ö/g, "oe").replace(/ü/g, "ue")
+    .replace(/Ä/g, "Ae").replace(/Ö/g, "Oe").replace(/Ü/g, "Ue")
+    .replace(/–/g, "-").replace(/≥/g, ">=").replace(/⚠/g, "!");
+}
+
 function getRiskLabel(level: string | null | undefined): string {
-  if (!level) return "–";
+  if (!level) return "-";
   if (level === "low") return "Niedrig";
   if (level === "medium") return "Mittel";
   return "Hoch";
@@ -60,7 +68,7 @@ export async function generatePatientPDF(patient: FullPatient, mode: "preview" |
   doc.text("Derm247", margin, 12);
   doc.setFontSize(9);
   doc.setFont("helvetica", "normal");
-  doc.text(`Patientenbericht – ${format(new Date(), "dd.MM.yyyy HH:mm", { locale: de })}`, margin, 20);
+  doc.text(clean(`Patientenbericht - ${format(new Date(), "dd.MM.yyyy HH:mm", { locale: de })}`), margin, 20);
   doc.setTextColor(0, 0, 0);
   y = 36;
 
@@ -75,9 +83,9 @@ export async function generatePatientPDF(patient: FullPatient, mode: "preview" |
   const birthDate = patient.birth_date
     ? format(new Date(patient.birth_date), "dd.MM.yyyy", { locale: de })
     : "–";
-  doc.text(`Geburtsdatum: ${birthDate}`, margin, y);
+  doc.text(clean(`Geburtsdatum: ${birthDate}`), margin, y);
   if (patient.insurance_number) {
-    doc.text(`Versicherungsnr.: ${patient.insurance_number}`, margin + 80, y);
+    doc.text(clean(`Versicherungsnr.: ${patient.insurance_number}`), margin + 80, y);
   }
   y += 5;
   if (patient.email) {
@@ -192,7 +200,7 @@ export async function generatePatientPDF(patient: FullPatient, mode: "preview" |
         doc.setTextColor(220, 38, 38);
         doc.setFont("helvetica", "bold");
         doc.setFontSize(8);
-        doc.text("⚠ Früher hoher Risikowert erkannt (Score ≥ 4)", margin + 2, y);
+        doc.text(clean("! Frueher hoher Risikowert erkannt (Score >= 4)"), margin + 2, y);
         doc.setTextColor(0, 0, 0);
         doc.setFont("helvetica", "normal");
         y += 5;
@@ -224,7 +232,7 @@ export async function generatePatientPDF(patient: FullPatient, mode: "preview" |
         imgX = margin + 2;
       }
 
-      const imgUrl = api.resolveImageSrc(img);
+      const imgUrl = img.image_url || api.resolveImageSrc(img);
       if (imageCache[img.id] === undefined) {
         imageCache[img.id] = await loadImageAsBase64(imgUrl);
       }
@@ -234,15 +242,21 @@ export async function generatePatientPDF(patient: FullPatient, mode: "preview" |
         try {
           doc.addImage(base64, "JPEG", imgX, y, imgSize, imgSize);
         } catch {
-          // Skip broken images
+          doc.setFontSize(7);
+          doc.text("Bild nicht ladbar", imgX + 2, y + imgSize / 2);
         }
+      } else {
+        doc.setDrawColor(200, 200, 200);
+        doc.rect(imgX, y, imgSize, imgSize);
+        doc.setFontSize(7);
+        doc.text("Bild nicht ladbar", imgX + 2, y + imgSize / 2);
       }
 
       // Date under image
       doc.setFontSize(7);
       const dateStr = img.created_at
         ? format(new Date(img.created_at), "dd.MM.yy", { locale: de })
-        : "–";
+        : "-";
       doc.text(dateStr, imgX + imgSize / 2, y + imgSize + 3, { align: "center" });
 
       // Score badge
@@ -272,7 +286,7 @@ export async function generatePatientPDF(patient: FullPatient, mode: "preview" |
       y += 4;
       doc.setFont("helvetica", "normal");
       for (const line of abcdeLines) {
-        doc.text(`  ${line}`, margin + 2, y);
+        doc.text(clean(`  ${line}`), margin + 2, y);
         y += 3.5;
       }
       y += 2;
@@ -282,7 +296,7 @@ export async function generatePatientPDF(patient: FullPatient, mode: "preview" |
     if (latestImg.note) {
       doc.setFontSize(8);
       doc.setFont("helvetica", "italic");
-      doc.text(`Notiz: ${latestImg.note}`, margin + 2, y);
+      doc.text(clean(`Notiz: ${latestImg.note}`), margin + 2, y);
       doc.setFont("helvetica", "normal");
       y += 5;
     }
@@ -301,7 +315,7 @@ export async function generatePatientPDF(patient: FullPatient, mode: "preview" |
     doc.setFontSize(7);
     doc.setTextColor(150, 150, 150);
     doc.text(
-      `Derm247 – Patientenbericht – Seite ${i}/${totalPages}`,
+      clean(`Derm247 - Patientenbericht - Seite ${i}/${totalPages}`),
       pageWidth / 2,
       doc.internal.pageSize.getHeight() - 8,
       { align: "center" }
