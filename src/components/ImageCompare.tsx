@@ -2,14 +2,14 @@ import { useState, useRef, useCallback } from "react";
 import type { LocationImage } from "@/types/patient";
 import { format } from "date-fns";
 import { de } from "date-fns/locale";
-import { ArrowLeft, Calendar, Check, GitCompareArrows, RotateCcw, ZoomIn, Layers, Move, RotateCw, ChevronDown, Wand2, Sparkles, Loader2 } from "lucide-react";
+import { ArrowLeft, Calendar, Check, GitCompareArrows, RotateCcw, ZoomIn, Layers, Move, RotateCw, ChevronDown, Wand2, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Slider } from "@/components/ui/slider";
 import { Textarea } from "@/components/ui/textarea";
 import { api } from "@/lib/api";
 import { cn } from "@/lib/utils";
 import { motion, AnimatePresence } from "framer-motion";
-import AiAnalysisResult from "@/components/AiAnalysisResult";
+
 import {
   Dialog,
   DialogContent,
@@ -36,12 +36,6 @@ const ImageCompare = ({ images, locationName, onClose }: ImageCompareProps) => {
     images.forEach(img => { if (img.note) initial[img.id] = img.note; });
     return initial;
   });
-  const [analyzingIds, setAnalyzingIds] = useState<Set<number>>(new Set());
-  const [aiResults, setAiResults] = useState<Record<number, LocationImage["ai_analysis"]>>(() => {
-    const initial: Record<number, LocationImage["ai_analysis"]> = {};
-    images.forEach(img => { if (img.ai_analysis) initial[img.id] = img.ai_analysis; });
-    return initial;
-  });
   const debounceTimers = useRef<Record<number, ReturnType<typeof setTimeout>>>({});
 
   const handleNoteChange = useCallback((imageId: number, value: string) => {
@@ -50,16 +44,6 @@ const ImageCompare = ({ images, locationName, onClose }: ImageCompareProps) => {
     debounceTimers.current[imageId] = setTimeout(() => {
       api.updateImageNote(imageId, value);
     }, 800);
-  }, []);
-
-  const handleAnalyze = useCallback(async (imageId: number) => {
-    setAnalyzingIds(prev => new Set(prev).add(imageId));
-    try {
-      const result = await api.analyzeImage(imageId);
-      setAiResults(prev => ({ ...prev, [imageId]: result }));
-    } finally {
-      setAnalyzingIds(prev => { const next = new Set(prev); next.delete(imageId); return next; });
-    }
   }, []);
 
   const isAlignmentModified = overlayRotation !== 0 || overlayScale !== 100 || overlayOffsetX !== 0 || overlayOffsetY !== 0;
@@ -184,26 +168,7 @@ const ImageCompare = ({ images, locationName, onClose }: ImageCompareProps) => {
                       onClick={(e) => e.stopPropagation()}
                       rows={1}
                     />
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      className="h-8 text-[10px] gap-1 shrink-0 px-2"
-                      onClick={(e) => { e.stopPropagation(); handleAnalyze(img.id); }}
-                      disabled={analyzingIds.has(img.id)}
-                    >
-                      {analyzingIds.has(img.id) ? (
-                        <Loader2 className="h-3 w-3 animate-spin" />
-                      ) : (
-                        <><Sparkles className="h-3 w-3" /> KI</>
-                      )}
-                    </Button>
                   </div>
-                  {/* AI result */}
-                  {(aiResults[img.id] || img.ai_analysis) && (
-                    <div className="pl-1">
-                      <AiAnalysisResult analysis={(aiResults[img.id] || img.ai_analysis)!} />
-                    </div>
-                  )}
                 </div>
               </motion.div>
             );
