@@ -157,6 +157,11 @@ export const api = {
   // Dashboard
   getDashboardStats: () => request<any>('/dashboard'),
 
+  // 2FA
+  enable2FA: () => request<{ secret: string; qr: string }>('/2fa/enable', { method: 'POST' }),
+  verify2FA: (code: string) => request<{ success: boolean; message?: string }>('/2fa/verify', { method: 'POST', body: JSON.stringify({ code }) }),
+  disable2FA: () => request<{ success: boolean }>('/2fa/disable', { method: 'POST' }),
+
   // Upload Sessions (QR Upload Flow)
   createUploadSession: (data: { patient_id: number; location_id: number }) =>
     request<{
