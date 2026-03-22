@@ -162,7 +162,15 @@ const ImageGallery = ({ locationId, patientId, images, locationName, locationTyp
               <AbcdeForm
                 imageId={img.id}
                 patientId={patientId}
-                initialData={(img as any).abcde_data}
+                initialData={{
+                  abc_asymmetry: img.abc_asymmetry ?? undefined,
+                  abc_border: img.abc_border ?? undefined,
+                  abc_color: img.abc_color ?? undefined,
+                  abc_diameter: img.abc_diameter ?? undefined,
+                  abc_evolution: img.abc_evolution ?? undefined,
+                  risk_score: img.risk_score ?? undefined,
+                  risk_level: img.risk_level ?? undefined,
+                }}
               />
             </div>
           ))}

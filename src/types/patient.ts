@@ -50,6 +50,13 @@ export interface LocationImage {
   image_url?: string;
   note?: string;
   ai_analysis?: AiAnalysis;
+  abc_asymmetry?: boolean | null;
+  abc_border?: string | null;
+  abc_color?: string | null;
+  abc_diameter?: string | null;
+  abc_evolution?: string | null;
+  risk_score?: number | null;
+  risk_level?: string | null;
   created_at?: string;
   updated_at?: string;
 }
