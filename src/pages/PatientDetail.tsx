@@ -43,6 +43,7 @@ import {
 } from "@/components/ui/alert-dialog";
 
 const PatientDetail = () => {
+  const { user } = useAuth();
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
