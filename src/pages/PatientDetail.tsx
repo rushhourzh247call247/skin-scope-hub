@@ -726,7 +726,7 @@ const PatientDetail = () => {
                 <h2 className="text-lg font-semibold text-foreground mb-4">Chronologischer Verlauf</h2>
                 {(() => {
                   // Collect all events from all locations
-                  const events: { date: string; type: "image" | "finding" | "location"; label: string; detail?: string; locationName: string; locationId: number; imagePath?: string; imageUrl?: string }[] = [];
+                  const events: { date: string; type: "image" | "finding" | "location"; label: string; detail?: string; locationName: string; locationId: number; imagePath?: string; imageUrl?: string; userName?: string }[] = [];
                   locations.forEach((loc) => {
                     const locName = loc.name || `Spot #${loc.id}`;
                     // Location creation
@@ -736,8 +736,8 @@ const PatientDetail = () => {
                       events.push({ date: img.created_at ?? "", type: "image", label: "Bild hochgeladen", locationName: locName, locationId: loc.id, imagePath: img.image_path, imageUrl: img.image_url });
                     });
                     // Findings
-                    (loc.findings ?? []).forEach((f) => {
-                      events.push({ date: f.created_at ?? "", type: "finding", label: "Befund", detail: f.description, locationName: locName, locationId: loc.id });
+                    (loc.findings ?? []).forEach((f: any) => {
+                      events.push({ date: f.created_at ?? "", type: "finding", label: "Befund", detail: f.description, locationName: locName, locationId: loc.id, userName: f.user_name });
                     });
                   });
                   events.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
