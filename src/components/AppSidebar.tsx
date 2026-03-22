@@ -12,6 +12,7 @@ const mainNav = [
   { title: "Dashboard", url: "/", icon: LayoutDashboard },
   { title: "Patienten", url: "/patients", icon: Users },
   { title: "Neuer Patient", url: "/new-patient", icon: UserPlus },
+  { title: "Einstellungen", url: "/settings", icon: Settings },
 ];
 
 const adminNav = [

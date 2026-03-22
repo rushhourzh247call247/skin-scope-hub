@@ -110,12 +110,12 @@ const Settings = () => {
         </CardHeader>
         <CardContent>
           {twoFactorEnabled ? (
-            <div className="flex items-center justify-between rounded-lg border border-green-200 bg-green-50 p-4 dark:border-green-900 dark:bg-green-950/30">
+            <div className="flex items-center justify-between rounded-lg border border-primary/20 bg-primary/5 p-4">
               <div className="flex items-center gap-3">
-                <ShieldCheck className="h-6 w-6 text-green-600 dark:text-green-400" />
+                <ShieldCheck className="h-6 w-6 text-primary" />
                 <div>
-                  <p className="font-medium text-green-800 dark:text-green-300">2FA ist aktiv</p>
-                  <p className="text-sm text-green-600 dark:text-green-500">Ihr Konto ist zusätzlich geschützt.</p>
+                  <p className="font-medium text-foreground">2FA ist aktiv</p>
+                  <p className="text-sm text-muted-foreground">Ihr Konto ist zusätzlich geschützt.</p>
                 </div>
               </div>
               <Button variant="outline" size="sm" onClick={handleDisable2FA} className="text-destructive hover:bg-destructive/10">
