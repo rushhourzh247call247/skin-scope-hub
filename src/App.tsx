@@ -14,6 +14,7 @@ import Login from "./pages/Login";
 import CompanyManagement from "./pages/CompanyManagement";
 import UserManagement from "./pages/UserManagement";
 import MobileUpload from "./pages/MobileUpload";
+import Settings from "./pages/Settings";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient({
@@ -53,6 +54,7 @@ const App = () => (
             <Route path="/patient/:id" element={<ProtectedPage><PatientDetail /></ProtectedPage>} />
             <Route path="/companies" element={<ProtectedPage><AdminRoute><CompanyManagement /></AdminRoute></ProtectedPage>} />
             <Route path="/users" element={<ProtectedPage><AdminRoute><UserManagement /></AdminRoute></ProtectedPage>} />
+            <Route path="/settings" element={<ProtectedPage><Settings /></ProtectedPage>} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>

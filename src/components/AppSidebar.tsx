@@ -1,4 +1,4 @@
-import { Users, UserPlus, LogOut, Building2, UserCog, LayoutDashboard } from "lucide-react";
+import { Users, UserPlus, LogOut, Building2, UserCog, LayoutDashboard, Settings } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
 import { useLocation } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
@@ -12,6 +12,7 @@ const mainNav = [
   { title: "Dashboard", url: "/", icon: LayoutDashboard },
   { title: "Patienten", url: "/patients", icon: Users },
   { title: "Neuer Patient", url: "/new-patient", icon: UserPlus },
+  { title: "Einstellungen", url: "/settings", icon: Settings },
 ];
 
 const adminNav = [
