@@ -205,7 +205,7 @@ export async function generatePatientPDF(patient: FullPatient, mode: "preview" |
       if (maxScore >= 4) doc.setTextColor(220, 38, 38);
       else if (maxScore >= 2) doc.setTextColor(202, 138, 4);
       else doc.setTextColor(22, 163, 74);
-      doc.text(`Maximaler Score: ${maxScore}`, margin + 2, y);
+      doc.text(`Hoechster Score: ${maxScore}`, margin + 2, y);
       doc.setTextColor(0, 0, 0);
       doc.setFont("helvetica", "normal");
       y += 5;
