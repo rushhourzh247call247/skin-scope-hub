@@ -84,15 +84,17 @@ const RiskProgression = ({ images, locationName }: RiskProgressionProps) => {
     risk_level: img.risk_level ?? null,
   }));
 
-  // Trend
+  // Trend based on last two scores (more realistic)
   const scores = sorted.map((img) => img.risk_score).filter((s): s is number => s != null);
   const trend = scores.length >= 2
-    ? scores[scores.length - 1] > scores[0]
+    ? scores[scores.length - 1] > scores[scores.length - 2]
       ? "up"
-      : scores[scores.length - 1] < scores[0]
+      : scores[scores.length - 1] < scores[scores.length - 2]
         ? "down"
         : "stable"
     : null;
+
+  const everHigh = scores.some(s => s >= 4);
 
   const TrendIcon = trend === "up" ? TrendingUp : trend === "down" ? TrendingDown : Minus;
   const trendColor = trend === "up" ? "text-red-500" : trend === "down" ? "text-green-500" : "text-muted-foreground";
@@ -111,6 +113,13 @@ const RiskProgression = ({ images, locationName }: RiskProgressionProps) => {
           </div>
         )}
       </div>
+
+      {/* Critical history warning */}
+      {everHigh && (
+        <div className="flex items-center gap-1.5 rounded-md border border-red-200 bg-red-50 px-2 py-1.5 text-[11px] font-medium text-red-700">
+          ⚠️ Früher hoher Risikowert erkannt (Score ≥ 4)
+        </div>
+      )}
 
       {/* Mini Chart */}
       {hasAnyScore && chartData.length >= 2 && (
