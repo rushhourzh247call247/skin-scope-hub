@@ -83,7 +83,7 @@ export async function generatePatientPDF(patient: FullPatient, mode: "preview" |
   const birthDate = patient.birth_date
     ? format(new Date(patient.birth_date), "dd.MM.yyyy", { locale: de })
     : "–";
-  doc.text(`Geburtsdatum: ${birthDate}`, margin, y);
+  doc.text(clean(`Geburtsdatum: ${birthDate}`), margin, y);
   if (patient.insurance_number) {
     doc.text(`Versicherungsnr.: ${patient.insurance_number}`, margin + 80, y);
   }
