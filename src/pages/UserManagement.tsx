@@ -243,7 +243,6 @@ const UserManagement = () => {
         </AlertDialogContent>
       </AlertDialog>
 
-      </AlertDialog>
 
       {/* 2FA Reset Confirmation */}
       <AlertDialog open={reset2faUser !== null} onOpenChange={(open) => !open && setReset2faUser(null)}>
