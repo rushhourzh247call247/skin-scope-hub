@@ -44,6 +44,7 @@ async function loadImageAsBase64(url: string): Promise<string | null> {
 }
 
 export async function generatePatientPDF(patient: FullPatient): Promise<void> {
+  const imageCache: Record<number, string | null> = {};
   const doc = new jsPDF({ orientation: "portrait", unit: "mm", format: "a4" });
   const pageWidth = doc.internal.pageSize.getWidth();
   const margin = 15;
@@ -186,6 +187,13 @@ export async function generatePatientPDF(patient: FullPatient): Promise<void> {
         doc.setFont("helvetica", "normal");
         y += 5;
       }
+
+      // Max score
+      const maxScore = Math.max(...scores);
+      doc.setFont("helvetica", "normal");
+      doc.setFontSize(8);
+      doc.text(`Maximaler Score bisher: ${maxScore}`, margin + 2, y);
+      y += 5;
     }
 
     // Images (max 4)
@@ -202,7 +210,10 @@ export async function generatePatientPDF(patient: FullPatient): Promise<void> {
       }
 
       const imgUrl = api.resolveImageSrc(img);
-      const base64 = await loadImageAsBase64(imgUrl);
+      if (imageCache[img.id] === undefined) {
+        imageCache[img.id] = await loadImageAsBase64(imgUrl);
+      }
+      const base64 = imageCache[img.id];
 
       if (base64) {
         try {
