@@ -300,23 +300,29 @@ export async function generatePatientPDF(patient: FullPatient, mode: "preview" |
   }
 
   const filename = `Derm247_${patient.name.replace(/\s+/g, "_")}_${format(new Date(), "yyyy-MM-dd")}.pdf`;
+  const blob = doc.output("blob");
+  const blobUrl = URL.createObjectURL(blob);
 
-  // On mobile / iframe, open in new tab; otherwise download
+  if (mode === "preview") {
+    return blobUrl;
+  }
+
   try {
-    const blob = doc.output("blob");
-    const url = URL.createObjectURL(blob);
     const link = document.createElement("a");
-    link.href = url;
+    link.href = blobUrl;
     link.download = filename;
     link.target = "_blank";
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
-    // Also try opening in new tab as fallback for mobile
     if (/Mobi|Android|iPhone|iPad/i.test(navigator.userAgent)) {
-      window.open(url, "_blank");
+      window.open(blobUrl, "_blank");
     }
   } catch {
     doc.save(filename);
   }
+}
+
+export function getPatientPdfFilename(patient: { name: string }): string {
+  return `Derm247_${patient.name.replace(/\s+/g, "_")}_${format(new Date(), "yyyy-MM-dd")}.pdf`;
 }
