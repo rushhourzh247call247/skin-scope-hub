@@ -7,6 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { Building2, Plus, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -14,6 +15,7 @@ const CompanyManagement = () => {
   const queryClient = useQueryClient();
   const [name, setName] = useState("");
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [deleteId, setDeleteId] = useState<number | null>(null);
 
   const { data: companies = [], isLoading } = useQuery({
     queryKey: ["companies"],
@@ -35,8 +37,11 @@ const CompanyManagement = () => {
     mutationFn: api.deleteCompany,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["companies"] });
+      queryClient.invalidateQueries({ queryKey: ["dashboard-stats"] });
       toast.success("Firma gelöscht");
+      setDeleteId(null);
     },
+    onError: () => toast.error("Fehler beim Löschen – evtl. sind noch Benutzer zugeordnet"),
   });
 
   return (
@@ -91,7 +96,7 @@ const CompanyManagement = () => {
                     <TableCell className="font-mono text-xs text-muted-foreground">{c.id}</TableCell>
                     <TableCell className="font-medium">{c.name}</TableCell>
                     <TableCell>
-                      <Button variant="ghost" size="icon" onClick={() => deleteMutation.mutate(c.id)} className="text-destructive hover:text-destructive">
+                      <Button variant="ghost" size="icon" onClick={() => setDeleteId(c.id)} className="text-destructive hover:text-destructive">
                         <Trash2 className="h-4 w-4" />
                       </Button>
                     </TableCell>
@@ -102,6 +107,26 @@ const CompanyManagement = () => {
           )}
         </CardContent>
       </Card>
+
+      <AlertDialog open={deleteId !== null} onOpenChange={(open) => !open && setDeleteId(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Firma endgültig löschen?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Diese Firma und alle zugehörigen Daten werden unwiderruflich gelöscht. Diese Aktion kann nicht rückgängig gemacht werden.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Abbrechen</AlertDialogCancel>
+            <AlertDialogAction
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              onClick={() => deleteId && deleteMutation.mutate(deleteId)}
+            >
+              Endgültig löschen
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };
