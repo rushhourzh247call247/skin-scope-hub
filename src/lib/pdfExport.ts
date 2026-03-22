@@ -36,14 +36,6 @@ function getAbcdeLabel(img: LocationImage): string[] {
 }
 
 async function loadImageAsBase64(url: string): Promise<string | null> {
-  const blobToDataUrl = (blob: Blob): Promise<string | null> =>
-    new Promise((resolve) => {
-      const reader = new FileReader();
-      reader.onloadend = () => resolve(reader.result as string);
-      reader.onerror = () => resolve(null);
-      reader.readAsDataURL(blob);
-    });
-
   const loadViaImage = (): Promise<string | null> =>
     new Promise((resolve) => {
       const img = new Image();
@@ -51,12 +43,12 @@ async function loadImageAsBase64(url: string): Promise<string | null> {
       img.onload = () => {
         try {
           const canvas = document.createElement("canvas");
-          canvas.width = img.naturalWidth;
-          canvas.height = img.naturalHeight;
+          canvas.width = img.naturalWidth || img.width;
+          canvas.height = img.naturalHeight || img.height;
           const ctx = canvas.getContext("2d");
           if (!ctx) return resolve(null);
           ctx.drawImage(img, 0, 0);
-          resolve(canvas.toDataURL("image/jpeg", 0.9));
+          resolve(canvas.toDataURL("image/jpeg", 0.92));
         } catch {
           resolve(null);
         }
@@ -65,15 +57,17 @@ async function loadImageAsBase64(url: string): Promise<string | null> {
       img.src = url;
     });
 
-  const tryFetch = async (withAuth: boolean): Promise<string | null> => {
+  const loadViaFetch = async (): Promise<string | null> => {
     try {
-      const token = sessionStorage.getItem("auth_token");
-      const headers: HeadersInit = withAuth && token
-        ? { Authorization: `Bearer ${token}` }
-        : {};
-      const res = await fetch(url, { method: "GET", mode: "cors", headers });
+      const res = await fetch(url, { method: "GET", mode: "cors" });
       if (!res.ok) return null;
-      return await blobToDataUrl(await res.blob());
+      const blob = await res.blob();
+      return await new Promise((resolve) => {
+        const reader = new FileReader();
+        reader.onloadend = () => resolve(reader.result as string);
+        reader.onerror = () => resolve(null);
+        reader.readAsDataURL(blob);
+      });
     } catch {
       return null;
     }
@@ -82,10 +76,7 @@ async function loadImageAsBase64(url: string): Promise<string | null> {
   const imageResult = await loadViaImage();
   if (imageResult) return imageResult;
 
-  const authFetchResult = await tryFetch(true);
-  if (authFetchResult) return authFetchResult;
-
-  return await tryFetch(false);
+  return await loadViaFetch();
 }
 
 export async function generatePatientPDF(patient: FullPatient, mode: "preview" | "download" = "download"): Promise<string | void> {
