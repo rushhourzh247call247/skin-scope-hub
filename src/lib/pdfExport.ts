@@ -37,15 +37,17 @@ function getAbcdeLabel(img: LocationImage): string[] {
 }
 
 async function loadImageAsBase64(url: string): Promise<string | null> {
-  // Try fetching with auth token first (bypasses CORS issues with storage)
   try {
     const token = sessionStorage.getItem("auth_token");
     const headers: Record<string, string> = {};
     if (token) {
       headers.Authorization = `Bearer ${token}`;
     }
-    const res = await fetch(url, { headers });
-    if (!res.ok) throw new Error("fetch failed");
+    const res = await fetch(url, { method: "GET", headers });
+    if (!res.ok) {
+      console.error("Bild fetch fehlgeschlagen:", res.status);
+      return null;
+    }
     const blob = await res.blob();
     return new Promise((resolve) => {
       const reader = new FileReader();
@@ -53,27 +55,9 @@ async function loadImageAsBase64(url: string): Promise<string | null> {
       reader.onerror = () => resolve(null);
       reader.readAsDataURL(blob);
     });
-  } catch {
-    // Fallback: try Image element with crossOrigin
-    return new Promise((resolve) => {
-      const img = new Image();
-      img.crossOrigin = "anonymous";
-      img.onload = () => {
-        try {
-          const canvas = document.createElement("canvas");
-          canvas.width = img.naturalWidth;
-          canvas.height = img.naturalHeight;
-          const ctx = canvas.getContext("2d");
-          if (!ctx) { resolve(null); return; }
-          ctx.drawImage(img, 0, 0);
-          resolve(canvas.toDataURL("image/jpeg", 0.85));
-        } catch {
-          resolve(null);
-        }
-      };
-      img.onerror = () => resolve(null);
-      img.src = url;
-    });
+  } catch (e) {
+    console.error("Bild Fehler:", e);
+    return null;
   }
 }
 
