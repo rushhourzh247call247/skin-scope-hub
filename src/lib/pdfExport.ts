@@ -79,7 +79,7 @@ async function loadImageAsBase64(url: string): Promise<string | null> {
   return await loadViaFetch();
 }
 
-export async function generatePatientPDF(patient: FullPatient, mode: "preview" | "download" = "download"): Promise<string | void> {
+export async function generatePatientPDF(patient: FullPatient, mode: "preview" | "download" = "download", doctorName?: string): Promise<string | void> {
   const imageCache: Record<number, string | null> = {};
   const doc = new jsPDF({ orientation: "portrait", unit: "mm", format: "a4" });
   const pageWidth = doc.internal.pageSize.getWidth();
