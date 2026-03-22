@@ -16,15 +16,15 @@ function getRiskLabel(level: string | null | undefined): string {
 function getAbcdeLabel(img: LocationImage): string[] {
   const lines: string[] = [];
   if (img.abc_asymmetry != null)
-    lines.push(`A: ${img.abc_asymmetry ? "Asymmetrisch" : "Symmetrisch"}`);
+    lines.push(`A – ${img.abc_asymmetry ? "Asymmetrisch" : "Symmetrisch"}`);
   if (img.abc_border)
-    lines.push(`B: ${img.abc_border === "unregelmaessig" ? "Unregelmässig" : "Regelmässig"}`);
+    lines.push(`B – ${img.abc_border === "unregelmaessig" ? "Unregelmaessig" : "Regelmaessig"}`);
   if (img.abc_color)
-    lines.push(`C: ${img.abc_color === "mehrfarbig" ? "Mehrfarbig" : "Einfarbig"}`);
+    lines.push(`C – ${img.abc_color === "mehrfarbig" ? "Mehrfarbig" : "Einfarbig"}`);
   if (img.abc_diameter)
-    lines.push(`D: ${img.abc_diameter === "groesser_6mm" ? "> 6mm" : "< 6mm"}`);
+    lines.push(`D – ${img.abc_diameter === "groesser_6mm" ? "> 6mm" : "< 6mm"}`);
   if (img.abc_evolution)
-    lines.push(`E: ${img.abc_evolution === "veraendert" ? "Verändert" : "Stabil"}`);
+    lines.push(`E – ${img.abc_evolution === "veraendert" ? "Veraendert" : "Stabil"}`);
   return lines;
 }
 
@@ -163,28 +163,30 @@ export async function generatePatientPDF(patient: FullPatient, mode: "preview" |
       doc.setFont("helvetica", "bold");
       const riskText = `Aktueller Score: ${latest} (${getRiskLabel(images[images.length - 1].risk_level)})`;
       doc.text(riskText, margin + 2, y);
+      y += 5;
+      doc.setFont("helvetica", "normal");
+      doc.setFontSize(8);
 
       if (scores.length >= 2) {
         const hasVariation = new Set(scores).size > 1;
         if (hasVariation) {
-          const changeText = diff > 0
-            ? `  Verschlechterung +${diff}`
+          const changeLabel = diff > 0
+            ? `Verschlechterung +${diff}`
             : diff < 0
-              ? `  Verbesserung ${diff}`
+              ? `Verbesserung ${diff}`
               : "";
-          if (changeText) {
-            doc.setFont("helvetica", "normal");
+          if (changeLabel) {
             if (diff > 0) doc.setTextColor(220, 38, 38);
             else if (diff < 0) doc.setTextColor(22, 163, 74);
-            doc.text(changeText, margin + 2 + doc.getTextWidth(riskText), y);
+            doc.text(changeLabel, margin + 2, y);
             doc.setTextColor(0, 0, 0);
+            y += 4;
           }
         } else {
-          doc.setFont("helvetica", "normal");
-          doc.text("  Stabil (keine Veraenderung)", margin + 2 + doc.getTextWidth(riskText), y);
+          doc.text("Stabil (keine Veraenderung)", margin + 2, y);
+          y += 4;
         }
       }
-      y += 5;
 
       if (everHigh) {
         doc.setTextColor(220, 38, 38);
@@ -203,7 +205,7 @@ export async function generatePatientPDF(patient: FullPatient, mode: "preview" |
       if (maxScore >= 4) doc.setTextColor(220, 38, 38);
       else if (maxScore >= 2) doc.setTextColor(202, 138, 4);
       else doc.setTextColor(22, 163, 74);
-      doc.text(`Maximaler Score bisher: ${maxScore}`, margin + 2, y);
+      doc.text(`Maximaler Score: ${maxScore}`, margin + 2, y);
       doc.setTextColor(0, 0, 0);
       doc.setFont("helvetica", "normal");
       y += 5;
