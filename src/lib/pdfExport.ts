@@ -271,6 +271,8 @@ export async function generatePatientPDF(patient: FullPatient, mode: "preview" |
         try {
           const imageFormat = base64.startsWith("data:image/png") ? "PNG" : "JPEG";
           doc.addImage(base64, imageFormat, imgX, y, imgSize, imgSize);
+          const originalUrl = `https://api.derm247.ch/storage/${img.file_path}`;
+          doc.link(imgX, y, imgSize, imgSize, { url: originalUrl });
         } catch {
           doc.setFontSize(7);
           doc.text("Bild nicht ladbar", imgX + 2, y + imgSize / 2);
