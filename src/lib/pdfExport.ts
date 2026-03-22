@@ -44,13 +44,13 @@ function getAbcdeLabel(img: LocationImage): string[] {
   if (img.abc_asymmetry != null)
     lines.push(`A – ${img.abc_asymmetry ? "Asymmetrisch" : "Symmetrisch"}`);
   if (img.abc_border)
-    lines.push(`B – ${img.abc_border === "unregelmaessig" ? "Unregelmaessig" : "Regelmaessig"}`);
+    lines.push(`B – ${img.abc_border === "unregelmaessig" ? "Unregelmäßig" : "Regelmäßig"}`);
   if (img.abc_color)
     lines.push(`C – ${img.abc_color === "mehrfarbig" ? "Mehrfarbig" : "Einfarbig"}`);
   if (img.abc_diameter)
     lines.push(`D – ${img.abc_diameter === "groesser_6mm" ? "> 6mm" : "< 6mm"}`);
   if (img.abc_evolution)
-    lines.push(`E – ${img.abc_evolution === "veraendert" ? "Veraendert" : "Stabil"}`);
+    lines.push(`E – ${img.abc_evolution === "veraendert" ? "Verändert" : "Stabil"}`);
   return lines;
 }
 
@@ -118,8 +118,8 @@ export async function generatePatientPDF(patient: FullPatient, mode: "preview" |
   doc.setFont("Roboto", "normal");
   const resolvedDoctorName = resolveDoctorName(doctorName);
   const headerRight = clean(`Arzt: ${resolvedDoctorName ?? "-"}`);
-  doc.text(clean(`Patientenbericht - ${format(new Date(), "dd.MM.yyyy HH:mm", { locale: de })}`), margin, 20);
-  doc.text(headerRight, pageWidth - margin, 20, { align: "right" });
+  doc.text(`Patientenbericht - ${format(new Date(), "dd.MM.yyyy HH:mm", { locale: de })}`, margin, 20);
+  doc.text(clean(headerRight), pageWidth - margin, 20, { align: "right" });
   doc.setTextColor(0, 0, 0);
   y = 36;
 
@@ -134,9 +134,9 @@ export async function generatePatientPDF(patient: FullPatient, mode: "preview" |
   const birthDate = patient.birth_date
     ? format(new Date(patient.birth_date), "dd.MM.yyyy", { locale: de })
     : "–";
-  doc.text(clean(`Geburtsdatum: ${birthDate}`), margin, y);
+  doc.text(`Geburtsdatum: ${birthDate}`, margin, y);
   if (patient.insurance_number) {
-    doc.text(clean(`Versicherungsnr.: ${patient.insurance_number}`), margin + 80, y);
+    doc.text(`Versicherungsnr.: ${patient.insurance_number}`, margin + 80, y);
   }
   y += 5;
   if (patient.email) {
@@ -369,13 +369,13 @@ export async function generatePatientPDF(patient: FullPatient, mode: "preview" |
     doc.setFontSize(7);
     doc.setTextColor(150, 150, 150);
     doc.text(
-      clean(`Derm247 - Patientenbericht - Seite ${i}/${totalPages}`),
+      `Derm247 - Patientenbericht - Seite ${i}/${totalPages}`,
       pageWidth / 2,
       doc.internal.pageSize.getHeight() - 8,
       { align: "center" }
     );
     doc.text(
-      "Dieses Dokument dient ausschliesslich der medizinischen Dokumentation.",
+      "Dieses Dokument dient ausschließlich der medizinischen Dokumentation.",
       pageWidth / 2,
       doc.internal.pageSize.getHeight() - 5,
       { align: "center" }
