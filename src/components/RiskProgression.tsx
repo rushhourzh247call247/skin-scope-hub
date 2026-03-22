@@ -84,15 +84,17 @@ const RiskProgression = ({ images, locationName }: RiskProgressionProps) => {
     risk_level: img.risk_level ?? null,
   }));
 
-  // Trend
+  // Trend based on last two scores (more realistic)
   const scores = sorted.map((img) => img.risk_score).filter((s): s is number => s != null);
   const trend = scores.length >= 2
-    ? scores[scores.length - 1] > scores[0]
+    ? scores[scores.length - 1] > scores[scores.length - 2]
       ? "up"
-      : scores[scores.length - 1] < scores[0]
+      : scores[scores.length - 1] < scores[scores.length - 2]
         ? "down"
         : "stable"
     : null;
+
+  const everHigh = scores.some(s => s >= 4);
 
   const TrendIcon = trend === "up" ? TrendingUp : trend === "down" ? TrendingDown : Minus;
   const trendColor = trend === "up" ? "text-red-500" : trend === "down" ? "text-green-500" : "text-muted-foreground";
