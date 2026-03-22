@@ -32,6 +32,8 @@ const UserManagement = () => {
   const [showConfirmPw, setShowConfirmPw] = useState(false);
   const [showCreatePw, setShowCreatePw] = useState(false);
 
+  // 2FA reset confirm
+  const [reset2faUser, setReset2faUser] = useState<{ id: number; name: string } | null>(null);
   const { data: users = [], isLoading } = useQuery({
     queryKey: ["users"],
     queryFn: api.getUsers,
