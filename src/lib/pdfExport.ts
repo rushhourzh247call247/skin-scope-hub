@@ -165,16 +165,24 @@ export async function generatePatientPDF(patient: FullPatient, mode: "preview" |
       doc.text(riskText, margin + 2, y);
 
       if (scores.length >= 2) {
-        const changeText = diff > 0
-          ? `  ↑ Verschlechterung +${diff}`
-          : diff < 0
-            ? `  ↓ Verbesserung ${diff}`
-            : "  → Stabil";
-        doc.setFont("helvetica", "normal");
-        if (diff > 0) doc.setTextColor(220, 38, 38);
-        else if (diff < 0) doc.setTextColor(22, 163, 74);
-        doc.text(changeText, margin + 2 + doc.getTextWidth(riskText), y);
-        doc.setTextColor(0, 0, 0);
+        const hasVariation = new Set(scores).size > 1;
+        if (hasVariation) {
+          const changeText = diff > 0
+            ? `  Verschlechterung +${diff}`
+            : diff < 0
+              ? `  Verbesserung ${diff}`
+              : "";
+          if (changeText) {
+            doc.setFont("helvetica", "normal");
+            if (diff > 0) doc.setTextColor(220, 38, 38);
+            else if (diff < 0) doc.setTextColor(22, 163, 74);
+            doc.text(changeText, margin + 2 + doc.getTextWidth(riskText), y);
+            doc.setTextColor(0, 0, 0);
+          }
+        } else {
+          doc.setFont("helvetica", "normal");
+          doc.text("  Stabil (keine Veraenderung)", margin + 2 + doc.getTextWidth(riskText), y);
+        }
       }
       y += 5;
 
