@@ -286,7 +286,7 @@ export async function generatePatientPDF(patient: FullPatient, mode: "preview" |
       y += 4;
       doc.setFont("helvetica", "normal");
       for (const line of abcdeLines) {
-        doc.text(`  ${line}`, margin + 2, y);
+        doc.text(clean(`  ${line}`), margin + 2, y);
         y += 3.5;
       }
       y += 2;
