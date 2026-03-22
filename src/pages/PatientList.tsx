@@ -72,6 +72,7 @@ const PatientList = () => {
   );
 
   return (
+    <>
     <div className="container py-8">
       <div className="mb-6 flex items-start justify-between">
         <div>
@@ -215,6 +216,7 @@ const PatientList = () => {
         </div>
       )}
     </div>
+    </div>
 
     {/* Admin: Delete Patient Confirmation */}
     <AlertDialog open={deletePatientId !== null} onOpenChange={(open) => !open && setDeletePatientId(null)}>
@@ -241,6 +243,7 @@ const PatientList = () => {
         </AlertDialogFooter>
       </AlertDialogContent>
     </AlertDialog>
+    </>
   );
 };
 
