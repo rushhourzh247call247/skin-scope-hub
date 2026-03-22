@@ -96,7 +96,11 @@ export async function generatePatientPDF(patient: FullPatient, mode: "preview" |
   doc.text("Derm247", margin, 12);
   doc.setFontSize(9);
   doc.setFont("helvetica", "normal");
+  const headerRight = doctorName ? clean(`Arzt: ${doctorName}`) : "";
   doc.text(clean(`Patientenbericht - ${format(new Date(), "dd.MM.yyyy HH:mm", { locale: de })}`), margin, 20);
+  if (headerRight) {
+    doc.text(headerRight, pageWidth - margin, 20, { align: "right" });
+  }
   doc.setTextColor(0, 0, 0);
   y = 36;
 
