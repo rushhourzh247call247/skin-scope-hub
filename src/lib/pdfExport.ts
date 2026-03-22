@@ -163,6 +163,9 @@ export async function generatePatientPDF(patient: FullPatient, mode: "preview" |
       doc.setFont("helvetica", "bold");
       const riskText = `Aktueller Score: ${latest} (${getRiskLabel(images[images.length - 1].risk_level)})`;
       doc.text(riskText, margin + 2, y);
+      y += 5;
+      doc.setFont("helvetica", "normal");
+      doc.setFontSize(8);
 
       if (scores.length >= 2) {
         const hasVariation = new Set(scores).size > 1;
