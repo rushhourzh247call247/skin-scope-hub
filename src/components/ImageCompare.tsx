@@ -38,6 +38,14 @@ const ImageCompare = ({ images, locationName, onClose }: ImageCompareProps) => {
   });
   const debounceTimers = useRef<Record<number, ReturnType<typeof setTimeout>>>({});
 
+  const handleNoteChange = useCallback((imageId: number, value: string) => {
+    setNoteValues(prev => ({ ...prev, [imageId]: value }));
+    if (debounceTimers.current[imageId]) clearTimeout(debounceTimers.current[imageId]);
+    debounceTimers.current[imageId] = setTimeout(() => {
+      api.updateImageNote(imageId, value);
+    }, 800);
+  }, []);
+
   const isAlignmentModified = overlayRotation !== 0 || overlayScale !== 100 || overlayOffsetX !== 0 || overlayOffsetY !== 0;
 
   const handleAutoAlign = () => {
