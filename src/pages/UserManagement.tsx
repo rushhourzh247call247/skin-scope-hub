@@ -243,6 +243,28 @@ const UserManagement = () => {
         </AlertDialogContent>
       </AlertDialog>
 
+      </AlertDialog>
+
+      {/* 2FA Reset Confirmation */}
+      <AlertDialog open={reset2faUser !== null} onOpenChange={(open) => !open && setReset2faUser(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>2FA zurücksetzen?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Die Zwei-Faktor-Authentifizierung für <span className="font-semibold">{reset2faUser?.name}</span> wird deaktiviert. Der Benutzer kann sich dann ohne Code anmelden und 2FA neu einrichten.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Abbrechen</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => reset2faUser && reset2faMutation.mutate(reset2faUser.id)}
+            >
+              2FA deaktivieren
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
       {/* Password Reset Dialog */}
       <Dialog open={resetUser !== null} onOpenChange={(open) => !open && setResetUser(null)}>
         <DialogContent>
