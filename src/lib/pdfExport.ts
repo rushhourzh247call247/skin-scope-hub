@@ -187,6 +187,13 @@ export async function generatePatientPDF(patient: FullPatient): Promise<void> {
         doc.setFont("helvetica", "normal");
         y += 5;
       }
+
+      // Max score
+      const maxScore = Math.max(...scores);
+      doc.setFont("helvetica", "normal");
+      doc.setFontSize(8);
+      doc.text(`Maximaler Score bisher: ${maxScore}`, margin + 2, y);
+      y += 5;
     }
 
     // Images (max 4)
