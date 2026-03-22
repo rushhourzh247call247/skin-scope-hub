@@ -260,7 +260,8 @@ export async function generatePatientPDF(patient: FullPatient, mode: "preview" |
         imgX = margin + 2;
       }
 
-      const imgUrl = `https://api.derm247.ch/storage/${img.file_path}`;
+      const cacheBuster = `${Date.now()}_${img.id}`;
+      const imgUrl = `https://api.derm247.ch/storage/${img.file_path}?v=${cacheBuster}`;
       if (imageCache[img.id] === undefined) {
         imageCache[img.id] = await loadImageAsBase64(imgUrl);
       }
@@ -268,7 +269,8 @@ export async function generatePatientPDF(patient: FullPatient, mode: "preview" |
 
       if (base64) {
         try {
-          doc.addImage(base64, "JPEG", imgX, y, imgSize, imgSize);
+          const imageFormat = base64.startsWith("data:image/png") ? "PNG" : "JPEG";
+          doc.addImage(base64, imageFormat, imgX, y, imgSize, imgSize);
         } catch {
           doc.setFontSize(7);
           doc.text("Bild nicht ladbar", imgX + 2, y + imgSize / 2);
