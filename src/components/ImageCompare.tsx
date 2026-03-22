@@ -88,7 +88,7 @@ const ImageCompare = ({ images, locationName, onClose }: ImageCompareProps) => {
     setOverlayOffsetX(0);
     setOverlayOffsetY(0);
     if (selected.length === 2) {
-      saveAlignment(selected[0], selected[1], { rotation: 0, scale: 100, offsetX: 0, offsetY: 0 });
+      api.saveImageAlignment(selected[0], selected[1], { rotation: 0, scale: 100, offset_x: 0, offset_y: 0 });
     }
   };
 
