@@ -200,7 +200,7 @@ export async function generatePatientPDF(patient: FullPatient, mode: "preview" |
         doc.setTextColor(220, 38, 38);
         doc.setFont("helvetica", "bold");
         doc.setFontSize(8);
-        doc.text("⚠ Früher hoher Risikowert erkannt (Score ≥ 4)", margin + 2, y);
+        doc.text(clean("! Frueher hoher Risikowert erkannt (Score >= 4)"), margin + 2, y);
         doc.setTextColor(0, 0, 0);
         doc.setFont("helvetica", "normal");
         y += 5;
