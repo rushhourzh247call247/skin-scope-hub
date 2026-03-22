@@ -73,7 +73,7 @@ const PatientList = () => {
             <tbody>
               {filtered.length === 0 ? (
                 <tr>
-                  <td colSpan={4} className="px-4 py-12 text-center text-sm text-muted-foreground">
+                  <td colSpan={5} className="px-4 py-12 text-center text-sm text-muted-foreground">
                     {search ? "Keine Patienten gefunden." : "Noch keine Patienten vorhanden."}
                   </td>
                 </tr>
