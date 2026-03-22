@@ -1,35 +1,75 @@
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { api } from "@/lib/api";
 import type { Patient } from "@/types/patient";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Search, Calendar, Hash } from "lucide-react";
+import { Search, Calendar, Hash, EyeOff, Eye, Power, PowerOff } from "lucide-react";
 import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import { Switch } from "@/components/ui/switch";
+import { Badge } from "@/components/ui/badge";
+import { toast } from "sonner";
 import { format } from "date-fns";
 import { de } from "date-fns/locale";
 
 const PatientList = () => {
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const [search, setSearch] = useState("");
+  const [showDeactivated, setShowDeactivated] = useState(false);
 
   const { data: patients = [], isLoading, error } = useQuery({
     queryKey: ["patients"],
     queryFn: api.getPatients,
   });
 
-  const filtered = patients.filter((p: Patient) =>
+  const deactivateMutation = useMutation({
+    mutationFn: (id: number) => api.deactivatePatient(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["patients"] });
+      toast.success("Patient deaktiviert");
+    },
+  });
+
+  const activateMutation = useMutation({
+    mutationFn: (id: number) => api.activatePatient(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["patients"] });
+      toast.success("Patient aktiviert");
+    },
+  });
+
+  const activePatients = patients.filter((p: any) => !p.deactivated_at);
+  const deactivatedPatients = patients.filter((p: any) => !!p.deactivated_at);
+
+  const visiblePatients = showDeactivated ? patients : activePatients;
+  const filtered = visiblePatients.filter((p: Patient) =>
     p.name.toLowerCase().includes(search.toLowerCase())
   );
 
   return (
     <div className="container py-8">
-      <div className="mb-6">
-        <h2 className="text-2xl font-semibold tracking-tight text-foreground">
-          Patienten
-        </h2>
-        <p className="text-sm text-muted-foreground">
-          {patients.length} Patienten registriert
-        </p>
+      <div className="mb-6 flex items-start justify-between">
+        <div>
+          <h2 className="text-2xl font-semibold tracking-tight text-foreground">
+            Patienten
+          </h2>
+          <p className="text-sm text-muted-foreground">
+            {activePatients.length} aktiv{deactivatedPatients.length > 0 && ` · ${deactivatedPatients.length} deaktiviert`}
+          </p>
+        </div>
+        {deactivatedPatients.length > 0 && (
+          <div className="flex items-center gap-2">
+            <label htmlFor="show-deactivated" className="text-xs text-muted-foreground cursor-pointer select-none">
+              Deaktivierte anzeigen
+            </label>
+            <Switch
+              id="show-deactivated"
+              checked={showDeactivated}
+              onCheckedChange={setShowDeactivated}
+            />
+          </div>
+        )}
       </div>
 
       <div className="relative mb-4">
@@ -68,6 +108,7 @@ const PatientList = () => {
                 </th>
                 <th className="px-4 py-3">Letzter Arzt</th>
                 <th className="px-4 py-3">Erstellt</th>
+                <th className="px-4 py-3 text-right">Aktion</th>
               </tr>
             </thead>
             <tbody>
@@ -81,8 +122,8 @@ const PatientList = () => {
                 filtered.map((patient: Patient) => (
                   <tr
                     key={patient.id}
-                    onClick={() => navigate(`/patient/${patient.id}`)}
-                    className="cursor-pointer border-b last:border-0 transition-colors duration-150 hover:bg-muted/50"
+                    className={`border-b last:border-0 transition-colors duration-150 hover:bg-muted/50 ${(patient as any).deactivated_at ? "opacity-50" : "cursor-pointer"}`}
+                    onClick={() => !(patient as any).deactivated_at && navigate(`/patient/${patient.id}`)}
                   >
                     <td className="px-4 py-3">
                       <span className="font-mono text-xs text-muted-foreground">#{patient.id}</span>
@@ -92,7 +133,12 @@ const PatientList = () => {
                         <div className="flex h-8 w-8 items-center justify-center rounded-md bg-secondary text-xs font-medium text-secondary-foreground">
                           {patient.name.split(" ").map((n) => n[0]).join("").slice(0, 2).toUpperCase()}
                         </div>
-                        <span className="text-sm font-medium text-foreground">{patient.name}</span>
+                        <div className="flex items-center gap-2">
+                          <span className="text-sm font-medium text-foreground">{patient.name}</span>
+                          {(patient as any).deactivated_at && (
+                            <Badge variant="secondary" className="text-[10px] px-1.5 py-0">Deaktiviert</Badge>
+                          )}
+                        </div>
                       </div>
                     </td>
                     <td className="px-4 py-3 tabular-nums text-sm text-muted-foreground">
@@ -103,6 +149,27 @@ const PatientList = () => {
                     </td>
                     <td className="px-4 py-3 tabular-nums text-sm text-muted-foreground">
                       {patient.created_at ? format(new Date(patient.created_at), "dd.MM.yyyy", { locale: de }) : "–"}
+                    </td>
+                    <td className="px-4 py-3 text-right">
+                      {(patient as any).deactivated_at ? (
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          className="h-7 gap-1 text-xs"
+                          onClick={(e) => { e.stopPropagation(); activateMutation.mutate(patient.id); }}
+                        >
+                          <Power className="h-3 w-3" /> Aktivieren
+                        </Button>
+                      ) : (
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          className="h-7 gap-1 text-xs text-muted-foreground hover:text-destructive"
+                          onClick={(e) => { e.stopPropagation(); deactivateMutation.mutate(patient.id); }}
+                        >
+                          <PowerOff className="h-3 w-3" /> Deaktivieren
+                        </Button>
+                      )}
                     </td>
                   </tr>
                 ))
