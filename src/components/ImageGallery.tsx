@@ -72,6 +72,19 @@ const ImageGallery = ({ locationId, patientId, images, locationName, locationTyp
     uploadMutation.mutate(file);
   };
 
+  const deleteMutation = useMutation({
+    mutationFn: (imageId: number) => api.deleteImage(imageId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["full-patient", patientId] });
+      toast.success("Bild wurde gelöscht");
+      setDeleteTarget(null);
+    },
+    onError: () => {
+      toast.error("Bild konnte nicht gelöscht werden");
+      setDeleteTarget(null);
+    },
+  });
+
   const handleNoteChange = useCallback((imageId: number, value: string) => {
     setNoteValues(prev => ({ ...prev, [imageId]: value }));
     if (debounceTimers.current[imageId]) clearTimeout(debounceTimers.current[imageId]);
