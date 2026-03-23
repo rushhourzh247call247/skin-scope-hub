@@ -142,11 +142,11 @@ const ImageGallery = ({ locationId, patientId, images, locationName, locationTyp
             <div key={img.id} className="relative space-y-2 rounded-lg border bg-card p-2">
               <Button
                 size="icon"
-                variant="ghost"
-                className="absolute right-1 top-1 z-10 h-7 w-7 text-muted-foreground hover:text-destructive"
+                variant="destructive"
+                className="absolute right-2 top-2 z-10 h-8 w-8 rounded-full shadow-md opacity-80 hover:opacity-100"
                 onClick={() => setDeleteTarget(img.id)}
               >
-                <Trash2 className="h-3.5 w-3.5" />
+                <Trash2 className="h-4 w-4" />
               </Button>
               {locationType === "spot" ? (
                 <div className="flex flex-col items-center gap-1.5">
