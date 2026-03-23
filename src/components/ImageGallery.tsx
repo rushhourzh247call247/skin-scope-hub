@@ -195,6 +195,26 @@ const ImageGallery = ({ locationId, patientId, images, locationName, locationTyp
           ))}
         </div>
       )}
+      <AlertDialog open={deleteTarget !== null} onOpenChange={(open) => !open && setDeleteTarget(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Bild löschen?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Dieses Bild wird unwiderruflich gelöscht. Möchten Sie fortfahren?
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Abbrechen</AlertDialogCancel>
+            <AlertDialogAction
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              onClick={() => deleteTarget && deleteMutation.mutate(deleteTarget)}
+              disabled={deleteMutation.isPending}
+            >
+              {deleteMutation.isPending ? "Löscht…" : "Löschen"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };
