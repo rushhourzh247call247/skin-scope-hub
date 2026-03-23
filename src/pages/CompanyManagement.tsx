@@ -8,8 +8,11 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
-import { Building2, Plus, Trash2 } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { Building2, Plus, Trash2, Shield } from "lucide-react";
 import { toast } from "sonner";
+
+const PROTECTED_COMPANY_NAME = "techassist";
 
 const CompanyManagement = () => {
   const queryClient = useQueryClient();
