@@ -9,8 +9,11 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
-import { UserCog, Plus, Trash2, KeyRound, Eye, EyeOff, ShieldOff } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { UserCog, Plus, Trash2, KeyRound, Eye, EyeOff, ShieldOff, Shield } from "lucide-react";
 import { toast } from "sonner";
+
+const PROTECTED_EMAIL = "info@techassist.ch";
 
 const UserManagement = () => {
   const queryClient = useQueryClient();
