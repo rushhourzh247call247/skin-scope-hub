@@ -2,7 +2,7 @@ import { useState, useRef, useCallback, useEffect } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { api } from "@/lib/api";
 import type { LocationImage } from "@/types/patient";
-import { Upload, Calendar, ImageIcon, GitCompareArrows } from "lucide-react";
+import { Upload, Calendar, ImageIcon, GitCompareArrows, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { format } from "date-fns";
