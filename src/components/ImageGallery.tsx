@@ -35,6 +35,7 @@ const ImageGallery = ({ locationId, patientId, images, locationName, locationTyp
   const [uploading, setUploading] = useState(false);
   const [compareMode, setCompareMode] = useState(false);
   const [noteValues, setNoteValues] = useState<Record<number, string>>({});
+  const [deleteTarget, setDeleteTarget] = useState<number | null>(null);
   const debounceTimers = useRef<Record<number, ReturnType<typeof setTimeout>>>({});
 
   // Sync note values from API data whenever images prop changes
