@@ -126,7 +126,15 @@ const ImageGallery = ({ locationId, patientId, images, locationName, locationTyp
       ) : (
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           {sorted.map((img) => (
-            <div key={img.id} className="space-y-2 rounded-lg border bg-card p-2">
+            <div key={img.id} className="relative space-y-2 rounded-lg border bg-card p-2">
+              <Button
+                size="icon"
+                variant="ghost"
+                className="absolute right-1 top-1 z-10 h-7 w-7 text-muted-foreground hover:text-destructive"
+                onClick={() => setDeleteTarget(img.id)}
+              >
+                <Trash2 className="h-3.5 w-3.5" />
+              </Button>
               {locationType === "spot" ? (
                 <div className="flex flex-col items-center gap-1.5">
                   <div className="relative h-20 w-20 overflow-hidden rounded-full border-2 border-border shadow-sm">
