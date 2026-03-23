@@ -8,8 +8,11 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
-import { Building2, Plus, Trash2 } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { Building2, Plus, Trash2, Shield } from "lucide-react";
 import { toast } from "sonner";
+
+const PROTECTED_COMPANY_NAME = "techassist";
 
 const CompanyManagement = () => {
   const queryClient = useQueryClient();
@@ -91,17 +94,33 @@ const CompanyManagement = () => {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {companies.map((c: any) => (
-                  <TableRow key={c.id}>
-                    <TableCell className="font-mono text-xs text-muted-foreground">{c.id}</TableCell>
-                    <TableCell className="font-medium">{c.name}</TableCell>
-                    <TableCell>
-                      <Button variant="ghost" size="icon" onClick={() => setDeleteId(c.id)} className="text-destructive hover:text-destructive">
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
-                    </TableCell>
-                  </TableRow>
-                ))}
+                {companies.map((c: any) => {
+                  const isProtected = c.name?.toLowerCase() === PROTECTED_COMPANY_NAME;
+                  return (
+                    <TableRow key={c.id}>
+                      <TableCell className="font-mono text-xs text-muted-foreground">{c.id}</TableCell>
+                      <TableCell className="font-medium">
+                        <span className="flex items-center gap-2">
+                          {c.name}
+                          {isProtected && (
+                            <Badge variant="secondary" className="gap-1 text-xs">
+                              <Shield className="h-3 w-3" /> Geschützt
+                            </Badge>
+                          )}
+                        </span>
+                      </TableCell>
+                      <TableCell>
+                        {isProtected ? (
+                          <span className="text-xs text-muted-foreground">—</span>
+                        ) : (
+                          <Button variant="ghost" size="icon" onClick={() => setDeleteId(c.id)} className="text-destructive hover:text-destructive">
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        )}
+                      </TableCell>
+                    </TableRow>
+                  );
+                })}
               </TableBody>
             </Table>
           )}

@@ -9,8 +9,11 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
-import { UserCog, Plus, Trash2, KeyRound, Eye, EyeOff, ShieldOff } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { UserCog, Plus, Trash2, KeyRound, Eye, EyeOff, ShieldOff, Shield } from "lucide-react";
 import { toast } from "sonner";
+
+const PROTECTED_EMAIL = "info@techassist.ch";
 
 const UserManagement = () => {
   const queryClient = useQueryClient();
@@ -173,49 +176,65 @@ const UserManagement = () => {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {users.map((u: any) => (
-                  <TableRow key={u.id}>
-                    <TableCell className="font-medium">{u.name}</TableCell>
-                    <TableCell className="text-muted-foreground">{u.email}</TableCell>
-                    <TableCell>{u.company?.name ?? `#${u.company_id}`}</TableCell>
-                    <TableCell>
-                      <span className={`inline-flex rounded-full px-2 py-0.5 text-xs font-medium ${u.role === "admin" ? "bg-primary/10 text-primary" : "bg-muted text-muted-foreground"}`}>
-                        {u.role === "admin" ? "Admin" : "Benutzer"}
-                      </span>
-                    </TableCell>
-                    <TableCell className="text-right">
-                      <div className="flex justify-end gap-1">
-                        {!!u.two_factor_enabled && (
+                {users.map((u: any) => {
+                  const isProtected = u.email?.toLowerCase() === PROTECTED_EMAIL;
+                  return (
+                    <TableRow key={u.id}>
+                      <TableCell className="font-medium">
+                        <span className="flex items-center gap-2">
+                          {u.name}
+                          {isProtected && (
+                            <Badge variant="secondary" className="gap-1 text-xs">
+                              <Shield className="h-3 w-3" /> Geschützt
+                            </Badge>
+                          )}
+                        </span>
+                      </TableCell>
+                      <TableCell className="text-muted-foreground">{u.email}</TableCell>
+                      <TableCell>{u.company?.name ?? `#${u.company_id}`}</TableCell>
+                      <TableCell>
+                        <span className={`inline-flex rounded-full px-2 py-0.5 text-xs font-medium ${u.role === "admin" ? "bg-primary/10 text-primary" : "bg-muted text-muted-foreground"}`}>
+                          {u.role === "admin" ? "Admin" : "Benutzer"}
+                        </span>
+                      </TableCell>
+                      <TableCell className="text-right">
+                        <div className="flex justify-end gap-1">
+                          {!!u.two_factor_enabled && (
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              title="2FA zurücksetzen"
+                              onClick={() => setReset2faUser({ id: u.id, name: u.name })}
+                            >
+                              <ShieldOff className="h-4 w-4" />
+                            </Button>
+                          )}
                           <Button
                             variant="ghost"
                             size="icon"
-                            title="2FA zurücksetzen"
-                            onClick={() => setReset2faUser({ id: u.id, name: u.name })}
+                            title="Passwort zurücksetzen"
+                            onClick={() => { setResetUser({ id: u.id, name: u.name }); setNewPassword(""); }}
                           >
-                            <ShieldOff className="h-4 w-4" />
+                            <KeyRound className="h-4 w-4" />
                           </Button>
-                        )}
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          title="Passwort zurücksetzen"
-                          onClick={() => { setResetUser({ id: u.id, name: u.name }); setNewPassword(""); }}
-                        >
-                          <KeyRound className="h-4 w-4" />
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className="text-destructive hover:text-destructive"
-                          title="Benutzer löschen"
-                          onClick={() => setDeleteUserId(u.id)}
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
-                      </div>
-                    </TableCell>
-                  </TableRow>
-                ))}
+                          {isProtected ? (
+                            <span className="inline-flex h-10 w-10 items-center justify-center text-xs text-muted-foreground">—</span>
+                          ) : (
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="text-destructive hover:text-destructive"
+                              title="Benutzer löschen"
+                              onClick={() => setDeleteUserId(u.id)}
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          )}
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  );
+                })}
               </TableBody>
             </Table>
           )}
