@@ -2,7 +2,7 @@ import { useState, useRef, useCallback, useEffect } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { api } from "@/lib/api";
 import type { LocationImage } from "@/types/patient";
-import { Upload, Calendar, ImageIcon, GitCompareArrows } from "lucide-react";
+import { Upload, Calendar, ImageIcon, GitCompareArrows, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { format } from "date-fns";
@@ -10,6 +10,16 @@ import { de } from "date-fns/locale";
 import ImageCompare from "@/components/ImageCompare";
 import AbcdeForm from "@/components/AbcdeForm";
 import { toast } from "sonner";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 interface ImageGalleryProps {
   locationId: number;
@@ -25,6 +35,7 @@ const ImageGallery = ({ locationId, patientId, images, locationName, locationTyp
   const [uploading, setUploading] = useState(false);
   const [compareMode, setCompareMode] = useState(false);
   const [noteValues, setNoteValues] = useState<Record<number, string>>({});
+  const [deleteTarget, setDeleteTarget] = useState<number | null>(null);
   const debounceTimers = useRef<Record<number, ReturnType<typeof setTimeout>>>({});
 
   // Sync note values from API data whenever images prop changes
@@ -60,6 +71,19 @@ const ImageGallery = ({ locationId, patientId, images, locationName, locationTyp
     setUploading(true);
     uploadMutation.mutate(file);
   };
+
+  const deleteMutation = useMutation({
+    mutationFn: (imageId: number) => api.deleteImage(imageId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["full-patient", patientId] });
+      toast.success("Bild wurde gelöscht");
+      setDeleteTarget(null);
+    },
+    onError: () => {
+      toast.error("Bild konnte nicht gelöscht werden");
+      setDeleteTarget(null);
+    },
+  });
 
   const handleNoteChange = useCallback((imageId: number, value: string) => {
     setNoteValues(prev => ({ ...prev, [imageId]: value }));
@@ -115,7 +139,15 @@ const ImageGallery = ({ locationId, patientId, images, locationName, locationTyp
       ) : (
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           {sorted.map((img) => (
-            <div key={img.id} className="space-y-2 rounded-lg border bg-card p-2">
+            <div key={img.id} className="relative space-y-2 rounded-lg border bg-card p-2">
+              <Button
+                size="icon"
+                variant="ghost"
+                className="absolute right-1 top-1 z-10 h-7 w-7 text-muted-foreground hover:text-destructive"
+                onClick={() => setDeleteTarget(img.id)}
+              >
+                <Trash2 className="h-3.5 w-3.5" />
+              </Button>
               {locationType === "spot" ? (
                 <div className="flex flex-col items-center gap-1.5">
                   <div className="relative h-20 w-20 overflow-hidden rounded-full border-2 border-border shadow-sm">
@@ -176,6 +208,26 @@ const ImageGallery = ({ locationId, patientId, images, locationName, locationTyp
           ))}
         </div>
       )}
+      <AlertDialog open={deleteTarget !== null} onOpenChange={(open) => !open && setDeleteTarget(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Bild löschen?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Dieses Bild wird unwiderruflich gelöscht. Möchten Sie fortfahren?
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Abbrechen</AlertDialogCancel>
+            <AlertDialogAction
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              onClick={() => deleteTarget && deleteMutation.mutate(deleteTarget)}
+              disabled={deleteMutation.isPending}
+            >
+              {deleteMutation.isPending ? "Löscht…" : "Löschen"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };
