@@ -94,17 +94,33 @@ const CompanyManagement = () => {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {companies.map((c: any) => (
-                  <TableRow key={c.id}>
-                    <TableCell className="font-mono text-xs text-muted-foreground">{c.id}</TableCell>
-                    <TableCell className="font-medium">{c.name}</TableCell>
-                    <TableCell>
-                      <Button variant="ghost" size="icon" onClick={() => setDeleteId(c.id)} className="text-destructive hover:text-destructive">
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
-                    </TableCell>
-                  </TableRow>
-                ))}
+                {companies.map((c: any) => {
+                  const isProtected = c.name?.toLowerCase() === PROTECTED_COMPANY_NAME;
+                  return (
+                    <TableRow key={c.id}>
+                      <TableCell className="font-mono text-xs text-muted-foreground">{c.id}</TableCell>
+                      <TableCell className="font-medium">
+                        <span className="flex items-center gap-2">
+                          {c.name}
+                          {isProtected && (
+                            <Badge variant="secondary" className="gap-1 text-xs">
+                              <Shield className="h-3 w-3" /> Geschützt
+                            </Badge>
+                          )}
+                        </span>
+                      </TableCell>
+                      <TableCell>
+                        {isProtected ? (
+                          <span className="text-xs text-muted-foreground">—</span>
+                        ) : (
+                          <Button variant="ghost" size="icon" onClick={() => setDeleteId(c.id)} className="text-destructive hover:text-destructive">
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        )}
+                      </TableCell>
+                    </TableRow>
+                  );
+                })}
               </TableBody>
             </Table>
           )}
