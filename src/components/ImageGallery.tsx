@@ -10,6 +10,16 @@ import { de } from "date-fns/locale";
 import ImageCompare from "@/components/ImageCompare";
 import AbcdeForm from "@/components/AbcdeForm";
 import { toast } from "sonner";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 interface ImageGalleryProps {
   locationId: number;
