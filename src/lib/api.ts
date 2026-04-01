@@ -224,7 +224,7 @@ export const api = {
 
   validateUploadSession: (token: string) =>
     request<{
-      valid: boolean; expires_at: string; patient_id: number; patient_name: string;
+      valid: boolean; expired?: boolean; expires_at: string; patient_id: number; patient_name: string;
       location_id: number; location_name: string; image_count: number; completed: boolean;
     }>(`/upload-sessions/${token}`),
 
