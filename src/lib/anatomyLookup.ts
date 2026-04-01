@@ -49,25 +49,25 @@ export function getAnatomicalName(
   }
 
   // Chest / upper back
-  if (y3d >= 0.95) return isFront ? "Brust" : "Oberer Rücken";
+  if (y3d >= 0.75) return isFront ? "Brust" : "Oberer Rücken";
 
   // Abdomen / mid back
-  if (y3d >= 0.45) return isFront ? "Bauch" : "Mittlerer Rücken";
+  if (y3d >= 0.30) return isFront ? "Bauch" : "Mittlerer Rücken";
 
   // Lower abdomen / lower back
-  if (y3d >= 0.05) return isFront ? "Unterbauch" : "Unterer Rücken";
+  if (y3d >= -0.05) return isFront ? "Unterbauch" : "Unterer Rücken";
 
   // Hip / gluteal
-  if (y3d >= -0.25) {
+  if (y3d >= -0.30) {
     if (absX > 0.25) return isFront ? `${sideF(x3d)} Hüfte` : `${sideF(x3d)} Gesäßhälfte`;
     return isFront ? "Hüfte" : "Gesäß";
   }
 
   // Upper thigh
-  if (y3d >= -0.75) return `${sideM(x3d)} Oberschenkel`;
+  if (y3d >= -0.80) return `${sideM(x3d)} Oberschenkel`;
 
   // Lower thigh
-  if (y3d >= -1.05) return isFront ? `${sideM(x3d)} Oberschenkel (distal)` : `${sideM(x3d)} Oberschenkel (dorsal)`;
+  if (y3d >= -1.10) return isFront ? `${sideM(x3d)} Oberschenkel (distal)` : `${sideM(x3d)} Oberschenkel (dorsal)`;
 
   // Knee
   if (y3d >= -1.2) return isFront ? `${sideM(x3d)} Knie` : `${sideF(x3d)} Kniekehle`;

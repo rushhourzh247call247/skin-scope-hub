@@ -251,6 +251,7 @@ const PatientDetail = () => {
 
     // Auto-fill anatomical name from 3D coordinates
     if (point3d) {
+      console.log('[BodyMap Debug] click:', { x3d: point3d[0], y3d: point3d[1], z3d: point3d[2], view });
       const autoName = getAnatomicalName(point3d[0], point3d[1], point3d[2], view);
       setLocationName(autoName);
     }
