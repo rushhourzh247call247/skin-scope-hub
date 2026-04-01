@@ -827,10 +827,24 @@ function LoadingFallback() {
 /* ─── Scene ─── */
 function Scene({ markers, selectedLocationId, onMapClick, onMarkerClick, classificationFilter, previewMarker, isPlacementMode, onPreviewMove, preset, gender, markMode, markType, resetKey }: BodyMap3DProps & { preset: CameraPreset; gender: Gender; markMode: boolean; markType: MarkType; resetKey: number }) {
   const [isDraggingSpot, setIsDraggingSpot] = useState(false);
+  const [hoverInfo, setHoverInfo] = useState<{ point: THREE.Vector3; y3d: number; x3d: number; z3d: number; zone: string } | null>(null);
+
+  const handleBodyPointerMove = useCallback(
+    (e: ThreeEvent<PointerEvent>) => {
+      if (!markMode) {
+        setHoverInfo(null);
+        return;
+      }
+      const view: "front" | "back" = e.point.z >= 0 ? "front" : "back";
+      const zoneName = getAnatomicalName(e.point.x, e.point.y, e.point.z, view);
+      setHoverInfo({ point: e.point.clone(), y3d: e.point.y, x3d: e.point.x, z3d: e.point.z, zone: zoneName });
+    },
+    [markMode],
+  );
+
   const handleBodyClick = useCallback(
     (e: ThreeEvent<MouseEvent>) => {
       if (!markMode) return;
-      // Don't register new clicks when already placing a preview marker
       if (isPlacementMode) return;
       e.stopPropagation();
       const { x, y, view } = pointTo2D(e.point);
