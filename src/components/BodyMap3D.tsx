@@ -6,6 +6,7 @@ import { cn } from "@/lib/utils";
 import { RotateCcw, Eye, Hand, Footprints, User, Shirt, CircleDot, ArrowDown, MapPin, Square, Filter } from "lucide-react";
 import type { LesionClassification } from "@/types/patient";
 import { LESION_CLASSIFICATIONS } from "@/types/patient";
+import { getAnatomicalName } from "@/lib/anatomyLookup";
 
 /* ─── Types ─── */
 interface Marker {
