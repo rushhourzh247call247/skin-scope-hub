@@ -104,7 +104,7 @@ const skinMaterial = new THREE.MeshStandardMaterial({
 });
 
 /* ─── GLB Body Model ─── */
-function BodyModel({ onBodyClick, gender }: { onBodyClick: (e: ThreeEvent<MouseEvent>) => void; gender: Gender }) {
+function BodyModel({ onBodyClick, onBodyPointerMove, gender }: { onBodyClick: (e: ThreeEvent<MouseEvent>) => void; onBodyPointerMove?: (e: ThreeEvent<PointerEvent>) => void; gender: Gender }) {
   const modelUrl = gender === "male" ? MALE_MODEL_URL : FEMALE_MODEL_URL;
   const { scene } = useGLTF(modelUrl);
 
@@ -132,7 +132,7 @@ function BodyModel({ onBodyClick, gender }: { onBodyClick: (e: ThreeEvent<MouseE
 
   return (
     <Center>
-      <primitive object={clonedScene} onClick={onBodyClick} scale={normalizedScale} />
+      <primitive object={clonedScene} onClick={onBodyClick} onPointerMove={onBodyPointerMove} scale={normalizedScale} />
     </Center>
   );
 }
