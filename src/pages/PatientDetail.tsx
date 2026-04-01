@@ -275,6 +275,7 @@ const PatientDetail = () => {
       ny: normal3d[1],
       nz: normal3d[2],
     } : null);
+    setLocationName(getAnatomicalName(point3d[0], point3d[1], point3d[2], view));
   };
 
   const handleCreateLocation = () => {
