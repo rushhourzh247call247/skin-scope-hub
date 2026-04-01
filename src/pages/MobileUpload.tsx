@@ -57,17 +57,16 @@ const MobileUpload = () => {
     const validate = async () => {
       try {
         const result = await api.validateUploadSession(token);
+        if (result.expired) {
+          setSession({ status: "expired" });
+          return;
+        }
         if (!result.valid) {
-          setSession({ status: "invalid", message: "Ungültiger Token." });
+          setSession({ status: "invalid", message: "Ungültiger oder abgelaufener Token." });
           return;
         }
         if (result.completed) {
           setSession({ status: "completed", imageCount: result.image_count });
-          return;
-        }
-        const expiresAt = new Date(result.expires_at);
-        if (expiresAt <= new Date()) {
-          setSession({ status: "expired" });
           return;
         }
         orderRef.current = result.image_count;
@@ -79,10 +78,15 @@ const MobileUpload = () => {
           expiresAt: result.expires_at,
         });
       } catch (err: any) {
-        setSession({
-          status: "invalid",
-          message: err.message || "Token konnte nicht validiert werden.",
-        });
+        // If 410 Gone or similar, treat as expired
+        if (err.message?.includes('abgelaufen') || err.message?.includes('expired')) {
+          setSession({ status: "expired" });
+        } else {
+          setSession({
+            status: "invalid",
+            message: err.message || "Token konnte nicht validiert werden.",
+          });
+        }
       }
     };
 
