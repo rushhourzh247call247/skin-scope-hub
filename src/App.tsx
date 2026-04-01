@@ -17,6 +17,7 @@ import MobileUpload from "./pages/MobileUpload";
 import Settings from "./pages/Settings";
 import NotFound from "./pages/NotFound";
 import Snapshots from "./pages/Snapshots";
+import Calibrate from "./pages/Calibrate";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -49,6 +50,7 @@ const App = () => (
           <Routes>
             <Route path="/login" element={<Login />} />
             <Route path="/upload" element={<MobileUpload />} />
+            <Route path="/calibrate" element={<Calibrate />} />
             <Route path="/" element={<ProtectedPage><Dashboard /></ProtectedPage>} />
             <Route path="/patients" element={<ProtectedPage><PatientList /></ProtectedPage>} />
             <Route path="/new-patient" element={<ProtectedPage><NewPatient /></ProtectedPage>} />
