@@ -6,6 +6,7 @@ import { cn } from "@/lib/utils";
 import { RotateCcw, Eye, Hand, Footprints, User, Shirt, CircleDot, ArrowDown, MapPin, Square, Filter } from "lucide-react";
 import type { LesionClassification } from "@/types/patient";
 import { LESION_CLASSIFICATIONS } from "@/types/patient";
+import { getAnatomicalName } from "@/lib/anatomyLookup";
 
 /* ─── Types ─── */
 interface Marker {
@@ -103,7 +104,7 @@ const skinMaterial = new THREE.MeshStandardMaterial({
 });
 
 /* ─── GLB Body Model ─── */
-function BodyModel({ onBodyClick, gender }: { onBodyClick: (e: ThreeEvent<MouseEvent>) => void; gender: Gender }) {
+function BodyModel({ onBodyClick, onBodyPointerMove, gender }: { onBodyClick: (e: ThreeEvent<MouseEvent>) => void; onBodyPointerMove?: (e: ThreeEvent<PointerEvent>) => void; gender: Gender }) {
   const modelUrl = gender === "male" ? MALE_MODEL_URL : FEMALE_MODEL_URL;
   const { scene } = useGLTF(modelUrl);
 
@@ -131,7 +132,7 @@ function BodyModel({ onBodyClick, gender }: { onBodyClick: (e: ThreeEvent<MouseE
 
   return (
     <Center>
-      <primitive object={clonedScene} onClick={onBodyClick} scale={normalizedScale} />
+      <primitive object={clonedScene} onClick={onBodyClick} onPointerMove={onBodyPointerMove} scale={normalizedScale} />
     </Center>
   );
 }
@@ -826,10 +827,24 @@ function LoadingFallback() {
 /* ─── Scene ─── */
 function Scene({ markers, selectedLocationId, onMapClick, onMarkerClick, classificationFilter, previewMarker, isPlacementMode, onPreviewMove, preset, gender, markMode, markType, resetKey }: BodyMap3DProps & { preset: CameraPreset; gender: Gender; markMode: boolean; markType: MarkType; resetKey: number }) {
   const [isDraggingSpot, setIsDraggingSpot] = useState(false);
+  const [hoverInfo, setHoverInfo] = useState<{ point: THREE.Vector3; y3d: number; x3d: number; z3d: number; zone: string } | null>(null);
+
+  const handleBodyPointerMove = useCallback(
+    (e: ThreeEvent<PointerEvent>) => {
+      if (!markMode) {
+        setHoverInfo(null);
+        return;
+      }
+      const view: "front" | "back" = e.point.z >= 0 ? "front" : "back";
+      const zoneName = getAnatomicalName(e.point.x, e.point.y, e.point.z, view);
+      setHoverInfo({ point: e.point.clone(), y3d: e.point.y, x3d: e.point.x, z3d: e.point.z, zone: zoneName });
+    },
+    [markMode],
+  );
+
   const handleBodyClick = useCallback(
     (e: ThreeEvent<MouseEvent>) => {
       if (!markMode) return;
-      // Don't register new clicks when already placing a preview marker
       if (isPlacementMode) return;
       e.stopPropagation();
       const { x, y, view } = pointTo2D(e.point);
@@ -871,8 +886,20 @@ function Scene({ markers, selectedLocationId, onMapClick, onMarkerClick, classif
       <hemisphereLight args={["#b1e1ff", "#b97a20", 0.3]} />
 
       <Suspense fallback={<LoadingFallback />}>
-        <BodyModel onBodyClick={handleBodyClick} gender={gender} />
+        <BodyModel onBodyClick={handleBodyClick} onBodyPointerMove={handleBodyPointerMove} gender={gender} />
       </Suspense>
+
+      {/* Debug coordinate overlay — visible only in mark mode */}
+      {markMode && hoverInfo && (
+        <Html position={[hoverInfo.point.x, hoverInfo.point.y + 0.08, hoverInfo.point.z]} center style={{ pointerEvents: "none" }}>
+          <div className="rounded-md border bg-card/95 px-2 py-1 shadow-lg backdrop-blur-sm whitespace-nowrap">
+            <p className="text-[9px] font-mono text-muted-foreground">
+              x: {hoverInfo.x3d.toFixed(2)} &nbsp; y: {hoverInfo.y3d.toFixed(2)} &nbsp; z: {hoverInfo.z3d.toFixed(2)}
+            </p>
+            <p className="text-[11px] font-semibold text-foreground">{hoverInfo.zone}</p>
+          </div>
+        </Html>
+      )}
 
       {spots.map((m) => {
         const cls = (m.classification as LesionClassification) || "unclassified";
