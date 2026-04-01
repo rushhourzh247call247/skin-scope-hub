@@ -235,7 +235,7 @@ const PatientDetail = () => {
     setSpotY(y);
     setRegionWidth(40);
     setRegionHeight(30);
-    setMapClickDialog({
+    const dialogData = {
       x,
       y,
       view,
@@ -246,7 +246,14 @@ const PatientDetail = () => {
       nx: normal3d?.[0],
       ny: normal3d?.[1],
       nz: normal3d?.[2],
-    });
+    };
+    setMapClickDialog(dialogData);
+
+    // Auto-fill anatomical name from 3D coordinates
+    if (point3d) {
+      const autoName = getAnatomicalName(point3d[0], point3d[1], point3d[2], view);
+      setLocationName(autoName);
+    }
   };
 
   const handlePreviewMove = (
