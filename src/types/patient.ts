@@ -104,6 +104,27 @@ export interface OverviewPin {
   updated_at?: string;
 }
 
+export interface PdfExportOptions {
+  reportType: "lastVisit" | "fullHistory";
+  showClassification: boolean;
+  showAbcde: boolean;
+  showRiskScore: boolean;
+  showImages: boolean;
+  showNotes: boolean;
+  doctorSummary: string;
+}
+
+export interface PdfReport {
+  id: string;
+  patientId: number;
+  patientName: string;
+  createdAt: string;
+  reportType: "lastVisit" | "fullHistory";
+  options: PdfExportOptions;
+  doctorName: string | null;
+  pdfBase64: string;
+}
+
 export interface FullPatient extends Patient {
   locations: (Location & {
     images: LocationImage[];
