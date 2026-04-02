@@ -306,26 +306,7 @@ const OverviewPhoto = ({ overviewLocation, spotLocations, patientId, onNavigateT
 
           return (
             <div key={pin.id}>
-              {/* SVG leader line from pin point to label */}
-              <svg
-                className="absolute inset-0 w-full h-full z-10 pointer-events-none"
-                style={{ overflow: 'visible' }}
-              >
-                <line
-                  x1={`${pin.x_pct}%`}
-                  y1={`${pin.y_pct}%`}
-                  x2={`${pin.x_pct}%`}
-                  y2={`${pin.y_pct}%`}
-                  stroke={color}
-                  strokeWidth="1.5"
-                  className="leader-line"
-                  style={{
-                    transform: `translate(${labelOffsetX * 0.5}px, ${labelOffsetY * 0.5}px)`,
-                  }}
-                />
-              </svg>
-
-              {/* Tiny crosshair dot at the exact lesion point */}
+              {/* Tiny crosshair at the exact lesion point – minimal occlusion */}
               <div
                 className="absolute z-10 pointer-events-none"
                 style={{
@@ -334,15 +315,15 @@ const OverviewPhoto = ({ overviewLocation, spotLocations, patientId, onNavigateT
                   transform: "translate(-50%, -50%)",
                 }}
               >
-                <svg width="12" height="12" viewBox="0 0 12 12">
-                  <line x1="6" y1="0" x2="6" y2="4.5" stroke={color} strokeWidth="1.5" />
-                  <line x1="6" y1="7.5" x2="6" y2="12" stroke={color} strokeWidth="1.5" />
-                  <line x1="0" y1="6" x2="4.5" y2="6" stroke={color} strokeWidth="1.5" />
-                  <line x1="7.5" y1="6" x2="12" y2="6" stroke={color} strokeWidth="1.5" />
+                <svg width="14" height="14" viewBox="0 0 14 14">
+                  <line x1="7" y1="0" x2="7" y2="5" stroke={color} strokeWidth="1.5" />
+                  <line x1="7" y1="9" x2="7" y2="14" stroke={color} strokeWidth="1.5" />
+                  <line x1="0" y1="7" x2="5" y2="7" stroke={color} strokeWidth="1.5" />
+                  <line x1="9" y1="7" x2="14" y2="7" stroke={color} strokeWidth="1.5" />
                 </svg>
               </div>
 
-              {/* Leader line + numbered label, offset from the lesion */}
+              {/* Numbered label offset from the lesion, connected visually */}
               <button
                 className={cn(
                   "absolute z-10 transition-transform hover:scale-110",
@@ -367,32 +348,11 @@ const OverviewPhoto = ({ overviewLocation, spotLocations, patientId, onNavigateT
               >
                 <span
                   className="flex items-center justify-center rounded-full text-[10px] font-bold text-white shadow-md border border-white/50"
-                  style={{
-                    width: 20,
-                    height: 20,
-                    backgroundColor: color,
-                  }}
+                  style={{ width: 20, height: 20, backgroundColor: color }}
                 >
                   {editMode ? <Trash2 className="h-3 w-3 text-white" /> : i + 1}
                 </span>
               </button>
-
-              {/* Leader line SVG overlay connecting crosshair to label */}
-              <svg
-                className="absolute inset-0 w-full h-full z-[9] pointer-events-none"
-                preserveAspectRatio="none"
-              >
-                <line
-                  x1={`${pin.x_pct}%`}
-                  y1={`${pin.y_pct}%`}
-                  x2={`${pin.x_pct}%`}
-                  y2={`${pin.y_pct}%`}
-                  stroke={color}
-                  strokeWidth="1"
-                  strokeOpacity="0.6"
-                  strokeDasharray="2 2"
-                />
-              </svg>
 
               {hoveredPin === pin.id && !editMode && (
                 <div
