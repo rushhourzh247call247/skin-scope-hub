@@ -33,6 +33,7 @@ interface OverviewPhotoProps {
   onNavigateToSpot: (locationId: number) => void;
   onDelete?: (locationId: number) => void;
   onQrUpload?: (locationId: number) => void;
+  onCreateSpotAndLink?: (name: string, pinCoords: { x_pct: number; y_pct: number }, overviewLocationId: number) => void;
 }
 
 const OverviewPhoto = ({ overviewLocation, spotLocations, patientId, onNavigateToSpot, onDelete, onQrUpload }: OverviewPhotoProps) => {
