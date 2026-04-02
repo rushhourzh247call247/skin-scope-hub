@@ -3,7 +3,8 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { api } from "@/lib/api";
 import type { Location, OverviewPin, LocationImage, LesionClassification } from "@/types/patient";
 import { LESION_CLASSIFICATIONS } from "@/types/patient";
-import { Upload, Plus, X, Trash2, MapPin, Eye, Pencil, ImageIcon, Camera, QrCode, Save } from "lucide-react";
+import { Upload, Plus, X, Trash2, MapPin, Eye, Pencil, ImageIcon, Camera, QrCode, Save, GitCompareArrows, Layers, Calendar, ZoomIn, RotateCcw, Wand2, Move, RotateCw, ChevronDown } from "lucide-react";
+import { Slider } from "@/components/ui/slider";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
@@ -11,6 +12,7 @@ import { cn } from "@/lib/utils";
 import { format } from "date-fns";
 import { de } from "date-fns/locale";
 import { toast } from "sonner";
+import { motion, AnimatePresence } from "framer-motion";
 import {
   Popover,
   PopoverContent,
@@ -50,6 +52,17 @@ const OverviewPhoto = ({ overviewLocation, spotLocations, patientId, onNavigateT
 
   const [isRenaming, setIsRenaming] = useState(false);
   const [renameValue, setRenameValue] = useState("");
+  const [compareMode, setCompareMode] = useState(false);
+  const [compareView, setCompareView] = useState<"side" | "overlay">("side");
+  const [overlayOpacity, setOverlayOpacity] = useState(50);
+  const [overlayRotation, setOverlayRotation] = useState(0);
+  const [overlayScale, setOverlayScale] = useState(100);
+  const [overlayOffsetX, setOverlayOffsetX] = useState(0);
+  const [overlayOffsetY, setOverlayOffsetY] = useState(0);
+  const [showAlignControls, setShowAlignControls] = useState(false);
+  const [compareIndexA, setCompareIndexA] = useState(0);
+  const [compareIndexB, setCompareIndexB] = useState(1);
+  const [zoomedImageSrc, setZoomedImageSrc] = useState<string | null>(null);
 
   const { data: pins = [] } = useQuery({
     queryKey: ["overview-pins", overviewLocation.id],
@@ -491,6 +504,242 @@ const OverviewPhoto = ({ overviewLocation, spotLocations, patientId, onNavigateT
         </div>
       )}
 
+      {/* Compare button + comparison view */}
+      {overviewLocation.images.length >= 2 && !compareMode && (
+        <Button
+          size="sm"
+          variant="outline"
+          className="w-full gap-1.5 text-xs"
+          onClick={() => {
+            setCompareMode(true);
+            setCompareIndexA(0);
+            setCompareIndexB(overviewLocation.images.length - 1);
+          }}
+        >
+          <GitCompareArrows className="h-3.5 w-3.5" />
+          Übersichtsfotos vergleichen ({overviewLocation.images.length} Fotos)
+        </Button>
+      )}
+
+      <AnimatePresence>
+        {compareMode && overviewLocation.images.length >= 2 && (() => {
+          const sorted = [...overviewLocation.images].sort(
+            (a, b) => new Date(a.created_at ?? 0).getTime() - new Date(b.created_at ?? 0).getTime()
+          );
+          const imgA = sorted[compareIndexA];
+          const imgB = sorted[compareIndexB];
+          if (!imgA || !imgB) return null;
+
+          const isAlignmentModified = overlayRotation !== 0 || overlayScale !== 100 || overlayOffsetX !== 0 || overlayOffsetY !== 0;
+          const handleReset = () => { setOverlayRotation(0); setOverlayScale(100); setOverlayOffsetX(0); setOverlayOffsetY(0); };
+
+          return (
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: 20 }}
+              className="rounded-lg border bg-card p-4 space-y-4"
+            >
+              {/* Header */}
+              <div className="flex items-center justify-between">
+                <h4 className="text-sm font-semibold text-foreground flex items-center gap-2">
+                  <GitCompareArrows className="h-4 w-4 text-primary" />
+                  Vergleich
+                </h4>
+                <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-1 rounded-lg bg-muted p-1">
+                    <button
+                      onClick={() => setCompareView("side")}
+                      className={cn(
+                        "flex items-center gap-1.5 rounded-md px-2.5 py-1 text-[10px] font-medium transition-all",
+                        compareView === "side" ? "bg-primary text-primary-foreground shadow-sm" : "text-muted-foreground hover:text-foreground"
+                      )}
+                    >
+                      <GitCompareArrows className="h-3 w-3" /> Nebeneinander
+                    </button>
+                    <button
+                      onClick={() => setCompareView("overlay")}
+                      className={cn(
+                        "flex items-center gap-1.5 rounded-md px-2.5 py-1 text-[10px] font-medium transition-all",
+                        compareView === "overlay" ? "bg-primary text-primary-foreground shadow-sm" : "text-muted-foreground hover:text-foreground"
+                      )}
+                    >
+                      <Layers className="h-3 w-3" /> Overlay
+                    </button>
+                  </div>
+                  <Button size="sm" variant="ghost" className="h-7 px-2" onClick={() => setCompareMode(false)}>
+                    <X className="h-3.5 w-3.5" />
+                  </Button>
+                </div>
+              </div>
+
+              {/* Image selection thumbnails */}
+              {sorted.length > 2 && (
+                <div className="flex gap-2 overflow-x-auto pb-1">
+                  {sorted.map((img, idx) => (
+                    <button
+                      key={img.id}
+                      onClick={() => {
+                        if (idx === compareIndexB) return;
+                        if (idx === compareIndexA) return;
+                        // Click selects as B (comparison target)
+                        setCompareIndexB(idx);
+                      }}
+                      className={cn(
+                        "relative shrink-0 h-14 w-14 rounded-md overflow-hidden border-2 transition-all",
+                        idx === compareIndexA ? "border-primary ring-1 ring-primary/30" :
+                        idx === compareIndexB ? "border-accent ring-1 ring-accent/30" :
+                        "border-border opacity-60 hover:opacity-100"
+                      )}
+                    >
+                      <img src={api.resolveImageSrc(img)} alt="" className="h-full w-full object-cover" />
+                      <span className={cn(
+                        "absolute top-0.5 left-0.5 text-[8px] font-bold px-1 rounded",
+                        idx === compareIndexA ? "bg-primary text-primary-foreground" :
+                        idx === compareIndexB ? "bg-accent text-accent-foreground" : "bg-muted text-muted-foreground"
+                      )}>
+                        {idx === compareIndexA ? "REF" : idx === compareIndexB ? "VGL" : idx + 1}
+                      </span>
+                    </button>
+                  ))}
+                </div>
+              )}
+
+              {compareView === "side" ? (
+                <div className="grid grid-cols-2 gap-4">
+                  {[imgA, imgB].map((img, i) => (
+                    <div key={img.id} className="space-y-2">
+                      <div
+                        className="relative overflow-hidden rounded-lg border aspect-square bg-muted cursor-pointer"
+                        onClick={() => setZoomedImageSrc(api.resolveImageSrc(img))}
+                      >
+                        <img src={api.resolveImageSrc(img)} alt={`Vergleich ${i + 1}`} className="h-full w-full object-contain" />
+                        <div className={cn(
+                          "absolute top-2 left-2 rounded-full px-2 py-0.5 text-[9px] font-bold backdrop-blur-sm",
+                          i === 0 ? "bg-primary/90 text-primary-foreground" : "bg-accent/90 text-accent-foreground"
+                        )}>
+                          {i === 0 ? "REFERENZ" : "VERGLEICH"}
+                        </div>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="absolute top-2 right-2 h-6 w-6 bg-background/50 backdrop-blur-sm"
+                          onClick={(e) => { e.stopPropagation(); setZoomedImageSrc(api.resolveImageSrc(img)); }}
+                        >
+                          <ZoomIn className="h-3 w-3" />
+                        </Button>
+                      </div>
+                      <p className="text-center text-xs text-muted-foreground tabular-nums">
+                        {img.created_at ? format(new Date(img.created_at), "dd. MMM yyyy", { locale: de }) : "–"}
+                      </p>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  <div
+                    className="relative overflow-hidden rounded-lg border aspect-square bg-muted cursor-pointer"
+                    onClick={() => setZoomedImageSrc(api.resolveImageSrc(imgA))}
+                  >
+                    <img src={api.resolveImageSrc(imgA)} alt="Referenz" className="absolute inset-0 h-full w-full object-contain" />
+                    <img
+                      src={api.resolveImageSrc(imgB)}
+                      alt="Vergleich"
+                      className="absolute inset-0 h-full w-full object-contain"
+                      style={{
+                        opacity: overlayOpacity / 100,
+                        transform: `rotate(${overlayRotation}deg) scale(${overlayScale / 100}) translate(${overlayOffsetX}px, ${overlayOffsetY}px)`,
+                      }}
+                    />
+                    <div className="absolute top-2 left-2 rounded-full bg-primary/90 px-2 py-0.5 text-[9px] font-bold text-primary-foreground backdrop-blur-sm">REFERENZ</div>
+                    <div className="absolute top-2 right-2 rounded-full bg-accent/90 px-2 py-0.5 text-[9px] font-bold text-accent-foreground backdrop-blur-sm">VERGLEICH ({overlayOpacity}%)</div>
+                  </div>
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-between text-xs text-muted-foreground">
+                      <span className="flex items-center gap-1"><Calendar className="h-3 w-3" />{imgA.created_at ? format(new Date(imgA.created_at), "dd.MM.yy", { locale: de }) : "–"}</span>
+                      <span className="text-[10px] font-medium text-foreground">Transparenz: {overlayOpacity}%</span>
+                      <span className="flex items-center gap-1"><Calendar className="h-3 w-3" />{imgB.created_at ? format(new Date(imgB.created_at), "dd.MM.yy", { locale: de }) : "–"}</span>
+                    </div>
+                    <Slider value={[overlayOpacity]} onValueChange={([v]) => setOverlayOpacity(v)} min={0} max={100} step={1} />
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Button variant="outline" size="sm" className="h-7 text-[10px] gap-1.5" onClick={handleReset}>
+                      <Wand2 className="h-3 w-3" /> Auto Ausrichten
+                    </Button>
+                    <button
+                      onClick={() => setShowAlignControls(!showAlignControls)}
+                      className={cn(
+                        "flex items-center gap-1.5 rounded-md border px-2.5 py-1 text-[10px] font-medium transition-all",
+                        showAlignControls || isAlignmentModified ? "border-primary/30 bg-primary/5 text-primary" : "border-border bg-card text-muted-foreground hover:text-foreground"
+                      )}
+                    >
+                      <Move className="h-3 w-3" /> Manuell
+                      {isAlignmentModified && <span className="h-1.5 w-1.5 rounded-full bg-primary" />}
+                      <ChevronDown className={cn("h-3 w-3 transition-transform", showAlignControls && "rotate-180")} />
+                    </button>
+                  </div>
+                  <AnimatePresence>
+                    {showAlignControls && (
+                      <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: "auto", opacity: 1 }} exit={{ height: 0, opacity: 0 }} className="overflow-hidden">
+                        <div className="rounded-lg border bg-muted/30 p-3 space-y-3">
+                          <div className="flex items-center justify-end">
+                            <Button variant="ghost" size="sm" className="h-6 px-2 text-[10px]" onClick={handleReset}><RotateCcw className="mr-1 h-3 w-3" /> Reset</Button>
+                          </div>
+                          <div className="space-y-1">
+                            <div className="flex items-center justify-between text-[10px] text-muted-foreground"><span className="flex items-center gap-1"><RotateCw className="h-3 w-3" /> Rotation</span><span className="font-mono">{overlayRotation}°</span></div>
+                            <Slider value={[overlayRotation]} onValueChange={([v]) => setOverlayRotation(v)} min={-180} max={180} step={1} />
+                          </div>
+                          <div className="space-y-1">
+                            <div className="flex items-center justify-between text-[10px] text-muted-foreground"><span className="flex items-center gap-1"><ZoomIn className="h-3 w-3" /> Zoom</span><span className="font-mono">{overlayScale}%</span></div>
+                            <Slider value={[overlayScale]} onValueChange={([v]) => setOverlayScale(v)} min={50} max={200} step={1} />
+                          </div>
+                          <div className="space-y-1">
+                            <div className="flex items-center justify-between text-[10px] text-muted-foreground"><span>← Horizontal →</span><span className="font-mono">{overlayOffsetX}px</span></div>
+                            <Slider value={[overlayOffsetX]} onValueChange={([v]) => setOverlayOffsetX(v)} min={-100} max={100} step={1} />
+                          </div>
+                          <div className="space-y-1">
+                            <div className="flex items-center justify-between text-[10px] text-muted-foreground"><span>↑ Vertikal ↓</span><span className="font-mono">{overlayOffsetY}px</span></div>
+                            <Slider value={[overlayOffsetY]} onValueChange={([v]) => setOverlayOffsetY(v)} min={-100} max={100} step={1} />
+                          </div>
+                        </div>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+                </div>
+              )}
+
+              {/* Time difference */}
+              {imgA.created_at && imgB.created_at && (
+                <div className="text-center">
+                  <span className="inline-flex items-center gap-1.5 rounded-full bg-muted px-3 py-1 text-xs font-medium text-muted-foreground">
+                    <Calendar className="h-3 w-3" />
+                    Zeitraum: {getOverviewDaysDiff(imgA.created_at, imgB.created_at)}
+                  </span>
+                </div>
+              )}
+            </motion.div>
+          );
+        })()}
+      </AnimatePresence>
+
+      {/* Fullscreen zoom dialog */}
+      {zoomedImageSrc && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm cursor-pointer"
+          onClick={() => setZoomedImageSrc(null)}
+        >
+          <img src={zoomedImageSrc} alt="Vergrössert" className="max-h-[90vh] max-w-[90vw] object-contain rounded-lg" />
+          <Button
+            variant="ghost"
+            size="icon"
+            className="absolute top-4 right-4 text-white hover:bg-white/20"
+            onClick={() => setZoomedImageSrc(null)}
+          >
+            <X className="h-5 w-5" />
+          </Button>
+        </div>
+      )}
+
       {latestImage?.created_at && (
         <p className="text-[10px] text-muted-foreground">
           Aufnahme vom {format(new Date(latestImage.created_at), "dd.MM.yyyy", { locale: de })}
@@ -520,5 +769,19 @@ const OverviewPhoto = ({ overviewLocation, spotLocations, patientId, onNavigateT
     </div>
   );
 };
+
+function getOverviewDaysDiff(dateA: string, dateB: string): string {
+  const a = new Date(dateA);
+  const b = new Date(dateB);
+  const diffMs = Math.abs(b.getTime() - a.getTime());
+  const days = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+  if (days === 0) return "Gleicher Tag";
+  if (days < 30) return `${days} Tage`;
+  const months = Math.floor(days / 30);
+  if (months < 12) return `${months} Monat${months > 1 ? "e" : ""}`;
+  const years = Math.floor(months / 12);
+  const remMonths = months % 12;
+  return remMonths > 0 ? `${years} Jahr${years > 1 ? "e" : ""}, ${remMonths} Mon.` : `${years} Jahr${years > 1 ? "e" : ""}`;
+}
 
 export default OverviewPhoto;
