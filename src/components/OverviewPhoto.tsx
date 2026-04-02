@@ -301,18 +301,16 @@ const OverviewPhoto = ({ overviewLocation, spotLocations, patientId, onNavigateT
 
           return (
             <div key={pin.id}>
+              {/* Arrow-style pin: number label sits ABOVE the point, arrow tip points down to the lesion */}
               <button
                 className={cn(
-                  "absolute flex items-center justify-center rounded-full border-2 border-white shadow-lg transition-transform hover:scale-125 z-10",
+                  "absolute flex flex-col items-center z-10 transition-transform hover:scale-110",
                   editMode ? "cursor-move" : "cursor-pointer"
                 )}
                 style={{
                   left: `${pin.x_pct}%`,
                   top: `${pin.y_pct}%`,
-                  transform: "translate(-50%, -50%)",
-                  width: 28,
-                  height: 28,
-                  backgroundColor: color,
+                  transform: "translate(-50%, -100%)",
                 }}
                 onClick={(e) => {
                   e.stopPropagation();
@@ -326,11 +324,21 @@ const OverviewPhoto = ({ overviewLocation, spotLocations, patientId, onNavigateT
                 onMouseLeave={() => setHoveredPin(null)}
                 title={editMode ? "Klicken zum Löschen" : `→ ${spot?.name || pin.label || `Spot #${pin.linked_location_id}`}`}
               >
-                {editMode ? (
-                  <Trash2 className="h-3.5 w-3.5 text-white" />
-                ) : (
-                  <span className="text-[10px] font-bold text-white">{i + 1}</span>
-                )}
+                {/* Number badge */}
+                <span
+                  className="flex items-center justify-center rounded-full text-[10px] font-bold text-white shadow-md"
+                  style={{
+                    width: 20,
+                    height: 20,
+                    backgroundColor: color,
+                  }}
+                >
+                  {editMode ? <Trash2 className="h-3 w-3 text-white" /> : i + 1}
+                </span>
+                {/* Arrow tip pointing down */}
+                <svg width="10" height="6" viewBox="0 0 10 6" className="-mt-[1px]">
+                  <polygon points="0,0 10,0 5,6" fill={color} />
+                </svg>
               </button>
 
               {hoveredPin === pin.id && !editMode && (
