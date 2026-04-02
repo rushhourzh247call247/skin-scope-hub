@@ -294,7 +294,33 @@ const OverviewPhoto = ({ overviewLocation, spotLocations, patientId, onNavigateT
           draggable={false}
         />
 
-        {pins.map((pin: OverviewPin, i: number) => {
+        {/* Leader lines SVG overlay – connects crosshairs to labels */}
+        <svg className="absolute inset-0 w-full h-full z-[9] pointer-events-none">
+          {pins.map((pin: OverviewPin) => {
+            const labelOffsetX = pin.x_pct > 50 ? -30 : 30;
+            const labelOffsetY = pin.y_pct > 30 ? -28 : 28;
+            const color = getSpotColor(pin);
+            return (
+              <line
+                key={`leader-${pin.id}`}
+                x1={`${pin.x_pct}%`}
+                y1={`${pin.y_pct}%`}
+                x2={`${pin.x_pct}%`}
+                y2={`${pin.y_pct}%`}
+                stroke={color}
+                strokeWidth="1"
+                strokeOpacity="0.5"
+                strokeDasharray="3 2"
+                style={{
+                  transform: `translate(${labelOffsetX * 0.5}px, ${labelOffsetY * 0.5}px)`,
+                  transformOrigin: `${pin.x_pct}% ${pin.y_pct}%`,
+                  transformBox: 'fill-box',
+                }}
+              />
+            );
+          })}
+        </svg>
+
           const color = getSpotColor(pin);
           const spot = getLinkedSpot(pin);
           const previewUrl = getSpotPreviewImage(pin);
