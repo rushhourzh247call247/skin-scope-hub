@@ -4,7 +4,8 @@ import { toast } from "sonner";
 import { useQueryClient } from "@tanstack/react-query";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
-import { Loader2, ShieldCheck, ShieldAlert, AlertTriangle } from "lucide-react";
+import { Loader2, ShieldCheck, ShieldAlert, AlertTriangle, ChevronDown } from "lucide-react";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 
 interface AbcdeData {
   abc_asymmetry: boolean;
@@ -97,11 +98,9 @@ const AbcdeForm = ({ imageId, patientId, initialData }: AbcdeFormProps) => {
     setValues(prev => {
       const next = { ...prev, [key]: value };
 
-      // Check if all fields are filled
       const allFilled = CRITERIA.every(c => next[c.key] !== "");
       if (!allFilled) return next;
 
-      // Debounced save
       if (debounceRef.current) clearTimeout(debounceRef.current);
       debounceRef.current = setTimeout(async () => {
         setSaving(true);
@@ -129,11 +128,13 @@ const AbcdeForm = ({ imageId, patientId, initialData }: AbcdeFormProps) => {
     });
   }, [imageId, patientId, queryClient]);
 
+  const hasData = riskLevel != null && riskScore != null;
+
   const riskIcon = riskLevel === "low"
-    ? <ShieldCheck className="h-3.5 w-3.5" />
+    ? <ShieldCheck className="h-3 w-3" />
     : riskLevel === "medium"
-      ? <AlertTriangle className="h-3.5 w-3.5" />
-      : <ShieldAlert className="h-3.5 w-3.5" />;
+      ? <AlertTriangle className="h-3 w-3" />
+      : <ShieldAlert className="h-3 w-3" />;
 
   const riskColorClass = riskLevel === "low"
     ? "text-green-700 bg-green-50 border-green-200"
@@ -144,41 +145,58 @@ const AbcdeForm = ({ imageId, patientId, initialData }: AbcdeFormProps) => {
   const riskLabel = riskLevel === "low" ? "Niedrig" : riskLevel === "medium" ? "Mittel" : "Hoch";
 
   return (
-    <div className="space-y-2 rounded-md border bg-muted/20 p-2">
-      <div className="flex items-center justify-between">
-        <span className="text-[10px] font-semibold text-foreground/70 uppercase tracking-wider">ABCDE-Bewertung</span>
-        {saving && <Loader2 className="h-3 w-3 animate-spin text-muted-foreground" />}
-      </div>
-
-      {CRITERIA.map(c => (
-        <div key={c.key} className="space-y-0.5">
-          <Label className="text-[10px] font-medium text-foreground/80">{c.label}</Label>
-          <RadioGroup
-            value={values[c.key]}
-            onValueChange={(v) => handleChange(c.key, v)}
-            className="flex gap-3"
-          >
-            {c.options.map(opt => (
-              <div key={opt.value} className="flex items-center gap-1">
-                <RadioGroupItem value={opt.value} id={`${imageId}-${c.key}-${opt.value}`} className="h-3 w-3" />
-                <Label htmlFor={`${imageId}-${c.key}-${opt.value}`} className="text-[10px] cursor-pointer">
-                  {opt.label}
-                </Label>
-              </div>
-            ))}
-          </RadioGroup>
+    <Collapsible className="rounded-md border bg-muted/20">
+      <CollapsibleTrigger className="flex w-full items-center justify-between px-2 py-1.5 hover:bg-muted/40 transition-colors">
+        <div className="flex items-center gap-1.5">
+          <span className="text-[10px] font-semibold text-foreground/70 uppercase tracking-wider">ABCDE-Bewertung</span>
+          {saving && <Loader2 className="h-3 w-3 animate-spin text-muted-foreground" />}
         </div>
-      ))}
-
-      {riskLevel && riskScore != null && (
-        <div className={`flex items-center gap-1.5 rounded-md border px-2 py-1.5 ${riskColorClass}`}>
-          {riskIcon}
-          <span className="text-[11px] font-semibold">
-            Risiko: {riskLabel} (Score: {riskScore})
-          </span>
+        <div className="flex items-center gap-1.5">
+          {hasData && (
+            <span className={`flex items-center gap-1 rounded px-1.5 py-0.5 text-[10px] font-semibold border ${riskColorClass}`}>
+              {riskIcon}
+              {riskLabel} ({riskScore})
+            </span>
+          )}
+          {!hasData && (
+            <span className="text-[10px] text-muted-foreground">Optional</span>
+          )}
+          <ChevronDown className="h-3 w-3 text-muted-foreground transition-transform duration-200 [[data-state=open]>&]:rotate-180" />
         </div>
-      )}
-    </div>
+      </CollapsibleTrigger>
+      <CollapsibleContent>
+        <div className="space-y-2 px-2 pb-2 pt-1">
+          {CRITERIA.map(c => (
+            <div key={c.key} className="space-y-0.5">
+              <Label className="text-[10px] font-medium text-foreground/80">{c.label}</Label>
+              <RadioGroup
+                value={values[c.key]}
+                onValueChange={(v) => handleChange(c.key, v)}
+                className="flex gap-3"
+              >
+                {c.options.map(opt => (
+                  <div key={opt.value} className="flex items-center gap-1">
+                    <RadioGroupItem value={opt.value} id={`${imageId}-${c.key}-${opt.value}`} className="h-3 w-3" />
+                    <Label htmlFor={`${imageId}-${c.key}-${opt.value}`} className="text-[10px] cursor-pointer">
+                      {opt.label}
+                    </Label>
+                  </div>
+                ))}
+              </RadioGroup>
+            </div>
+          ))}
+
+          {hasData && (
+            <div className={`flex items-center gap-1.5 rounded-md border px-2 py-1.5 ${riskColorClass}`}>
+              {riskIcon}
+              <span className="text-[11px] font-semibold">
+                Risiko: {riskLabel} (Score: {riskScore})
+              </span>
+            </div>
+          )}
+        </div>
+      </CollapsibleContent>
+    </Collapsible>
   );
 };
 
