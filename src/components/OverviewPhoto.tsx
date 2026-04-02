@@ -234,10 +234,11 @@ const OverviewPhoto = ({ overviewLocation, spotLocations, patientId, onNavigateT
             variant="outline"
             onClick={() => fileRef.current?.click()}
             disabled={uploading}
-            className="gap-1.5 text-xs h-8"
+            className="gap-1.5 text-xs h-8 border-primary/40 text-primary hover:bg-primary/10"
             title="Weiteres Foto zu dieser Übersicht hinzufügen"
           >
             <Upload className="h-3.5 w-3.5" />
+            <span className="hidden sm:inline">Foto +</span>
           </Button>
           {onQrUpload && (
             <Button
