@@ -627,7 +627,7 @@ const PatientDetail = () => {
               >
                 <button
                   className="flex flex-1 items-center gap-2.5 min-w-0"
-                  onClick={() => { setMapClickDialog(null); setSelectedLocationId(loc.id); setMobileMapExpanded(false); }}
+                  onClick={() => { setMapClickDialog(null); setSelectedLocationId(loc.id); setMobileMapExpanded(true); }}
                 >
                   {(() => {
                     const cls = (loc as any).classification as LesionClassification | undefined;
