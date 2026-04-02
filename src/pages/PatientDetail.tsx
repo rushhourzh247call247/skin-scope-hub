@@ -140,7 +140,7 @@ const PatientDetail = () => {
       x: number;
       y: number;
       view?: "front" | "back";
-      type?: "spot" | "region";
+      type?: "spot" | "region" | "overview";
       width?: number;
       height?: number;
       x3d?: number;
