@@ -287,4 +287,8 @@ export const api = {
     if (path.startsWith('http://') || path.startsWith('https://')) return path;
     return `${getStorageBaseUrl()}/storage/${path}`;
   },
+
+  // Admin: Get patients filtered by company
+  getPatientsByCompany: (companyId: number) =>
+    request<any[]>(`/patients?company_id=${companyId}`),
 };

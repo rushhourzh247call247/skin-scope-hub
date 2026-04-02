@@ -1,6 +1,8 @@
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { api } from "@/lib/api";
+import { exportCompanyData } from "@/lib/companyExport";
+import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -9,16 +11,22 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { Badge } from "@/components/ui/badge";
-import { Building2, Plus, Trash2, Shield } from "lucide-react";
+import { Progress } from "@/components/ui/progress";
+import { Building2, Plus, Trash2, Shield, Download, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 
 const PROTECTED_COMPANY_NAME = "techassist";
 
 const CompanyManagement = () => {
+  const { user } = useAuth();
   const queryClient = useQueryClient();
   const [name, setName] = useState("");
   const [dialogOpen, setDialogOpen] = useState(false);
   const [deleteId, setDeleteId] = useState<number | null>(null);
+  const [exportingId, setExportingId] = useState<number | null>(null);
+  const [exportProgress, setExportProgress] = useState<{ phase: string; pct: number } | null>(null);
+
+  const isAdmin = user?.role === "admin";
 
   const { data: companies = [], isLoading } = useQuery({
     queryKey: ["companies"],
@@ -47,6 +55,23 @@ const CompanyManagement = () => {
     onError: () => toast.error("Fehler beim Löschen – evtl. sind noch Benutzer zugeordnet"),
   });
 
+  const handleExport = async (companyId: number, companyName: string) => {
+    setExportingId(companyId);
+    setExportProgress({ phase: "Starte…", pct: 0 });
+    try {
+      await exportCompanyData(companyId, companyName, (p) => {
+        const pct = p.total > 0 ? Math.round((p.current / p.total) * 100) : 0;
+        setExportProgress({ phase: p.phase, pct });
+      });
+      toast.success("Export abgeschlossen");
+    } catch (err: any) {
+      toast.error(`Export fehlgeschlagen: ${err.message}`);
+    } finally {
+      setExportingId(null);
+      setExportProgress(null);
+    }
+  };
+
   return (
     <div className="container py-8 space-y-6">
       <div className="flex items-center justify-between">
@@ -73,6 +98,20 @@ const CompanyManagement = () => {
         </Dialog>
       </div>
 
+      {/* Export progress overlay */}
+      {exportProgress && (
+        <Card className="border-primary/30 bg-primary/5">
+          <CardContent className="py-4 space-y-2">
+            <div className="flex items-center gap-2 text-sm font-medium">
+              <Loader2 className="h-4 w-4 animate-spin" />
+              {exportProgress.phase}
+            </div>
+            <Progress value={exportProgress.pct} className="h-2" />
+            <p className="text-xs text-muted-foreground text-right">{exportProgress.pct}%</p>
+          </CardContent>
+        </Card>
+      )}
+
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2 text-lg"><Building2 className="h-5 w-5" /> Alle Firmen</CardTitle>
@@ -90,12 +129,13 @@ const CompanyManagement = () => {
                 <TableRow>
                   <TableHead>ID</TableHead>
                   <TableHead>Name</TableHead>
-                  <TableHead className="w-[80px]">Aktion</TableHead>
+                  <TableHead className="w-[120px]">Aktion</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {companies.map((c: any) => {
                   const isProtected = c.name?.toLowerCase() === PROTECTED_COMPANY_NAME;
+                  const isExporting = exportingId === c.id;
                   return (
                     <TableRow key={c.id}>
                       <TableCell className="font-mono text-xs text-muted-foreground">{c.id}</TableCell>
@@ -110,13 +150,30 @@ const CompanyManagement = () => {
                         </span>
                       </TableCell>
                       <TableCell>
-                        {isProtected ? (
-                          <span className="text-xs text-muted-foreground">—</span>
-                        ) : (
-                          <Button variant="ghost" size="icon" onClick={() => setDeleteId(c.id)} className="text-destructive hover:text-destructive">
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
-                        )}
+                        <div className="flex items-center gap-1">
+                          {isAdmin && (
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              disabled={isExporting || exportingId !== null}
+                              onClick={() => handleExport(c.id, c.name)}
+                              title="Gesamte Firmendaten exportieren"
+                            >
+                              {isExporting ? (
+                                <Loader2 className="h-4 w-4 animate-spin" />
+                              ) : (
+                                <Download className="h-4 w-4" />
+                              )}
+                            </Button>
+                          )}
+                          {isProtected ? (
+                            <span className="text-xs text-muted-foreground">—</span>
+                          ) : (
+                            <Button variant="ghost" size="icon" onClick={() => setDeleteId(c.id)} className="text-destructive hover:text-destructive">
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          )}
+                        </div>
                       </TableCell>
                     </TableRow>
                   );
