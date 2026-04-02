@@ -52,6 +52,17 @@ const OverviewPhoto = ({ overviewLocation, spotLocations, patientId, onNavigateT
 
   const [isRenaming, setIsRenaming] = useState(false);
   const [renameValue, setRenameValue] = useState("");
+  const [compareMode, setCompareMode] = useState(false);
+  const [compareView, setCompareView] = useState<"side" | "overlay">("side");
+  const [overlayOpacity, setOverlayOpacity] = useState(50);
+  const [overlayRotation, setOverlayRotation] = useState(0);
+  const [overlayScale, setOverlayScale] = useState(100);
+  const [overlayOffsetX, setOverlayOffsetX] = useState(0);
+  const [overlayOffsetY, setOverlayOffsetY] = useState(0);
+  const [showAlignControls, setShowAlignControls] = useState(false);
+  const [compareIndexA, setCompareIndexA] = useState(0);
+  const [compareIndexB, setCompareIndexB] = useState(1);
+  const [zoomedImageSrc, setZoomedImageSrc] = useState<string | null>(null);
 
   const { data: pins = [] } = useQuery({
     queryKey: ["overview-pins", overviewLocation.id],
