@@ -2,7 +2,7 @@ import { useState, useRef, useCallback, useEffect } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { api } from "@/lib/api";
 import type { LocationImage } from "@/types/patient";
-import { Upload, Calendar, ImageIcon, GitCompareArrows, Trash2 } from "lucide-react";
+import { Upload, Calendar, ImageIcon, GitCompareArrows, Trash2, Download } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { format } from "date-fns";
@@ -27,9 +27,11 @@ interface ImageGalleryProps {
   images: LocationImage[];
   locationName?: string;
   locationType?: "spot" | "region";
+  patientName?: string;
+  patientBirthDate?: string;
 }
 
-const ImageGallery = ({ locationId, patientId, images, locationName, locationType = "spot" }: ImageGalleryProps) => {
+const ImageGallery = ({ locationId, patientId, images, locationName, locationType = "spot", patientName, patientBirthDate }: ImageGalleryProps) => {
   const queryClient = useQueryClient();
   const fileRef = useRef<HTMLInputElement>(null);
   const [uploading, setUploading] = useState(false);
@@ -99,6 +101,70 @@ const ImageGallery = ({ locationId, patientId, images, locationName, locationTyp
     }, 800);
   }, [patientId, queryClient]);
 
+  const handleImageExport = useCallback((img: LocationImage) => {
+    const imgEl = new Image();
+    imgEl.crossOrigin = "anonymous";
+    imgEl.onload = () => {
+      const canvas = document.createElement("canvas");
+      const barHeight = 64;
+      canvas.width = imgEl.naturalWidth;
+      canvas.height = imgEl.naturalHeight + barHeight;
+      const ctx = canvas.getContext("2d")!;
+
+      // Draw white bar at top
+      ctx.fillStyle = "#ffffff";
+      ctx.fillRect(0, 0, canvas.width, barHeight);
+
+      // Draw separator line
+      ctx.fillStyle = "#e2e8f0";
+      ctx.fillRect(0, barHeight - 1, canvas.width, 1);
+
+      // Text
+      const fontSize = Math.max(14, Math.round(canvas.width / 40));
+      ctx.fillStyle = "#1e293b";
+      ctx.font = `bold ${fontSize}px sans-serif`;
+
+      const nameText = patientName || "Patient";
+      ctx.fillText(nameText, 12, fontSize + 8);
+
+      ctx.font = `${fontSize * 0.85}px sans-serif`;
+      ctx.fillStyle = "#64748b";
+      const details: string[] = [];
+      if (patientBirthDate) {
+        try {
+          details.push(`geb. ${format(new Date(patientBirthDate), "dd.MM.yyyy", { locale: de })}`);
+        } catch { details.push(patientBirthDate); }
+      }
+      if (locationName) details.push(locationName);
+      if (img.created_at) {
+        try {
+          details.push(format(new Date(img.created_at), "dd.MM.yyyy", { locale: de }));
+        } catch {}
+      }
+      ctx.fillText(details.join("  •  "), 12, fontSize + 8 + fontSize * 1.1);
+
+      // Draw image below bar
+      ctx.drawImage(imgEl, 0, barHeight);
+
+      canvas.toBlob((blob) => {
+        if (!blob) return;
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        const safeName = (patientName || "patient").replace(/\s+/g, "_");
+        const safeSpot = (locationName || "spot").replace(/\s+/g, "_");
+        a.download = `${safeName}_${safeSpot}_${img.id}.jpg`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        setTimeout(() => URL.revokeObjectURL(url), 1500);
+        toast.success("Bild exportiert");
+      }, "image/jpeg", 0.95);
+    };
+    imgEl.onerror = () => toast.error("Bild konnte nicht geladen werden");
+    imgEl.src = api.resolveImageSrc(img);
+  }, [patientName, patientBirthDate, locationName]);
+
   if (compareMode && images.length >= 2) {
     return (
       <ImageCompare
@@ -140,14 +206,25 @@ const ImageGallery = ({ locationId, patientId, images, locationName, locationTyp
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           {sorted.map((img) => (
             <div key={img.id} className="relative space-y-2 rounded-lg border bg-card p-2">
-              <Button
-                size="icon"
-                variant="destructive"
-                className="absolute right-2 top-2 z-10 h-8 w-8 rounded-full shadow-md opacity-80 hover:opacity-100"
-                onClick={() => setDeleteTarget(img.id)}
-              >
-                <Trash2 className="h-4 w-4" />
-              </Button>
+              <div className="absolute right-2 top-2 z-10 flex gap-1">
+                <Button
+                  size="icon"
+                  variant="secondary"
+                  className="h-8 w-8 rounded-full shadow-md opacity-80 hover:opacity-100"
+                  onClick={() => handleImageExport(img)}
+                  title="Bild exportieren"
+                >
+                  <Download className="h-4 w-4" />
+                </Button>
+                <Button
+                  size="icon"
+                  variant="destructive"
+                  className="h-8 w-8 rounded-full shadow-md opacity-80 hover:opacity-100"
+                  onClick={() => setDeleteTarget(img.id)}
+                >
+                  <Trash2 className="h-4 w-4" />
+                </Button>
+              </div>
               {locationType === "spot" ? (
                 <div className="flex flex-col items-center gap-1.5">
                   <div className="relative h-20 w-20 overflow-hidden rounded-full border-2 border-border shadow-sm">

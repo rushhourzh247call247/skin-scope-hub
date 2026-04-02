@@ -1064,6 +1064,8 @@ const PatientDetail = () => {
                   images={selectedLocation.images ?? []}
                   locationName={selectedLocation.name || (selectedLocation.type === "region" ? "Region" : `Spot #${selectedLocation.id}`)}
                   locationType={selectedLocation.type || "spot"}
+                  patientName={patient.name}
+                  patientBirthDate={patient.birth_date}
                 />
               </motion.div>
             ) : (
