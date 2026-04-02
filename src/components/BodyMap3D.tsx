@@ -1018,10 +1018,11 @@ const BodyMap3D: React.FC<BodyMap3DProps> = (props) => {
     }
   }, [props.isPlacementMode, props.previewMarker, placementAnchor]);
 
-  // Clear reset flag AND bump focusKey when a new marker is selected
+  // Clear reset flag AND bump focusKey when a marker is selected (even re-selecting same one)
   useEffect(() => {
-    if (props.selectedLocationId != null && props.selectedLocationId !== prevSelectedRef.current) {
+    if (props.selectedLocationId != null) {
       setResetCounter(0);
+      setActiveRegion("full");
       setFocusKey(k => k + 1);
     }
     prevSelectedRef.current = props.selectedLocationId;
@@ -1142,7 +1143,7 @@ const BodyMap3D: React.FC<BodyMap3DProps> = (props) => {
         {/* Bottom controls */}
         <div className="absolute bottom-2 left-2 flex items-center gap-1.5">
           <button
-            onClick={() => { setActiveRegion("full"); setResetCounter(c => c + 1); if (props.onMarkerClick) props.onMarkerClick(undefined as any); }}
+            onClick={() => { setActiveRegion("full"); setResetCounter(c => c + 1); setFocusKey(k => k + 1); if (props.onMarkerClick) props.onMarkerClick(undefined as any); }}
             className="flex h-7 items-center gap-1 rounded-md border border-border/50 bg-card/80 px-2 text-[10px] text-muted-foreground transition-all hover:text-foreground"
           >
             <RotateCcw className="h-3 w-3" /> Reset
