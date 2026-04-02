@@ -140,12 +140,13 @@ function BodyModel({ onBodyClick, onBodyPointerMove, gender }: { onBodyClick: (e
 useGLTF.preload(FEMALE_MODEL_URL);
 useGLTF.preload(MALE_MODEL_URL);
 
-/* ─── Spot Marker (DermEngine-style circle ring) ─── */
+/* ─── Spot Marker (Leader-line style: crosshair + numbered badge) ─── */
 const HIGH_RISK_CLASSIFICATIONS: LesionClassification[] = ["melanoma_suspect", "scc"];
 
 type SpotMarkerProps = {
   position: [number, number, number];
   name?: string;
+  index?: number;
   isSelected: boolean;
   onClick: () => void;
   imageCount?: number;
@@ -155,7 +156,7 @@ type SpotMarkerProps = {
 };
 
 const SpotMarker = React.forwardRef<THREE.Group, SpotMarkerProps>(function SpotMarker(
-  { position, name, isSelected, onClick, imageCount, findingCount, classificationColor, isHighRisk },
+  { position, name, index, isSelected, onClick, imageCount, findingCount, classificationColor, isHighRisk },
   forwardedRef,
 ) {
   const groupRef = useRef<THREE.Group>(null);
@@ -164,7 +165,6 @@ const SpotMarker = React.forwardRef<THREE.Group, SpotMarkerProps>(function SpotM
   useFrame(() => {
     if (!groupRef.current) return;
     if (isHighRisk && !isSelected) {
-      // Faster, stronger pulse for high-risk
       groupRef.current.scale.setScalar(1 + Math.sin(Date.now() * 0.006) * 0.18);
     } else if (isSelected) {
       groupRef.current.scale.setScalar(1 + Math.sin(Date.now() * 0.004) * 0.1);
@@ -174,14 +174,15 @@ const SpotMarker = React.forwardRef<THREE.Group, SpotMarkerProps>(function SpotM
   });
 
   const baseColor = classificationColor || "#64748b";
-  const ringColor = isSelected ? "#0ea5e9" : hovered ? baseColor : baseColor;
-  const ringOpacity = isSelected ? 1.0 : hovered ? 0.9 : 0.8;
+  const color = isSelected ? "#0ea5e9" : hovered ? baseColor : baseColor;
 
-  // Sizes: selected markers are larger and more prominent
-  const innerRadius = isSelected ? 0.032 : 0.022;
-  const outerRadius = isSelected ? 0.042 : 0.030;
-  const dotRadius = isSelected ? 0.010 : 0.006;
-  const clickRadius = isSelected ? 0.055 : 0.045;
+  // Crosshair arm length and thickness
+  const armLen = isSelected ? 0.022 : 0.016;
+  const armThick = isSelected ? 0.003 : 0.002;
+
+  // Leader-line offset (badge floats above-right or above-left)
+  const labelOffsetX = 0.06;
+  const labelOffsetY = 0.06;
 
   return (
     <group ref={forwardedRef} position={position}>
@@ -194,73 +195,80 @@ const SpotMarker = React.forwardRef<THREE.Group, SpotMarkerProps>(function SpotM
         onPointerOver={() => setHovered(true)}
         onPointerOut={() => setHovered(false)}
       >
-        {/* Main circle ring */}
-        <mesh rotation={[0, 0, 0]}>
-          <ringGeometry args={[innerRadius, outerRadius, 48]} />
-          <meshBasicMaterial
-            color={ringColor}
-            transparent
-            opacity={ringOpacity}
-            side={THREE.DoubleSide}
-            depthTest={false}
-          />
-        </mesh>
-
-        {/* Center dot - filled for better visibility */}
+        {/* Crosshair: horizontal bar */}
         <mesh>
-          <circleGeometry args={[dotRadius, 16]} />
-          <meshBasicMaterial
-            color={ringColor}
-            transparent
-            opacity={isSelected ? 0.9 : 0.6}
-            side={THREE.DoubleSide}
-            depthTest={false}
-          />
+          <planeGeometry args={[armLen * 2, armThick]} />
+          <meshBasicMaterial color={color} transparent opacity={isSelected ? 1.0 : 0.85} side={THREE.DoubleSide} depthTest={false} />
+        </mesh>
+        {/* Crosshair: vertical bar */}
+        <mesh>
+          <planeGeometry args={[armThick, armLen * 2]} />
+          <meshBasicMaterial color={color} transparent opacity={isSelected ? 1.0 : 0.85} side={THREE.DoubleSide} depthTest={false} />
         </mesh>
 
-        {/* Selected: outer highlight ring (double ring effect) */}
+        {/* Selected: outer highlight circle (subtle) */}
         {isSelected && (
-          <mesh rotation={[0, 0, 0]}>
-            <ringGeometry args={[0.046, 0.052, 48]} />
-            <meshBasicMaterial
-              color="#0ea5e9"
-              transparent
-              opacity={0.5}
-              side={THREE.DoubleSide}
-              depthTest={false}
-            />
+          <mesh>
+            <ringGeometry args={[0.028, 0.032, 32]} />
+            <meshBasicMaterial color="#0ea5e9" transparent opacity={0.4} side={THREE.DoubleSide} depthTest={false} />
           </mesh>
         )}
 
-        {/* High-risk outer glow ring */}
+        {/* High-risk outer glow */}
         {isHighRisk && !isSelected && (
-          <mesh rotation={[0, 0, 0]}>
-            <ringGeometry args={[0.033, 0.040, 48]} />
-            <meshBasicMaterial
-              color="#ef4444"
-              transparent
-              opacity={0.3 + Math.sin(Date.now() * 0.005) * 0.15}
-              side={THREE.DoubleSide}
-              depthTest={false}
-            />
+          <mesh>
+            <ringGeometry args={[0.020, 0.026, 32]} />
+            <meshBasicMaterial color="#ef4444" transparent opacity={0.3 + Math.sin(Date.now() * 0.005) * 0.15} side={THREE.DoubleSide} depthTest={false} />
           </mesh>
         )}
 
-        {/* Invisible click target (larger) */}
+        {/* Invisible click target */}
         <mesh>
-          <circleGeometry args={[clickRadius, 16]} />
+          <circleGeometry args={[0.045, 16]} />
           <meshBasicMaterial transparent opacity={0} side={THREE.DoubleSide} depthTest={false} />
         </mesh>
       </group>
 
-      {/* Small label only on hover (not selected) */}
-      {name && hovered && !isSelected && (
-        <Html position={[0, 0.055, 0]} center style={{ pointerEvents: "none" }}>
-          <div className="rounded bg-card/90 border border-border/50 px-1.5 py-0.5 text-[7px] font-medium text-muted-foreground shadow whitespace-nowrap backdrop-blur-sm">
-            {name}
+      {/* Leader line + numbered badge (Html overlay) */}
+      <Html position={[0, 0, 0]} center={false} style={{ pointerEvents: "none" }}>
+        <svg
+          width="80" height="80"
+          viewBox="-40 -40 80 80"
+          style={{ position: "absolute", left: "-40px", top: "-40px", pointerEvents: "none", overflow: "visible" }}
+        >
+          {/* Dashed leader line from center (crosshair) to badge */}
+          <line
+            x1="0" y1="0"
+            x2="28" y2="-28"
+            stroke={color}
+            strokeWidth="1"
+            strokeDasharray="3,2"
+            opacity={isSelected ? 0.9 : 0.6}
+          />
+        </svg>
+        <div
+          style={{
+            position: "absolute",
+            left: "22px",
+            top: "-42px",
+            pointerEvents: "none",
+          }}
+        >
+          <div
+            className={cn(
+              "flex items-center justify-center rounded-full text-[8px] font-bold shadow-md border",
+              isSelected
+                ? "bg-sky-500 text-white border-sky-400 min-w-[18px] h-[18px]"
+                : isHighRisk
+                  ? "bg-destructive text-white border-red-400 min-w-[16px] h-[16px]"
+                  : "bg-card text-foreground border-border min-w-[16px] h-[16px]"
+            )}
+            style={{ borderColor: isSelected ? undefined : color }}
+          >
+            {index != null ? index + 1 : "•"}
           </div>
-        </Html>
-      )}
+        </div>
+      </Html>
 
       {/* Tooltip only on hover */}
       {hovered && (
