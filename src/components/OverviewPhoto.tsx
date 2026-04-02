@@ -12,6 +12,7 @@ import { cn } from "@/lib/utils";
 import { format } from "date-fns";
 import { de } from "date-fns/locale";
 import { toast } from "sonner";
+import { motion, AnimatePresence } from "framer-motion";
 import {
   Popover,
   PopoverContent,
