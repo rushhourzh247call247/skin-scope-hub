@@ -85,6 +85,7 @@ const PatientDetail = () => {
   const [mobileMapExpanded, setMobileMapExpanded] = useState(true);
   const [pdfLoading, setPdfLoading] = useState(false);
   const [pdfPreviewUrl, setPdfPreviewUrl] = useState<string | null>(null);
+  const [pdfDialogOpen, setPdfDialogOpen] = useState(false);
 
   const handlePdfExport = async () => {
     if (!patient) return;
