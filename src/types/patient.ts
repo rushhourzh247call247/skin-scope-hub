@@ -92,6 +92,17 @@ export interface Finding {
   updated_at?: string;
 }
 
+export interface OverviewPin {
+  id: number;
+  overview_location_id: number;
+  linked_location_id: number;
+  x_pct: number;
+  y_pct: number;
+  label?: string;
+  created_at?: string;
+  updated_at?: string;
+}
+
 export interface FullPatient extends Patient {
   locations: (Location & {
     images: LocationImage[];

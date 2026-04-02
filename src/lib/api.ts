@@ -256,6 +256,16 @@ export const api = {
   restoreCompanyFromSnapshot: (date: string, companyId: number) =>
     request<{ success: boolean; message: string }>(`/snapshots/${date}/restore/company/${companyId}`, { method: 'POST' }),
 
+  // Overview Pins
+  getOverviewPins: (locationId: number) =>
+    request<any[]>(`/locations/${locationId}/overview-pins`),
+  createOverviewPin: (locationId: number, data: { linked_location_id: number; x_pct: number; y_pct: number; label?: string }) =>
+    request<any>(`/locations/${locationId}/overview-pins`, { method: 'POST', body: JSON.stringify(data) }),
+  deleteOverviewPin: (pinId: number) =>
+    request<{ success: boolean }>(`/overview-pins/${pinId}`, { method: 'DELETE' }),
+  updateOverviewPin: (pinId: number, data: { x_pct: number; y_pct: number; label?: string }) =>
+    request<any>(`/overview-pins/${pinId}`, { method: 'PUT', body: JSON.stringify(data) }),
+
   // Helper to get full image URL from a path or image object
   getImageUrl: (pathOrUrl: string) => {
     if (!pathOrUrl) return '';
