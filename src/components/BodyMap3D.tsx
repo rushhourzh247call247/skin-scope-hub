@@ -893,9 +893,6 @@ function Scene({ markers, selectedLocationId, onMapClick, onMarkerClick, classif
       {markMode && hoverInfo && (
         <Html position={[hoverInfo.point.x, hoverInfo.point.y + 0.08, hoverInfo.point.z]} center style={{ pointerEvents: "none" }}>
           <div className="rounded-md border bg-card/95 px-2 py-1 shadow-lg backdrop-blur-sm whitespace-nowrap">
-            <p className="text-[9px] font-mono text-muted-foreground">
-              x: {hoverInfo.x3d.toFixed(2)} &nbsp; y: {hoverInfo.y3d.toFixed(2)} &nbsp; z: {hoverInfo.z3d.toFixed(2)}
-            </p>
             <p className="text-[11px] font-semibold text-foreground">{hoverInfo.zone}</p>
           </div>
         </Html>
