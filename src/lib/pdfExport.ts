@@ -311,6 +311,7 @@ export async function generatePatientPDF(patient: FullPatient, mode: "preview" |
     }
 
     // Images (max 4)
+    if (options.showImages) {
     const displayImages = images.slice(-4);
     const imgSize = 30;
     const imgGap = 4;
