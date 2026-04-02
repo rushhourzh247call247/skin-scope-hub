@@ -206,14 +206,25 @@ const ImageGallery = ({ locationId, patientId, images, locationName, locationTyp
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           {sorted.map((img) => (
             <div key={img.id} className="relative space-y-2 rounded-lg border bg-card p-2">
-              <Button
-                size="icon"
-                variant="destructive"
-                className="absolute right-2 top-2 z-10 h-8 w-8 rounded-full shadow-md opacity-80 hover:opacity-100"
-                onClick={() => setDeleteTarget(img.id)}
-              >
-                <Trash2 className="h-4 w-4" />
-              </Button>
+              <div className="absolute right-2 top-2 z-10 flex gap-1">
+                <Button
+                  size="icon"
+                  variant="secondary"
+                  className="h-8 w-8 rounded-full shadow-md opacity-80 hover:opacity-100"
+                  onClick={() => handleImageExport(img)}
+                  title="Bild exportieren"
+                >
+                  <Download className="h-4 w-4" />
+                </Button>
+                <Button
+                  size="icon"
+                  variant="destructive"
+                  className="h-8 w-8 rounded-full shadow-md opacity-80 hover:opacity-100"
+                  onClick={() => setDeleteTarget(img.id)}
+                >
+                  <Trash2 className="h-4 w-4" />
+                </Button>
+              </div>
               {locationType === "spot" ? (
                 <div className="flex flex-col items-center gap-1.5">
                   <div className="relative h-20 w-20 overflow-hidden rounded-full border-2 border-border shadow-sm">
