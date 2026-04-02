@@ -1,47 +1,28 @@
 
 
-## OpenCV.js Bildausrichtung – Sicherer Implementierungsplan
+## KI-Ausrichtung auch für Übersichtsfotos + Fixes
 
 ### Was wird gemacht
-Der "Auto Ausrichten"-Button (der aktuell nur auf Null zurücksetzt) wird mit **echter Bildanalyse** ausgestattet. OpenCV.js wird **nur bei Klick** geladen und erkennt markante Punkte in beiden Bildern, um Rotation, Zoom und Versatz automatisch zu berechnen.
+1. **KI-Ausrichtung für Übersichtsfotos** – Den gleichen "KI Ausrichtung"-Button auch in der OverviewPhoto-Komponente einbauen
+2. **Reset-Button Fix** – Der Reset-Button in den manuellen Kontrollen soll nur auf 0 zurücksetzen (nicht die KI starten)
 
-**Keine Server-Änderungen nötig. Kein API-Key. Keine externen Accounts. Funktioniert offline.**
-
-### Was sich ändert
+### Änderungen
 
 | Datei | Änderung | Risiko |
 |---|---|---|
-| `src/lib/opencvLoader.ts` | **Neu** – Lädt OpenCV.js bei Bedarf vom CDN | Keins (neue Datei) |
-| `src/lib/imageAlign.ts` | **Neu** – Feature-Matching Logik | Keins (neue Datei) |
-| `src/components/ImageCompare.tsx` | Button-Logik anpassen (nur `handleAutoAlign` Funktion, Zeile 84-92) | Minimal – nur eine Funktion wird geändert |
+| `src/components/OverviewPhoto.tsx` | KI-Ausrichtung Button + `alignImages` Import hinzufügen | Minimal |
+| `src/components/ImageCompare.tsx` | Reset-Button: eigene Funktion `handleReset` statt `handleAutoAlign` | Minimal |
 
-### Was NICHT angefasst wird
-- Kein Server-Code
-- Keine API-Änderungen
-- Keine bestehende Overlay-Logik (Slider, manuelle Steuerung, Auto-Save)
-- Keine anderen Komponenten
+### Details
 
-### Technischer Ablauf
+**OverviewPhoto.tsx:**
+- `alignImages` und `Loader2`/`Wand2` importieren
+- State `isAutoAligning` hinzufügen
+- `handleAutoAlign` async Funktion (identisch wie in ImageCompare)
+- Button im Overlay-Bereich einfügen (neben den bestehenden manuellen Kontrollen)
 
-1. **`src/lib/opencvLoader.ts`**: Lädt `opencv.js` per `<script>` Tag vom CDN. Wird gecacht, nur einmal geladen. Gibt ein Promise zurück das resolved wenn OpenCV bereit ist.
-
-2. **`src/lib/imageAlign.ts`**: 
-   - Lädt beide Bilder auf Canvas
-   - ORB Feature Detector findet markante Punkte (Muttermale, Hautstruktur)
-   - BFMatcher matched die Punkte zwischen den Bildern
-   - Berechnet Homographie-Matrix → extrahiert Rotation, Scale, Offset
-   - Gibt `{ rotation, scale, offset_x, offset_y }` zurück
-
-3. **`src/components/ImageCompare.tsx`**:
-   - `handleAutoAlign` wird `async`
-   - Neuer State `isAutoAligning` für Spinner
-   - Bei Klick: OpenCV laden → Bilder analysieren → Werte setzen
-   - Bei Fehler: Toast + Reset auf 0 (wie bisher)
-   - Button-Text: "KI Ausrichtung" mit Wand2-Icon (bleibt gleich)
-
-### Sicherheit
-- Zwei neue Dateien, eine minimale Änderung an bestehender Funktion
-- Fallback bei Fehler: Reset auf Standardwerte (identisch wie jetzt)
-- OpenCV.js ist eine etablierte Bibliothek (Millionen Nutzer)
-- Alles läuft im Browser, keine Daten verlassen das Gerät
+**ImageCompare.tsx:**
+- Neue Funktion `handleReset` die nur Werte auf 0 setzt
+- Reset-Button (Zeile 409) auf `handleReset` umstellen
+- KI-Button bleibt wie er ist
 
