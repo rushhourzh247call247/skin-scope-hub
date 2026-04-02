@@ -76,6 +76,7 @@ const PatientDetail = () => {
   const [editingFindingText, setEditingFindingText] = useState("");
   const [classificationFilter, setClassificationFilter] = useState<LesionClassificationType[]>([]);
   const [qrDialogOpen, setQrDialogOpen] = useState(false);
+  const [qrLocationId, setQrLocationId] = useState<number | null>(null);
   const [deleteConfirmId, setDeleteConfirmId] = useState<number | null>(null);
   const [showTrash, setShowTrash] = useState(false);
   const [permanentDeleteId, setPermanentDeleteId] = useState<number | null>(null);
@@ -583,7 +584,7 @@ const PatientDetail = () => {
                       </button>
                       <div className="flex items-center gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity shrink-0">
                         <button
-                          onClick={(e) => { e.stopPropagation(); setSelectedLocationId(loc.id); setQrDialogOpen(true); }}
+                          onClick={(e) => { e.stopPropagation(); setQrLocationId(loc.id); setQrDialogOpen(true); }}
                           className="h-5 w-5 rounded flex items-center justify-center hover:bg-muted-foreground/10 text-muted-foreground hover:text-foreground"
                           title="Foto vom Handy hochladen"
                         >
@@ -817,7 +818,7 @@ const PatientDetail = () => {
                         }}
                         onDelete={(locationId) => setDeleteConfirmId(locationId)}
                         onQrUpload={(locationId) => {
-                          setSelectedLocationId(locationId);
+                          setQrLocationId(locationId);
                           setQrDialogOpen(true);
                         }}
                         onCreateSpotAndLink={async (name, pinCoords, overviewLocId) => {
@@ -1043,22 +1044,12 @@ const PatientDetail = () => {
                       variant="outline"
                       size="sm"
                       className="gap-1.5 text-xs"
-                      onClick={() => setQrDialogOpen(true)}
+                      onClick={() => { setQrLocationId(selectedLocation.id); setQrDialogOpen(true); }}
                     >
                       <QrCode className="h-3.5 w-3.5" /> QR Upload
                     </Button>
                   )}
                 </div>
-
-                {/* QR Upload Dialog */}
-                <QrUploadDialog
-                  open={qrDialogOpen}
-                  onOpenChange={setQrDialogOpen}
-                  patientId={patientId}
-                  patientName={patient.name}
-                  locationId={selectedLocation.id}
-                  locationName={selectedLocation.name || `Spot #${selectedLocation.id}`}
-                />
 
                 {/* Lesion Classification – compact collapsible */}
                 {selectedLocation.type !== "region" && (() => {
@@ -1319,6 +1310,18 @@ const PatientDetail = () => {
           </AnimatePresence>
         </div>
       </div>
+
+      {/* Global QR Upload Dialog */}
+      {qrLocationId && (
+        <QrUploadDialog
+          open={qrDialogOpen}
+          onOpenChange={(open) => { setQrDialogOpen(open); if (!open) setQrLocationId(null); }}
+          patientId={patientId}
+          patientName={patient.name}
+          locationId={qrLocationId}
+          locationName={locations.find(l => l.id === qrLocationId)?.name || `Location #${qrLocationId}`}
+        />
+      )}
 
       {/* Soft Delete Confirmation */}
       <AlertDialog open={deleteConfirmId !== null} onOpenChange={(open) => !open && setDeleteConfirmId(null)}>
