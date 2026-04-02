@@ -30,7 +30,7 @@ function getFaceZone(x3d: number, y3d: number): string {
 
   // Ohr: seitlich vom Kopf, absX > 0.07, Höhe zwischen Auge und Kinn (~0.95–1.16)
   // Calibration estimate: ears at x≈±0.09, y≈1.05 (level with eyes/cheeks)
-  if (absX > 0.08 && y3d >= 0.96 && y3d <= 1.16) return `${sideF(x3d)}s Ohr`;
+  if (absX > 0.09 && y3d >= 1.00 && y3d <= 1.12) return `${sideF(x3d)}s Ohr`;
 
   // Stirn: above eyebrow level
   if (y3d >= 1.16) return "Stirn";
@@ -64,7 +64,7 @@ export function getAnatomicalName(
   // Calibration: kinn at 0.956, hals at 0.898 → boundary ≈ 0.93
   if (y3d >= 0.93) {
     // Ohren: seitlich vom Kopf, auch von hinten sichtbar
-    if (absX > 0.08 && y3d <= 1.16) return `${sideF(x3d)}s Ohr`;
+    if (absX > 0.09 && y3d >= 1.00 && y3d <= 1.12) return `${sideF(x3d)}s Ohr`;
     if (isFront) return getFaceZone(x3d, y3d);
     return y3d >= 1.05 ? "Hinterkopf" : "Hinterkopf (unterer)";
   }
