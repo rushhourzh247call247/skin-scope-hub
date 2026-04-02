@@ -435,7 +435,14 @@ const OverviewPhoto = ({ overviewLocation, spotLocations, patientId, onNavigateT
 
                   {onCreateSpotAndLink && (
                     <button
-                      onClick={() => setShowNewSpotForm(true)}
+                      onClick={() => {
+                        if (pendingPin) {
+                          const autoName = `Spot ${spotLocations.filter(s => s.type !== "overview").length + 1}`;
+                          onCreateSpotAndLink(autoName, pendingPin, overviewLocation.id);
+                          setPendingPin(null);
+                          setPinMode(false);
+                        }
+                      }}
                       className="flex w-full items-center gap-2 rounded-md px-2 py-2 text-left hover:bg-primary/10 border border-dashed border-primary/30 transition-colors mb-2"
                     >
                       <div className="h-7 w-7 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
@@ -443,7 +450,7 @@ const OverviewPhoto = ({ overviewLocation, spotLocations, patientId, onNavigateT
                       </div>
                       <div className="min-w-0 flex-1">
                         <p className="text-xs font-medium text-primary">Neuen Spot erstellen</p>
-                        <p className="text-[10px] text-muted-foreground">Pin mit neuem Spot verknüpfen</p>
+                        <p className="text-[10px] text-muted-foreground">Automatisch benannt, später umbenennbar</p>
                       </div>
                     </button>
                   )}
