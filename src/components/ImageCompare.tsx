@@ -42,19 +42,32 @@ const ImageCompare = ({ images, locationName, onClose }: ImageCompareProps) => {
   const debounceTimers = useRef<Record<number, ReturnType<typeof setTimeout>>>({});
   const alignSaveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  // Load saved alignment when two images are selected
+  const hasAutoAligned = useRef<string | null>(null);
+
+  // Load saved alignment when two images are selected; auto-align if no saved data
   useEffect(() => {
     if (selected.length === 2) {
+      const pairKey = `${selected[0]}-${selected[1]}`;
       api.getImageAlignment(selected[0], selected[1]).then(saved => {
+        const hasSaved = (saved.rotation ?? 0) !== 0 || (saved.scale ?? 100) !== 100 || (saved.offset_x ?? 0) !== 0 || (saved.offset_y ?? 0) !== 0;
         setOverlayRotation(saved.rotation ?? 0);
         setOverlayScale(saved.scale ?? 100);
         setOverlayOffsetX(saved.offset_x ?? 0);
         setOverlayOffsetY(saved.offset_y ?? 0);
+        // Auto-align only if no saved alignment and not already done for this pair
+        if (!hasSaved && hasAutoAligned.current !== pairKey) {
+          hasAutoAligned.current = pairKey;
+          handleAutoAlignSilent();
+        }
       }).catch(() => {
         setOverlayRotation(0);
         setOverlayScale(100);
         setOverlayOffsetX(0);
         setOverlayOffsetY(0);
+        if (hasAutoAligned.current !== pairKey) {
+          hasAutoAligned.current = pairKey;
+          handleAutoAlignSilent();
+        }
       });
     }
   }, [selected]);
