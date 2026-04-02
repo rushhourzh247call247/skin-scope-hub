@@ -2,7 +2,8 @@ import { useQuery } from "@tanstack/react-query";
 import { api } from "@/lib/api";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
-import { Users, MapPin, ImageIcon, Building2, ArrowRight, ShieldAlert, Eye, ShieldCheck } from "lucide-react";
+import { Users, MapPin, ImageIcon, Building2, ArrowRight, ShieldAlert, Eye, ShieldCheck, UsersRound } from "lucide-react";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { format } from "date-fns";
@@ -85,6 +86,46 @@ const RiskCard = ({
   );
 };
 
+const CompanyUserCounts = () => {
+  const { data: companies } = useQuery({ queryKey: ["companies"], queryFn: api.getCompanies });
+  const { data: users } = useQuery({ queryKey: ["users"], queryFn: api.getUsers });
+
+  if (!companies || !users) return null;
+
+  const countMap = new Map<number, number>();
+  for (const u of users) {
+    countMap.set(u.company_id, (countMap.get(u.company_id) || 0) + 1);
+  }
+
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle className="flex items-center gap-2 text-lg">
+          <UsersRound className="h-5 w-5" /> Benutzer pro Firma
+        </CardTitle>
+      </CardHeader>
+      <CardContent>
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>Firma</TableHead>
+              <TableHead className="text-right">Benutzer</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {companies.map((c: any) => (
+              <TableRow key={c.id}>
+                <TableCell className="font-medium">{c.name}</TableCell>
+                <TableCell className="text-right tabular-nums">{countMap.get(c.id) || 0}</TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      </CardContent>
+    </Card>
+  );
+};
+
 const Dashboard = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
@@ -150,6 +191,9 @@ const Dashboard = () => {
           <StatCard title="Firmen" value={data.totalCompanies ?? 0} icon={Building2} color="bg-secondary text-secondary-foreground" />
         )}
       </div>
+
+      {/* Company User Counts (Admin only) */}
+      {isAdmin && <CompanyUserCounts />}
 
       {/* Recent Patients */}
       {data.recentPatients && data.recentPatients.length > 0 && (
