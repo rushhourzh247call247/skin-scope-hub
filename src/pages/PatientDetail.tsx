@@ -818,7 +818,7 @@ const PatientDetail = () => {
                         }}
                         onDelete={(locationId) => setDeleteConfirmId(locationId)}
                         onQrUpload={(locationId) => {
-                          setSelectedLocationId(locationId);
+                          setQrLocationId(locationId);
                           setQrDialogOpen(true);
                         }}
                         onCreateSpotAndLink={async (name, pinCoords, overviewLocId) => {
