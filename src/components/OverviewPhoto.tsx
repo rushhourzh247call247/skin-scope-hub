@@ -700,34 +700,75 @@ const OverviewPhoto = ({ overviewLocation, spotLocations, patientId, onNavigateT
               )}
 
               {compareView === "side" ? (
-                <div className="grid grid-cols-2 gap-4">
-                  {[imgA, imgB].map((img, i) => (
-                    <div key={img.id} className="space-y-2">
-                      <div
-                        className="relative overflow-hidden rounded-lg border aspect-square bg-muted cursor-pointer"
-                        onClick={() => setZoomedImageSrc(api.resolveImageSrc(img))}
-                      >
-                        <img src={api.resolveImageSrc(img)} alt={`Vergleich ${i + 1}`} className="h-full w-full object-contain" />
-                        <div className={cn(
-                          "absolute top-2 left-2 rounded-full px-2 py-0.5 text-[9px] font-bold backdrop-blur-sm",
-                          i === 0 ? "bg-primary/90 text-primary-foreground" : "bg-accent/90 text-accent-foreground"
-                        )}>
-                          {i === 0 ? "REFERENZ" : "VERGLEICH"}
-                        </div>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className="absolute top-2 right-2 h-6 w-6 bg-background/50 backdrop-blur-sm"
-                          onClick={(e) => { e.stopPropagation(); setZoomedImageSrc(api.resolveImageSrc(img)); }}
+                <div className="space-y-3">
+                  <div className="grid grid-cols-2 gap-4">
+                    {[imgA, imgB].map((img, i) => (
+                      <div key={img.id} className="space-y-2">
+                        <div
+                          className="relative overflow-hidden rounded-lg border aspect-square bg-muted cursor-pointer"
+                          onClick={() => setZoomedImageSrc(api.resolveImageSrc(img))}
                         >
-                          <ZoomIn className="h-3 w-3" />
-                        </Button>
+                          <img src={api.resolveImageSrc(img)} alt={`Vergleich ${i + 1}`} className="h-full w-full object-contain" />
+                          <div className={cn(
+                            "absolute top-2 left-2 rounded-full px-2 py-0.5 text-[9px] font-bold backdrop-blur-sm",
+                            i === 0 ? "bg-primary/90 text-primary-foreground" : "bg-accent/90 text-accent-foreground"
+                          )}>
+                            {i === 0 ? "REFERENZ" : "VERGLEICH"}
+                          </div>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="absolute top-2 right-2 h-6 w-6 bg-background/50 backdrop-blur-sm"
+                            onClick={(e) => { e.stopPropagation(); setZoomedImageSrc(api.resolveImageSrc(img)); }}
+                          >
+                            <ZoomIn className="h-3 w-3" />
+                          </Button>
+                        </div>
+                        <p className="text-center text-xs text-muted-foreground tabular-nums">
+                          {img.created_at ? format(new Date(img.created_at), "dd. MMM yyyy", { locale: de }) : "–"}
+                        </p>
                       </div>
-                      <p className="text-center text-xs text-muted-foreground tabular-nums">
-                        {img.created_at ? format(new Date(img.created_at), "dd. MMM yyyy", { locale: de }) : "–"}
-                      </p>
-                    </div>
-                  ))}
+                    ))}
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="h-7 text-[10px] gap-1.5"
+                      disabled={isAutoAligning}
+                      onClick={async () => {
+                        setIsAutoAligning(true);
+                        try {
+                          const baseSrc = api.resolveImageSrc(imgA);
+                          const overlaySrc = api.resolveImageSrc(imgB);
+                          const result = await alignImages(baseSrc, overlaySrc);
+                          setOverlayRotation(result.rotation);
+                          setOverlayScale(result.scale);
+                          setOverlayOffsetX(result.offset_x);
+                          setOverlayOffsetY(result.offset_y);
+                          toast.success("Bilder ausgerichtet – wechsle zu Overlay um das Ergebnis zu sehen");
+                          setCompareView("overlay");
+                        } catch (err) {
+                          console.error("[AutoAlign] Error:", err);
+                          toast.error("Automatische Ausrichtung fehlgeschlagen");
+                          handleReset();
+                        } finally {
+                          setIsAutoAligning(false);
+                        }
+                      }}
+                    >
+                      {isAutoAligning ? (
+                        <><Loader2 className="h-3 w-3 animate-spin" /> Analysiere…</>
+                      ) : (
+                        <><Wand2 className="h-3 w-3" /> KI Ausrichtung</>
+                      )}
+                    </Button>
+                    {isAlignmentModified && (
+                      <Button variant="ghost" size="sm" className="h-7 text-[10px] gap-1" onClick={handleReset}>
+                        <RotateCcw className="h-3 w-3" /> Reset
+                      </Button>
+                    )}
+                  </div>
                 </div>
               ) : (
                 <div className="space-y-4">

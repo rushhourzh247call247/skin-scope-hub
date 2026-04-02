@@ -278,23 +278,48 @@ const ImageCompare = ({ images, locationName, onClose }: ImageCompareProps) => {
 
             {compareMode === "side" ? (
               /* Side-by-side */
-              <div className="grid grid-cols-2 gap-4">
-                {compareImages.map((img, i) => (
-                  <div key={img.id} className="space-y-2">
-                    <div className="relative overflow-hidden rounded-lg border aspect-square bg-muted">
-                      <img src={api.resolveImageSrc(img)} alt={`Vergleich ${i + 1}`} className="h-full w-full object-contain" />
-                      <div className={cn(
-                        "absolute top-2 left-2 flex h-6 w-6 items-center justify-center rounded-full text-xs font-bold",
-                        i === 0 ? "bg-primary text-primary-foreground" : "bg-accent text-accent-foreground"
-                      )}>
-                        {i + 1}
+              <div className="space-y-3">
+                <div className="grid grid-cols-2 gap-4">
+                  {compareImages.map((img, i) => (
+                    <div key={img.id} className="space-y-2">
+                      <div className="relative overflow-hidden rounded-lg border aspect-square bg-muted">
+                        <img src={api.resolveImageSrc(img)} alt={`Vergleich ${i + 1}`} className="h-full w-full object-contain" />
+                        <div className={cn(
+                          "absolute top-2 left-2 flex h-6 w-6 items-center justify-center rounded-full text-xs font-bold",
+                          i === 0 ? "bg-primary text-primary-foreground" : "bg-accent text-accent-foreground"
+                        )}>
+                          {i + 1}
+                        </div>
                       </div>
+                      <p className="text-center text-xs text-muted-foreground tabular-nums">
+                        {img.created_at ? format(new Date(img.created_at), "dd. MMM yyyy", { locale: de }) : "–"}
+                      </p>
                     </div>
-                    <p className="text-center text-xs text-muted-foreground tabular-nums">
-                      {img.created_at ? format(new Date(img.created_at), "dd. MMM yyyy", { locale: de }) : "–"}
-                    </p>
-                  </div>
-                ))}
+                  ))}
+                </div>
+                <div className="flex items-center gap-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="h-7 text-[10px] gap-1.5"
+                    onClick={async () => {
+                      await handleAutoAlign();
+                      setCompareMode("overlay");
+                    }}
+                    disabled={isAutoAligning}
+                  >
+                    {isAutoAligning ? (
+                      <><Loader2 className="h-3 w-3 animate-spin" /> Analysiere…</>
+                    ) : (
+                      <><Wand2 className="h-3 w-3" /> KI Ausrichtung</>
+                    )}
+                  </Button>
+                  {isAlignmentModified && (
+                    <Button variant="ghost" size="sm" className="h-7 text-[10px] gap-1" onClick={handleReset}>
+                      <RotateCcw className="h-3 w-3" /> Reset
+                    </Button>
+                  )}
+                </div>
               </div>
             ) : (
               /* Overlay mode */
