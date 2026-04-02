@@ -347,56 +347,117 @@ const OverviewPhoto = ({ overviewLocation, spotLocations, patientId, onNavigateT
                 <Plus className="h-4 w-4 text-primary" />
               </div>
             </PopoverTrigger>
-            <PopoverContent className="w-64 p-2" side="right" align="start" onClick={(e) => e.stopPropagation()}>
-              <p className="text-xs font-semibold text-foreground mb-2">Mit Spot verknüpfen:</p>
-              <div className="max-h-48 overflow-y-auto space-y-1">
-                {spotLocations.filter(s => s.type !== "overview").length === 0 ? (
-                  <p className="text-xs text-muted-foreground py-2 text-center">Keine Spots vorhanden</p>
-                ) : (
-                  spotLocations.filter(s => s.type !== "overview").map((spot) => {
-                    const cls = (spot as any).classification as LesionClassification | undefined;
-                    const clsInfo = cls && cls !== "unclassified" ? LESION_CLASSIFICATIONS[cls] : null;
-                    const firstImg = spot.images?.[0];
-                    return (
-                      <button
-                        key={spot.id}
-                        onClick={() => handleLinkSpot(spot.id)}
-                        className="flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-left hover:bg-muted transition-colors"
-                      >
-                        {firstImg ? (
-                          <img
-                            src={api.resolveImageSrc(firstImg)}
-                            alt=""
-                            className="h-7 w-7 rounded-full object-cover border shrink-0"
-                          />
-                        ) : (
-                          <div className="h-7 w-7 rounded-full bg-muted flex items-center justify-center shrink-0">
-                            <MapPin className="h-3 w-3 text-muted-foreground" />
-                          </div>
-                        )}
-                        <div className="min-w-0 flex-1">
-                          <p className="text-xs font-medium text-foreground truncate">
-                            {spot.name || `Spot #${spot.id}`}
-                          </p>
-                          <p className="text-[10px] text-muted-foreground">
-                            {spot.images?.length ?? 0} Bilder
-                            {clsInfo && (
-                              <span className="ml-1 font-bold" style={{ color: clsInfo.color }}>
-                                {clsInfo.shortLabel}
-                              </span>
+            <PopoverContent className="w-72 p-2" side="right" align="start" onClick={(e) => e.stopPropagation()}>
+              {showNewSpotForm ? (
+                <div className="space-y-2">
+                  <p className="text-xs font-semibold text-foreground">Neuen Spot erstellen:</p>
+                  <Input
+                    placeholder="Name (z.B. Muttermal rechts)"
+                    value={newSpotName}
+                    onChange={(e) => setNewSpotName(e.target.value)}
+                    className="h-8 text-xs"
+                    autoFocus
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter" && pendingPin && onCreateSpotAndLink) {
+                        onCreateSpotAndLink(newSpotName.trim() || "Neuer Spot", pendingPin, overviewLocation.id);
+                        setNewSpotName("");
+                        setShowNewSpotForm(false);
+                        setPendingPin(null);
+                        setPinMode(false);
+                      }
+                    }}
+                  />
+                  <div className="flex gap-1.5">
+                    <Button
+                      size="sm"
+                      className="flex-1 text-xs h-8"
+                      onClick={() => {
+                        if (pendingPin && onCreateSpotAndLink) {
+                          onCreateSpotAndLink(newSpotName.trim() || "Neuer Spot", pendingPin, overviewLocation.id);
+                          setNewSpotName("");
+                          setShowNewSpotForm(false);
+                          setPendingPin(null);
+                          setPinMode(false);
+                        }
+                      }}
+                    >
+                      <Plus className="h-3 w-3 mr-1" />
+                      Spot erstellen
+                    </Button>
+                    <Button size="sm" variant="ghost" className="text-xs h-8" onClick={() => setShowNewSpotForm(false)}>
+                      Zurück
+                    </Button>
+                  </div>
+                </div>
+              ) : (
+                <>
+                  <p className="text-xs font-semibold text-foreground mb-2">Mit Spot verknüpfen:</p>
+
+                  {onCreateSpotAndLink && (
+                    <button
+                      onClick={() => setShowNewSpotForm(true)}
+                      className="flex w-full items-center gap-2 rounded-md px-2 py-2 text-left hover:bg-primary/10 border border-dashed border-primary/30 transition-colors mb-2"
+                    >
+                      <div className="h-7 w-7 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
+                        <Plus className="h-3.5 w-3.5 text-primary" />
+                      </div>
+                      <div className="min-w-0 flex-1">
+                        <p className="text-xs font-medium text-primary">Neuen Spot erstellen</p>
+                        <p className="text-[10px] text-muted-foreground">Pin mit neuem Spot verknüpfen</p>
+                      </div>
+                    </button>
+                  )}
+
+                  <div className="max-h-48 overflow-y-auto space-y-1">
+                    {spotLocations.filter(s => s.type !== "overview").length === 0 && !onCreateSpotAndLink ? (
+                      <p className="text-xs text-muted-foreground py-2 text-center">Keine Spots vorhanden</p>
+                    ) : (
+                      spotLocations.filter(s => s.type !== "overview").map((spot) => {
+                        const cls = (spot as any).classification as LesionClassification | undefined;
+                        const clsInfo = cls && cls !== "unclassified" ? LESION_CLASSIFICATIONS[cls] : null;
+                        const firstImg = spot.images?.[0];
+                        return (
+                          <button
+                            key={spot.id}
+                            onClick={() => handleLinkSpot(spot.id)}
+                            className="flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-left hover:bg-muted transition-colors"
+                          >
+                            {firstImg ? (
+                              <img
+                                src={api.resolveImageSrc(firstImg)}
+                                alt=""
+                                className="h-7 w-7 rounded-full object-cover border shrink-0"
+                              />
+                            ) : (
+                              <div className="h-7 w-7 rounded-full bg-muted flex items-center justify-center shrink-0">
+                                <MapPin className="h-3 w-3 text-muted-foreground" />
+                              </div>
                             )}
-                          </p>
-                        </div>
-                      </button>
-                    );
-                  })
-                )}
-              </div>
-              <div className="mt-2 pt-2 border-t">
-                <Button size="sm" variant="ghost" className="w-full text-xs" onClick={() => setPendingPin(null)}>
-                  Abbrechen
-                </Button>
-              </div>
+                            <div className="min-w-0 flex-1">
+                              <p className="text-xs font-medium text-foreground truncate">
+                                {spot.name || `Spot #${spot.id}`}
+                              </p>
+                              <p className="text-[10px] text-muted-foreground">
+                                {spot.images?.length ?? 0} Bilder
+                                {clsInfo && (
+                                  <span className="ml-1 font-bold" style={{ color: clsInfo.color }}>
+                                    {clsInfo.shortLabel}
+                                  </span>
+                                )}
+                              </p>
+                            </div>
+                          </button>
+                        );
+                      })
+                    )}
+                  </div>
+                  <div className="mt-2 pt-2 border-t">
+                    <Button size="sm" variant="ghost" className="w-full text-xs" onClick={() => setPendingPin(null)}>
+                      Abbrechen
+                    </Button>
+                  </div>
+                </>
+              )}
             </PopoverContent>
           </Popover>
         )}
