@@ -567,6 +567,7 @@ const OverviewPhoto = ({ overviewLocation, spotLocations, patientId, onNavigateT
             </PopoverContent>
           </Popover>
         )}
+        </div>
       </div>
 
       {pins.length > 0 && (
