@@ -1,5 +1,5 @@
 export type Gender = "female" | "male";
-export type LocationType = "spot" | "region";
+export type LocationType = "spot" | "region" | "overview";
 export type LesionClassification =
   | "unclassified"
   | "naevus"
@@ -88,6 +88,17 @@ export interface Finding {
   location_id: number;
   description?: string;
   user_name?: string;
+  created_at?: string;
+  updated_at?: string;
+}
+
+export interface OverviewPin {
+  id: number;
+  overview_location_id: number;
+  linked_location_id: number;
+  x_pct: number;
+  y_pct: number;
+  label?: string;
   created_at?: string;
   updated_at?: string;
 }

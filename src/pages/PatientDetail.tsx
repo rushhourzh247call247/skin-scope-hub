@@ -8,7 +8,7 @@ import { LESION_CLASSIFICATIONS } from "@/types/patient";
 import { useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import type { LesionClassification as LesionClassificationType } from "@/types/patient";
-import { ArrowLeft, MapPin, Plus, Calendar, ImageIcon, User, Hash, Activity, Mail, Phone, Pencil, Trash2, Save, X, Square, GitCompareArrows, Move, Camera, Tag, QrCode, Undo2, AlertTriangle, FileDown, Loader2 } from "lucide-react";
+import { ArrowLeft, MapPin, Plus, Calendar, ImageIcon, User, Hash, Activity, Mail, Phone, Pencil, Trash2, Save, X, Square, GitCompareArrows, Move, Camera, Tag, QrCode, Undo2, AlertTriangle, FileDown, Loader2, Eye } from "lucide-react";
 import { Slider } from "@/components/ui/slider";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -19,6 +19,7 @@ import ImageGallery from "@/components/ImageGallery";
 import ImageCompare from "@/components/ImageCompare";
 import RiskProgression from "@/components/RiskProgression";
 import QrUploadDialog from "@/components/QrUploadDialog";
+import OverviewPhoto from "@/components/OverviewPhoto";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
@@ -64,7 +65,7 @@ const PatientDetail = () => {
     nz?: number;
   } | null>(null);
   const [locationName, setLocationName] = useState("");
-  const [activeTab, setActiveTab] = useState<"spots" | "timeline" | "fotos">("spots");
+  const [activeTab, setActiveTab] = useState<"spots" | "timeline" | "fotos" | "uebersicht">("spots");
   const [newFindingText, setNewFindingText] = useState("");
   const [regionWidth, setRegionWidth] = useState(40);
   const [regionHeight, setRegionHeight] = useState(30);
@@ -139,7 +140,7 @@ const PatientDetail = () => {
       x: number;
       y: number;
       view?: "front" | "back";
-      type?: "spot" | "region";
+      type?: "spot" | "region" | "overview";
       width?: number;
       height?: number;
       x3d?: number;
@@ -220,6 +221,8 @@ const PatientDetail = () => {
   });
 
   const locations = (patient?.locations ?? []).filter((l: any) => !l.deleted_at);
+  const spotLocations = locations.filter(l => l.type !== "overview");
+  const overviewLocations = locations.filter(l => l.type === "overview");
   const selectedLocation = locations.find((l) => l.id === selectedLocationId);
   const totalImages = locations.reduce((sum, l) => sum + (l.images?.length ?? 0), 0);
 
@@ -347,6 +350,7 @@ const PatientDetail = () => {
             <div className="flex items-center gap-1 rounded-lg bg-muted p-0.5 lg:p-1">
               {[
                 { key: "spots" as const, icon: MapPin, label: "SPOTS" },
+                { key: "uebersicht" as const, icon: Eye, label: "ÜBERSICHT" },
                 { key: "fotos" as const, icon: Camera, label: "FOTOS" },
                 { key: "timeline" as const, icon: Activity, label: "TIMELINE" },
               ].map(tab => (
@@ -537,9 +541,9 @@ const PatientDetail = () => {
           <div className={cn("mt-3 lg:mt-4 space-y-1", !mobileMapExpanded && "lg:block")}>
             <div className="flex items-center justify-between mb-2">
               <h3 className="text-xs font-semibold text-foreground uppercase tracking-wider">Spots</h3>
-              <span className="text-[10px] text-muted-foreground">{locations.filter(l => l.type !== "region").length} Stellen</span>
+              <span className="text-[10px] text-muted-foreground">{spotLocations.filter(l => l.type !== "region").length} Stellen</span>
             </div>
-            {locations.filter(l => l.type !== "region").filter(l => {
+            {spotLocations.filter(l => l.type !== "region").filter(l => {
               if (classificationFilter.length === 0) return true;
               const cls = ((l as any).classification as LesionClassificationType) || "unclassified";
               return classificationFilter.includes(cls);
@@ -663,7 +667,77 @@ const PatientDetail = () => {
         {/* Center + Right: Content */}
         <div className="flex-1 overflow-y-auto p-3 lg:p-6">
           <AnimatePresence mode="wait">
-            {activeTab === "fotos" ? (
+            {activeTab === "uebersicht" ? (
+              <motion.div
+                key="uebersicht"
+                initial={{ opacity: 0, y: 8 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -8 }}
+                transition={{ duration: 0.15 }}
+                className="space-y-6"
+              >
+                <div className="flex items-center justify-between">
+                  <h2 className="text-lg font-semibold text-foreground">Übersichtsfotos</h2>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    className="gap-1.5 text-xs"
+                    onClick={() => {
+                      // Create a new overview location
+                      createLocationMutation.mutate({
+                        name: `Übersicht ${overviewLocations.length + 1}`,
+                        x: 0, y: 0,
+                        view: "front",
+                        type: "overview",
+                      });
+                    }}
+                    disabled={createLocationMutation.isPending}
+                  >
+                    <Plus className="h-3.5 w-3.5" />
+                    Neues Übersichtsfoto
+                  </Button>
+                </div>
+
+                {overviewLocations.length === 0 ? (
+                  <div className="flex flex-col items-center justify-center py-16 text-muted-foreground">
+                    <Eye className="h-10 w-10 mb-3" />
+                    <p className="text-sm font-medium">Noch keine Übersichtsfotos</p>
+                    <p className="text-xs mt-1">Übersichtsfotos zeigen eine ganze Körperregion mit Pin-Markierungen zu einzelnen Spots</p>
+                    <Button
+                      size="sm"
+                      className="mt-4 gap-1.5"
+                      onClick={() => {
+                        createLocationMutation.mutate({
+                          name: "Übersicht 1",
+                          x: 0, y: 0,
+                          view: "front",
+                          type: "overview",
+                        });
+                      }}
+                      disabled={createLocationMutation.isPending}
+                    >
+                      <Plus className="h-3.5 w-3.5" />
+                      Erstes Übersichtsfoto anlegen
+                    </Button>
+                  </div>
+                ) : (
+                  <div className="space-y-8">
+                    {overviewLocations.map((loc) => (
+                      <OverviewPhoto
+                        key={loc.id}
+                        overviewLocation={loc}
+                        spotLocations={spotLocations}
+                        patientId={patientId}
+                        onNavigateToSpot={(spotId) => {
+                          setSelectedLocationId(spotId);
+                          setActiveTab("spots");
+                        }}
+                      />
+                    ))}
+                  </div>
+                )}
+              </motion.div>
+            ) : activeTab === "fotos" ? (
               <motion.div
                 key="fotos"
                 initial={{ opacity: 0, y: 8 }}
