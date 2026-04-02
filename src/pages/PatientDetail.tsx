@@ -662,6 +662,22 @@ const PatientDetail = () => {
                             {isHighRisk && (
                               <span className="text-[8px]">⚠️</span>
                             )}
+                         </span>
+                        );
+                      })()}
+                      {(() => {
+                        const opStatus = (loc as any).op_status;
+                        if (!opStatus || opStatus === "none") return null;
+                        return (
+                          <span
+                            className={cn(
+                              "text-[8px] font-medium px-1.5 rounded border",
+                              opStatus === "praesens"
+                                ? "bg-sky-500/10 text-sky-600 border-sky-200 dark:border-sky-800"
+                                : "bg-emerald-500/10 text-emerald-600 border-emerald-200 dark:border-emerald-800"
+                            )}
+                          >
+                            {opStatus === "praesens" ? "St. praes." : "St. post"}
                           </span>
                         );
                       })()}
