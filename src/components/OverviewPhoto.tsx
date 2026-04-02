@@ -280,20 +280,57 @@ const OverviewPhoto = ({ overviewLocation, spotLocations, patientId, onNavigateT
         </div>
       )}
 
-      <div
-        ref={containerRef}
-        className={cn(
-          "relative overflow-hidden rounded-lg border bg-muted",
-          pinMode && "cursor-crosshair ring-2 ring-primary/30"
+      {/* Zoom controls */}
+      <div className="flex items-center gap-1.5 mb-1">
+        <Button
+          size="sm"
+          variant="outline"
+          className="h-7 w-7 p-0"
+          onClick={() => setZoomLevel(z => Math.min(z + 0.25, 3))}
+          title="Hineinzoomen"
+        >
+          <ZoomIn className="h-3.5 w-3.5" />
+        </Button>
+        <Button
+          size="sm"
+          variant="outline"
+          className="h-7 w-7 p-0"
+          onClick={() => setZoomLevel(z => Math.max(z - 0.25, 0.5))}
+          title="Herauszoomen"
+        >
+          <ZoomOut className="h-3.5 w-3.5" />
+        </Button>
+        {zoomLevel !== 1 && (
+          <Button
+            size="sm"
+            variant="ghost"
+            className="h-7 px-2 text-xs"
+            onClick={() => setZoomLevel(1)}
+          >
+            {Math.round(zoomLevel * 100)}% – Reset
+          </Button>
         )}
-        onClick={handleImageClick}
-      >
-        <img
-          src={api.resolveImageSrc(referenceImage)}
-          alt="Übersichtsfoto"
-          className="w-full h-auto block max-h-[60vh] object-contain"
-          draggable={false}
-        />
+      </div>
+
+      <div className="max-h-[60vh] overflow-auto rounded-lg border bg-muted">
+        <div
+          ref={containerRef}
+          className={cn(
+            "relative",
+            pinMode && "cursor-crosshair ring-2 ring-primary/30 ring-inset"
+          )}
+          style={{
+            width: `${zoomLevel * 100}%`,
+            minWidth: '100%',
+          }}
+          onClick={handleImageClick}
+        >
+          <img
+            src={api.resolveImageSrc(referenceImage)}
+            alt="Übersichtsfoto"
+            className="w-full h-auto block"
+            draggable={false}
+          />
 
 
         {pins.map((pin: OverviewPin, i: number) => {
