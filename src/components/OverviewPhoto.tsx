@@ -388,50 +388,8 @@ const OverviewPhoto = ({ overviewLocation, spotLocations, patientId, onNavigateT
               </div>
             </PopoverTrigger>
             <PopoverContent className="w-72 p-2" side="right" align="start" onClick={(e) => e.stopPropagation()}>
-              {showNewSpotForm ? (
-                <div className="space-y-2">
-                  <p className="text-xs font-semibold text-foreground">Neuen Spot erstellen:</p>
-                  <Input
-                    placeholder="Name (z.B. Muttermal rechts)"
-                    value={newSpotName}
-                    onChange={(e) => setNewSpotName(e.target.value)}
-                    className="h-8 text-xs"
-                    autoFocus
-                    onKeyDown={(e) => {
-                      if (e.key === "Enter" && pendingPin && onCreateSpotAndLink) {
-                        onCreateSpotAndLink(newSpotName.trim() || "Neuer Spot", pendingPin, overviewLocation.id);
-                        setNewSpotName("");
-                        setShowNewSpotForm(false);
-                        setPendingPin(null);
-                        setPinMode(false);
-                      }
-                    }}
-                  />
-                  <div className="flex gap-1.5">
-                    <Button
-                      size="sm"
-                      className="flex-1 text-xs h-8"
-                      onClick={() => {
-                        if (pendingPin && onCreateSpotAndLink) {
-                          onCreateSpotAndLink(newSpotName.trim() || "Neuer Spot", pendingPin, overviewLocation.id);
-                          setNewSpotName("");
-                          setShowNewSpotForm(false);
-                          setPendingPin(null);
-                          setPinMode(false);
-                        }
-                      }}
-                    >
-                      <Plus className="h-3 w-3 mr-1" />
-                      Spot erstellen
-                    </Button>
-                    <Button size="sm" variant="ghost" className="text-xs h-8" onClick={() => setShowNewSpotForm(false)}>
-                      Zurück
-                    </Button>
-                  </div>
-                </div>
-              ) : (
-                <>
-                  <p className="text-xs font-semibold text-foreground mb-2">Mit Spot verknüpfen:</p>
+              <>
+                <p className="text-xs font-semibold text-foreground mb-2">Mit Spot verknüpfen:</p>
 
                   {onCreateSpotAndLink && (
                     <button
