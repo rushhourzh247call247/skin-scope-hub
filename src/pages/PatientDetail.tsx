@@ -76,6 +76,7 @@ const PatientDetail = () => {
   const [editingFindingText, setEditingFindingText] = useState("");
   const [classificationFilter, setClassificationFilter] = useState<LesionClassificationType[]>([]);
   const [qrDialogOpen, setQrDialogOpen] = useState(false);
+  const [qrLocationId, setQrLocationId] = useState<number | null>(null);
   const [deleteConfirmId, setDeleteConfirmId] = useState<number | null>(null);
   const [showTrash, setShowTrash] = useState(false);
   const [permanentDeleteId, setPermanentDeleteId] = useState<number | null>(null);
