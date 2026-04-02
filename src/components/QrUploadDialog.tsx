@@ -9,7 +9,7 @@ import {
   DialogTitle,
   DialogDescription,
 } from "@/components/ui/dialog";
-import { QrCode, Copy, Check, Clock, MapPin, Loader2 } from "lucide-react";
+import { QrCode, Copy, Check, Clock, MapPin, Loader2, ExternalLink } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface QrUploadDialogProps {
@@ -166,23 +166,35 @@ const QrUploadDialog = ({
               <span>Gültig für ca. {displayMinutes} Minuten</span>
             </div>
 
-            {/* Copy URL */}
-            <Button
-              variant="outline"
-              size="sm"
-              className="w-full text-xs gap-1.5"
-              onClick={copyUrl}
-            >
-              {copied ? (
-                <>
-                  <Check className="h-3 w-3 text-clinical-success" /> Kopiert!
-                </>
-              ) : (
-                <>
-                  <Copy className="h-3 w-3" /> Link kopieren
-                </>
-              )}
-            </Button>
+            {/* Copy URL & Open Link */}
+            <div className="flex gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                className="flex-1 text-xs gap-1.5"
+                onClick={copyUrl}
+              >
+                {copied ? (
+                  <>
+                    <Check className="h-3 w-3 text-clinical-success" /> Kopiert!
+                  </>
+                ) : (
+                  <>
+                    <Copy className="h-3 w-3" /> Link kopieren
+                  </>
+                )}
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                className="flex-1 text-xs gap-1.5"
+                asChild
+              >
+                <a href={session.upload_url} target="_blank" rel="noopener noreferrer">
+                  <ExternalLink className="h-3 w-3" /> Link öffnen
+                </a>
+              </Button>
+            </div>
 
             {/* Regenerate */}
             <Button
