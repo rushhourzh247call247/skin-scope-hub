@@ -84,13 +84,47 @@ const ImageCompare = ({ images, locationName, onClose }: ImageCompareProps) => {
 
   const isAlignmentModified = overlayRotation !== 0 || overlayScale !== 100 || overlayOffsetX !== 0 || overlayOffsetY !== 0;
 
-  const handleAutoAlign = () => {
-    setOverlayRotation(0);
-    setOverlayScale(100);
-    setOverlayOffsetX(0);
-    setOverlayOffsetY(0);
-    if (selected.length === 2) {
-      api.saveImageAlignment(selected[0], selected[1], { rotation: 0, scale: 100, offset_x: 0, offset_y: 0 });
+  const handleAutoAlign = async () => {
+    if (selected.length !== 2 || !compareImages) {
+      // Fallback: just reset
+      setOverlayRotation(0);
+      setOverlayScale(100);
+      setOverlayOffsetX(0);
+      setOverlayOffsetY(0);
+      return;
+    }
+
+    setIsAutoAligning(true);
+    try {
+      const baseSrc = api.resolveImageSrc(compareImages[0]);
+      const overlaySrc = api.resolveImageSrc(compareImages[1]);
+      const result = await alignImages(baseSrc, overlaySrc);
+
+      setOverlayRotation(result.rotation);
+      setOverlayScale(result.scale);
+      setOverlayOffsetX(result.offset_x);
+      setOverlayOffsetY(result.offset_y);
+
+      api.saveImageAlignment(selected[0], selected[1], {
+        rotation: result.rotation,
+        scale: result.scale,
+        offset_x: result.offset_x,
+        offset_y: result.offset_y,
+      });
+
+      toast.success("Bilder automatisch ausgerichtet");
+    } catch (err) {
+      console.error("[AutoAlign] Error:", err);
+      toast.error("Automatische Ausrichtung fehlgeschlagen – Werte zurückgesetzt");
+      setOverlayRotation(0);
+      setOverlayScale(100);
+      setOverlayOffsetX(0);
+      setOverlayOffsetY(0);
+      if (selected.length === 2) {
+        api.saveImageAlignment(selected[0], selected[1], { rotation: 0, scale: 100, offset_x: 0, offset_y: 0 });
+      }
+    } finally {
+      setIsAutoAligning(false);
     }
   };
 
