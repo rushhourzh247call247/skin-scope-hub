@@ -33,8 +33,8 @@ export const calibrationData = [
   { label: "Rechter Fuß", gender: "male", x3d: -0.2279, y3d: -1.1299, z3d: 0.0461, view: "front" },
   { label: "Linke Hand", gender: "male", x3d: 0.63, y3d: 0.0962, z3d: 0.011, view: "front" },
   { label: "Rechte Hand", gender: "male", x3d: -0.6351, y3d: 0.1048, z3d: 0.001, view: "front" },
-  { label: "Linkes Ohr", gender: "male", x3d: 0.09, y3d: 1.05, z3d: 0.02, view: "front" },
-  { label: "Rechtes Ohr", gender: "male", x3d: -0.09, y3d: 1.05, z3d: 0.02, view: "front" },
+  { label: "Linkes Ohr", gender: "male", x3d: 0.1085, y3d: 1.0501, z3d: -0.0316, view: "back" },
+  { label: "Rechtes Ohr", gender: "male", x3d: -0.1133, y3d: 1.0756, z3d: -0.0353, view: "back" },
 
   // ═══ MALE — BACK ═══
   { label: "Hinterkopf", gender: "male", x3d: -0.0043, y3d: 1.132, z3d: -0.1485, view: "back" },
@@ -92,8 +92,8 @@ export const calibrationData = [
   { label: "Rechter Unterarm", gender: "female", x3d: -0.5869, y3d: 0.4177, z3d: 0.0498, view: "front" },
   { label: "Linke Hand", gender: "female", x3d: 0.8146, y3d: 0.2624, z3d: 0.1397, view: "front" },
   { label: "Rechte Hand", gender: "female", x3d: -0.8113, y3d: 0.2617, z3d: 0.1427, view: "front" },
-  { label: "Linkes Ohr", gender: "female", x3d: 0.09, y3d: 1.05, z3d: 0.02, view: "front" },
-  { label: "Rechtes Ohr", gender: "female", x3d: -0.09, y3d: 1.05, z3d: 0.02, view: "front" },
+  { label: "Linkes Ohr", gender: "female", x3d: 0.1232, y3d: 1.1068, z3d: -0.0268, view: "back" },
+  { label: "Rechtes Ohr", gender: "female", x3d: -0.1081, y3d: 1.0701, z3d: -0.0208, view: "back" },
 
   // ═══ FEMALE — BACK ═══
   { label: "Hinterkopf", gender: "female", x3d: -0.0055, y3d: 1.155, z3d: -0.1362, view: "back" },
