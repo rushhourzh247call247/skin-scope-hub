@@ -364,6 +364,7 @@ const PatientDetail = () => {
                 { key: "uebersicht" as const, icon: Eye, label: "ÜBERSICHT" },
                 { key: "fotos" as const, icon: Camera, label: "FOTOS" },
                 { key: "timeline" as const, icon: Activity, label: "TIMELINE" },
+                { key: "berichte" as const, icon: FileDown, label: "BERICHTE" },
               ].map(tab => (
                 <button
                   key={tab.key}
