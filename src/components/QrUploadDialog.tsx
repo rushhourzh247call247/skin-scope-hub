@@ -9,7 +9,7 @@ import {
   DialogTitle,
   DialogDescription,
 } from "@/components/ui/dialog";
-import { QrCode, Copy, Check, Clock, MapPin, Loader2 } from "lucide-react";
+import { QrCode, Copy, Check, Clock, MapPin, Loader2, ExternalLink } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface QrUploadDialogProps {
