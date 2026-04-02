@@ -9,6 +9,43 @@
 
 type View = "front" | "back";
 
+/** All possible anatomical zone names for dropdown selection */
+export const ANATOMICAL_ZONES = [
+  // Kopf / Gesicht
+  "Stirn", "Linke Augenbraue", "Rechte Augenbraue",
+  "Linke Augenregion", "Rechte Augenregion", "Nasenwurzel",
+  "Nase", "Linke Wange", "Rechte Wange",
+  "Mund", "Kinn", "Linkes Ohr", "Rechtes Ohr",
+  // Kopf hinten
+  "Hinterkopf", "Hinterkopf (unterer)",
+  // Hals
+  "Hals", "Nacken",
+  // Schultern
+  "Linke Schulter", "Rechte Schulter",
+  "Linke Schulter (dorsal)", "Rechte Schulter (dorsal)",
+  // Brust / Rücken
+  "Obere Brust", "Brust", "Oberer Rücken",
+  // Bauch / Rücken
+  "Bauch", "Mittlerer Rücken", "Unterer Rücken",
+  // Unterbauch / Becken
+  "Unterbauch", "Linke Hüfte", "Rechte Hüfte",
+  "Gesäß", "Linke Gesäßhälfte", "Rechte Gesäßhälfte",
+  // Arme
+  "Linker Oberarm", "Rechter Oberarm",
+  "Linker Unterarm", "Rechter Unterarm",
+  "Linke Hand", "Rechte Hand",
+  // Beine
+  "Linker Oberschenkel", "Rechter Oberschenkel",
+  "Linker Oberschenkel (distal)", "Rechter Oberschenkel (distal)",
+  "Linker Oberschenkel (dorsal)", "Rechter Oberschenkel (dorsal)",
+  "Linkes Knie", "Rechtes Knie",
+  "Linke Kniekehle", "Rechte Kniekehle",
+  "Linker Unterschenkel", "Rechter Unterschenkel",
+  "Linke Wade", "Rechte Wade",
+  "Linker Fuß", "Rechter Fuß",
+  "Linke Ferse", "Rechte Ferse",
+] as const;
+
 /** Arms extend beyond this |x| from the body center */
 const ARM_X_THRESHOLD = 0.32;
 

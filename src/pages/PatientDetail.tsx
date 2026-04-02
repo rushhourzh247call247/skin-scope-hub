@@ -532,12 +532,16 @@ const PatientDetail = () => {
 
               <div className="space-y-1.5">
                 <Label className="text-[10px]">Bezeichnung</Label>
-                <Input
-                  placeholder={mapClickDialog.markType === "region" ? "z.B. Oberer Rücken..." : "z.B. Linker Unterarm..."}
+                <select
                   value={locationName}
                   onChange={(e) => setLocationName(e.target.value)}
-                  className="h-8 text-xs"
-                />
+                  className="flex h-8 w-full rounded-md border border-input bg-background px-2 py-1 text-xs ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                >
+                  <option value="">Zone wählen…</option>
+                  {ANATOMICAL_ZONES.map((zone) => (
+                    <option key={zone} value={zone}>{zone}</option>
+                  ))}
+                </select>
               </div>
               <Button className="w-full h-8 text-xs" onClick={handleCreateLocation} disabled={createLocationMutation.isPending}>
                 {createLocationMutation.isPending ? "Wird erstellt…" : mapClickDialog.markType === "region" ? "Region anlegen" : "Spot anlegen"}
