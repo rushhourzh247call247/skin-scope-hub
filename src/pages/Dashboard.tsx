@@ -151,6 +151,9 @@ const Dashboard = () => {
         )}
       </div>
 
+      {/* Company User Counts (Admin only) */}
+      {isAdmin && <CompanyUserCounts />}
+
       {/* Recent Patients */}
       {data.recentPatients && data.recentPatients.length > 0 && (
         <Card>
