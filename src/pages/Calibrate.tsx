@@ -201,7 +201,7 @@ function SceneContent({
         <CalibrationBody gender={gender} onClick={handleClick} />
       </Suspense>
 
-      {placedLabels.map((pl) => (
+      {!hideMarkers && placedLabels.map((pl) => (
         <LabelMarker
           key={pl.id}
           label={pl.label}
