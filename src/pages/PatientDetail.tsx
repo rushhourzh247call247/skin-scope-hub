@@ -348,6 +348,7 @@ const PatientDetail = () => {
             <div className="flex items-center gap-1 rounded-lg bg-muted p-0.5 lg:p-1">
               {[
                 { key: "spots" as const, icon: MapPin, label: "SPOTS" },
+                { key: "uebersicht" as const, icon: Eye, label: "ÜBERSICHT" },
                 { key: "fotos" as const, icon: Camera, label: "FOTOS" },
                 { key: "timeline" as const, icon: Activity, label: "TIMELINE" },
               ].map(tab => (
