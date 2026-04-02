@@ -566,7 +566,7 @@ const PatientDetail = () => {
                     >
                       <button
                         className="flex items-center gap-2.5 flex-1 min-w-0 text-left"
-                        onClick={() => { setActiveTab("uebersicht"); }}
+                        onClick={() => { setSelectedLocationId(null); setActiveTab("uebersicht"); }}
                       >
                         {firstImg ? (
                           <img
