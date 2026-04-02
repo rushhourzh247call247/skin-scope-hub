@@ -146,13 +146,26 @@ export async function alignImages(
   // which are relative, so offset needs to be proportional
   const scaleBack = baseImg.naturalWidth / (Math.min(baseImg.naturalWidth, baseImg.naturalHeight, 512));
 
-  const result: AlignmentResult = {
+  const rawResult: AlignmentResult = {
     rotation: Math.round(rotation * 10) / 10,
     scale: Math.round(scale * 100),
     offset_x: Math.round(tx * scaleBack),
     offset_y: Math.round(ty * scaleBack),
   };
 
-  console.log("[ImageAlign] Result:", result);
-  return result;
+  // Safety bounds: reject extreme values that would make images unrecognizable
+  const isSafe =
+    Math.abs(rawResult.rotation) <= 45 &&
+    rawResult.scale >= 50 &&
+    rawResult.scale <= 200 &&
+    Math.abs(rawResult.offset_x) <= 200 &&
+    Math.abs(rawResult.offset_y) <= 200;
+
+  if (!isSafe) {
+    console.warn("[ImageAlign] Result outside safety bounds, ignoring:", rawResult);
+    return { rotation: 0, scale: 100, offset_x: 0, offset_y: 0 };
+  }
+
+  console.log("[ImageAlign] Result:", rawResult);
+  return rawResult;
 }
