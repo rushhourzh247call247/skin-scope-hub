@@ -906,7 +906,7 @@ function Scene({ markers, selectedLocationId, onMapClick, onMarkerClick, classif
         </Html>
       )}
 
-      {spots.map((m) => {
+      {spots.map((m, i) => {
         const cls = (m.classification as LesionClassification) || "unclassified";
         const isHighRisk = HIGH_RISK_CLASSIFICATIONS.includes(cls);
         const hasCoords = m.x != null && m.y != null;
@@ -922,6 +922,7 @@ function Scene({ markers, selectedLocationId, onMapClick, onMarkerClick, classif
             <SpotMarker
               position={[0, 0, 0]}
               name={m.name}
+              index={i}
               isSelected={m.id === selectedLocationId}
               onClick={() => onMarkerClick?.(m.id)}
               imageCount={m.imageCount}
