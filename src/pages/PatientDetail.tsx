@@ -797,6 +797,27 @@ const PatientDetail = () => {
                           setSelectedLocationId(locationId);
                           setQrDialogOpen(true);
                         }}
+                        onCreateSpotAndLink={async (name, pinCoords, overviewLocId) => {
+                          try {
+                            const newLoc = await api.createLocation(patientId, {
+                              name: name || "Neuer Spot",
+                              x: 0, y: 0, view: "front", type: "spot",
+                            });
+                            await api.createOverviewPin(overviewLocId, {
+                              linked_location_id: newLoc.id,
+                              x_pct: pinCoords.x_pct,
+                              y_pct: pinCoords.y_pct,
+                              label: name || "Neuer Spot",
+                            });
+                            queryClient.invalidateQueries({ queryKey: ["full-patient", patientId] });
+                            queryClient.invalidateQueries({ queryKey: ["overview-pins", overviewLocId] });
+                            setSelectedLocationId(newLoc.id);
+                            setActiveTab("spots");
+                            toast.success(`Spot "${name || "Neuer Spot"}" erstellt und verknüpft`);
+                          } catch {
+                            toast.error("Fehler beim Erstellen des Spots");
+                          }
+                        }}
                       />
                     ))}
                   </div>
