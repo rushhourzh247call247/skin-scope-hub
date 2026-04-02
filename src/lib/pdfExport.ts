@@ -2,7 +2,7 @@ import jsPDF from "jspdf";
 import "jspdf-autotable";
 import { ROBOTO_REGULAR } from "@/assets/fonts/roboto-regular";
 import { ROBOTO_BOLD } from "@/assets/fonts/roboto-bold";
-import type { FullPatient, LocationImage } from "@/types/patient";
+import type { FullPatient, LocationImage, PdfExportOptions } from "@/types/patient";
 import { LESION_CLASSIFICATIONS } from "@/types/patient";
 import { format } from "date-fns";
 import { de } from "date-fns/locale";
@@ -98,7 +98,18 @@ async function loadImageAsBase64(url: string): Promise<string | null> {
   return await loadViaFetch();
 }
 
-export async function generatePatientPDF(patient: FullPatient, mode: "preview" | "download" = "download", doctorName?: string): Promise<string | void> {
+const DEFAULT_OPTIONS: PdfExportOptions = {
+  reportType: "fullHistory",
+  showClassification: true,
+  showAbcde: true,
+  showRiskScore: true,
+  showImages: true,
+  showNotes: true,
+  doctorSummary: "",
+};
+
+export async function generatePatientPDF(patient: FullPatient, mode: "preview" | "download" = "download", doctorName?: string, opts?: PdfExportOptions): Promise<string | void> {
+  const options = { ...DEFAULT_OPTIONS, ...opts };
   const imageCache: Record<number, string | null> = {};
   const doc = new jsPDF({ orientation: "portrait", unit: "mm", format: "a4" });
   registerFonts(doc);
@@ -170,6 +181,28 @@ export async function generatePatientPDF(patient: FullPatient, mode: "preview" |
   doc.text(`Hautstellen: ${locations.length}  |  Bilder: ${totalImages}  |  Kritische Stellen (Score >= 4): ${highRiskSpots}`, margin, y);
   y += 8;
 
+  // Doctor Summary (if provided)
+  if (options.doctorSummary.trim()) {
+    if (y > 240) { doc.addPage(); y = margin; }
+    doc.setFillColor(237, 242, 255); // light blue tint
+    const summaryLines = doc.splitTextToSize(clean(options.doctorSummary), contentWidth - 8);
+    const boxH = summaryLines.length * 4 + 10;
+    doc.rect(margin, y - 4, contentWidth, boxH, "F");
+    doc.setFontSize(10);
+    doc.setFont("Roboto", "bold");
+    doc.setTextColor(30, 41, 59);
+    doc.text("Ärztliche Zusammenfassung", margin + 4, y);
+    y += 5;
+    doc.setFont("Roboto", "normal");
+    doc.setFontSize(9);
+    doc.setTextColor(0, 0, 0);
+    for (const line of summaryLines) {
+      doc.text(line, margin + 4, y);
+      y += 4;
+    }
+    y += 5;
+  }
+
   // Per spot
   for (const loc of locations) {
     // Check page space
@@ -185,20 +218,28 @@ export async function generatePatientPDF(patient: FullPatient, mode: "preview" |
 
     // Spot header
     doc.setFillColor(241, 245, 249); // slate-100
-    doc.rect(margin, y - 4, contentWidth, 8, "F");
+    const headerH = options.showClassification ? 8 : 6;
+    doc.rect(margin, y - 4, contentWidth, headerH, "F");
     doc.setFontSize(11);
     doc.setFont("Roboto", "bold");
     doc.setTextColor(30, 41, 59);
     doc.text(`${spotName}`, margin + 2, y);
-    doc.setFontSize(8);
-    doc.setFont("Roboto", "normal");
-    doc.text(`Klassifizierung: ${classification}`, margin + 2, y + 5);
+    if (options.showClassification) {
+      doc.setFontSize(8);
+      doc.setFont("Roboto", "normal");
+      doc.text(`Klassifizierung: ${classification}`, margin + 2, y + 5);
+    }
     doc.setTextColor(0, 0, 0);
-    y += 12;
+    y += options.showClassification ? 12 : 8;
 
-    const images = [...(loc.images ?? [])].sort(
+    let images = [...(loc.images ?? [])].sort(
       (a, b) => new Date(a.created_at ?? 0).getTime() - new Date(b.created_at ?? 0).getTime()
     );
+
+    // For "lastVisit" mode, keep only the latest image per spot
+    if (options.reportType === "lastVisit" && images.length > 0) {
+      images = [images[images.length - 1]];
+    }
 
     if (images.length === 0) {
       doc.setFontSize(9);
@@ -211,8 +252,7 @@ export async function generatePatientPDF(patient: FullPatient, mode: "preview" |
     const scores = images
       .map(img => img.risk_score)
       .filter((s): s is number => s != null);
-
-    if (scores.length > 0) {
+    if (options.showRiskScore && scores.length > 0) {
       const latest = scores[scores.length - 1];
       const first = scores[0];
       const diff = latest - first;
@@ -271,6 +311,7 @@ export async function generatePatientPDF(patient: FullPatient, mode: "preview" |
     }
 
     // Images (max 4)
+    if (options.showImages) {
     const displayImages = images.slice(-4);
     const imgSize = 30;
     const imgGap = 4;
@@ -329,12 +370,12 @@ export async function generatePatientPDF(patient: FullPatient, mode: "preview" |
 
       imgX += imgSize + imgGap;
     }
-    y += imgSize + 8;
+    } // end showImages
 
     // ABCDE for latest image
     const latestImg = images[images.length - 1];
     const abcdeLines = getAbcdeLabel(latestImg);
-    if (abcdeLines.length > 0) {
+    if (options.showAbcde && abcdeLines.length > 0) {
       doc.setFontSize(8);
       doc.setFont("Roboto", "bold");
       doc.text("ABCDE-Bewertung (letzte Aufnahme):", margin + 2, y);
@@ -348,7 +389,7 @@ export async function generatePatientPDF(patient: FullPatient, mode: "preview" |
     }
 
     // Notes
-    if (latestImg.note) {
+    if (options.showNotes && latestImg.note) {
       doc.setFontSize(8);
       doc.setFont("Roboto", "normal");
       doc.text(clean(`Notiz: ${latestImg.note}`), margin + 2, y);

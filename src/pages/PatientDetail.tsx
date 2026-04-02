@@ -27,6 +27,8 @@ import { Textarea } from "@/components/ui/textarea";
 import { AnimatePresence, motion } from "framer-motion";
 import { cn } from "@/lib/utils";
 import { generatePatientPDF, getPatientPdfFilename } from "@/lib/pdfExport";
+import PdfExportDialog from "@/components/PdfExportDialog";
+import PdfReportHistory from "@/components/PdfReportHistory";
 import { toast } from "sonner";
 import {
   Dialog,
@@ -66,7 +68,7 @@ const PatientDetail = () => {
     nz?: number;
   } | null>(null);
   const [locationName, setLocationName] = useState("");
-  const [activeTab, setActiveTab] = useState<"spots" | "timeline" | "fotos" | "uebersicht">("spots");
+  const [activeTab, setActiveTab] = useState<"spots" | "timeline" | "fotos" | "uebersicht" | "berichte">("spots");
   const [newFindingText, setNewFindingText] = useState("");
   const [regionWidth, setRegionWidth] = useState(40);
   const [regionHeight, setRegionHeight] = useState(30);
@@ -83,6 +85,7 @@ const PatientDetail = () => {
   const [mobileMapExpanded, setMobileMapExpanded] = useState(true);
   const [pdfLoading, setPdfLoading] = useState(false);
   const [pdfPreviewUrl, setPdfPreviewUrl] = useState<string | null>(null);
+  const [pdfDialogOpen, setPdfDialogOpen] = useState(false);
 
   const handlePdfExport = async () => {
     if (!patient) return;
@@ -361,6 +364,7 @@ const PatientDetail = () => {
                 { key: "uebersicht" as const, icon: Eye, label: "ÜBERSICHT" },
                 { key: "fotos" as const, icon: Camera, label: "FOTOS" },
                 { key: "timeline" as const, icon: Activity, label: "TIMELINE" },
+                { key: "berichte" as const, icon: FileDown, label: "BERICHTE" },
               ].map(tab => (
                 <button
                   key={tab.key}
@@ -380,12 +384,11 @@ const PatientDetail = () => {
             <Button
               variant="outline"
               size="icon"
-              onClick={handlePdfExport}
-              disabled={pdfLoading}
+              onClick={() => setPdfDialogOpen(true)}
               className="h-7 w-7 lg:h-8 lg:w-8"
               title="PDF Export"
             >
-              {pdfLoading ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <FileDown className="h-3.5 w-3.5" />}
+              <FileDown className="h-3.5 w-3.5" />
             </Button>
           </div>
         </div>
@@ -1016,6 +1019,24 @@ const PatientDetail = () => {
                   );
                 })()}
               </motion.div>
+            ) : activeTab === "berichte" ? (
+              <motion.div
+                key="berichte"
+                initial={{ opacity: 0, y: 8 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -8 }}
+                transition={{ duration: 0.15 }}
+                className="space-y-4"
+              >
+                <div className="flex items-center justify-between">
+                  <h2 className="text-lg font-semibold text-foreground">Berichte</h2>
+                  <Button onClick={() => setPdfDialogOpen(true)} size="sm" className="gap-1.5">
+                    <FileDown className="h-3.5 w-3.5" />
+                    Neuer Bericht
+                  </Button>
+                </div>
+                <PdfReportHistory patientId={patient.id} patientName={patient.name} />
+              </motion.div>
             ) : selectedLocation ? (
               <motion.div
                 key={selectedLocation.id}
@@ -1429,6 +1450,14 @@ const PatientDetail = () => {
           </div>
         </DialogContent>
       </Dialog>
+
+      {/* PDF Export Dialog */}
+      <PdfExportDialog
+        open={pdfDialogOpen}
+        onOpenChange={setPdfDialogOpen}
+        patient={patient}
+        doctorName={user?.name}
+      />
     </div>
   );
 };
