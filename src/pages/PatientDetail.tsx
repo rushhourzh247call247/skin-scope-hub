@@ -1450,6 +1450,14 @@ const PatientDetail = () => {
           </div>
         </DialogContent>
       </Dialog>
+
+      {/* PDF Export Dialog */}
+      <PdfExportDialog
+        open={pdfDialogOpen}
+        onOpenChange={setPdfDialogOpen}
+        patient={patient}
+        doctorName={user?.name}
+      />
     </div>
   );
 };
