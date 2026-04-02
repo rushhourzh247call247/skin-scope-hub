@@ -1,47 +1,75 @@
 
 
-# Anatomie-Zonen kalibrieren — neuer Ansatz
+# Übersichtsfoto mit Läsions-Markierungen
 
-## Problem
-Die Browser-Automatisierung kann nicht auf das WebGL-Canvas klicken. Die aktuellen Schwellenwerte sind geschätzt und falsch.
+## Konzept
 
-## Lösung: Zwei-Schritte-Ansatz
+Die Ärztin fotografiert eine **Körperregion im Überblick** (z.B. den ganzen Rücken). Auf diesem Übersichtsfoto kann sie dann **Pins setzen**, die einzelne Muttermale/Läsionen markieren. Jeder Pin wird mit einem bestehenden Spot verknüpft — klickt man auf den Pin, springt die Ansicht zur Nahaufnahme (Dermoskopie-Bild) des jeweiligen Spots.
 
-### Schritt 1: Live-Koordinaten-Overlay (temporär)
-Ein schwebendes Label, das beim Hover über das 3D-Modell die aktuelle y3d-Koordinate und den erkannten Zonennamen in Echtzeit anzeigt. So kann der Benutzer sofort sehen, welche Koordinaten wo entstehen und ob die Zuordnung stimmt.
+```text
+┌─────────────────────────────────┐
+│  Übersichtsfoto (Rücken)        │
+│                                 │
+│       📌 Spot A                 │
+│                  📌 Spot B      │
+│    📌 Spot C                    │
+│                                 │
+│  [+ Pin setzen]                 │
+└─────────────────────────────────┘
+         │ Klick auf Pin
+         ▼
+┌─────────────────────────────────┐
+│  Spot A — Nahaufnahme           │
+│  🔍 Dermoskopie-Bild            │
+│  ABCDE-Bewertung                │
+└─────────────────────────────────┘
+```
 
-**Umsetzung**: In `BodyMap3D.tsx` ein `onPointerMove`-Event auf dem Body-Mesh, das ein `<Html>`-Overlay mit `y3d: 0.45 → Brust` anzeigt. Nur im Spot-Platzierungsmodus sichtbar.
+## Umsetzung
 
-### Schritt 2: Schwellenwerte auf anatomische Proportionen justieren
-Für ein 2,5-Einheiten-Modell (y: -1,25 bis +1,25) gelten folgende Standard-Proportionen:
+### 1. Neuer Typ: `overview` als LocationType
 
-| Zone | Aktuell (y3d ≥) | Neu (y3d ≥) | Anatomische Begründung |
-|------|-----------------|-------------|----------------------|
-| Stirn/Kopf | 0.95 | 1.05 | Oberste 8% = Stirn |
-| Hals/Nacken | 0.82 | 0.88 | Kinn bis Schulteransatz |
-| Schulter (breit) | 0.65 | 0.70 | Schulterlinie |
-| Brust / Ob. Rücken | 0.30 | 0.40 | Brustwarzen bei ~55% Höhe |
-| Bauch / Mittl. Rücken | 0.00 | 0.05 | Nabel bei ~56% von unten |
-| Unterbauch | -0.20 | -0.15 | Beckenkamm |
-| Hüfte/Gesäß | -0.40 | -0.35 | Leistenregion |
-| Oberschenkel | -0.65 | -0.55 | Oberschenkelschaft |
-| Ob.schenkel distal | -0.82 | -0.75 | Oberhalb Knie |
-| Knie | -0.90 | -0.85 | Kniegelenk |
-| Unterschenkel | -1.10 | -1.05 | Schienbein |
+`LocationType` wird um `"overview"` erweitert. Ein Overview-Location speichert ein Übersichtsfoto und hat **keine 3D-Koordinaten** — es erscheint nicht auf der Body Map, sondern in einem eigenen Tab.
 
-Arm-Schwelle `ARM_X_THRESHOLD` bleibt bei 0.38.
+### 2. Pin-Datenstruktur
 
-### Dateien
+Neue Tabelle/Datenstruktur `overview_pins`:
+- `id`, `overview_location_id` (FK → Location mit type=overview)
+- `x_pct`, `y_pct` — Position des Pins auf dem Foto in Prozent (0–100)
+- `linked_location_id` (FK → ein bestehender Spot)
+- `label` (optional, z.B. "Spot 3")
+
+### 3. Neuer Tab "Übersicht" in der Patientendetailseite
+
+Ein vierter Tab neben Spots / Timeline / Fotos:
+- Zeigt alle Übersichtsfotos des Patienten
+- Jedes Foto ist interaktiv: Pins werden als farbige Marker dargestellt
+- **Pin setzen**: Klick auf das Foto → Dropdown erscheint mit Liste aller Spots → Auswahl verknüpft den Pin
+- **Pin klicken**: Navigiert zum verknüpften Spot (wechselt zu Spots-Tab, selektiert den Spot, fokussiert die 3D-Kamera)
+
+### 4. UI-Komponente `OverviewPhoto`
+
+- Zeigt das Foto responsive an
+- Pins als nummerierte, farbige Kreise (Farbe = Klassifikation des verknüpften Spots)
+- Hover zeigt Tooltip mit Spot-Name + kleines Vorschaubild der Nahaufnahme
+- "Bearbeiten"-Modus zum Verschieben/Löschen von Pins
+- Upload-Button für neue Übersichtsfotos
+
+### 5. Dateien die geändert/erstellt werden
 
 | Datei | Änderung |
 |-------|----------|
-| `src/components/BodyMap3D.tsx` | Temporäres Hover-Overlay mit y3d + Zonenname im Platzierungsmodus |
-| `src/lib/anatomyLookup.ts` | Schwellenwerte auf anatomische Proportionen anpassen |
+| `src/types/patient.ts` | `LocationType` um `"overview"` erweitern, `OverviewPin` Interface |
+| `src/lib/api.ts` | CRUD-Endpunkte für Overview-Pins |
+| `src/components/OverviewPhoto.tsx` | **Neu** — Interaktives Foto mit Pin-Overlay |
+| `src/pages/PatientDetail.tsx` | Neuer Tab "Übersicht", Upload-Flow, Pin↔Spot-Navigation |
+| Backend/Migration | Tabelle `overview_pins` anlegen |
 
-### Workflow danach
-1. Benutzer aktiviert Spot-Modus, fährt mit der Maus über den Körper
-2. Overlay zeigt live: `y: 0.52 → Brust`
-3. Falls Zonen noch falsch: Benutzer teilt die konkreten y-Werte mit, die an bestimmten Körperstellen angezeigt werden
-4. Schwellenwerte werden präzise nachjustiert
-5. Overlay wird am Ende entfernt
+### 6. Workflow für die Ärztin
+
+1. Patientendetailseite → Tab "Übersicht" → "Foto hochladen"
+2. Foto vom Rücken/Arm/Bein wird angezeigt
+3. Klick auf eine Stelle im Foto → "Mit welchem Spot verknüpfen?" → Spot aus Liste wählen
+4. Pin erscheint mit der Nummer/Farbe des Spots
+5. Später: Pin antippen → springt direkt zur Nahaufnahme des Spots
 
