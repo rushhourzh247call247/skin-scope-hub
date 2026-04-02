@@ -183,14 +183,14 @@ const OverviewPhoto = ({ overviewLocation, spotLocations, patientId, onNavigateT
             </div>
           ) : (
             <button
-              className="flex items-center gap-2 group"
+              className="flex items-center gap-1.5 rounded-md px-1.5 py-0.5 -ml-1.5 hover:bg-muted transition-colors group"
               onClick={() => { setRenameValue(overviewLocation.name || ""); setIsRenaming(true); }}
               title="Klicken zum Umbenennen"
             >
-              <h4 className="text-sm font-medium text-foreground group-hover:text-primary transition-colors">
+              <h4 className="text-sm font-medium text-foreground">
                 {overviewLocation.name || "Übersichtsfoto"}
               </h4>
-              <Pencil className="h-3 w-3 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity" />
+              <Pencil className="h-3 w-3 text-muted-foreground" />
             </button>
           )}
           <Badge variant="outline" className="text-[10px]">
