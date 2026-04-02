@@ -44,6 +44,39 @@ const ImageCompare = ({ images, locationName, onClose }: ImageCompareProps) => {
 
   const hasAutoAligned = useRef<string | null>(null);
 
+  const compareImages = selected.length === 2
+    ? [...images].sort((a, b) => new Date(a.created_at ?? 0).getTime() - new Date(b.created_at ?? 0).getTime()).filter((img) => selected.includes(img.id))
+    : null;
+
+  // Silent auto-align (no toast on success, no error toast – just best-effort)
+  const runAutoAlign = useCallback(async (silent: boolean) => {
+    if (selected.length !== 2 || !compareImages) return;
+    setIsAutoAligning(true);
+    try {
+      const baseSrc = api.resolveImageSrc(compareImages[0]);
+      const overlaySrc = api.resolveImageSrc(compareImages[1]);
+      const result = await alignImages(baseSrc, overlaySrc);
+      setOverlayRotation(result.rotation);
+      setOverlayScale(result.scale);
+      setOverlayOffsetX(result.offset_x);
+      setOverlayOffsetY(result.offset_y);
+      api.saveImageAlignment(selected[0], selected[1], {
+        rotation: result.rotation, scale: result.scale,
+        offset_x: result.offset_x, offset_y: result.offset_y,
+      });
+      if (!silent) toast.success("Bilder automatisch ausgerichtet");
+    } catch (err) {
+      console.error("[AutoAlign] Error:", err);
+      if (!silent) {
+        toast.error("Automatische Ausrichtung fehlgeschlagen – Werte zurückgesetzt");
+        setOverlayRotation(0); setOverlayScale(100); setOverlayOffsetX(0); setOverlayOffsetY(0);
+        api.saveImageAlignment(selected[0], selected[1], { rotation: 0, scale: 100, offset_x: 0, offset_y: 0 });
+      }
+    } finally {
+      setIsAutoAligning(false);
+    }
+  }, [selected, compareImages]);
+
   // Load saved alignment when two images are selected; auto-align if no saved data
   useEffect(() => {
     if (selected.length === 2) {
@@ -54,19 +87,15 @@ const ImageCompare = ({ images, locationName, onClose }: ImageCompareProps) => {
         setOverlayScale(saved.scale ?? 100);
         setOverlayOffsetX(saved.offset_x ?? 0);
         setOverlayOffsetY(saved.offset_y ?? 0);
-        // Auto-align only if no saved alignment and not already done for this pair
         if (!hasSaved && hasAutoAligned.current !== pairKey) {
           hasAutoAligned.current = pairKey;
-          handleAutoAlignSilent();
+          runAutoAlign(true);
         }
       }).catch(() => {
-        setOverlayRotation(0);
-        setOverlayScale(100);
-        setOverlayOffsetX(0);
-        setOverlayOffsetY(0);
+        setOverlayRotation(0); setOverlayScale(100); setOverlayOffsetX(0); setOverlayOffsetY(0);
         if (hasAutoAligned.current !== pairKey) {
           hasAutoAligned.current = pairKey;
-          handleAutoAlignSilent();
+          runAutoAlign(true);
         }
       });
     }
