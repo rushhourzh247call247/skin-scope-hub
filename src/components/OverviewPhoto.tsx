@@ -36,7 +36,7 @@ interface OverviewPhotoProps {
   onCreateSpotAndLink?: (name: string, pinCoords: { x_pct: number; y_pct: number }, overviewLocationId: number) => void;
 }
 
-const OverviewPhoto = ({ overviewLocation, spotLocations, patientId, onNavigateToSpot, onDelete, onQrUpload }: OverviewPhotoProps) => {
+const OverviewPhoto = ({ overviewLocation, spotLocations, patientId, onNavigateToSpot, onDelete, onQrUpload, onCreateSpotAndLink }: OverviewPhotoProps) => {
   const queryClient = useQueryClient();
   const fileRef = useRef<HTMLInputElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -46,6 +46,8 @@ const OverviewPhoto = ({ overviewLocation, spotLocations, patientId, onNavigateT
   const [editMode, setEditMode] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState<number | null>(null);
   const [hoveredPin, setHoveredPin] = useState<number | null>(null);
+  const [showNewSpotForm, setShowNewSpotForm] = useState(false);
+  const [newSpotName, setNewSpotName] = useState("");
 
   const { data: pins = [] } = useQuery({
     queryKey: ["overview-pins", overviewLocation.id],
