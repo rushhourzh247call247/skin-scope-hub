@@ -361,6 +361,11 @@ const ImageCompare = ({ images, locationName, onClose }: ImageCompareProps) => {
                       <><Wand2 className="h-3 w-3" /> KI Ausrichtung</>
                     )}
                   </Button>
+                  {isAlignmentModified && (
+                    <Button variant="ghost" size="sm" className="h-7 text-[10px] gap-1" onClick={handleReset}>
+                      <RotateCcw className="h-3 w-3" /> Reset
+                    </Button>
+                  )}
                   <button
                     onClick={() => setShowAlignControls(!showAlignControls)}
                     className={cn(
