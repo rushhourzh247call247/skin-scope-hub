@@ -30,7 +30,7 @@ function getFaceZone(x3d: number, y3d: number): string {
 
   // Ohr: seitlich vom Kopf, absX > 0.07, Höhe zwischen Auge und Kinn (~0.95–1.16)
   // Calibration estimate: ears at x≈±0.09, y≈1.05 (level with eyes/cheeks)
-  if (absX > 0.07 && y3d >= 0.95 && y3d <= 1.16) return `${sideF(x3d)}s Ohr`;
+  if (absX > 0.08 && y3d >= 0.96 && y3d <= 1.16) return `${sideF(x3d)}s Ohr`;
 
   // Stirn: above eyebrow level
   if (y3d >= 1.16) return "Stirn";
