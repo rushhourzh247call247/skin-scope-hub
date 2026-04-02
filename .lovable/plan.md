@@ -1,47 +1,47 @@
 
 
-## Problem
+## OpenCV.js Bildausrichtung – Sicherer Implementierungsplan
 
-In der Sidebar sind alle Spots aufgelistet, aber Übersichtsfotos sind nur über den separaten "ÜBERSICHT"-Tab im Hauptbereich erreichbar. Für Ärzte ist das zu versteckt – sie müssen zuerst den Tab wechseln, um Übersichtsfotos zu finden. Das kostet Zeit.
+### Was wird gemacht
+Der "Auto Ausrichten"-Button (der aktuell nur auf Null zurücksetzt) wird mit **echter Bildanalyse** ausgestattet. OpenCV.js wird **nur bei Klick** geladen und erkennt markante Punkte in beiden Bildern, um Rotation, Zoom und Versatz automatisch zu berechnen.
 
-## Lösung
+**Keine Server-Änderungen nötig. Kein API-Key. Keine externen Accounts. Funktioniert offline.**
 
-**Übersichtsfotos direkt in der linken Sidebar anzeigen** – oberhalb der Spots-Liste, als eigener, visuell abgehobener Bereich mit Kamera-Icon und Thumbnail-Vorschau. Ein Klick navigiert sofort zum ÜBERSICHT-Tab mit dem gewählten Foto.
+### Was sich ändert
 
-### Änderungen
+| Datei | Änderung | Risiko |
+|---|---|---|
+| `src/lib/opencvLoader.ts` | **Neu** – Lädt OpenCV.js bei Bedarf vom CDN | Keins (neue Datei) |
+| `src/lib/imageAlign.ts` | **Neu** – Feature-Matching Logik | Keins (neue Datei) |
+| `src/components/ImageCompare.tsx` | Button-Logik anpassen (nur `handleAutoAlign` Funktion, Zeile 84-92) | Minimal – nur eine Funktion wird geändert |
 
-**Datei: `src/pages/PatientDetail.tsx`**
+### Was NICHT angefasst wird
+- Kein Server-Code
+- Keine API-Änderungen
+- Keine bestehende Overlay-Logik (Slider, manuelle Steuerung, Auto-Save)
+- Keine anderen Komponenten
 
-1. **Neuer Sidebar-Bereich "ÜBERSICHTSFOTOS"** oberhalb der Spots-Liste (vor Zeile ~540):
-   - Kleine Sektion mit Überschrift "ÜBERSICHTSFOTOS" + Anzahl
-   - Jedes Übersichtsfoto als kompakte Karte mit Thumbnail (erstes Bild), Name, und Bildanzahl
-   - Klick wechselt zum `uebersicht`-Tab und selektiert das Foto
-   - Visuell abgehoben mit dezenter Hintergrundfarbe oder Border
-   - Nur angezeigt wenn `overviewLocations.length > 0`
+### Technischer Ablauf
 
-2. **Schnell-Button "+"** in der Übersichtsfotos-Sektion zum direkten Anlegen eines neuen Übersichtsfotos (gleiche Logik wie im ÜBERSICHT-Tab)
+1. **`src/lib/opencvLoader.ts`**: Lädt `opencv.js` per `<script>` Tag vom CDN. Wird gecacht, nur einmal geladen. Gibt ein Promise zurück das resolved wenn OpenCV bereit ist.
 
-### Visuelles Konzept
+2. **`src/lib/imageAlign.ts`**: 
+   - Lädt beide Bilder auf Canvas
+   - ORB Feature Detector findet markante Punkte (Muttermale, Hautstruktur)
+   - BFMatcher matched die Punkte zwischen den Bildern
+   - Berechnet Homographie-Matrix → extrahiert Rotation, Scale, Offset
+   - Gibt `{ rotation, scale, offset_x, offset_y }` zurück
 
-```text
-┌─────────────────────────┐
-│ 📷 ÜBERSICHTSFOTOS    2 │
-│ ┌─────────────────────┐ │
-│ │ 🖼 Rücken    3 Bilder│ │
-│ │ 🖼 Linker Arm 1 Bild│ │
-│ └─────────────────────┘ │
-│                         │
-│ 📍 SPOTS             8 │
-│  1  xyz                 │
-│  2  hfjhf               │
-│  ...                    │
-└─────────────────────────┘
-```
+3. **`src/components/ImageCompare.tsx`**:
+   - `handleAutoAlign` wird `async`
+   - Neuer State `isAutoAligning` für Spinner
+   - Bei Klick: OpenCV laden → Bilder analysieren → Werte setzen
+   - Bei Fehler: Toast + Reset auf 0 (wie bisher)
+   - Button-Text: "KI Ausrichtung" mit Wand2-Icon (bleibt gleich)
 
-### Technische Details
-
-- Übersichtsfotos-Thumbnails via `api.resolveImageSrc()` aus dem ersten Bild der Location
-- Klick-Handler: `setActiveTab("uebersicht")` + ggf. Scroll zum gewählten Foto
-- Kompakte Darstellung: max 1 Zeile pro Übersichtsfoto, mit kleinem Thumbnail (24x24px rounded)
-- Kein neuer State nötig – nutzt bestehende `overviewLocations`-Variable
+### Sicherheit
+- Zwei neue Dateien, eine minimale Änderung an bestehender Funktion
+- Fallback bei Fehler: Reset auf Standardwerte (identisch wie jetzt)
+- OpenCV.js ist eine etablierte Bibliothek (Millionen Nutzer)
+- Alles läuft im Browser, keine Daten verlassen das Gerät
 
