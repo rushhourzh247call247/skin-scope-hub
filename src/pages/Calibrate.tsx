@@ -15,6 +15,7 @@ const ZONE_LABELS_FRONT = [
   // Kopf / Gesicht
   "Stirn", "Augenbraue links", "Augenbraue rechts", "Auge links", "Auge rechts",
   "Nase", "Wange links", "Wange rechts", "Mund", "Kinn",
+  "Linkes Ohr", "Rechtes Ohr",
   // Hals & Torso
   "Hals", "Linke Schulter", "Rechte Schulter",
   "Obere Brust", "Brust", "Bauch (oben)", "Bauchnabel", "Unterbauch",
