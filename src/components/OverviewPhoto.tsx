@@ -62,6 +62,7 @@ const OverviewPhoto = ({ overviewLocation, spotLocations, patientId, onNavigateT
   const [overlayOffsetX, setOverlayOffsetX] = useState(0);
   const [overlayOffsetY, setOverlayOffsetY] = useState(0);
   const [showAlignControls, setShowAlignControls] = useState(false);
+  const [isAutoAligning, setIsAutoAligning] = useState(false);
   const [compareIndexA, setCompareIndexA] = useState(0);
   const [compareIndexB, setCompareIndexB] = useState(1);
   const [zoomedImageSrc, setZoomedImageSrc] = useState<string | null>(null);
