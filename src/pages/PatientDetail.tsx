@@ -383,12 +383,11 @@ const PatientDetail = () => {
             <Button
               variant="outline"
               size="icon"
-              onClick={handlePdfExport}
-              disabled={pdfLoading}
+              onClick={() => setPdfDialogOpen(true)}
               className="h-7 w-7 lg:h-8 lg:w-8"
               title="PDF Export"
             >
-              {pdfLoading ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <FileDown className="h-3.5 w-3.5" />}
+              <FileDown className="h-3.5 w-3.5" />
             </Button>
           </div>
         </div>
