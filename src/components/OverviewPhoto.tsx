@@ -3,7 +3,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { api } from "@/lib/api";
 import type { Location, OverviewPin, LocationImage, LesionClassification } from "@/types/patient";
 import { LESION_CLASSIFICATIONS } from "@/types/patient";
-import { Upload, Plus, X, Trash2, MapPin, Eye, Pencil, ImageIcon, Camera } from "lucide-react";
+import { Upload, Plus, X, Trash2, MapPin, Eye, Pencil, ImageIcon, Camera, QrCode } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
@@ -31,9 +31,11 @@ interface OverviewPhotoProps {
   spotLocations: (Location & { images: LocationImage[] })[];
   patientId: number;
   onNavigateToSpot: (locationId: number) => void;
+  onDelete?: (locationId: number) => void;
+  onQrUpload?: (locationId: number) => void;
 }
 
-const OverviewPhoto = ({ overviewLocation, spotLocations, patientId, onNavigateToSpot }: OverviewPhotoProps) => {
+const OverviewPhoto = ({ overviewLocation, spotLocations, patientId, onNavigateToSpot, onDelete, onQrUpload }: OverviewPhotoProps) => {
   const queryClient = useQueryClient();
   const fileRef = useRef<HTMLInputElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -181,6 +183,28 @@ const OverviewPhoto = ({ overviewLocation, spotLocations, patientId, onNavigateT
           >
             <Upload className="h-3.5 w-3.5" />
           </Button>
+          {onQrUpload && (
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={() => onQrUpload(overviewLocation.id)}
+              className="gap-1.5 text-xs h-8"
+              title="Foto vom Handy hochladen"
+            >
+              <QrCode className="h-3.5 w-3.5" />
+            </Button>
+          )}
+          {onDelete && (
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={() => onDelete(overviewLocation.id)}
+              className="gap-1.5 text-xs h-8 text-destructive hover:text-destructive hover:bg-destructive/10"
+              title="Übersichtsfoto löschen"
+            >
+              <Trash2 className="h-3.5 w-3.5" />
+            </Button>
+          )}
         </div>
       </div>
 
