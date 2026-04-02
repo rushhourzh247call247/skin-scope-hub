@@ -462,7 +462,6 @@ const OverviewPhoto = ({ overviewLocation, spotLocations, patientId, onNavigateT
                     </Button>
                   </div>
                 </>
-              )}
             </PopoverContent>
           </Popover>
         )}
