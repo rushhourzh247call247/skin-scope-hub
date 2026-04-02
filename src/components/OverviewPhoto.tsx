@@ -35,7 +35,7 @@ interface OverviewPhotoProps {
   onQrUpload?: (locationId: number) => void;
 }
 
-const OverviewPhoto = ({ overviewLocation, spotLocations, patientId, onNavigateToSpot }: OverviewPhotoProps) => {
+const OverviewPhoto = ({ overviewLocation, spotLocations, patientId, onNavigateToSpot, onDelete, onQrUpload }: OverviewPhotoProps) => {
   const queryClient = useQueryClient();
   const fileRef = useRef<HTMLInputElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
