@@ -584,7 +584,7 @@ const PatientDetail = () => {
                       </button>
                       <div className="flex items-center gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity shrink-0">
                         <button
-                          onClick={(e) => { e.stopPropagation(); setSelectedLocationId(loc.id); setQrDialogOpen(true); }}
+                          onClick={(e) => { e.stopPropagation(); setQrLocationId(loc.id); setQrDialogOpen(true); }}
                           className="h-5 w-5 rounded flex items-center justify-center hover:bg-muted-foreground/10 text-muted-foreground hover:text-foreground"
                           title="Foto vom Handy hochladen"
                         >
