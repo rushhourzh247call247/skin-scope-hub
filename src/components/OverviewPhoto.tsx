@@ -164,9 +164,37 @@ const OverviewPhoto = ({ overviewLocation, spotLocations, patientId, onNavigateT
     <div className="space-y-3">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <h4 className="text-sm font-medium text-foreground">
-            {overviewLocation.name || "Übersichtsfoto"}
-          </h4>
+          {isRenaming ? (
+            <div className="flex items-center gap-1.5">
+              <Input
+                value={renameValue}
+                onChange={(e) => setRenameValue(e.target.value)}
+                className="h-7 text-sm w-40"
+                autoFocus
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") renameMutation.mutate(renameValue.trim() || overviewLocation.name || "Übersichtsfoto");
+                  if (e.key === "Escape") setIsRenaming(false);
+                }}
+              />
+              <Button size="sm" variant="ghost" className="h-7 px-2" onClick={() => renameMutation.mutate(renameValue.trim() || overviewLocation.name || "Übersichtsfoto")}>
+                <Save className="h-3 w-3" />
+              </Button>
+              <Button size="sm" variant="ghost" className="h-7 px-2" onClick={() => setIsRenaming(false)}>
+                <X className="h-3 w-3" />
+              </Button>
+            </div>
+          ) : (
+            <button
+              className="flex items-center gap-2 group"
+              onClick={() => { setRenameValue(overviewLocation.name || ""); setIsRenaming(true); }}
+              title="Klicken zum Umbenennen"
+            >
+              <h4 className="text-sm font-medium text-foreground group-hover:text-primary transition-colors">
+                {overviewLocation.name || "Übersichtsfoto"}
+              </h4>
+              <Pencil className="h-3 w-3 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity" />
+            </button>
+          )}
           <Badge variant="outline" className="text-[10px]">
             {pins.length} {pins.length === 1 ? "Pin" : "Pins"}
           </Badge>
