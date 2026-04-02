@@ -188,6 +188,12 @@ const PatientDetail = () => {
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ["full-patient", patientId] }),
   });
 
+  const opStatusMutation = useMutation({
+    mutationFn: ({ locationId, op_status }: { locationId: number; op_status: string }) =>
+      api.updateLocationStatus(locationId, op_status),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["full-patient", patientId] }),
+  });
+
   const { data: trashedLocations = [] } = useQuery({
     queryKey: ["trashed-locations", patientId],
     queryFn: () => api.getTrashedLocations(patientId),
