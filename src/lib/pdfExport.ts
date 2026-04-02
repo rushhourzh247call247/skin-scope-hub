@@ -232,9 +232,14 @@ export async function generatePatientPDF(patient: FullPatient, mode: "preview" |
     doc.setTextColor(0, 0, 0);
     y += options.showClassification ? 12 : 8;
 
-    const images = [...(loc.images ?? [])].sort(
+    let images = [...(loc.images ?? [])].sort(
       (a, b) => new Date(a.created_at ?? 0).getTime() - new Date(b.created_at ?? 0).getTime()
     );
+
+    // For "lastVisit" mode, keep only the latest image per spot
+    if (options.reportType === "lastVisit" && images.length > 0) {
+      images = [images[images.length - 1]];
+    }
 
     if (images.length === 0) {
       doc.setFontSize(9);
