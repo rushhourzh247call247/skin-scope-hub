@@ -181,6 +181,28 @@ export async function generatePatientPDF(patient: FullPatient, mode: "preview" |
   doc.text(`Hautstellen: ${locations.length}  |  Bilder: ${totalImages}  |  Kritische Stellen (Score >= 4): ${highRiskSpots}`, margin, y);
   y += 8;
 
+  // Doctor Summary (if provided)
+  if (options.doctorSummary.trim()) {
+    if (y > 240) { doc.addPage(); y = margin; }
+    doc.setFillColor(237, 242, 255); // light blue tint
+    const summaryLines = doc.splitTextToSize(clean(options.doctorSummary), contentWidth - 8);
+    const boxH = summaryLines.length * 4 + 10;
+    doc.rect(margin, y - 4, contentWidth, boxH, "F");
+    doc.setFontSize(10);
+    doc.setFont("Roboto", "bold");
+    doc.setTextColor(30, 41, 59);
+    doc.text("Ärztliche Zusammenfassung", margin + 4, y);
+    y += 5;
+    doc.setFont("Roboto", "normal");
+    doc.setFontSize(9);
+    doc.setTextColor(0, 0, 0);
+    for (const line of summaryLines) {
+      doc.text(line, margin + 4, y);
+      y += 4;
+    }
+    y += 5;
+  }
+
   // Per spot
   for (const loc of locations) {
     // Check page space
