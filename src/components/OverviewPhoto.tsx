@@ -31,6 +31,8 @@ interface OverviewPhotoProps {
   spotLocations: (Location & { images: LocationImage[] })[];
   patientId: number;
   onNavigateToSpot: (locationId: number) => void;
+  onDelete?: (locationId: number) => void;
+  onQrUpload?: (locationId: number) => void;
 }
 
 const OverviewPhoto = ({ overviewLocation, spotLocations, patientId, onNavigateToSpot }: OverviewPhotoProps) => {
