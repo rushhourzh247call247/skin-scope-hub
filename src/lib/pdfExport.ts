@@ -218,16 +218,19 @@ export async function generatePatientPDF(patient: FullPatient, mode: "preview" |
 
     // Spot header
     doc.setFillColor(241, 245, 249); // slate-100
-    doc.rect(margin, y - 4, contentWidth, 8, "F");
+    const headerH = options.showClassification ? 8 : 6;
+    doc.rect(margin, y - 4, contentWidth, headerH, "F");
     doc.setFontSize(11);
     doc.setFont("Roboto", "bold");
     doc.setTextColor(30, 41, 59);
     doc.text(`${spotName}`, margin + 2, y);
-    doc.setFontSize(8);
-    doc.setFont("Roboto", "normal");
-    doc.text(`Klassifizierung: ${classification}`, margin + 2, y + 5);
+    if (options.showClassification) {
+      doc.setFontSize(8);
+      doc.setFont("Roboto", "normal");
+      doc.text(`Klassifizierung: ${classification}`, margin + 2, y + 5);
+    }
     doc.setTextColor(0, 0, 0);
-    y += 12;
+    y += options.showClassification ? 12 : 8;
 
     const images = [...(loc.images ?? [])].sort(
       (a, b) => new Date(a.created_at ?? 0).getTime() - new Date(b.created_at ?? 0).getTime()
