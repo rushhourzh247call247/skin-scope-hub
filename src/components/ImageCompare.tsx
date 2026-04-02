@@ -406,7 +406,7 @@ const ImageCompare = ({ images, locationName, onClose }: ImageCompareProps) => {
                             variant="ghost"
                             size="sm"
                             className="h-6 px-2 text-[10px]"
-                            onClick={handleAutoAlign}
+                            onClick={() => { setOverlayRotation(0); setOverlayScale(100); setOverlayOffsetX(0); setOverlayOffsetY(0); }}
                           >
                             <RotateCcw className="mr-1 h-3 w-3" /> Reset
                           </Button>

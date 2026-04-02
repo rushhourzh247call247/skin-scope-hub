@@ -3,7 +3,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { api } from "@/lib/api";
 import type { Location, OverviewPin, LocationImage, LesionClassification } from "@/types/patient";
 import { LESION_CLASSIFICATIONS } from "@/types/patient";
-import { Upload, Plus, X, Trash2, MapPin, Eye, Pencil, ImageIcon, Camera, QrCode, Save, GitCompareArrows, Layers, Calendar, ZoomIn, ZoomOut, RotateCcw, Wand2, Move, RotateCw, ChevronDown } from "lucide-react";
+import { Upload, Plus, X, Trash2, MapPin, Eye, Pencil, ImageIcon, Camera, QrCode, Save, GitCompareArrows, Layers, Calendar, ZoomIn, ZoomOut, RotateCcw, Wand2, Move, RotateCw, ChevronDown, Loader2 } from "lucide-react";
 import { Slider } from "@/components/ui/slider";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -12,6 +12,7 @@ import { cn } from "@/lib/utils";
 import { format } from "date-fns";
 import { de } from "date-fns/locale";
 import { toast } from "sonner";
+import { alignImages } from "@/lib/imageAlign";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Popover,
@@ -61,6 +62,7 @@ const OverviewPhoto = ({ overviewLocation, spotLocations, patientId, onNavigateT
   const [overlayOffsetX, setOverlayOffsetX] = useState(0);
   const [overlayOffsetY, setOverlayOffsetY] = useState(0);
   const [showAlignControls, setShowAlignControls] = useState(false);
+  const [isAutoAligning, setIsAutoAligning] = useState(false);
   const [compareIndexA, setCompareIndexA] = useState(0);
   const [compareIndexB, setCompareIndexB] = useState(1);
   const [zoomedImageSrc, setZoomedImageSrc] = useState<string | null>(null);
@@ -755,8 +757,36 @@ const OverviewPhoto = ({ overviewLocation, spotLocations, patientId, onNavigateT
                     <Slider value={[overlayOpacity]} onValueChange={([v]) => setOverlayOpacity(v)} min={0} max={100} step={1} />
                   </div>
                   <div className="flex items-center gap-2">
-                    <Button variant="outline" size="sm" className="h-7 text-[10px] gap-1.5" onClick={handleReset}>
-                      <Wand2 className="h-3 w-3" /> Auto Ausrichten
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="h-7 text-[10px] gap-1.5"
+                      disabled={isAutoAligning}
+                      onClick={async () => {
+                        setIsAutoAligning(true);
+                        try {
+                          const baseSrc = api.resolveImageSrc(imgA);
+                          const overlaySrc = api.resolveImageSrc(imgB);
+                          const result = await alignImages(baseSrc, overlaySrc);
+                          setOverlayRotation(result.rotation);
+                          setOverlayScale(result.scale);
+                          setOverlayOffsetX(result.offset_x);
+                          setOverlayOffsetY(result.offset_y);
+                          toast.success("Bilder automatisch ausgerichtet");
+                        } catch (err) {
+                          console.error("[AutoAlign] Error:", err);
+                          toast.error("Automatische Ausrichtung fehlgeschlagen");
+                          handleReset();
+                        } finally {
+                          setIsAutoAligning(false);
+                        }
+                      }}
+                    >
+                      {isAutoAligning ? (
+                        <><Loader2 className="h-3 w-3 animate-spin" /> Analysiere…</>
+                      ) : (
+                        <><Wand2 className="h-3 w-3" /> KI Ausrichtung</>
+                      )}
                     </Button>
                     <button
                       onClick={() => setShowAlignControls(!showAlignControls)}
