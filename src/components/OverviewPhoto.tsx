@@ -290,7 +290,7 @@ const OverviewPhoto = ({ overviewLocation, spotLocations, patientId, onNavigateT
         <img
           src={api.resolveImageSrc(referenceImage)}
           alt="Übersichtsfoto"
-          className="w-full h-auto block"
+          className="w-full h-auto block max-h-[60vh] object-contain"
           draggable={false}
         />
 
