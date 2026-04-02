@@ -370,7 +370,7 @@ export async function generatePatientPDF(patient: FullPatient, mode: "preview" |
 
       imgX += imgSize + imgGap;
     }
-    y += imgSize + 8;
+    } // end showImages
 
     // ABCDE for latest image
     const latestImg = images[images.length - 1];
