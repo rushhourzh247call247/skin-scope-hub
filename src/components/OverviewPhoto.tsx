@@ -347,7 +347,7 @@ const OverviewPhoto = ({ overviewLocation, spotLocations, patientId, onNavigateT
                   style={{
                     left: `${pin.x_pct}%`,
                     top: `${pin.y_pct}%`,
-                    transform: `translate(-50%, ${pin.y_pct > 70 ? 'calc(-100% - 24px)' : '20px'})`,
+                    transform: `translate(-50%, ${pin.y_pct > 70 ? 'calc(-100% - 32px)' : '8px'})`,
                   }}
                 >
                   <div className="bg-card rounded-lg border shadow-xl p-2 min-w-[140px]">
