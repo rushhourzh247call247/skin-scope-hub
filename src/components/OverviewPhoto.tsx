@@ -324,7 +324,32 @@ const OverviewPhoto = ({ overviewLocation, spotLocations, patientId, onNavigateT
                 </svg>
               </div>
 
-              {/* Numbered label offset from the lesion, connected visually */}
+              {/* Leader line connecting crosshair to label */}
+              <div
+                className="absolute z-[9] pointer-events-none"
+                style={{
+                  left: `${pin.x_pct}%`,
+                  top: `${pin.y_pct}%`,
+                  width: `${Math.abs(labelOffsetX)}px`,
+                  height: `${Math.abs(labelOffsetY)}px`,
+                  transform: `translate(${labelOffsetX > 0 ? '0' : `${labelOffsetX}px`}, ${labelOffsetY > 0 ? '0' : `${labelOffsetY}px`})`,
+                  borderLeft: labelOffsetX > 0 ? 'none' : 'none',
+                }}
+              >
+                <svg width="100%" height="100%" className="overflow-visible">
+                  <line
+                    x1={labelOffsetX > 0 ? "0" : "100%"}
+                    y1={labelOffsetY > 0 ? "0" : "100%"}
+                    x2={labelOffsetX > 0 ? "100%" : "0"}
+                    y2={labelOffsetY > 0 ? "100%" : "0"}
+                    stroke={color}
+                    strokeWidth="1"
+                    strokeOpacity="0.5"
+                    strokeDasharray="3 2"
+                  />
+                </svg>
+              </div>
+
               <button
                 className={cn(
                   "absolute z-10 transition-transform hover:scale-110",
