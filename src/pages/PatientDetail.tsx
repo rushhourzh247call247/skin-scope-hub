@@ -1099,7 +1099,45 @@ const PatientDetail = () => {
                   </div>
                 )}
 
-                {selectedLocation.type === "region" && (selectedLocation.images?.length ?? 0) >= 2 && (
+                {/* OP Status */}
+                {selectedLocation.type !== "region" && (
+                  <div className="rounded-lg border bg-card p-4 space-y-3">
+                    <h4 className="text-xs font-semibold text-foreground uppercase tracking-wider flex items-center gap-2">
+                      <Activity className="h-3.5 w-3.5 text-primary" />
+                      Klinischer Status
+                    </h4>
+                    <div className="flex gap-1.5">
+                      {([
+                        { key: "none", label: "Kein Status", icon: "–" },
+                        { key: "praesens", label: "Status praesens", icon: "Sp" },
+                        { key: "post", label: "Status post", icon: "St.p." },
+                      ] as const).map((opt) => {
+                        const current = (selectedLocation as any).op_status || "none";
+                        const isActive = current === opt.key;
+                        return (
+                          <button
+                            key={opt.key}
+                            onClick={() => opStatusMutation.mutate({ locationId: selectedLocation.id, op_status: opt.key })}
+                            className={cn(
+                              "flex items-center gap-1.5 rounded-full px-3 py-1.5 text-[11px] font-medium border transition-all",
+                              isActive
+                                ? opt.key === "praesens"
+                                  ? "bg-sky-500/10 text-sky-600 border-sky-300 ring-1 ring-sky-300 dark:border-sky-700 dark:ring-sky-700"
+                                  : opt.key === "post"
+                                    ? "bg-emerald-500/10 text-emerald-600 border-emerald-300 ring-1 ring-emerald-300 dark:border-emerald-700 dark:ring-emerald-700"
+                                    : "bg-muted text-foreground border-border ring-1 ring-border"
+                                : "opacity-60 hover:opacity-100 border-border text-muted-foreground"
+                            )}
+                          >
+                            {opt.label}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
+
+
                   <div className="rounded-lg border bg-card p-4 space-y-4">
                     <h4 className="text-xs font-semibold text-foreground uppercase tracking-wider flex items-center gap-2">
                       <GitCompareArrows className="h-3.5 w-3.5 text-amber-500" />
