@@ -66,6 +66,40 @@ const OverviewPhoto = ({ overviewLocation, spotLocations, patientId, onNavigateT
   const [compareIndexA, setCompareIndexA] = useState(0);
   const [compareIndexB, setCompareIndexB] = useState(1);
   const [zoomedImageSrc, setZoomedImageSrc] = useState<string | null>(null);
+  const hasAutoAlignedOverview = useRef<string | null>(null);
+
+  // Auto-trigger KI alignment when compare mode opens
+  useEffect(() => {
+    if (!compareMode || overviewLocation.images.length < 2) return;
+    const sorted = [...overviewLocation.images].sort(
+      (a, b) => new Date(a.created_at ?? 0).getTime() - new Date(b.created_at ?? 0).getTime()
+    );
+    const imgA = sorted[compareIndexA];
+    const imgB = sorted[compareIndexB];
+    if (!imgA || !imgB) return;
+    const pairKey = `${imgA.id}-${imgB.id}`;
+    if (hasAutoAlignedOverview.current === pairKey) return;
+    hasAutoAlignedOverview.current = pairKey;
+
+    // Reset first, then auto-align silently
+    setOverlayRotation(0); setOverlayScale(100); setOverlayOffsetX(0); setOverlayOffsetY(0);
+    (async () => {
+      setIsAutoAligning(true);
+      try {
+        const baseSrc = api.resolveImageSrc(imgA);
+        const overlaySrc = api.resolveImageSrc(imgB);
+        const result = await alignImages(baseSrc, overlaySrc);
+        setOverlayRotation(result.rotation);
+        setOverlayScale(result.scale);
+        setOverlayOffsetX(result.offset_x);
+        setOverlayOffsetY(result.offset_y);
+      } catch (err) {
+        console.error("[AutoAlign Overview] Error:", err);
+      } finally {
+        setIsAutoAligning(false);
+      }
+    })();
+  }, [compareMode, compareIndexA, compareIndexB]);
 
   const { data: pins = [] } = useQuery({
     queryKey: ["overview-pins", overviewLocation.id],
