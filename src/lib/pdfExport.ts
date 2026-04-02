@@ -2,7 +2,7 @@ import jsPDF from "jspdf";
 import "jspdf-autotable";
 import { ROBOTO_REGULAR } from "@/assets/fonts/roboto-regular";
 import { ROBOTO_BOLD } from "@/assets/fonts/roboto-bold";
-import type { FullPatient, LocationImage } from "@/types/patient";
+import type { FullPatient, LocationImage, PdfExportOptions } from "@/types/patient";
 import { LESION_CLASSIFICATIONS } from "@/types/patient";
 import { format } from "date-fns";
 import { de } from "date-fns/locale";
