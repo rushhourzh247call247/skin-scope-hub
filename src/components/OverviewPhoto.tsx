@@ -299,18 +299,59 @@ const OverviewPhoto = ({ overviewLocation, spotLocations, patientId, onNavigateT
           const spot = getLinkedSpot(pin);
           const previewUrl = getSpotPreviewImage(pin);
 
+          // Smart label offset: leader line direction depends on pin position
+          // Label goes away from nearest edge to avoid clipping
+          const labelOffsetX = pin.x_pct > 50 ? -30 : 30;  // px offset for label
+          const labelOffsetY = pin.y_pct > 30 ? -28 : 28;   // label above if pin is lower, below if pin is at top
+
           return (
             <div key={pin.id}>
-              {/* Arrow-style pin: number label sits ABOVE the point, arrow tip points down to the lesion */}
+              {/* SVG leader line from pin point to label */}
+              <svg
+                className="absolute inset-0 w-full h-full z-10 pointer-events-none"
+                style={{ overflow: 'visible' }}
+              >
+                <line
+                  x1={`${pin.x_pct}%`}
+                  y1={`${pin.y_pct}%`}
+                  x2={`${pin.x_pct}%`}
+                  y2={`${pin.y_pct}%`}
+                  stroke={color}
+                  strokeWidth="1.5"
+                  className="leader-line"
+                  style={{
+                    transform: `translate(${labelOffsetX * 0.5}px, ${labelOffsetY * 0.5}px)`,
+                  }}
+                />
+              </svg>
+
+              {/* Tiny crosshair dot at the exact lesion point */}
+              <div
+                className="absolute z-10 pointer-events-none"
+                style={{
+                  left: `${pin.x_pct}%`,
+                  top: `${pin.y_pct}%`,
+                  transform: "translate(-50%, -50%)",
+                }}
+              >
+                <svg width="12" height="12" viewBox="0 0 12 12">
+                  <line x1="6" y1="0" x2="6" y2="4.5" stroke={color} strokeWidth="1.5" />
+                  <line x1="6" y1="7.5" x2="6" y2="12" stroke={color} strokeWidth="1.5" />
+                  <line x1="0" y1="6" x2="4.5" y2="6" stroke={color} strokeWidth="1.5" />
+                  <line x1="7.5" y1="6" x2="12" y2="6" stroke={color} strokeWidth="1.5" />
+                </svg>
+              </div>
+
+              {/* Leader line + numbered label, offset from the lesion */}
               <button
                 className={cn(
-                  "absolute flex flex-col items-center z-10 transition-transform hover:scale-110",
+                  "absolute z-10 transition-transform hover:scale-110",
                   editMode ? "cursor-move" : "cursor-pointer"
                 )}
                 style={{
                   left: `${pin.x_pct}%`,
                   top: `${pin.y_pct}%`,
-                  transform: "translate(-50%, -100%)",
+                  transform: `translate(calc(-50% + ${labelOffsetX}px), calc(-50% + ${labelOffsetY}px))`,
                 }}
                 onClick={(e) => {
                   e.stopPropagation();
@@ -324,9 +365,8 @@ const OverviewPhoto = ({ overviewLocation, spotLocations, patientId, onNavigateT
                 onMouseLeave={() => setHoveredPin(null)}
                 title={editMode ? "Klicken zum Löschen" : `→ ${spot?.name || pin.label || `Spot #${pin.linked_location_id}`}`}
               >
-                {/* Number badge */}
                 <span
-                  className="flex items-center justify-center rounded-full text-[10px] font-bold text-white shadow-md"
+                  className="flex items-center justify-center rounded-full text-[10px] font-bold text-white shadow-md border border-white/50"
                   style={{
                     width: 20,
                     height: 20,
@@ -335,11 +375,24 @@ const OverviewPhoto = ({ overviewLocation, spotLocations, patientId, onNavigateT
                 >
                   {editMode ? <Trash2 className="h-3 w-3 text-white" /> : i + 1}
                 </span>
-                {/* Arrow tip pointing down */}
-                <svg width="10" height="6" viewBox="0 0 10 6" className="-mt-[1px]">
-                  <polygon points="0,0 10,0 5,6" fill={color} />
-                </svg>
               </button>
+
+              {/* Leader line SVG overlay connecting crosshair to label */}
+              <svg
+                className="absolute inset-0 w-full h-full z-[9] pointer-events-none"
+                preserveAspectRatio="none"
+              >
+                <line
+                  x1={`${pin.x_pct}%`}
+                  y1={`${pin.y_pct}%`}
+                  x2={`${pin.x_pct}%`}
+                  y2={`${pin.y_pct}%`}
+                  stroke={color}
+                  strokeWidth="1"
+                  strokeOpacity="0.6"
+                  strokeDasharray="2 2"
+                />
+              </svg>
 
               {hoveredPin === pin.id && !editMode && (
                 <div
