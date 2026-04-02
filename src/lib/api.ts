@@ -159,9 +159,11 @@ export const api = {
   deleteFinding: (findingId: number) =>
     request<any>(`/findings/${findingId}`, { method: 'DELETE' }),
 
-  // Rename location
+  // Update location (name, op_status, etc.)
   renameLocation: (locationId: number, name: string) =>
     request<any>(`/locations/${locationId}`, { method: 'PUT', body: JSON.stringify({ name }) }),
+  updateLocationStatus: (locationId: number, op_status: string) =>
+    request<any>(`/locations/${locationId}`, { method: 'PUT', body: JSON.stringify({ op_status }) }),
 
   // Classification
   updateClassification: (locationId: number, classification: LesionClassification) =>

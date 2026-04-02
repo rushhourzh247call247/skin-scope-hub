@@ -78,6 +78,7 @@ export interface Location {
   ny?: number;
   nz?: number;
   classification?: LesionClassification;
+  op_status?: "none" | "praesens" | "post";
   created_at?: string;
   updated_at?: string;
   images?: LocationImage[];
