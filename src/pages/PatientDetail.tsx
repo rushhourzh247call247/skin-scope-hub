@@ -27,6 +27,8 @@ import { Textarea } from "@/components/ui/textarea";
 import { AnimatePresence, motion } from "framer-motion";
 import { cn } from "@/lib/utils";
 import { generatePatientPDF, getPatientPdfFilename } from "@/lib/pdfExport";
+import PdfExportDialog from "@/components/PdfExportDialog";
+import PdfReportHistory from "@/components/PdfReportHistory";
 import { toast } from "sonner";
 import {
   Dialog,
