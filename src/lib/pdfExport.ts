@@ -375,7 +375,7 @@ export async function generatePatientPDF(patient: FullPatient, mode: "preview" |
     // ABCDE for latest image
     const latestImg = images[images.length - 1];
     const abcdeLines = getAbcdeLabel(latestImg);
-    if (abcdeLines.length > 0) {
+    if (options.showAbcde && abcdeLines.length > 0) {
       doc.setFontSize(8);
       doc.setFont("Roboto", "bold");
       doc.text("ABCDE-Bewertung (letzte Aufnahme):", margin + 2, y);
@@ -389,7 +389,7 @@ export async function generatePatientPDF(patient: FullPatient, mode: "preview" |
     }
 
     // Notes
-    if (latestImg.note) {
+    if (options.showNotes && latestImg.note) {
       doc.setFontSize(8);
       doc.setFont("Roboto", "normal");
       doc.text(clean(`Notiz: ${latestImg.note}`), margin + 2, y);
