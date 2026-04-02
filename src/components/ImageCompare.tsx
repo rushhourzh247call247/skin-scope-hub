@@ -33,6 +33,7 @@ const ImageCompare = ({ images, locationName, onClose }: ImageCompareProps) => {
   const [overlayOffsetX, setOverlayOffsetX] = useState(0);
   const [overlayOffsetY, setOverlayOffsetY] = useState(0);
   const [showAlignControls, setShowAlignControls] = useState(false);
+  const [isAutoAligning, setIsAutoAligning] = useState(false);
   const [noteValues, setNoteValues] = useState<Record<number, string>>(() => {
     const initial: Record<number, string> = {};
     images.forEach(img => { if (img.note) initial[img.id] = img.note; });
