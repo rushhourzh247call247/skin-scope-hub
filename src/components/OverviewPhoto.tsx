@@ -3,7 +3,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { api } from "@/lib/api";
 import type { Location, OverviewPin, LocationImage, LesionClassification } from "@/types/patient";
 import { LESION_CLASSIFICATIONS } from "@/types/patient";
-import { Upload, Plus, X, Trash2, MapPin, Eye, Pencil, ImageIcon, Camera, QrCode } from "lucide-react";
+import { Upload, Plus, X, Trash2, MapPin, Eye, Pencil, ImageIcon, Camera, QrCode, Save } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
@@ -47,13 +47,23 @@ const OverviewPhoto = ({ overviewLocation, spotLocations, patientId, onNavigateT
   const [editMode, setEditMode] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState<number | null>(null);
   const [hoveredPin, setHoveredPin] = useState<number | null>(null);
-  const [showNewSpotForm, setShowNewSpotForm] = useState(false);
-  const [newSpotName, setNewSpotName] = useState("");
+
+  const [isRenaming, setIsRenaming] = useState(false);
+  const [renameValue, setRenameValue] = useState("");
 
   const { data: pins = [] } = useQuery({
     queryKey: ["overview-pins", overviewLocation.id],
     queryFn: () => api.getOverviewPins(overviewLocation.id),
     enabled: !!overviewLocation.id,
+  });
+
+  const renameMutation = useMutation({
+    mutationFn: (name: string) => api.renameLocation(overviewLocation.id, name),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["full-patient", patientId] });
+      setIsRenaming(false);
+      toast.success("Umbenannt");
+    },
   });
 
   const createPinMutation = useMutation({
@@ -152,9 +162,37 @@ const OverviewPhoto = ({ overviewLocation, spotLocations, patientId, onNavigateT
     <div className="space-y-3">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <h4 className="text-sm font-medium text-foreground">
-            {overviewLocation.name || "Übersichtsfoto"}
-          </h4>
+          {isRenaming ? (
+            <div className="flex items-center gap-1.5">
+              <Input
+                value={renameValue}
+                onChange={(e) => setRenameValue(e.target.value)}
+                className="h-7 text-sm w-40"
+                autoFocus
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") renameMutation.mutate(renameValue.trim() || overviewLocation.name || "Übersichtsfoto");
+                  if (e.key === "Escape") setIsRenaming(false);
+                }}
+              />
+              <Button size="sm" variant="ghost" className="h-7 px-2" onClick={() => renameMutation.mutate(renameValue.trim() || overviewLocation.name || "Übersichtsfoto")}>
+                <Save className="h-3 w-3" />
+              </Button>
+              <Button size="sm" variant="ghost" className="h-7 px-2" onClick={() => setIsRenaming(false)}>
+                <X className="h-3 w-3" />
+              </Button>
+            </div>
+          ) : (
+            <button
+              className="flex items-center gap-2 group"
+              onClick={() => { setRenameValue(overviewLocation.name || ""); setIsRenaming(true); }}
+              title="Klicken zum Umbenennen"
+            >
+              <h4 className="text-sm font-medium text-foreground group-hover:text-primary transition-colors">
+                {overviewLocation.name || "Übersichtsfoto"}
+              </h4>
+              <Pencil className="h-3 w-3 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity" />
+            </button>
+          )}
           <Badge variant="outline" className="text-[10px]">
             {pins.length} {pins.length === 1 ? "Pin" : "Pins"}
           </Badge>
@@ -348,54 +386,19 @@ const OverviewPhoto = ({ overviewLocation, spotLocations, patientId, onNavigateT
               </div>
             </PopoverTrigger>
             <PopoverContent className="w-72 p-2" side="right" align="start" onClick={(e) => e.stopPropagation()}>
-              {showNewSpotForm ? (
-                <div className="space-y-2">
-                  <p className="text-xs font-semibold text-foreground">Neuen Spot erstellen:</p>
-                  <Input
-                    placeholder="Name (z.B. Muttermal rechts)"
-                    value={newSpotName}
-                    onChange={(e) => setNewSpotName(e.target.value)}
-                    className="h-8 text-xs"
-                    autoFocus
-                    onKeyDown={(e) => {
-                      if (e.key === "Enter" && pendingPin && onCreateSpotAndLink) {
-                        onCreateSpotAndLink(newSpotName.trim() || "Neuer Spot", pendingPin, overviewLocation.id);
-                        setNewSpotName("");
-                        setShowNewSpotForm(false);
-                        setPendingPin(null);
-                        setPinMode(false);
-                      }
-                    }}
-                  />
-                  <div className="flex gap-1.5">
-                    <Button
-                      size="sm"
-                      className="flex-1 text-xs h-8"
+              <>
+                <p className="text-xs font-semibold text-foreground mb-2">Mit Spot verknüpfen:</p>
+
+                  {onCreateSpotAndLink && (
+                    <button
                       onClick={() => {
-                        if (pendingPin && onCreateSpotAndLink) {
-                          onCreateSpotAndLink(newSpotName.trim() || "Neuer Spot", pendingPin, overviewLocation.id);
-                          setNewSpotName("");
-                          setShowNewSpotForm(false);
+                        if (pendingPin) {
+                          const autoName = `Spot ${spotLocations.filter(s => s.type !== "overview").length + 1}`;
+                          onCreateSpotAndLink(autoName, pendingPin, overviewLocation.id);
                           setPendingPin(null);
                           setPinMode(false);
                         }
                       }}
-                    >
-                      <Plus className="h-3 w-3 mr-1" />
-                      Spot erstellen
-                    </Button>
-                    <Button size="sm" variant="ghost" className="text-xs h-8" onClick={() => setShowNewSpotForm(false)}>
-                      Zurück
-                    </Button>
-                  </div>
-                </div>
-              ) : (
-                <>
-                  <p className="text-xs font-semibold text-foreground mb-2">Mit Spot verknüpfen:</p>
-
-                  {onCreateSpotAndLink && (
-                    <button
-                      onClick={() => setShowNewSpotForm(true)}
                       className="flex w-full items-center gap-2 rounded-md px-2 py-2 text-left hover:bg-primary/10 border border-dashed border-primary/30 transition-colors mb-2"
                     >
                       <div className="h-7 w-7 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
@@ -403,7 +406,7 @@ const OverviewPhoto = ({ overviewLocation, spotLocations, patientId, onNavigateT
                       </div>
                       <div className="min-w-0 flex-1">
                         <p className="text-xs font-medium text-primary">Neuen Spot erstellen</p>
-                        <p className="text-[10px] text-muted-foreground">Pin mit neuem Spot verknüpfen</p>
+                        <p className="text-[10px] text-muted-foreground">Automatisch benannt, später umbenennbar</p>
                       </div>
                     </button>
                   )}
@@ -457,7 +460,6 @@ const OverviewPhoto = ({ overviewLocation, spotLocations, patientId, onNavigateT
                     </Button>
                   </div>
                 </>
-              )}
             </PopoverContent>
           </Popover>
         )}
