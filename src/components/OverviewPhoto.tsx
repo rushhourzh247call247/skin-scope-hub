@@ -770,4 +770,18 @@ const OverviewPhoto = ({ overviewLocation, spotLocations, patientId, onNavigateT
   );
 };
 
+function getOverviewDaysDiff(dateA: string, dateB: string): string {
+  const a = new Date(dateA);
+  const b = new Date(dateB);
+  const diffMs = Math.abs(b.getTime() - a.getTime());
+  const days = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+  if (days === 0) return "Gleicher Tag";
+  if (days < 30) return `${days} Tage`;
+  const months = Math.floor(days / 30);
+  if (months < 12) return `${months} Monat${months > 1 ? "e" : ""}`;
+  const years = Math.floor(months / 12);
+  const remMonths = months % 12;
+  return remMonths > 0 ? `${years} Jahr${years > 1 ? "e" : ""}, ${remMonths} Mon.` : `${years} Jahr${years > 1 ? "e" : ""}`;
+}
+
 export default OverviewPhoto;
