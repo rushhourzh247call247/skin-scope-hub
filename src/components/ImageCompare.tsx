@@ -367,8 +367,13 @@ const ImageCompare = ({ images, locationName, onClose }: ImageCompareProps) => {
                     size="sm"
                     className="h-7 text-[10px] gap-1.5"
                     onClick={handleAutoAlign}
+                    disabled={isAutoAligning}
                   >
-                    <Wand2 className="h-3 w-3" /> Auto Ausrichten
+                    {isAutoAligning ? (
+                      <><Loader2 className="h-3 w-3 animate-spin" /> Analysiere…</>
+                    ) : (
+                      <><Wand2 className="h-3 w-3" /> KI Ausrichtung</>
+                    )}
                   </Button>
                   <button
                     onClick={() => setShowAlignControls(!showAlignControls)}
