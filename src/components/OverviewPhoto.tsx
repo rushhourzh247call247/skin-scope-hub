@@ -46,6 +46,7 @@ const OverviewPhoto = ({ overviewLocation, spotLocations, patientId, onNavigateT
   const [uploading, setUploading] = useState(false);
   const [pinMode, setPinMode] = useState(false);
   const [pendingPin, setPendingPin] = useState<{ x_pct: number; y_pct: number } | null>(null);
+  const [zoomLevel, setZoomLevel] = useState(1);
   const [editMode, setEditMode] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState<number | null>(null);
   const [hoveredPin, setHoveredPin] = useState<number | null>(null);
