@@ -135,9 +135,10 @@ const OverviewPhoto = ({ overviewLocation, spotLocations, patientId, onNavigateT
     });
   };
 
-  const latestImage = overviewLocation.images?.length
+  // The FIRST (oldest) image is always the pin reference
+  const referenceImage = overviewLocation.images?.length
     ? [...overviewLocation.images].sort((a, b) =>
-        new Date(b.created_at ?? 0).getTime() - new Date(a.created_at ?? 0).getTime()
+        new Date(a.created_at ?? 0).getTime() - new Date(b.created_at ?? 0).getTime()
       )[0]
     : null;
 
@@ -156,7 +157,7 @@ const OverviewPhoto = ({ overviewLocation, spotLocations, patientId, onNavigateT
     return api.resolveImageSrc(spot.images[0]);
   };
 
-  if (!latestImage) {
+  if (!referenceImage) {
     return (
       <div className="flex flex-col items-center justify-center rounded-lg border border-dashed py-12 text-muted-foreground">
         <Camera className="mb-3 h-10 w-10" />
@@ -287,7 +288,7 @@ const OverviewPhoto = ({ overviewLocation, spotLocations, patientId, onNavigateT
         onClick={handleImageClick}
       >
         <img
-          src={api.resolveImageSrc(latestImage)}
+          src={api.resolveImageSrc(referenceImage)}
           alt="Übersichtsfoto"
           className="w-full h-auto block"
           draggable={false}
@@ -745,9 +746,9 @@ const OverviewPhoto = ({ overviewLocation, spotLocations, patientId, onNavigateT
         </div>
       )}
 
-      {latestImage?.created_at && (
+      {referenceImage?.created_at && (
         <p className="text-[10px] text-muted-foreground">
-          Aufnahme vom {format(new Date(latestImage.created_at), "dd.MM.yyyy", { locale: de })}
+          Aufnahme vom {format(new Date(referenceImage.created_at), "dd.MM.yyyy", { locale: de })}
           {overviewLocation.images.length > 1 && ` · ${overviewLocation.images.length} Fotos gespeichert`}
         </p>
       )}
