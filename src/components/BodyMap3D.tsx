@@ -235,9 +235,9 @@ const SpotMarker = React.forwardRef<THREE.Group, SpotMarkerProps>(function SpotM
           </mesh>
         )}
 
-        {/* Invisible click target */}
+        {/* Invisible click target – large enough for touch */}
         <mesh>
-          <circleGeometry args={[0.045, 16]} />
+          <circleGeometry args={[0.08, 16]} />
           <meshBasicMaterial transparent opacity={0} side={THREE.DoubleSide} depthTest={false} />
         </mesh>
       </group>
