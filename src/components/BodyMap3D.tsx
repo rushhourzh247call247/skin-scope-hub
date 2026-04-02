@@ -235,15 +235,15 @@ const SpotMarker = React.forwardRef<THREE.Group, SpotMarkerProps>(function SpotM
           </mesh>
         )}
 
-        {/* Invisible click target */}
+        {/* Invisible click target – large enough for touch */}
         <mesh>
-          <circleGeometry args={[0.045, 16]} />
+          <circleGeometry args={[0.08, 16]} />
           <meshBasicMaterial transparent opacity={0} side={THREE.DoubleSide} depthTest={false} />
         </mesh>
       </group>
 
       {/* Leader line + numbered badge (Html overlay) */}
-      <Html position={[0, 0, 0]} center={false} style={{ pointerEvents: "none" }}>
+      <Html position={[0, 0, 0]} center={false} style={{ pointerEvents: "auto" }}>
         <svg
           width="80" height="80"
           viewBox="-40 -40 80 80"
@@ -264,8 +264,12 @@ const SpotMarker = React.forwardRef<THREE.Group, SpotMarkerProps>(function SpotM
             position: "absolute",
             left: "22px",
             top: "-42px",
-            pointerEvents: "none",
+            pointerEvents: "auto",
+            cursor: "pointer",
+            padding: "6px",
+            margin: "-6px",
           }}
+          onClick={(e) => { e.stopPropagation(); onClick(); }}
         >
           <div
             className={cn(
