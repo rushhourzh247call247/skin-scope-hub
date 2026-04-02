@@ -183,6 +183,28 @@ const OverviewPhoto = ({ overviewLocation, spotLocations, patientId, onNavigateT
           >
             <Upload className="h-3.5 w-3.5" />
           </Button>
+          {onQrUpload && (
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={() => onQrUpload(overviewLocation.id)}
+              className="gap-1.5 text-xs h-8"
+              title="Foto vom Handy hochladen"
+            >
+              <QrCode className="h-3.5 w-3.5" />
+            </Button>
+          )}
+          {onDelete && (
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={() => onDelete(overviewLocation.id)}
+              className="gap-1.5 text-xs h-8 text-destructive hover:text-destructive hover:bg-destructive/10"
+              title="Übersichtsfoto löschen"
+            >
+              <Trash2 className="h-3.5 w-3.5" />
+            </Button>
+          )}
         </div>
       </div>
 
