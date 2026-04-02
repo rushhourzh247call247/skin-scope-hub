@@ -9,6 +9,8 @@ import { Textarea } from "@/components/ui/textarea";
 import { api } from "@/lib/api";
 import { cn } from "@/lib/utils";
 import { motion, AnimatePresence } from "framer-motion";
+import { alignImages } from "@/lib/imageAlign";
+import { toast } from "sonner";
 
 import {
   Dialog,
