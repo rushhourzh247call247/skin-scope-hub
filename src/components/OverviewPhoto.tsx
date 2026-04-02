@@ -47,8 +47,6 @@ const OverviewPhoto = ({ overviewLocation, spotLocations, patientId, onNavigateT
   const [editMode, setEditMode] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState<number | null>(null);
   const [hoveredPin, setHoveredPin] = useState<number | null>(null);
-  const [showNewSpotForm, setShowNewSpotForm] = useState(false);
-  const [newSpotName, setNewSpotName] = useState("");
 
   const [isRenaming, setIsRenaming] = useState(false);
   const [renameValue, setRenameValue] = useState("");
