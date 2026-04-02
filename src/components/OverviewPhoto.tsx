@@ -757,8 +757,36 @@ const OverviewPhoto = ({ overviewLocation, spotLocations, patientId, onNavigateT
                     <Slider value={[overlayOpacity]} onValueChange={([v]) => setOverlayOpacity(v)} min={0} max={100} step={1} />
                   </div>
                   <div className="flex items-center gap-2">
-                    <Button variant="outline" size="sm" className="h-7 text-[10px] gap-1.5" onClick={handleReset}>
-                      <Wand2 className="h-3 w-3" /> Auto Ausrichten
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="h-7 text-[10px] gap-1.5"
+                      disabled={isAutoAligning}
+                      onClick={async () => {
+                        setIsAutoAligning(true);
+                        try {
+                          const baseSrc = api.resolveImageSrc(imgA);
+                          const overlaySrc = api.resolveImageSrc(imgB);
+                          const result = await alignImages(baseSrc, overlaySrc);
+                          setOverlayRotation(result.rotation);
+                          setOverlayScale(result.scale);
+                          setOverlayOffsetX(result.offset_x);
+                          setOverlayOffsetY(result.offset_y);
+                          toast.success("Bilder automatisch ausgerichtet");
+                        } catch (err) {
+                          console.error("[AutoAlign] Error:", err);
+                          toast.error("Automatische Ausrichtung fehlgeschlagen");
+                          handleReset();
+                        } finally {
+                          setIsAutoAligning(false);
+                        }
+                      }}
+                    >
+                      {isAutoAligning ? (
+                        <><Loader2 className="h-3 w-3 animate-spin" /> Analysiere…</>
+                      ) : (
+                        <><Wand2 className="h-3 w-3" /> KI Ausrichtung</>
+                      )}
                     </Button>
                     <button
                       onClick={() => setShowAlignControls(!showAlignControls)}
