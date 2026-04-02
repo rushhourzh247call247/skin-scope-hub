@@ -233,6 +233,7 @@ export default function Calibrate() {
   const [placedLabels, setPlacedLabels] = useState<PlacedLabel[]>([]);
   const [hoverPoint, setHoverPoint] = useState<[number, number, number] | null>(null);
   const [hoverView, setHoverView] = useState<"front" | "back">("front");
+  const [hideMarkers, setHideMarkers] = useState(false);
   const { toast } = useToast();
 
   const allLabels = [...ZONE_LABELS_FRONT, ...ZONE_LABELS_BACK];
