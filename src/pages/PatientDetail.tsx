@@ -537,6 +537,46 @@ const PatientDetail = () => {
             </div>
           )}
 
+          {/* Overview Photos in Sidebar */}
+          {overviewLocations.length > 0 && (
+            <div className={cn("mt-3 lg:mt-4", !mobileMapExpanded && "lg:block")}>
+              <div className="flex items-center justify-between mb-2">
+                <h3 className="text-xs font-semibold text-foreground uppercase tracking-wider flex items-center gap-1.5">
+                  <Camera className="h-3 w-3" />
+                  Übersichtsfotos
+                </h3>
+                <span className="text-[10px] text-muted-foreground">{overviewLocations.length}</span>
+              </div>
+              <div className="space-y-1 mb-4">
+                {overviewLocations.map((loc) => {
+                  const firstImg = loc.images?.[0];
+                  const imgCount = loc.images?.length ?? 0;
+                  return (
+                    <button
+                      key={loc.id}
+                      className="flex w-full items-center gap-2.5 rounded-md px-2.5 py-1.5 text-left transition-all text-xs hover:bg-muted text-foreground border border-transparent bg-accent/30"
+                      onClick={() => { setActiveTab("uebersicht"); }}
+                    >
+                      {firstImg ? (
+                        <img
+                          src={api.resolveImageSrc(firstImg)}
+                          alt={loc.name}
+                          className="h-6 w-6 rounded object-cover shrink-0"
+                        />
+                      ) : (
+                        <div className="h-6 w-6 rounded bg-muted flex items-center justify-center shrink-0">
+                          <Camera className="h-3 w-3 text-muted-foreground" />
+                        </div>
+                      )}
+                      <span className="truncate font-medium flex-1">{loc.name || "Übersicht"}</span>
+                      <span className="text-[10px] text-muted-foreground shrink-0">{imgCount} {imgCount === 1 ? "Bild" : "Bilder"}</span>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+
           {/* Spots List - collapsible on mobile when map is collapsed */}
           <div className={cn("mt-3 lg:mt-4 space-y-1", !mobileMapExpanded && "lg:block")}>
             <div className="flex items-center justify-between mb-2">
