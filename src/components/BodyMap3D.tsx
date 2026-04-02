@@ -161,6 +161,18 @@ const SpotMarker = React.forwardRef<THREE.Group, SpotMarkerProps>(function SpotM
 ) {
   const groupRef = useRef<THREE.Group>(null);
   const [hovered, setHovered] = useState(false);
+  const lastTapRef = useRef<number>(0);
+
+  const handleDoubleTap = useCallback((e: ThreeEvent<PointerEvent>) => {
+    const now = Date.now();
+    if (now - lastTapRef.current < 400) {
+      e.stopPropagation();
+      onClick();
+      lastTapRef.current = 0;
+    } else {
+      lastTapRef.current = now;
+    }
+  }, [onClick]);
 
   useFrame(() => {
     if (!groupRef.current) return;
@@ -192,6 +204,7 @@ const SpotMarker = React.forwardRef<THREE.Group, SpotMarkerProps>(function SpotM
           e.stopPropagation();
           onClick();
         }}
+        onPointerDown={handleDoubleTap}
         onPointerOver={() => setHovered(true)}
         onPointerOut={() => setHovered(false)}
       >
@@ -330,6 +343,18 @@ const RegionMarker = React.forwardRef<THREE.Group, RegionMarkerProps>(function R
 ) {
   const groupRef = useRef<THREE.Group>(null);
   const [hovered, setHovered] = useState(false);
+  const lastTapRef = useRef<number>(0);
+
+  const handleDoubleTap = useCallback((e: ThreeEvent<PointerEvent>) => {
+    const now = Date.now();
+    if (now - lastTapRef.current < 400) {
+      e.stopPropagation();
+      onClick();
+      lastTapRef.current = 0;
+    } else {
+      lastTapRef.current = now;
+    }
+  }, [onClick]);
 
   // Convert 2D width/height to 3D scale
   const w3d = (width / 200) * 2;
@@ -365,6 +390,7 @@ const RegionMarker = React.forwardRef<THREE.Group, RegionMarkerProps>(function R
       <group
         ref={groupRef}
         onClick={(e) => { e.stopPropagation(); onClick(); }}
+        onPointerDown={handleDoubleTap}
         onPointerOver={() => setHovered(true)}
         onPointerOut={() => setHovered(false)}
       >
