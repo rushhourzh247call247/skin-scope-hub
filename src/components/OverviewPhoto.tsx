@@ -172,9 +172,9 @@ const OverviewPhoto = ({ overviewLocation, spotLocations, patientId, onNavigateT
   }
 
   return (
-    <div className="space-y-3">
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-2">
+    <div className="space-y-2">
+      {/* Header: name + badge */}
+      <div className="flex items-center gap-2">
           {isRenaming ? (
             <div className="flex items-center gap-1.5">
               <Input
@@ -209,60 +209,63 @@ const OverviewPhoto = ({ overviewLocation, spotLocations, patientId, onNavigateT
           <Badge variant="outline" className="text-[10px]">
             {pins.length} {pins.length === 1 ? "Pin" : "Pins"}
           </Badge>
-        </div>
-        <div className="flex items-center gap-1.5">
-          <Button
-            size="sm"
-            variant={pinMode ? "default" : "outline"}
-            onClick={() => { setPinMode(!pinMode); setPendingPin(null); setEditMode(false); }}
-            className="gap-1.5 text-xs h-8"
-          >
-            <Plus className="h-3.5 w-3.5" />
-            {pinMode ? "Pin-Modus aktiv" : "Pin setzen"}
-          </Button>
-          <Button
-            size="sm"
-            variant={editMode ? "default" : "outline"}
-            onClick={() => { setEditMode(!editMode); setPinMode(false); setPendingPin(null); }}
-            className="gap-1.5 text-xs h-8"
-          >
-            <Pencil className="h-3.5 w-3.5" />
-          </Button>
-          <input ref={fileRef} type="file" accept="image/*" className="hidden" onChange={handleUpload} />
+      </div>
+
+      {/* Toolbar: wraps on small screens */}
+      <div className="flex flex-wrap items-center gap-1.5">
+        <Button
+          size="sm"
+          variant={pinMode ? "default" : "outline"}
+          onClick={() => { setPinMode(!pinMode); setPendingPin(null); setEditMode(false); }}
+          className="gap-1 text-xs h-8"
+        >
+          <Plus className="h-3.5 w-3.5" />
+          <span>{pinMode ? "Pin ✓" : "Pin"}</span>
+        </Button>
+        <Button
+          size="sm"
+          variant={editMode ? "default" : "outline"}
+          onClick={() => { setEditMode(!editMode); setPinMode(false); setPendingPin(null); }}
+          className="gap-1 text-xs h-8"
+          title="Pins bearbeiten"
+        >
+          <Pencil className="h-3.5 w-3.5" />
+        </Button>
+        <input ref={fileRef} type="file" accept="image/*" className="hidden" onChange={handleUpload} />
+        <Button
+          size="sm"
+          variant="outline"
+          onClick={() => fileRef.current?.click()}
+          disabled={uploading}
+          className="gap-1 text-xs h-8 border-primary/40 text-primary hover:bg-primary/10"
+          title="Weiteres Foto zu dieser Übersicht hinzufügen"
+        >
+          <Upload className="h-3.5 w-3.5" />
+          <span>Foto +</span>
+        </Button>
+        {onQrUpload && (
           <Button
             size="sm"
             variant="outline"
-            onClick={() => fileRef.current?.click()}
-            disabled={uploading}
-            className="gap-1.5 text-xs h-8 border-primary/40 text-primary hover:bg-primary/10"
-            title="Weiteres Foto zu dieser Übersicht hinzufügen"
+            onClick={() => onQrUpload(overviewLocation.id)}
+            className="gap-1 text-xs h-8"
+            title="Foto vom Handy hochladen"
           >
-            <Upload className="h-3.5 w-3.5" />
-            <span className="hidden sm:inline">Foto +</span>
+            <QrCode className="h-3.5 w-3.5" />
+            <span>QR</span>
           </Button>
-          {onQrUpload && (
-            <Button
-              size="sm"
-              variant="outline"
-              onClick={() => onQrUpload(overviewLocation.id)}
-              className="gap-1.5 text-xs h-8"
-              title="Foto vom Handy hochladen"
-            >
-              <QrCode className="h-3.5 w-3.5" />
-            </Button>
-          )}
-          {onDelete && (
-            <Button
-              size="sm"
-              variant="outline"
-              onClick={() => onDelete(overviewLocation.id)}
-              className="gap-1.5 text-xs h-8 text-destructive hover:text-destructive hover:bg-destructive/10"
-              title="Übersichtsfoto löschen"
-            >
-              <Trash2 className="h-3.5 w-3.5" />
-            </Button>
-          )}
-        </div>
+        )}
+        {onDelete && (
+          <Button
+            size="sm"
+            variant="outline"
+            onClick={() => onDelete(overviewLocation.id)}
+            className="gap-1 text-xs h-8 text-destructive hover:text-destructive hover:bg-destructive/10"
+            title="Übersichtsfoto löschen"
+          >
+            <Trash2 className="h-3.5 w-3.5" />
+          </Button>
+        )}
       </div>
 
       {pinMode && (
