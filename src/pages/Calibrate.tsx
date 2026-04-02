@@ -144,6 +144,7 @@ function SceneContent({
   activeLabel,
   hoverPoint,
   hoverView,
+  hideMarkers,
   onPlace,
   onRemove,
   onHover,
@@ -153,6 +154,7 @@ function SceneContent({
   activeLabel: string | null;
   hoverPoint: [number, number, number] | null;
   hoverView: "front" | "back";
+  hideMarkers: boolean;
   onPlace: (x: number, y: number, z: number, view: "front" | "back") => void;
   onRemove: (id: string) => void;
   onHover: (point: [number, number, number] | null, view: "front" | "back") => void;
