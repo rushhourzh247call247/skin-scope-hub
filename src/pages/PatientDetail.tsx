@@ -552,25 +552,45 @@ const PatientDetail = () => {
                   const firstImg = loc.images?.[0];
                   const imgCount = loc.images?.length ?? 0;
                   return (
-                    <button
+                    <div
                       key={loc.id}
-                      className="flex w-full items-center gap-2.5 rounded-md px-2.5 py-1.5 text-left transition-all text-xs hover:bg-muted text-foreground border border-transparent bg-accent/30"
-                      onClick={() => { setActiveTab("uebersicht"); }}
+                      className="flex w-full items-center gap-2.5 rounded-md px-2.5 py-1.5 transition-all text-xs hover:bg-muted text-foreground border border-transparent bg-accent/30 group"
                     >
-                      {firstImg ? (
-                        <img
-                          src={api.resolveImageSrc(firstImg)}
-                          alt={loc.name}
-                          className="h-6 w-6 rounded object-cover shrink-0"
-                        />
-                      ) : (
-                        <div className="h-6 w-6 rounded bg-muted flex items-center justify-center shrink-0">
-                          <Camera className="h-3 w-3 text-muted-foreground" />
-                        </div>
-                      )}
-                      <span className="truncate font-medium flex-1">{loc.name || "Übersicht"}</span>
-                      <span className="text-[10px] text-muted-foreground shrink-0">{imgCount} {imgCount === 1 ? "Bild" : "Bilder"}</span>
-                    </button>
+                      <button
+                        className="flex items-center gap-2.5 flex-1 min-w-0 text-left"
+                        onClick={() => { setActiveTab("uebersicht"); }}
+                      >
+                        {firstImg ? (
+                          <img
+                            src={api.resolveImageSrc(firstImg)}
+                            alt={loc.name}
+                            className="h-6 w-6 rounded object-cover shrink-0"
+                          />
+                        ) : (
+                          <div className="h-6 w-6 rounded bg-muted flex items-center justify-center shrink-0">
+                            <Camera className="h-3 w-3 text-muted-foreground" />
+                          </div>
+                        )}
+                        <span className="truncate font-medium flex-1">{loc.name || "Übersicht"}</span>
+                        <span className="text-[10px] text-muted-foreground shrink-0">{imgCount} {imgCount === 1 ? "Bild" : "Bilder"}</span>
+                      </button>
+                      <div className="flex items-center gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity shrink-0">
+                        <button
+                          onClick={(e) => { e.stopPropagation(); setSelectedLocationId(loc.id); setQrDialogOpen(true); }}
+                          className="h-5 w-5 rounded flex items-center justify-center hover:bg-muted-foreground/10 text-muted-foreground hover:text-foreground"
+                          title="Foto vom Handy hochladen"
+                        >
+                          <QrCode className="h-3 w-3" />
+                        </button>
+                        <button
+                          onClick={(e) => { e.stopPropagation(); setDeleteConfirmId(loc.id); }}
+                          className="h-5 w-5 rounded flex items-center justify-center hover:bg-destructive/10 text-muted-foreground hover:text-destructive"
+                          title="Löschen"
+                        >
+                          <Trash2 className="h-3 w-3" />
+                        </button>
+                      </div>
+                    </div>
                   );
                 })}
               </div>
