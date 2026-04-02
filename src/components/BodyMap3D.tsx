@@ -1002,6 +1002,9 @@ const BodyMap3D: React.FC<BodyMap3DProps> = (props) => {
   const [markType, setMarkType] = useState<MarkType>("spot");
   const [placementAnchor, setPlacementAnchor] = useState<{ x: number; y: number; view: "front" | "back" } | null>(null);
   const gender = props.gender ?? "male";
+  // Track selection changes to force camera re-animation
+  const [focusKey, setFocusKey] = useState(0);
+  const prevSelectedRef = useRef<number | null>(null);
 
   // Freeze camera anchor during placement so camera won't jump while marker moves
   useEffect(() => {
@@ -1015,9 +1018,13 @@ const BodyMap3D: React.FC<BodyMap3DProps> = (props) => {
     }
   }, [props.isPlacementMode, props.previewMarker, placementAnchor]);
 
-  // Clear reset flag when a new marker is selected so camera can focus on it
+  // Clear reset flag AND bump focusKey when a new marker is selected
   useEffect(() => {
-    if (props.selectedLocationId != null) setResetCounter(0);
+    if (props.selectedLocationId != null && props.selectedLocationId !== prevSelectedRef.current) {
+      setResetCounter(0);
+      setFocusKey(k => k + 1);
+    }
+    prevSelectedRef.current = props.selectedLocationId;
   }, [props.selectedLocationId]);
 
   // Compute camera preset once per placement session (not on every drag move)
@@ -1059,13 +1066,11 @@ const BodyMap3D: React.FC<BodyMap3DProps> = (props) => {
       const x2d = toFiniteNumber(marker.x);
       const y2d = toFiniteNumber(marker.y);
       if (x2d == null || y2d == null) {
-        // No usable coordinates at all – can't focus, fall back to default view
         return null;
       }
       pos3d = coords2Dto3D(x2d, y2d, view);
     }
 
-    // Position camera in front of the marker's surface
     const zDir = view === "back" ? -1 : 1;
     const rawNormal = new THREE.Vector3(
       toFiniteNumber(marker.nx) ?? 0,
@@ -1076,7 +1081,6 @@ const BodyMap3D: React.FC<BodyMap3DProps> = (props) => {
       ? rawNormal.normalize()
       : new THREE.Vector3(0, 0, zDir);
 
-    // Camera placed along the surface normal, 1.2 units away from the spot
     return {
       position: [
         pos3d[0] + normal.x * 1.2,
@@ -1087,7 +1091,8 @@ const BodyMap3D: React.FC<BodyMap3DProps> = (props) => {
       label: "Spot-Fokus",
       icon: MapPin,
     };
-  }, [props.isPlacementMode, props.selectedLocationId, props.markers, resetCounter, activeRegion]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [props.isPlacementMode, props.selectedLocationId, props.markers, resetCounter, activeRegion, focusKey]);
 
   const preset = placementPreset ?? selectedMarkerPreset ?? CAMERA_PRESETS[activeRegion];
 
