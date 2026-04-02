@@ -1019,6 +1019,24 @@ const PatientDetail = () => {
                   );
                 })()}
               </motion.div>
+            ) : activeTab === "berichte" ? (
+              <motion.div
+                key="berichte"
+                initial={{ opacity: 0, y: 8 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -8 }}
+                transition={{ duration: 0.15 }}
+                className="space-y-4"
+              >
+                <div className="flex items-center justify-between">
+                  <h2 className="text-lg font-semibold text-foreground">Berichte</h2>
+                  <Button onClick={() => setPdfDialogOpen(true)} size="sm" className="gap-1.5">
+                    <FileDown className="h-3.5 w-3.5" />
+                    Neuer Bericht
+                  </Button>
+                </div>
+                <PdfReportHistory patientId={patient.id} patientName={patient.name} />
+              </motion.div>
             ) : selectedLocation ? (
               <motion.div
                 key={selectedLocation.id}
