@@ -161,6 +161,18 @@ const SpotMarker = React.forwardRef<THREE.Group, SpotMarkerProps>(function SpotM
 ) {
   const groupRef = useRef<THREE.Group>(null);
   const [hovered, setHovered] = useState(false);
+  const lastTapRef = useRef<number>(0);
+
+  const handleDoubleTap = useCallback((e: ThreeEvent<PointerEvent>) => {
+    const now = Date.now();
+    if (now - lastTapRef.current < 400) {
+      e.stopPropagation();
+      onClick();
+      lastTapRef.current = 0;
+    } else {
+      lastTapRef.current = now;
+    }
+  }, [onClick]);
 
   useFrame(() => {
     if (!groupRef.current) return;
@@ -192,6 +204,7 @@ const SpotMarker = React.forwardRef<THREE.Group, SpotMarkerProps>(function SpotM
           e.stopPropagation();
           onClick();
         }}
+        onPointerDown={handleDoubleTap}
         onPointerOver={() => setHovered(true)}
         onPointerOut={() => setHovered(false)}
       >
