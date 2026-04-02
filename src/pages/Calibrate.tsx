@@ -402,6 +402,7 @@ export default function Calibrate() {
             activeLabel={activeLabel}
             hoverPoint={hoverPoint}
             hoverView={hoverView}
+            hideMarkers={hideMarkers}
             onPlace={handlePlace}
             onRemove={handleRemove}
             onHover={handleHover}
