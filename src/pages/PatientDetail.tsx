@@ -1,7 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useParams, useNavigate } from "react-router-dom";
 import { api } from "@/lib/api";
-import { getAnatomicalName, ANATOMICAL_ZONES } from "@/lib/anatomyLookup";
+import { getAnatomicalName, ANATOMICAL_ZONES, getNeighborZones } from "@/lib/anatomyLookup";
 
 import type { FullPatient, LesionClassification } from "@/types/patient";
 import { LESION_CLASSIFICATIONS } from "@/types/patient";
@@ -532,16 +532,24 @@ const PatientDetail = () => {
 
               <div className="space-y-1.5">
                 <Label className="text-[10px]">Bezeichnung</Label>
-                <select
-                  value={locationName}
-                  onChange={(e) => setLocationName(e.target.value)}
-                  className="flex h-8 w-full rounded-md border border-input bg-background px-2 py-1 text-xs ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-                >
-                  <option value="">Zone wählen…</option>
-                  {ANATOMICAL_ZONES.map((zone) => (
-                    <option key={zone} value={zone}>{zone}</option>
-                  ))}
-                </select>
+                {(() => {
+                  const neighbors = getNeighborZones(locationName);
+                  const options = locationName 
+                    ? [locationName, ...neighbors.filter(n => n !== locationName)]
+                    : [...ANATOMICAL_ZONES];
+                  return (
+                    <select
+                      value={locationName}
+                      onChange={(e) => setLocationName(e.target.value)}
+                      className="flex h-8 w-full rounded-md border border-input bg-background px-2 py-1 text-xs ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                    >
+                      {!locationName && <option value="">Zone wählen…</option>}
+                      {options.map((zone) => (
+                        <option key={zone} value={zone}>{zone}</option>
+                      ))}
+                    </select>
+                  );
+                })()}
               </div>
               <Button className="w-full h-8 text-xs" onClick={handleCreateLocation} disabled={createLocationMutation.isPending}>
                 {createLocationMutation.isPending ? "Wird erstellt…" : mapClickDialog.markType === "region" ? "Region anlegen" : "Spot anlegen"}
