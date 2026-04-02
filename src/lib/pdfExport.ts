@@ -252,8 +252,7 @@ export async function generatePatientPDF(patient: FullPatient, mode: "preview" |
     const scores = images
       .map(img => img.risk_score)
       .filter((s): s is number => s != null);
-
-    if (scores.length > 0) {
+    if (options.showRiskScore && scores.length > 0) {
       const latest = scores[scores.length - 1];
       const first = scores[0];
       const diff = latest - first;
