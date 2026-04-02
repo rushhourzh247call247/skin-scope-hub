@@ -1,28 +1,24 @@
 
 
-## KI-Ausrichtung auch für Übersichtsfotos + Fixes
+## Navigation zwischen Spots und Übersichtsfotos fixen
 
-### Was wird gemacht
-1. **KI-Ausrichtung für Übersichtsfotos** – Den gleichen "KI Ausrichtung"-Button auch in der OverviewPhoto-Komponente einbauen
-2. **Reset-Button Fix** – Der Reset-Button in den manuellen Kontrollen soll nur auf 0 zurücksetzen (nicht die KI starten)
+### Problem
+Wenn man in der Seitenleiste einen Spot anklickt, während man im "Übersicht"-Tab ist, wird zwar der Spot ausgewählt, aber der Tab wechselt nicht — man bleibt auf der Übersichtsansicht hängen. Umgekehrt: Klickt man eine Übersicht an, während man einen Spot betrachtet, fehlt der Tab-Wechsel teilweise.
+
+### Lösung
+Zwei kleine Änderungen in `src/pages/PatientDetail.tsx`:
+
+1. **Spot-Klick in Sidebar (Zeile ~630)**: Zusätzlich `setActiveTab("spots")` aufrufen, damit der Hauptbereich automatisch zur Spot-Ansicht wechselt.
+
+2. **Übersichtsfoto-Klick in Sidebar (Zeile ~569)**: Zusätzlich `setSelectedLocationId(null)` aufrufen, damit kein Spot mehr "aktiv" markiert ist und der Übersichts-Tab korrekt angezeigt wird.
 
 ### Änderungen
 
-| Datei | Änderung | Risiko |
+| Datei | Was | Risiko |
 |---|---|---|
-| `src/components/OverviewPhoto.tsx` | KI-Ausrichtung Button + `alignImages` Import hinzufügen | Minimal |
-| `src/components/ImageCompare.tsx` | Reset-Button: eigene Funktion `handleReset` statt `handleAutoAlign` | Minimal |
+| `src/pages/PatientDetail.tsx` | Spot-Klick: `setActiveTab("spots")` hinzufügen | Minimal |
+| `src/pages/PatientDetail.tsx` | Übersicht-Klick: `setSelectedLocationId(null)` hinzufügen | Minimal |
 
-### Details
-
-**OverviewPhoto.tsx:**
-- `alignImages` und `Loader2`/`Wand2` importieren
-- State `isAutoAligning` hinzufügen
-- `handleAutoAlign` async Funktion (identisch wie in ImageCompare)
-- Button im Overlay-Bereich einfügen (neben den bestehenden manuellen Kontrollen)
-
-**ImageCompare.tsx:**
-- Neue Funktion `handleReset` die nur Werte auf 0 setzt
-- Reset-Button (Zeile 409) auf `handleReset` umstellen
-- KI-Button bleibt wie er ist
+### Ergebnis
+Man kann sich frei innerhalb eines Patienten bewegen — Spot anklicken → Spot-Ansicht, Übersicht anklicken → Übersichts-Ansicht. Kein Verlassen des Patienten mehr nötig.
 
