@@ -50,10 +50,22 @@ const OverviewPhoto = ({ overviewLocation, spotLocations, patientId, onNavigateT
   const [showNewSpotForm, setShowNewSpotForm] = useState(false);
   const [newSpotName, setNewSpotName] = useState("");
 
+  const [isRenaming, setIsRenaming] = useState(false);
+  const [renameValue, setRenameValue] = useState("");
+
   const { data: pins = [] } = useQuery({
     queryKey: ["overview-pins", overviewLocation.id],
     queryFn: () => api.getOverviewPins(overviewLocation.id),
     enabled: !!overviewLocation.id,
+  });
+
+  const renameMutation = useMutation({
+    mutationFn: (name: string) => api.renameLocation(overviewLocation.id, name),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["full-patient", patientId] });
+      setIsRenaming(false);
+      toast.success("Umbenannt");
+    },
   });
 
   const createPinMutation = useMutation({
