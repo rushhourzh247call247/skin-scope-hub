@@ -1,75 +1,181 @@
 
 
-# Übersichtsfoto mit Läsions-Markierungen
+# Backend-Befehle für Overview Pins
 
-## Konzept
+Hier sind die Befehle, die du auf dem Server (SSH) ausführen musst — in dieser Reihenfolge:
 
-Die Ärztin fotografiert eine **Körperregion im Überblick** (z.B. den ganzen Rücken). Auf diesem Übersichtsfoto kann sie dann **Pins setzen**, die einzelne Muttermale/Läsionen markieren. Jeder Pin wird mit einem bestehenden Spot verknüpft — klickt man auf den Pin, springt die Ansicht zur Nahaufnahme (Dermoskopie-Bild) des jeweiligen Spots.
+---
 
-```text
-┌─────────────────────────────────┐
-│  Übersichtsfoto (Rücken)        │
-│                                 │
-│       📌 Spot A                 │
-│                  📌 Spot B      │
-│    📌 Spot C                    │
-│                                 │
-│  [+ Pin setzen]                 │
-└─────────────────────────────────┘
-         │ Klick auf Pin
-         ▼
-┌─────────────────────────────────┐
-│  Spot A — Nahaufnahme           │
-│  🔍 Dermoskopie-Bild            │
-│  ABCDE-Bewertung                │
-└─────────────────────────────────┘
+## Schritt 1: Backup
+
+```bash
+cp ~/api/database/database.sqlite ~/backups/database_$(date +%Y%m%d_%H%M%S).sqlite
 ```
 
-## Umsetzung
+---
 
-### 1. Neuer Typ: `overview` als LocationType
+## Schritt 2: Migration erstellen
 
-`LocationType` wird um `"overview"` erweitert. Ein Overview-Location speichert ein Übersichtsfoto und hat **keine 3D-Koordinaten** — es erscheint nicht auf der Body Map, sondern in einem eigenen Tab.
+```bash
+cd ~/api
+php artisan make:migration create_overview_pins_table
+```
 
-### 2. Pin-Datenstruktur
+Dann die erstellte Datei unter `database/migrations/xxxx_create_overview_pins_table.php` bearbeiten:
 
-Neue Tabelle/Datenstruktur `overview_pins`:
-- `id`, `overview_location_id` (FK → Location mit type=overview)
-- `x_pct`, `y_pct` — Position des Pins auf dem Foto in Prozent (0–100)
-- `linked_location_id` (FK → ein bestehender Spot)
-- `label` (optional, z.B. "Spot 3")
+```php
+public function up(): void
+{
+    Schema::create('overview_pins', function (Blueprint $table) {
+        $table->id();
+        $table->unsignedBigInteger('overview_location_id');
+        $table->unsignedBigInteger('linked_location_id');
+        $table->float('x_pct');
+        $table->float('y_pct');
+        $table->string('label')->nullable();
+        $table->timestamps();
 
-### 3. Neuer Tab "Übersicht" in der Patientendetailseite
+        $table->foreign('overview_location_id')->references('id')->on('locations')->onDelete('cascade');
+        $table->foreign('linked_location_id')->references('id')->on('locations')->onDelete('cascade');
+    });
+}
+```
 
-Ein vierter Tab neben Spots / Timeline / Fotos:
-- Zeigt alle Übersichtsfotos des Patienten
-- Jedes Foto ist interaktiv: Pins werden als farbige Marker dargestellt
-- **Pin setzen**: Klick auf das Foto → Dropdown erscheint mit Liste aller Spots → Auswahl verknüpft den Pin
-- **Pin klicken**: Navigiert zum verknüpften Spot (wechselt zu Spots-Tab, selektiert den Spot, fokussiert die 3D-Kamera)
+---
 
-### 4. UI-Komponente `OverviewPhoto`
+## Schritt 3: Migration ausführen
 
-- Zeigt das Foto responsive an
-- Pins als nummerierte, farbige Kreise (Farbe = Klassifikation des verknüpften Spots)
-- Hover zeigt Tooltip mit Spot-Name + kleines Vorschaubild der Nahaufnahme
-- "Bearbeiten"-Modus zum Verschieben/Löschen von Pins
-- Upload-Button für neue Übersichtsfotos
+```bash
+php artisan migrate
+```
 
-### 5. Dateien die geändert/erstellt werden
+(Kein `migrate:fresh` — nur die neue Tabelle wird angelegt.)
 
-| Datei | Änderung |
-|-------|----------|
-| `src/types/patient.ts` | `LocationType` um `"overview"` erweitern, `OverviewPin` Interface |
-| `src/lib/api.ts` | CRUD-Endpunkte für Overview-Pins |
-| `src/components/OverviewPhoto.tsx` | **Neu** — Interaktives Foto mit Pin-Overlay |
-| `src/pages/PatientDetail.tsx` | Neuer Tab "Übersicht", Upload-Flow, Pin↔Spot-Navigation |
-| Backend/Migration | Tabelle `overview_pins` anlegen |
+---
 
-### 6. Workflow für die Ärztin
+## Schritt 4: API-Routen in `routes/api.php`
 
-1. Patientendetailseite → Tab "Übersicht" → "Foto hochladen"
-2. Foto vom Rücken/Arm/Bein wird angezeigt
-3. Klick auf eine Stelle im Foto → "Mit welchem Spot verknüpfen?" → Spot aus Liste wählen
-4. Pin erscheint mit der Nummer/Farbe des Spots
-5. Später: Pin antippen → springt direkt zur Nahaufnahme des Spots
+Folgende Routen am Ende der `Route::middleware('auth:sanctum')` Gruppe hinzufügen:
+
+```php
+// Overview Pins
+Route::get('/locations/{locationId}/overview-pins', function ($locationId) {
+    $cid = auth()->user()->company_id;
+    $isAdmin = auth()->user()->role === 'admin';
+
+    $location = DB::table('locations')
+        ->join('patients', 'locations.patient_id', '=', 'patients.id')
+        ->where('locations.id', $locationId)
+        ->when(!$isAdmin, fn($q) => $q->where('patients.company_id', $cid))
+        ->select('locations.id')
+        ->first();
+
+    if (!$location) return response()->json([], 404);
+
+    return DB::table('overview_pins')
+        ->where('overview_location_id', $locationId)
+        ->get();
+});
+
+Route::post('/locations/{locationId}/overview-pins', function (Request $request, $locationId) {
+    $cid = auth()->user()->company_id;
+    $isAdmin = auth()->user()->role === 'admin';
+
+    $location = DB::table('locations')
+        ->join('patients', 'locations.patient_id', '=', 'patients.id')
+        ->where('locations.id', $locationId)
+        ->when(!$isAdmin, fn($q) => $q->where('patients.company_id', $cid))
+        ->select('locations.id')
+        ->first();
+
+    if (!$location) return response()->json(['error' => 'Not found'], 404);
+
+    $id = DB::table('overview_pins')->insertGetId([
+        'overview_location_id' => $locationId,
+        'linked_location_id' => $request->input('linked_location_id'),
+        'x_pct' => $request->input('x_pct'),
+        'y_pct' => $request->input('y_pct'),
+        'label' => $request->input('label'),
+        'created_at' => now(),
+        'updated_at' => now(),
+    ]);
+
+    return DB::table('overview_pins')->where('id', $id)->first();
+});
+
+Route::put('/overview-pins/{pinId}', function (Request $request, $pinId) {
+    $cid = auth()->user()->company_id;
+    $isAdmin = auth()->user()->role === 'admin';
+
+    $pin = DB::table('overview_pins')
+        ->join('locations', 'overview_pins.overview_location_id', '=', 'locations.id')
+        ->join('patients', 'locations.patient_id', '=', 'patients.id')
+        ->where('overview_pins.id', $pinId)
+        ->when(!$isAdmin, fn($q) => $q->where('patients.company_id', $cid))
+        ->select('overview_pins.id')
+        ->first();
+
+    if (!$pin) return response()->json(['error' => 'Not found'], 404);
+
+    DB::table('overview_pins')->where('id', $pinId)->update([
+        'x_pct' => $request->input('x_pct'),
+        'y_pct' => $request->input('y_pct'),
+        'label' => $request->input('label'),
+        'updated_at' => now(),
+    ]);
+
+    return DB::table('overview_pins')->where('id', $pinId)->first();
+});
+
+Route::delete('/overview-pins/{pinId}', function ($pinId) {
+    $cid = auth()->user()->company_id;
+    $isAdmin = auth()->user()->role === 'admin';
+
+    $pin = DB::table('overview_pins')
+        ->join('locations', 'overview_pins.overview_location_id', '=', 'locations.id')
+        ->join('patients', 'locations.patient_id', '=', 'patients.id')
+        ->where('overview_pins.id', $pinId)
+        ->when(!$isAdmin, fn($q) => $q->where('patients.company_id', $cid))
+        ->select('overview_pins.id')
+        ->first();
+
+    if (!$pin) return response()->json(['error' => 'Not found'], 404);
+
+    DB::table('overview_pins')->where('id', $pinId)->delete();
+
+    return response()->json(['success' => true]);
+});
+```
+
+---
+
+## Schritt 5: Überprüfen
+
+```bash
+php artisan route:list | grep overview
+```
+
+Sollte 4 Routen zeigen (GET, POST, PUT, DELETE).
+
+---
+
+## Zusammenfassung der Befehle (Kurzform)
+
+```bash
+# 1. Backup
+cp ~/api/database/database.sqlite ~/backups/database_$(date +%Y%m%d_%H%M%S).sqlite
+
+# 2. Migration erstellen & bearbeiten
+cd ~/api
+php artisan make:migration create_overview_pins_table
+# → Datei bearbeiten (Schema oben)
+
+# 3. Migrieren
+php artisan migrate
+
+# 4. Routen in routes/api.php einfügen (Code oben)
+
+# 5. Prüfen
+php artisan route:list | grep overview
+```
 
