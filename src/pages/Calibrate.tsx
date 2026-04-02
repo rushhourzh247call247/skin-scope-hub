@@ -376,6 +376,14 @@ export default function Calibrate() {
             </Button>
             <Button
               size="sm"
+              variant={hideMarkers ? "default" : "outline"}
+              onClick={() => setHideMarkers(h => !h)}
+              title="Platzierte Marker ein-/ausblenden"
+            >
+              {hideMarkers ? "👁" : "👁‍🗨"}
+            </Button>
+            <Button
+              size="sm"
               variant="destructive"
               onClick={() => {
                 const prefix = gender === "male" ? "m_" : "f_";
