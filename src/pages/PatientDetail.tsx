@@ -772,6 +772,11 @@ const PatientDetail = () => {
                           setSelectedLocationId(spotId);
                           setActiveTab("spots");
                         }}
+                        onDelete={(locationId) => setDeleteConfirmId(locationId)}
+                        onQrUpload={(locationId) => {
+                          setSelectedLocationId(locationId);
+                          setQrDialogOpen(true);
+                        }}
                       />
                     ))}
                   </div>
