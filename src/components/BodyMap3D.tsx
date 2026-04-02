@@ -1018,10 +1018,11 @@ const BodyMap3D: React.FC<BodyMap3DProps> = (props) => {
     }
   }, [props.isPlacementMode, props.previewMarker, placementAnchor]);
 
-  // Clear reset flag AND bump focusKey when a new marker is selected
+  // Clear reset flag AND bump focusKey when a marker is selected (even re-selecting same one)
   useEffect(() => {
-    if (props.selectedLocationId != null && props.selectedLocationId !== prevSelectedRef.current) {
+    if (props.selectedLocationId != null) {
       setResetCounter(0);
+      setActiveRegion("full");
       setFocusKey(k => k + 1);
     }
     prevSelectedRef.current = props.selectedLocationId;
