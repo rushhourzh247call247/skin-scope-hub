@@ -98,7 +98,18 @@ async function loadImageAsBase64(url: string): Promise<string | null> {
   return await loadViaFetch();
 }
 
-export async function generatePatientPDF(patient: FullPatient, mode: "preview" | "download" = "download", doctorName?: string): Promise<string | void> {
+const DEFAULT_OPTIONS: PdfExportOptions = {
+  reportType: "fullHistory",
+  showClassification: true,
+  showAbcde: true,
+  showRiskScore: true,
+  showImages: true,
+  showNotes: true,
+  doctorSummary: "",
+};
+
+export async function generatePatientPDF(patient: FullPatient, mode: "preview" | "download" = "download", doctorName?: string, opts?: PdfExportOptions): Promise<string | void> {
+  const options = { ...DEFAULT_OPTIONS, ...opts };
   const imageCache: Record<number, string | null> = {};
   const doc = new jsPDF({ orientation: "portrait", unit: "mm", format: "a4" });
   registerFonts(doc);
