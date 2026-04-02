@@ -541,9 +541,9 @@ const PatientDetail = () => {
           <div className={cn("mt-3 lg:mt-4 space-y-1", !mobileMapExpanded && "lg:block")}>
             <div className="flex items-center justify-between mb-2">
               <h3 className="text-xs font-semibold text-foreground uppercase tracking-wider">Spots</h3>
-              <span className="text-[10px] text-muted-foreground">{locations.filter(l => l.type !== "region").length} Stellen</span>
+              <span className="text-[10px] text-muted-foreground">{spotLocations.filter(l => l.type !== "region").length} Stellen</span>
             </div>
-            {locations.filter(l => l.type !== "region").filter(l => {
+            {spotLocations.filter(l => l.type !== "region").filter(l => {
               if (classificationFilter.length === 0) return true;
               const cls = ((l as any).classification as LesionClassificationType) || "unclassified";
               return classificationFilter.includes(cls);
