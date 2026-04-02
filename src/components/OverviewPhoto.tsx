@@ -135,9 +135,10 @@ const OverviewPhoto = ({ overviewLocation, spotLocations, patientId, onNavigateT
     });
   };
 
-  const latestImage = overviewLocation.images?.length
+  // The FIRST (oldest) image is always the pin reference
+  const referenceImage = overviewLocation.images?.length
     ? [...overviewLocation.images].sort((a, b) =>
-        new Date(b.created_at ?? 0).getTime() - new Date(a.created_at ?? 0).getTime()
+        new Date(a.created_at ?? 0).getTime() - new Date(b.created_at ?? 0).getTime()
       )[0]
     : null;
 
