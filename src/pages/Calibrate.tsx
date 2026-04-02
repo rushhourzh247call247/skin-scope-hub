@@ -144,6 +144,7 @@ function SceneContent({
   activeLabel,
   hoverPoint,
   hoverView,
+  hideMarkers,
   onPlace,
   onRemove,
   onHover,
@@ -153,6 +154,7 @@ function SceneContent({
   activeLabel: string | null;
   hoverPoint: [number, number, number] | null;
   hoverView: "front" | "back";
+  hideMarkers: boolean;
   onPlace: (x: number, y: number, z: number, view: "front" | "back") => void;
   onRemove: (id: string) => void;
   onHover: (point: [number, number, number] | null, view: "front" | "back") => void;
@@ -201,7 +203,7 @@ function SceneContent({
         <CalibrationBody gender={gender} onClick={handleClick} />
       </Suspense>
 
-      {placedLabels.map((pl) => (
+      {!hideMarkers && placedLabels.map((pl) => (
         <LabelMarker
           key={pl.id}
           label={pl.label}
@@ -233,6 +235,7 @@ export default function Calibrate() {
   const [placedLabels, setPlacedLabels] = useState<PlacedLabel[]>([]);
   const [hoverPoint, setHoverPoint] = useState<[number, number, number] | null>(null);
   const [hoverView, setHoverView] = useState<"front" | "back">("front");
+  const [hideMarkers, setHideMarkers] = useState(false);
   const { toast } = useToast();
 
   const allLabels = [...ZONE_LABELS_FRONT, ...ZONE_LABELS_BACK];
@@ -373,6 +376,14 @@ export default function Calibrate() {
             </Button>
             <Button
               size="sm"
+              variant={hideMarkers ? "default" : "outline"}
+              onClick={() => setHideMarkers(h => !h)}
+              title="Platzierte Marker ein-/ausblenden"
+            >
+              {hideMarkers ? "👁" : "👁‍🗨"}
+            </Button>
+            <Button
+              size="sm"
               variant="destructive"
               onClick={() => {
                 const prefix = gender === "male" ? "m_" : "f_";
@@ -399,6 +410,7 @@ export default function Calibrate() {
             activeLabel={activeLabel}
             hoverPoint={hoverPoint}
             hoverView={hoverView}
+            hideMarkers={hideMarkers}
             onPlace={handlePlace}
             onRemove={handleRemove}
             onHover={handleHover}
