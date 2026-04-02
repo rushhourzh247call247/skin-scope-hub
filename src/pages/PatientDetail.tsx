@@ -1311,6 +1311,18 @@ const PatientDetail = () => {
         </div>
       </div>
 
+      {/* Global QR Upload Dialog */}
+      {qrLocationId && (
+        <QrUploadDialog
+          open={qrDialogOpen}
+          onOpenChange={(open) => { setQrDialogOpen(open); if (!open) setQrLocationId(null); }}
+          patientId={patientId}
+          patientName={patient.name}
+          locationId={qrLocationId}
+          locationName={locations.find(l => l.id === qrLocationId)?.name || `Location #${qrLocationId}`}
+        />
+      )}
+
       {/* Soft Delete Confirmation */}
       <AlertDialog open={deleteConfirmId !== null} onOpenChange={(open) => !open && setDeleteConfirmId(null)}>
         <AlertDialogContent>
