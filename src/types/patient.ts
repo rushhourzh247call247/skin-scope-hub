@@ -1,5 +1,5 @@
 export type Gender = "female" | "male";
-export type LocationType = "spot" | "region";
+export type LocationType = "spot" | "region" | "overview";
 export type LesionClassification =
   | "unclassified"
   | "naevus"
