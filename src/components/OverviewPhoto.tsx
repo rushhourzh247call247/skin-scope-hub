@@ -235,6 +235,7 @@ const OverviewPhoto = ({ overviewLocation, spotLocations, patientId, onNavigateT
             onClick={() => fileRef.current?.click()}
             disabled={uploading}
             className="gap-1.5 text-xs h-8"
+            title="Weiteres Foto zu dieser Übersicht hinzufügen"
           >
             <Upload className="h-3.5 w-3.5" />
           </Button>
