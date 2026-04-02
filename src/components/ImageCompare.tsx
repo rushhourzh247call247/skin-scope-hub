@@ -1,4 +1,4 @@
-import { useState, useRef, useCallback, useEffect, useRef as useRef2 } from "react";
+import { useState, useRef, useCallback, useEffect } from "react";
 import type { LocationImage } from "@/types/patient";
 import { format } from "date-fns";
 import { de } from "date-fns/locale";
