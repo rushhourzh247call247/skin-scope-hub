@@ -9,6 +9,8 @@ import { Textarea } from "@/components/ui/textarea";
 import { api } from "@/lib/api";
 import { cn } from "@/lib/utils";
 import { motion, AnimatePresence } from "framer-motion";
+import { alignImages } from "@/lib/imageAlign";
+import { toast } from "sonner";
 
 import {
   Dialog,
@@ -31,6 +33,7 @@ const ImageCompare = ({ images, locationName, onClose }: ImageCompareProps) => {
   const [overlayOffsetX, setOverlayOffsetX] = useState(0);
   const [overlayOffsetY, setOverlayOffsetY] = useState(0);
   const [showAlignControls, setShowAlignControls] = useState(false);
+  const [isAutoAligning, setIsAutoAligning] = useState(false);
   const [noteValues, setNoteValues] = useState<Record<number, string>>(() => {
     const initial: Record<number, string> = {};
     images.forEach(img => { if (img.note) initial[img.id] = img.note; });
@@ -81,13 +84,47 @@ const ImageCompare = ({ images, locationName, onClose }: ImageCompareProps) => {
 
   const isAlignmentModified = overlayRotation !== 0 || overlayScale !== 100 || overlayOffsetX !== 0 || overlayOffsetY !== 0;
 
-  const handleAutoAlign = () => {
-    setOverlayRotation(0);
-    setOverlayScale(100);
-    setOverlayOffsetX(0);
-    setOverlayOffsetY(0);
-    if (selected.length === 2) {
-      api.saveImageAlignment(selected[0], selected[1], { rotation: 0, scale: 100, offset_x: 0, offset_y: 0 });
+  const handleAutoAlign = async () => {
+    if (selected.length !== 2 || !compareImages) {
+      // Fallback: just reset
+      setOverlayRotation(0);
+      setOverlayScale(100);
+      setOverlayOffsetX(0);
+      setOverlayOffsetY(0);
+      return;
+    }
+
+    setIsAutoAligning(true);
+    try {
+      const baseSrc = api.resolveImageSrc(compareImages[0]);
+      const overlaySrc = api.resolveImageSrc(compareImages[1]);
+      const result = await alignImages(baseSrc, overlaySrc);
+
+      setOverlayRotation(result.rotation);
+      setOverlayScale(result.scale);
+      setOverlayOffsetX(result.offset_x);
+      setOverlayOffsetY(result.offset_y);
+
+      api.saveImageAlignment(selected[0], selected[1], {
+        rotation: result.rotation,
+        scale: result.scale,
+        offset_x: result.offset_x,
+        offset_y: result.offset_y,
+      });
+
+      toast.success("Bilder automatisch ausgerichtet");
+    } catch (err) {
+      console.error("[AutoAlign] Error:", err);
+      toast.error("Automatische Ausrichtung fehlgeschlagen – Werte zurückgesetzt");
+      setOverlayRotation(0);
+      setOverlayScale(100);
+      setOverlayOffsetX(0);
+      setOverlayOffsetY(0);
+      if (selected.length === 2) {
+        api.saveImageAlignment(selected[0], selected[1], { rotation: 0, scale: 100, offset_x: 0, offset_y: 0 });
+      }
+    } finally {
+      setIsAutoAligning(false);
     }
   };
 
@@ -330,8 +367,13 @@ const ImageCompare = ({ images, locationName, onClose }: ImageCompareProps) => {
                     size="sm"
                     className="h-7 text-[10px] gap-1.5"
                     onClick={handleAutoAlign}
+                    disabled={isAutoAligning}
                   >
-                    <Wand2 className="h-3 w-3" /> Auto Ausrichten
+                    {isAutoAligning ? (
+                      <><Loader2 className="h-3 w-3 animate-spin" /> Analysiere…</>
+                    ) : (
+                      <><Wand2 className="h-3 w-3" /> KI Ausrichtung</>
+                    )}
                   </Button>
                   <button
                     onClick={() => setShowAlignControls(!showAlignControls)}
