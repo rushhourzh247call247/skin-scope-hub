@@ -12,7 +12,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
-import { Building2, Plus, Trash2, Shield, Download, Loader2 } from "lucide-react";
+import { Building2, Plus, Trash2, Shield, Download, Loader2, Ban, CheckCircle } from "lucide-react";
 import { toast } from "sonner";
 
 const PROTECTED_COMPANY_NAME = "techassist";
