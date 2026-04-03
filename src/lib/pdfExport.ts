@@ -981,17 +981,27 @@ export async function generatePatientPDF(
 
     y += 17;
 
-    /* ─── Images Grid ─── */
+    /* ─── Body Map Thumbnail + Images Grid ─── */
+    const bodyMapW = 28; // mm width for body map thumbnail
+    const bodyMapH = 48; // mm height
+    const bodyMapGap = 4;
+    const hasBodyMap = loc.x != null && loc.y != null;
+    const bodyMapReserved = hasBodyMap ? bodyMapW + bodyMapGap : 0;
+
     if (options.showImages && images.length > 0) {
       const displayImages = images.slice(-4);
       const imgSize = 38;
       const imgGap = 5;
+      const imagesAreaRight = pageW - margin - bodyMapReserved;
       let imgX = margin + 3;
 
-      y = checkPage(doc, y, imgSize + 12, margin);
+      const rowH = Math.max(imgSize + 12, hasBodyMap ? bodyMapH + 8 : 0);
+      y = checkPage(doc, y, rowH, margin);
+
+      const imagesStartY = y;
 
       for (const img of displayImages) {
-        if (imgX + imgSize > pageW - margin) {
+        if (imgX + imgSize > imagesAreaRight) {
           imgX = margin + 3;
           y += imgSize + 10;
           y = checkPage(doc, y, imgSize + 12, margin);
@@ -1050,7 +1060,6 @@ export async function generatePatientPDF(
           const badgeCy = y + 2.5;
           doc.setFillColor(...riskColor(sc));
           doc.circle(badgeCx, badgeCy, badgeR, "F");
-          // White border
           doc.setDrawColor(...C.white);
           doc.setLineWidth(0.5);
           doc.circle(badgeCx, badgeCy, badgeR, "S");
@@ -1064,7 +1073,50 @@ export async function generatePatientPDF(
         imgX += imgSize + imgGap;
       }
 
+      // Draw body map thumbnail on the right
+      if (hasBodyMap) {
+        const bmX = pageW - margin - bodyMapW;
+        const bmY = imagesStartY;
+        const locView = loc.view || "front";
+        const accentColor = loc.classification && loc.classification !== "unclassified"
+          ? LESION_CLASSIFICATIONS[loc.classification]?.color ?? "#00a699"
+          : "#00a699";
+
+        const bodyMapBase64 = renderBodyMapThumbnail(loc.x, loc.y, locView, accentColor);
+        if (bodyMapBase64) {
+          // Subtle background card
+          doc.setFillColor(...C.cardBg);
+          doc.setDrawColor(...C.border);
+          drawRoundedRect(doc, bmX, bmY, bodyMapW, bodyMapH, 2, "FD");
+
+          try {
+            doc.addImage(bodyMapBase64, "PNG", bmX + 1, bmY + 1, bodyMapW - 2, bodyMapH - 2);
+          } catch {}
+        }
+      }
+
       y += imgSize + 7;
+    } else if (hasBodyMap) {
+      // No images but still show body map
+      y = checkPage(doc, y, bodyMapH + 4, margin);
+      const bmX = margin + 3;
+      const bmY = y;
+      const locView = loc.view || "front";
+      const accentColor = loc.classification && loc.classification !== "unclassified"
+        ? LESION_CLASSIFICATIONS[loc.classification]?.color ?? "#00a699"
+        : "#00a699";
+
+      const bodyMapBase64 = renderBodyMapThumbnail(loc.x, loc.y, locView, accentColor);
+      if (bodyMapBase64) {
+        doc.setFillColor(...C.cardBg);
+        doc.setDrawColor(...C.border);
+        drawRoundedRect(doc, bmX, bmY, bodyMapW, bodyMapH, 2, "FD");
+        try {
+          doc.addImage(bodyMapBase64, "PNG", bmX + 1, bmY + 1, bodyMapW - 2, bodyMapH - 2);
+        } catch {}
+      }
+
+      y += bodyMapH + 4;
     }
 
     /* ─── Risk Score Section ─── */
