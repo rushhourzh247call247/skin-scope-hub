@@ -287,6 +287,170 @@ function riskColor(score: number): [number, number, number] {
   return C.riskLow;
 }
 
+/* ─── Body Map Thumbnail Renderer ─────────────────────── */
+
+/** Renders a small body silhouette with a marker dot on canvas */
+function renderBodyMapThumbnail(
+  xPct: number,
+  yPct: number,
+  view: "front" | "back",
+  accentColor: string = "#00a699",
+): string | null {
+  const W = 200;
+  const H = 500;
+  const canvas = document.createElement("canvas");
+  canvas.width = W;
+  canvas.height = H;
+  const ctx = canvas.getContext("2d");
+  if (!ctx) return null;
+
+  // Background
+  ctx.fillStyle = "#f8fafc";
+  ctx.fillRect(0, 0, W, H);
+
+  const skin = "#d4b896";
+  const skinDark = "#ccb08a";
+  const stroke = "#b8a080";
+
+  ctx.strokeStyle = stroke;
+  ctx.lineWidth = 1.2;
+  ctx.fillStyle = skin;
+
+  // Head
+  ctx.beginPath();
+  ctx.ellipse(100, 36, 22, 27, 0, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.stroke();
+  // Ears
+  ctx.fillStyle = skinDark;
+  ctx.beginPath(); ctx.ellipse(77, 36, 4, 7, 0, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
+  ctx.beginPath(); ctx.ellipse(123, 36, 4, 7, 0, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
+
+  // Neck
+  ctx.fillStyle = skinDark;
+  ctx.fillRect(92, 62, 16, 14);
+
+  // Torso
+  ctx.fillStyle = skin;
+  ctx.beginPath();
+  ctx.moveTo(64, 76);
+  ctx.quadraticCurveTo(64, 74, 70, 74);
+  ctx.lineTo(130, 74);
+  ctx.quadraticCurveTo(136, 74, 136, 76);
+  ctx.lineTo(140, 190);
+  ctx.quadraticCurveTo(140, 216, 126, 216);
+  ctx.lineTo(74, 216);
+  ctx.quadraticCurveTo(60, 216, 60, 190);
+  ctx.closePath();
+  ctx.fill();
+  ctx.stroke();
+
+  // Left arm
+  ctx.beginPath();
+  ctx.moveTo(64, 76);
+  ctx.quadraticCurveTo(50, 78, 40, 92);
+  ctx.lineTo(24, 152);
+  ctx.quadraticCurveTo(20, 162, 22, 175);
+  ctx.lineTo(30, 173);
+  ctx.quadraticCurveTo(34, 160, 38, 148);
+  ctx.lineTo(56, 98);
+  ctx.closePath();
+  ctx.fill();
+  ctx.stroke();
+
+  // Right arm
+  ctx.beginPath();
+  ctx.moveTo(136, 76);
+  ctx.quadraticCurveTo(150, 78, 160, 92);
+  ctx.lineTo(176, 152);
+  ctx.quadraticCurveTo(180, 162, 178, 175);
+  ctx.lineTo(170, 173);
+  ctx.quadraticCurveTo(166, 160, 162, 148);
+  ctx.lineTo(144, 98);
+  ctx.closePath();
+  ctx.fill();
+  ctx.stroke();
+
+  // Left leg
+  ctx.fillStyle = skinDark;
+  ctx.beginPath();
+  ctx.moveTo(74, 216);
+  ctx.lineTo(70, 310);
+  ctx.quadraticCurveTo(68, 330, 65, 348);
+  ctx.lineTo(62, 420);
+  ctx.quadraticCurveTo(61, 430, 58, 450);
+  ctx.lineTo(86, 450);
+  ctx.quadraticCurveTo(84, 430, 84, 420);
+  ctx.lineTo(87, 330);
+  ctx.lineTo(92, 216);
+  ctx.closePath();
+  ctx.fill();
+  ctx.stroke();
+
+  // Right leg
+  ctx.beginPath();
+  ctx.moveTo(108, 216);
+  ctx.lineTo(113, 330);
+  ctx.lineTo(116, 420);
+  ctx.quadraticCurveTo(117, 430, 114, 450);
+  ctx.lineTo(142, 450);
+  ctx.quadraticCurveTo(139, 430, 138, 420);
+  ctx.lineTo(135, 348);
+  ctx.quadraticCurveTo(132, 330, 130, 310);
+  ctx.lineTo(126, 216);
+  ctx.closePath();
+  ctx.fill();
+  ctx.stroke();
+
+  // View label
+  ctx.fillStyle = "#94a3b8";
+  ctx.font = "bold 18px sans-serif";
+  ctx.textAlign = "center";
+  ctx.fillText(view === "front" ? "Vorne" : "Hinten", 100, 490);
+
+  // Marker
+  const mx = (xPct / 100) * W;
+  const my = (yPct / 100) * H;
+
+  // Outer glow
+  const gradient = ctx.createRadialGradient(mx, my, 0, mx, my, 18);
+  const r = parseInt(accentColor.slice(1, 3), 16);
+  const g = parseInt(accentColor.slice(3, 5), 16);
+  const b = parseInt(accentColor.slice(5, 7), 16);
+  gradient.addColorStop(0, `rgba(${r},${g},${b},0.35)`);
+  gradient.addColorStop(1, `rgba(${r},${g},${b},0)`);
+  ctx.fillStyle = gradient;
+  ctx.beginPath();
+  ctx.arc(mx, my, 18, 0, Math.PI * 2);
+  ctx.fill();
+
+  // Outer ring
+  ctx.strokeStyle = accentColor;
+  ctx.lineWidth = 2.5;
+  ctx.beginPath();
+  ctx.arc(mx, my, 10, 0, Math.PI * 2);
+  ctx.stroke();
+
+  // Inner dot
+  ctx.fillStyle = accentColor;
+  ctx.beginPath();
+  ctx.arc(mx, my, 4, 0, Math.PI * 2);
+  ctx.fill();
+
+  // Crosshair lines
+  ctx.strokeStyle = accentColor;
+  ctx.lineWidth = 1.5;
+  const crossSize = 15;
+  ctx.beginPath();
+  ctx.moveTo(mx, my - crossSize); ctx.lineTo(mx, my - 12);
+  ctx.moveTo(mx, my + 12); ctx.lineTo(mx, my + crossSize);
+  ctx.moveTo(mx - crossSize, my); ctx.lineTo(mx - 12, my);
+  ctx.moveTo(mx + 12, my); ctx.lineTo(mx + crossSize, my);
+  ctx.stroke();
+
+  return canvas.toDataURL("image/png");
+}
+
 /* ─── Main ────────────────────────────────────────────── */
 
 const DEFAULT_OPTIONS: PdfExportOptions = {
