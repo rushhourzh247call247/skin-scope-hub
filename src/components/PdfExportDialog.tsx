@@ -98,6 +98,7 @@ export default function PdfExportDialog({ open, onOpenChange, patient, doctorNam
       }, 100);
 
       // Save to reports (await the FileReader)
+      let reportSaved = false;
       try {
         const base64 = await new Promise<string>((resolve, reject) => {
           const reader = new FileReader();
@@ -106,7 +107,7 @@ export default function PdfExportDialog({ open, onOpenChange, patient, doctorNam
           reader.readAsDataURL(blob);
         });
 
-        saveReport({
+        await saveReport({
           id: crypto.randomUUID(),
           patientId: patient.id,
           patientName: patient.name,
@@ -116,11 +117,16 @@ export default function PdfExportDialog({ open, onOpenChange, patient, doctorNam
           doctorName: doctorName ?? null,
           pdfBase64: base64,
         });
+        reportSaved = true;
       } catch {
         console.warn("Could not save report to history");
       }
 
-      toast.success("PDF gespeichert & heruntergeladen");
+      if (reportSaved) {
+        toast.success("PDF gespeichert & heruntergeladen");
+      } else {
+        toast.error("PDF heruntergeladen, aber nicht in Berichte gespeichert");
+      }
       setTimeout(() => {
         URL.revokeObjectURL(blobUrl);
         URL.revokeObjectURL(downloadUrl);

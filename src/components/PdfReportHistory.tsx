@@ -1,11 +1,12 @@
-import { useState } from "react";
-import { getSavedReports, deleteReport } from "@/lib/pdfReportStorage";
+import { useCallback, useEffect, useState } from "react";
+import { getSavedReports, deleteReport, PDF_REPORTS_UPDATED_EVENT } from "@/lib/pdfReportStorage";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { FileDown, Trash2, Eye } from "lucide-react";
 import { format } from "date-fns";
 import { de } from "date-fns/locale";
 import { toast } from "sonner";
+import type { PdfReport } from "@/types/patient";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -24,11 +25,38 @@ interface PdfReportHistoryProps {
 }
 
 export default function PdfReportHistory({ patientId, patientName }: PdfReportHistoryProps) {
-  const [reports, setReports] = useState(() => getSavedReports(patientId));
+  const [reports, setReports] = useState<PdfReport[] | null>(null);
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
 
-  const handleDownload = (report: typeof reports[0]) => {
+  const loadReports = useCallback(async () => {
+    const savedReports = await getSavedReports(patientId);
+    setReports(savedReports);
+  }, [patientId]);
+
+  useEffect(() => {
+    void loadReports();
+  }, [loadReports]);
+
+  useEffect(() => {
+    const handleReportsChanged = (event: Event) => {
+      const detail = (event as CustomEvent<{ patientId?: number }>).detail;
+      if (detail?.patientId == null || detail.patientId === patientId) {
+        void loadReports();
+      }
+    };
+
+    window.addEventListener(PDF_REPORTS_UPDATED_EVENT, handleReportsChanged);
+    return () => window.removeEventListener(PDF_REPORTS_UPDATED_EVENT, handleReportsChanged);
+  }, [loadReports, patientId]);
+
+  useEffect(() => {
+    return () => {
+      if (previewUrl) URL.revokeObjectURL(previewUrl);
+    };
+  }, [previewUrl]);
+
+  const handleDownload = (report: PdfReport) => {
     const link = document.createElement("a");
     link.href = report.pdfBase64;
     link.download = `Derm247_${patientName.replace(/\s+/g, "_")}_${format(new Date(report.createdAt), "yyyy-MM-dd")}.pdf`;
@@ -38,8 +66,9 @@ export default function PdfReportHistory({ patientId, patientName }: PdfReportHi
     toast.success("PDF heruntergeladen");
   };
 
-  const handlePreview = (report: typeof reports[0]) => {
+  const handlePreview = (report: PdfReport) => {
     try {
+      if (previewUrl) URL.revokeObjectURL(previewUrl);
       const byteString = atob(report.pdfBase64.split(",")[1]);
       const mimeString = report.pdfBase64.split(",")[0].split(":")[1].split(";")[0];
       const ab = new ArrayBuffer(byteString.length);
@@ -55,13 +84,22 @@ export default function PdfReportHistory({ patientId, patientName }: PdfReportHi
     }
   };
 
-  const handleDelete = () => {
+  const handleDelete = async () => {
     if (!deleteId) return;
-    deleteReport(deleteId);
-    setReports(getSavedReports(patientId));
+    await deleteReport(deleteId);
+    await loadReports();
     setDeleteId(null);
     toast.success("Bericht gelöscht");
   };
+
+  if (reports === null) {
+    return (
+      <div className="flex flex-col items-center justify-center py-12 text-center">
+        <FileDown className="mb-3 h-10 w-10 text-muted-foreground/40" />
+        <p className="text-sm text-muted-foreground">Berichte werden geladen…</p>
+      </div>
+    );
+  }
 
   if (reports.length === 0) {
     return (
