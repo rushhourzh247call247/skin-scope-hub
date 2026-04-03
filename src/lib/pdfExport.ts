@@ -923,6 +923,7 @@ export async function generatePatientPDF(
         const bodyMapBase64 = await renderBodyMap3DThumbnail({
           xPct: loc.x, yPct: loc.y, view: locView, accentColor,
           x3d: loc.x3d, y3d: loc.y3d, z3d: loc.z3d,
+          nx: loc.nx, ny: loc.ny, nz: loc.nz,
           gender: patient.gender === "female" ? "female" : "male",
         });
         if (bodyMapBase64) {
