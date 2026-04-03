@@ -163,24 +163,26 @@ const Dashboard = () => {
         <p className="text-sm text-muted-foreground">Übersicht über Ihre DermTrack-Daten</p>
       </div>
 
-      {/* Ampel-System */}
-      <div>
-        <h2 className="mb-3 text-sm font-medium text-muted-foreground uppercase tracking-wider">Risiko-Übersicht</h2>
-        <div className="grid grid-cols-3 gap-3">
-          <RiskCard level="high" count={risk.high} active={riskFilter === "high"} onClick={() => toggleFilter("high")} />
-          <RiskCard level="medium" count={risk.medium} active={riskFilter === "medium"} onClick={() => toggleFilter("medium")} />
-          <RiskCard level="low" count={risk.low} active={riskFilter === "low"} onClick={() => toggleFilter("low")} />
+      {/* Ampel-System (nur für reguläre Benutzer) */}
+      {!isAdmin && (
+        <div>
+          <h2 className="mb-3 text-sm font-medium text-muted-foreground uppercase tracking-wider">Risiko-Übersicht</h2>
+          <div className="grid grid-cols-3 gap-3">
+            <RiskCard level="high" count={risk.high} active={riskFilter === "high"} onClick={() => toggleFilter("high")} />
+            <RiskCard level="medium" count={risk.medium} active={riskFilter === "medium"} onClick={() => toggleFilter("medium")} />
+            <RiskCard level="low" count={risk.low} active={riskFilter === "low"} onClick={() => toggleFilter("low")} />
+          </div>
+          {riskFilter && (
+            <p className="mt-2 text-xs text-muted-foreground">
+              Filter aktiv: <span className={`font-medium ${riskConfig[riskFilter].textClass}`}>{riskConfig[riskFilter].label}</span>
+              {" · "}
+              <button onClick={() => setRiskFilter(null)} className="underline hover:text-foreground transition-colors">
+                Zurücksetzen
+              </button>
+            </p>
+          )}
         </div>
-        {riskFilter && (
-          <p className="mt-2 text-xs text-muted-foreground">
-            Filter aktiv: <span className={`font-medium ${riskConfig[riskFilter].textClass}`}>{riskConfig[riskFilter].label}</span>
-            {" · "}
-            <button onClick={() => setRiskFilter(null)} className="underline hover:text-foreground transition-colors">
-              Zurücksetzen
-            </button>
-          </p>
-        )}
-      </div>
+      )}
 
       {/* Stats Grid */}
       <div className={`grid gap-4 sm:grid-cols-2 ${isAdmin ? "lg:grid-cols-4" : "lg:grid-cols-3"}`}>
