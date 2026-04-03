@@ -1,66 +1,72 @@
 
 
-## PDF-Workflow: Vorschau, Bearbeitung & Berichts-Verlauf
+## Brute-Force-Schutz: Server-Backup & Implementation
 
-### Was gebaut wird
+### Schritt 1 — Backup erstellen
 
-1. **PDF-Konfigurationsdialog** (`PdfExportDialog.tsx`)
-   - Öffnet sich beim Klick auf den PDF-Button (statt direktem Download)
-   - Checkboxen für Inhalte: Klassifizierung, ABCDE, Risiko-Score, Bilder, Notizen
-   - Berichtstyp: "Letzte Konsultation" / "Gesamtverlauf"
-   - "Vorschau"-Button generiert PDF und zeigt es inline als iframe/embed an
-   - Im Vorschau-Modus: Textfeld für Arzt-Kommentar/Zusammenfassung, der ins PDF eingebettet wird
-   - "Speichern & Herunterladen"-Button
+Zeitstempelbasiertes Backup der kritischen Dateien:
 
-2. **PDF-Vorschau mit Textbearbeitung**
-   - Nach Auswahl der Optionen wird das PDF als Blob-URL in einem eingebetteten Viewer angezeigt
-   - Daneben/darunter ein Textarea für "Ärztliche Zusammenfassung" — dieser Text wird ins PDF eingefügt
-   - Bei Änderung am Text: PDF wird neu generiert mit dem aktualisierten Text
-   - Download-Button lädt die finale Version herunter
-
-3. **Berichts-Verlauf** (Report History)
-   - Neue API-Endpunkte (falls Backend unterstützt) oder localStorage-basierter Verlauf
-   - Neuer Tab/Abschnitt auf der Patientendetail-Seite: "Berichte"
-   - Liste aller gespeicherten PDFs mit Datum, Berichtstyp, Arzt
-   - Jeder Eintrag: Erneut herunterladen, Vorschau öffnen, Löschen
-   - Gespeichert wird: Blob-URL (kurzfristig) + Metadaten (Datum, Typ, Optionen, Arzt-Text)
-
-### Technische Umsetzung
-
-**Neue Dateien:**
-- `src/components/PdfExportDialog.tsx` — Konfiguration + Vorschau + Textbearbeitung in einem Dialog
-- `src/components/PdfReportHistory.tsx` — Liste gespeicherter Berichte
-
-**Geänderte Dateien:**
-- `src/lib/pdfExport.ts` — `generatePatientPDF` erhält `PdfExportOptions` mit Toggle-Flags und optionalem `doctorSummary`-Text; bedingte Abschnitte
-- `src/pages/PatientDetail.tsx` — PDF-Button öffnet `PdfExportDialog`; neuer "Berichte"-Tab mit `PdfReportHistory`
-- `src/types/patient.ts` — Neuer Typ `PdfExportOptions` und `PdfReport` (Metadaten)
-- `src/lib/api.ts` — Falls API-Endpunkte für Berichts-Speicherung existieren, sonst localStorage-Wrapper
-
-**Speicherung der Berichte:**
-- Zunächst localStorage: Metadaten (Datum, Optionen, Arzt-Text) + Base64-PDF
-- Limit auf letzte 20 Berichte pro Patient (Speicherplatz)
-- Löschen einzelner Berichte möglich
-
-**PdfExportOptions-Typ:**
-```text
-{
-  reportType: "lastVisit" | "fullHistory"
-  showClassification: boolean
-  showAbcde: boolean
-  showRiskScore: boolean
-  showImages: boolean
-  showNotes: boolean
-  doctorSummary: string  // Freitext vom Arzt
-}
+```bash
+ssh root@83.228.246.191
+TS=$(date +%Y%m%d_%H%M%S)
+cp ~/derm-api/database/database.sqlite ~/backups/database_${TS}.sqlite
+cp ~/derm-api/routes/api.php ~/backups/api_${TS}.php
 ```
 
-### Ablauf für den Arzt
+### Schritt 2 — Server-Dateien prüfen
 
-1. Klick auf PDF-Icon → Dialog öffnet sich
-2. Checkboxen wählen (was soll drauf)
-3. "Vorschau" klicken → PDF wird inline angezeigt
-4. Optional: Zusammenfassungstext eingeben/anpassen
-5. "Speichern & Herunterladen" → PDF wird heruntergeladen UND im Verlauf gespeichert
-6. Unter "Berichte"-Tab: alle bisherigen PDFs einsehen, erneut herunterladen oder löschen
+Vor der Änderung müssen wir prüfen:
+- **Laravel-Version** (`php artisan --version`) — bestimmt wo der Rate Limiter registriert wird
+- **Bestehende Login-Route** in `routes/api.php` — exakte Position und Logik finden
+- **RouteServiceProvider oder bootstrap/app.php** — wo Custom Rate Limiter definiert werden
+
+### Schritt 3 — Rate Limiter definieren
+
+Je nach Laravel-Version entweder in `app/Providers/RouteServiceProvider.php` (Laravel 10) oder `bootstrap/app.php` (Laravel 11):
+
+```php
+use Illuminate\Cache\RateLimiting\Limit;
+use Illuminate\Support\Facades\RateLimiter;
+use Illuminate\Support\Str;
+
+RateLimiter::for('login', function ($request) {
+    $key = Str::lower($request->input('email')) . '|' . $request->ip();
+    return Limit::perMinute(5)->by($key)->response(function () {
+        return response()->json([
+            'message' => 'Zu viele Anmeldeversuche. Bitte warten Sie 2 Minuten.',
+            'retry_after' => 120,
+        ], 429);
+    });
+});
+```
+
+### Schritt 4 — Login-Route mit Throttle-Middleware versehen
+
+In `routes/api.php` die bestehende Login-Route um `->middleware('throttle:login')` ergänzen:
+
+```php
+Route::post('/login', function (Request $request) {
+    // ... bestehende Login-Logik bleibt unverändert
+})->middleware('throttle:login');
+```
+
+### Schritt 5 — Frontend: 429-Fehler abfangen
+
+**`src/pages/Login.tsx`** — im `catch`-Block den HTTP 429 erkennen und eine benutzerfreundliche Meldung anzeigen mit temporärer Button-Sperre.
+
+**`src/lib/api.ts`** — in der `request()`-Funktion den Status 429 separat behandeln (nicht als 401 weiterleiten).
+
+### Sicherheitskonzept
+
+| Parameter | Wert |
+|-----------|------|
+| Max. Versuche | 5 pro Minute |
+| Sperrzeit | 2 Minuten |
+| Schlüssel | E-Mail + IP kombiniert |
+| HTTP-Status | 429 Too Many Requests |
+| Reset | Automatisch nach Ablauf |
+
+### Vorgehen
+
+Da `routes/api.php` über 1000 Zeilen hat und fehleranfällig ist, wird die Änderung dort minimal gehalten — nur `->middleware('throttle:login')` an die bestehende Route anhängen. Die Rate-Limiter-Definition kommt in eine separate, saubere Datei (Provider). So wird nichts Bestehendes kaputt gemacht.
 
