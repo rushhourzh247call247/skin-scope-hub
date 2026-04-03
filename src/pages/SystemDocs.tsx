@@ -136,7 +136,7 @@ const SystemDocs = () => {
         <InfoRow label="DB-Aufbewahrung" value="30 Tage" />
         <InfoRow label="Bild-Backup" value="Wöchentlich (Sonntag 03:00 Uhr)" />
         <InfoRow label="Bild-Aufbewahrung" value="60 Tage" />
-        <InfoRow label="Snapshots" value="Tägliches Snapshot-Skript (03:00 Uhr)" />
+        <InfoRow label="Snapshots" value="2× täglich (03:00 & 15:00 Uhr, pro Firma)" />
         <InfoRow label="Backup-Format" value="SQLite-Kopie / tar.gz Archiv" />
       </Section>
 
