@@ -10,6 +10,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { Badge } from "@/components/ui/badge";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { UserCog, Plus, Trash2, KeyRound, Eye, EyeOff, ShieldOff, Shield, Ban, CheckCircle } from "lucide-react";
 import { toast } from "sonner";
 
@@ -24,19 +25,15 @@ const UserManagement = () => {
   const [companyId, setCompanyId] = useState("");
   const [role, setRole] = useState("user");
 
-  // Delete confirm
   const [deleteUserId, setDeleteUserId] = useState<number | null>(null);
-
-  // Password reset dialog
   const [resetUser, setResetUser] = useState<{ id: number; name: string } | null>(null);
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [showNewPw, setShowNewPw] = useState(false);
   const [showConfirmPw, setShowConfirmPw] = useState(false);
   const [showCreatePw, setShowCreatePw] = useState(false);
-
-  // 2FA reset confirm
   const [reset2faUser, setReset2faUser] = useState<{ id: number; name: string } | null>(null);
+
   const { data: users = [], isLoading } = useQuery({
     queryKey: ["users"],
     queryFn: api.getUsers,
@@ -46,6 +43,9 @@ const UserManagement = () => {
     queryKey: ["companies"],
     queryFn: api.getCompanies,
   });
+
+  const activeUsers = users.filter((u: any) => !u.suspended_at);
+  const suspendedUsers = users.filter((u: any) => !!u.suspended_at);
 
   const createMutation = useMutation({
     mutationFn: api.createUser,
@@ -111,6 +111,121 @@ const UserManagement = () => {
     onError: () => toast.error("Fehler beim Entsperren"),
   });
 
+  const canSuspend = (u: any) => {
+    const isProtected = u.email?.toLowerCase() === PROTECTED_EMAIL;
+    const isAdminRole = u.role === "admin";
+    return !isProtected && !isAdminRole;
+  };
+
+  const renderUserRow = (u: any, isSuspendedTab: boolean) => {
+    const isProtected = u.email?.toLowerCase() === PROTECTED_EMAIL;
+    return (
+      <TableRow key={u.id} className={isSuspendedTab ? "opacity-60" : ""}>
+        <TableCell className="font-medium">
+          <span className="flex items-center gap-2">
+            {u.name}
+            {isProtected && (
+              <Badge variant="secondary" className="gap-1 text-xs">
+                <Shield className="h-3 w-3" /> Geschützt
+              </Badge>
+            )}
+          </span>
+        </TableCell>
+        <TableCell className="text-muted-foreground">{u.email}</TableCell>
+        <TableCell>{u.company?.name ?? `#${u.company_id}`}</TableCell>
+        <TableCell>
+          <span className={`inline-flex rounded-full px-2 py-0.5 text-xs font-medium ${u.role === "admin" ? "bg-primary/10 text-primary" : "bg-muted text-muted-foreground"}`}>
+            {u.role === "admin" ? "Admin" : "Benutzer"}
+          </span>
+        </TableCell>
+        <TableCell className="text-right">
+          <div className="flex justify-end gap-1">
+            {isSuspendedTab ? (
+              /* Suspended tab: show unsuspend button */
+              <Button
+                variant="ghost"
+                size="icon"
+                title="Entsperren"
+                onClick={() => unsuspendMutation.mutate(u.id)}
+                className="text-emerald-600 hover:text-emerald-700"
+              >
+                <CheckCircle className="h-4 w-4" />
+              </Button>
+            ) : (
+              <>
+                {canSuspend(u) && (
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    title="Sperren"
+                    onClick={() => suspendMutation.mutate(u.id)}
+                    className="text-amber-600 hover:text-amber-700"
+                  >
+                    <Ban className="h-4 w-4" />
+                  </Button>
+                )}
+                {!!u.two_factor_enabled && (
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    title="2FA zurücksetzen"
+                    onClick={() => setReset2faUser({ id: u.id, name: u.name })}
+                  >
+                    <ShieldOff className="h-4 w-4" />
+                  </Button>
+                )}
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  title="Passwort zurücksetzen"
+                  onClick={() => { setResetUser({ id: u.id, name: u.name }); setNewPassword(""); }}
+                >
+                  <KeyRound className="h-4 w-4" />
+                </Button>
+                {isProtected ? (
+                  <span className="inline-flex h-10 w-10 items-center justify-center text-xs text-muted-foreground">—</span>
+                ) : (
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="text-destructive hover:text-destructive"
+                    title="Benutzer löschen"
+                    onClick={() => setDeleteUserId(u.id)}
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
+                )}
+              </>
+            )}
+          </div>
+        </TableCell>
+      </TableRow>
+    );
+  };
+
+  const renderTable = (list: any[], isSuspendedTab: boolean) => (
+    list.length === 0 ? (
+      <p className="py-8 text-center text-muted-foreground">
+        {isSuspendedTab ? "Keine gesperrten Benutzer" : "Keine aktiven Benutzer"}
+      </p>
+    ) : (
+      <Table>
+        <TableHeader>
+          <TableRow>
+            <TableHead>Name</TableHead>
+            <TableHead>E-Mail</TableHead>
+            <TableHead>Firma</TableHead>
+            <TableHead>Rolle</TableHead>
+            <TableHead className="w-[160px] text-right">Aktionen</TableHead>
+          </TableRow>
+        </TableHeader>
+        <TableBody>
+          {list.map((u: any) => renderUserRow(u, isSuspendedTab))}
+        </TableBody>
+      </Table>
+    )
+  );
+
   return (
     <div className="container py-8 space-y-6">
       <div className="flex items-center justify-between">
@@ -173,124 +288,36 @@ const UserManagement = () => {
 
       <Card>
         <CardHeader>
-          <CardTitle className="flex items-center gap-2 text-lg"><UserCog className="h-5 w-5" /> Alle Benutzer</CardTitle>
+          <CardTitle className="flex items-center gap-2 text-lg"><UserCog className="h-5 w-5" /> Benutzer</CardTitle>
         </CardHeader>
         <CardContent>
           {isLoading ? (
             <div className="flex justify-center py-8">
               <div className="h-6 w-6 animate-spin rounded-full border-2 border-primary border-t-transparent" />
             </div>
-          ) : users.length === 0 ? (
-            <p className="py-8 text-center text-muted-foreground">Keine Benutzer vorhanden</p>
           ) : (
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Name</TableHead>
-                  <TableHead>E-Mail</TableHead>
-                  <TableHead>Firma</TableHead>
-                  <TableHead>Rolle</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead className="w-[160px] text-right">Aktionen</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {users.map((u: any) => {
-                  const isProtected = u.email?.toLowerCase() === PROTECTED_EMAIL;
-                  return (
-                    <TableRow key={u.id}>
-                      <TableCell className="font-medium">
-                        <span className="flex items-center gap-2">
-                          {u.name}
-                          {isProtected && (
-                            <Badge variant="secondary" className="gap-1 text-xs">
-                              <Shield className="h-3 w-3" /> Geschützt
-                            </Badge>
-                          )}
-                        </span>
-                      </TableCell>
-                      <TableCell className="text-muted-foreground">{u.email}</TableCell>
-                      <TableCell>{u.company?.name ?? `#${u.company_id}`}</TableCell>
-                      <TableCell>
-                        <span className={`inline-flex rounded-full px-2 py-0.5 text-xs font-medium ${u.role === "admin" ? "bg-primary/10 text-primary" : "bg-muted text-muted-foreground"}`}>
-                          {u.role === "admin" ? "Admin" : "Benutzer"}
-                        </span>
-                      </TableCell>
-                      <TableCell>
-                        {u.suspended_at ? (
-                          <Badge variant="destructive" className="gap-1 text-xs">
-                            <Ban className="h-3 w-3" /> Gesperrt
-                          </Badge>
-                        ) : (
-                          <Badge variant="outline" className="gap-1 text-xs text-emerald-600 border-emerald-300">
-                            <CheckCircle className="h-3 w-3" /> Aktiv
-                          </Badge>
-                        )}
-                      </TableCell>
-                      <TableCell className="text-right">
-                        <div className="flex justify-end gap-1">
-                          {/* Suspend / Unsuspend */}
-                          {!isProtected && (
-                            u.suspended_at ? (
-                              <Button
-                                variant="ghost"
-                                size="icon"
-                                title="Entsperren"
-                                onClick={() => unsuspendMutation.mutate(u.id)}
-                                className="text-emerald-600 hover:text-emerald-700"
-                              >
-                                <CheckCircle className="h-4 w-4" />
-                              </Button>
-                            ) : (
-                              <Button
-                                variant="ghost"
-                                size="icon"
-                                title="Sperren"
-                                onClick={() => suspendMutation.mutate(u.id)}
-                                className="text-amber-600 hover:text-amber-700"
-                              >
-                                <Ban className="h-4 w-4" />
-                              </Button>
-                            )
-                          )}
-                          {!!u.two_factor_enabled && (
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              title="2FA zurücksetzen"
-                              onClick={() => setReset2faUser({ id: u.id, name: u.name })}
-                            >
-                              <ShieldOff className="h-4 w-4" />
-                            </Button>
-                          )}
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            title="Passwort zurücksetzen"
-                            onClick={() => { setResetUser({ id: u.id, name: u.name }); setNewPassword(""); }}
-                          >
-                            <KeyRound className="h-4 w-4" />
-                          </Button>
-                          {isProtected ? (
-                            <span className="inline-flex h-10 w-10 items-center justify-center text-xs text-muted-foreground">—</span>
-                          ) : (
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              className="text-destructive hover:text-destructive"
-                              title="Benutzer löschen"
-                              onClick={() => setDeleteUserId(u.id)}
-                            >
-                              <Trash2 className="h-4 w-4" />
-                            </Button>
-                          )}
-                        </div>
-                      </TableCell>
-                    </TableRow>
-                  );
-                })}
-              </TableBody>
-            </Table>
+            <Tabs defaultValue="active">
+              <TabsList>
+                <TabsTrigger value="active" className="gap-1.5">
+                  <CheckCircle className="h-3.5 w-3.5" />
+                  Aktiv
+                  <Badge variant="secondary" className="ml-1 h-5 min-w-[20px] px-1.5 text-[10px]">{activeUsers.length}</Badge>
+                </TabsTrigger>
+                <TabsTrigger value="suspended" className="gap-1.5">
+                  <Ban className="h-3.5 w-3.5" />
+                  Gesperrt
+                  {suspendedUsers.length > 0 && (
+                    <Badge variant="destructive" className="ml-1 h-5 min-w-[20px] px-1.5 text-[10px]">{suspendedUsers.length}</Badge>
+                  )}
+                </TabsTrigger>
+              </TabsList>
+              <TabsContent value="active" className="mt-4">
+                {renderTable(activeUsers, false)}
+              </TabsContent>
+              <TabsContent value="suspended" className="mt-4">
+                {renderTable(suspendedUsers, true)}
+              </TabsContent>
+            </Tabs>
           )}
         </CardContent>
       </Card>
@@ -315,7 +342,6 @@ const UserManagement = () => {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-
 
       {/* 2FA Reset Confirmation */}
       <AlertDialog open={reset2faUser !== null} onOpenChange={(open) => !open && setReset2faUser(null)}>
@@ -392,12 +418,9 @@ const UserManagement = () => {
                   {showConfirmPw ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                 </Button>
               </div>
-              {confirmPassword.length > 0 && newPassword !== confirmPassword && (
-                <p className="text-sm text-destructive">Passwörter stimmen nicht überein</p>
-              )}
             </div>
-            <Button type="submit" className="w-full" disabled={resetPasswordMutation.isPending || newPassword.length < 6 || newPassword !== confirmPassword}>
-              {resetPasswordMutation.isPending ? "Setze zurück…" : "Passwort zurücksetzen"}
+            <Button type="submit" className="w-full" disabled={resetPasswordMutation.isPending}>
+              {resetPasswordMutation.isPending ? "Setze zurück…" : "Passwort ändern"}
             </Button>
           </form>
         </DialogContent>

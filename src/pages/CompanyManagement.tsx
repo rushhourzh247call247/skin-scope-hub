@@ -11,6 +11,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { Badge } from "@/components/ui/badge";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Progress } from "@/components/ui/progress";
 import { Building2, Plus, Trash2, Shield, Download, Loader2, Ban, CheckCircle } from "lucide-react";
 import { toast } from "sonner";
@@ -32,6 +33,9 @@ const CompanyManagement = () => {
     queryKey: ["companies"],
     queryFn: api.getCompanies,
   });
+
+  const activeCompanies = companies.filter((c: any) => !c.suspended_at);
+  const suspendedCompanies = companies.filter((c: any) => !!c.suspended_at);
 
   const createMutation = useMutation({
     mutationFn: api.createCompany,
@@ -73,6 +77,10 @@ const CompanyManagement = () => {
     onError: () => toast.error("Fehler beim Entsperren"),
   });
 
+  const canSuspend = (c: any) => {
+    return c.name?.toLowerCase() !== PROTECTED_COMPANY_NAME;
+  };
+
   const handleExport = async (companyId: number, companyName: string) => {
     setExportingId(companyId);
     setExportProgress({ phase: "Starte…", pct: 0 });
@@ -89,6 +97,98 @@ const CompanyManagement = () => {
       setExportProgress(null);
     }
   };
+
+  const renderCompanyRow = (c: any, isSuspendedTab: boolean) => {
+    const isProtected = c.name?.toLowerCase() === PROTECTED_COMPANY_NAME;
+    const isExporting = exportingId === c.id;
+    return (
+      <TableRow key={c.id} className={isSuspendedTab ? "opacity-60" : ""}>
+        <TableCell className="font-mono text-xs text-muted-foreground">{c.id}</TableCell>
+        <TableCell className="font-medium">
+          <span className="flex items-center gap-2">
+            {c.name}
+            {isProtected && (
+              <Badge variant="secondary" className="gap-1 text-xs">
+                <Shield className="h-3 w-3" /> Geschützt
+              </Badge>
+            )}
+          </span>
+        </TableCell>
+        <TableCell>
+          <div className="flex items-center gap-1">
+            {isSuspendedTab ? (
+              <Button
+                variant="ghost"
+                size="icon"
+                title="Entsperren"
+                onClick={() => unsuspendMutation.mutate(c.id)}
+                className="text-emerald-600 hover:text-emerald-700"
+              >
+                <CheckCircle className="h-4 w-4" />
+              </Button>
+            ) : (
+              <>
+                {canSuspend(c) && (
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    title="Sperren"
+                    onClick={() => suspendMutation.mutate(c.id)}
+                    className="text-amber-600 hover:text-amber-700"
+                  >
+                    <Ban className="h-4 w-4" />
+                  </Button>
+                )}
+                {isAdmin && (
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    disabled={isExporting || exportingId !== null}
+                    onClick={() => handleExport(c.id, c.name)}
+                    title="Gesamte Firmendaten exportieren"
+                  >
+                    {isExporting ? (
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                    ) : (
+                      <Download className="h-4 w-4" />
+                    )}
+                  </Button>
+                )}
+                {isProtected ? (
+                  <span className="text-xs text-muted-foreground">—</span>
+                ) : (
+                  <Button variant="ghost" size="icon" onClick={() => setDeleteId(c.id)} className="text-destructive hover:text-destructive">
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
+                )}
+              </>
+            )}
+          </div>
+        </TableCell>
+      </TableRow>
+    );
+  };
+
+  const renderTable = (list: any[], isSuspendedTab: boolean) => (
+    list.length === 0 ? (
+      <p className="py-8 text-center text-muted-foreground">
+        {isSuspendedTab ? "Keine gesperrten Firmen" : "Keine aktiven Firmen"}
+      </p>
+    ) : (
+      <Table>
+        <TableHeader>
+          <TableRow>
+            <TableHead>ID</TableHead>
+            <TableHead>Name</TableHead>
+            <TableHead className="w-[160px]">Aktion</TableHead>
+          </TableRow>
+        </TableHeader>
+        <TableBody>
+          {list.map((c: any) => renderCompanyRow(c, isSuspendedTab))}
+        </TableBody>
+      </Table>
+    )
+  );
 
   return (
     <div className="container py-8 space-y-6">
@@ -116,7 +216,6 @@ const CompanyManagement = () => {
         </Dialog>
       </div>
 
-      {/* Export progress overlay */}
       {exportProgress && (
         <Card className="border-primary/30 bg-primary/5">
           <CardContent className="py-4 space-y-2">
@@ -132,108 +231,36 @@ const CompanyManagement = () => {
 
       <Card>
         <CardHeader>
-          <CardTitle className="flex items-center gap-2 text-lg"><Building2 className="h-5 w-5" /> Alle Firmen</CardTitle>
+          <CardTitle className="flex items-center gap-2 text-lg"><Building2 className="h-5 w-5" /> Firmen</CardTitle>
         </CardHeader>
         <CardContent>
           {isLoading ? (
             <div className="flex justify-center py-8">
               <div className="h-6 w-6 animate-spin rounded-full border-2 border-primary border-t-transparent" />
             </div>
-          ) : companies.length === 0 ? (
-            <p className="py-8 text-center text-muted-foreground">Keine Firmen vorhanden</p>
           ) : (
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>ID</TableHead>
-                  <TableHead>Name</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead className="w-[160px]">Aktion</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {companies.map((c: any) => {
-                  const isProtected = c.name?.toLowerCase() === PROTECTED_COMPANY_NAME;
-                  const isExporting = exportingId === c.id;
-                  return (
-                    <TableRow key={c.id}>
-                      <TableCell className="font-mono text-xs text-muted-foreground">{c.id}</TableCell>
-                      <TableCell className="font-medium">
-                        <span className="flex items-center gap-2">
-                          {c.name}
-                          {isProtected && (
-                            <Badge variant="secondary" className="gap-1 text-xs">
-                              <Shield className="h-3 w-3" /> Geschützt
-                            </Badge>
-                          )}
-                        </span>
-                      </TableCell>
-                      <TableCell>
-                        {c.suspended_at ? (
-                          <Badge variant="destructive" className="gap-1 text-xs">
-                            <Ban className="h-3 w-3" /> Gesperrt
-                          </Badge>
-                        ) : (
-                          <Badge variant="outline" className="gap-1 text-xs text-emerald-600 border-emerald-300">
-                            <CheckCircle className="h-3 w-3" /> Aktiv
-                          </Badge>
-                        )}
-                      </TableCell>
-                      <TableCell>
-                        <div className="flex items-center gap-1">
-                          {/* Suspend / Unsuspend */}
-                          {!isProtected && (
-                            c.suspended_at ? (
-                              <Button
-                                variant="ghost"
-                                size="icon"
-                                title="Entsperren"
-                                onClick={() => unsuspendMutation.mutate(c.id)}
-                                className="text-emerald-600 hover:text-emerald-700"
-                              >
-                                <CheckCircle className="h-4 w-4" />
-                              </Button>
-                            ) : (
-                              <Button
-                                variant="ghost"
-                                size="icon"
-                                title="Sperren"
-                                onClick={() => suspendMutation.mutate(c.id)}
-                                className="text-amber-600 hover:text-amber-700"
-                              >
-                                <Ban className="h-4 w-4" />
-                              </Button>
-                            )
-                          )}
-                          {isAdmin && (
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              disabled={isExporting || exportingId !== null}
-                              onClick={() => handleExport(c.id, c.name)}
-                              title="Gesamte Firmendaten exportieren"
-                            >
-                              {isExporting ? (
-                                <Loader2 className="h-4 w-4 animate-spin" />
-                              ) : (
-                                <Download className="h-4 w-4" />
-                              )}
-                            </Button>
-                          )}
-                          {isProtected ? (
-                            <span className="text-xs text-muted-foreground">—</span>
-                          ) : (
-                            <Button variant="ghost" size="icon" onClick={() => setDeleteId(c.id)} className="text-destructive hover:text-destructive">
-                              <Trash2 className="h-4 w-4" />
-                            </Button>
-                          )}
-                        </div>
-                      </TableCell>
-                    </TableRow>
-                  );
-                })}
-              </TableBody>
-            </Table>
+            <Tabs defaultValue="active">
+              <TabsList>
+                <TabsTrigger value="active" className="gap-1.5">
+                  <CheckCircle className="h-3.5 w-3.5" />
+                  Aktiv
+                  <Badge variant="secondary" className="ml-1 h-5 min-w-[20px] px-1.5 text-[10px]">{activeCompanies.length}</Badge>
+                </TabsTrigger>
+                <TabsTrigger value="suspended" className="gap-1.5">
+                  <Ban className="h-3.5 w-3.5" />
+                  Gesperrt
+                  {suspendedCompanies.length > 0 && (
+                    <Badge variant="destructive" className="ml-1 h-5 min-w-[20px] px-1.5 text-[10px]">{suspendedCompanies.length}</Badge>
+                  )}
+                </TabsTrigger>
+              </TabsList>
+              <TabsContent value="active" className="mt-4">
+                {renderTable(activeCompanies, false)}
+              </TabsContent>
+              <TabsContent value="suspended" className="mt-4">
+                {renderTable(suspendedCompanies, true)}
+              </TabsContent>
+            </Tabs>
           )}
         </CardContent>
       </Card>
