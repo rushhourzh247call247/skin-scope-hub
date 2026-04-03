@@ -55,6 +55,20 @@ async function request<T>(path: string, options?: RequestInit): Promise<T> {
       (err as any).retryAfter = isNaN(seconds) ? 120 : seconds;
       throw err;
     }
+    if (res.status === 403) {
+      const body = await res.json().catch(() => ({}));
+      if (body.suspended) {
+        sessionStorage.removeItem('auth_token');
+        sessionStorage.removeItem('auth_user');
+        const err = new Error(body.error || 'Konto gesperrt');
+        (err as any).status = 403;
+        (err as any).suspended = true;
+        throw err;
+      }
+      const err = new Error(body.error || 'Keine Berechtigung');
+      (err as any).status = 403;
+      throw err;
+    }
     if (res.status === 401) {
       sessionStorage.removeItem('auth_token');
       sessionStorage.removeItem('auth_user');
@@ -134,6 +148,18 @@ export const api = {
   // Admin: Reset user 2FA
   adminReset2FA: (userId: number) =>
     request<{ success: boolean }>(`/admin/users/${userId}/reset-2fa`, { method: 'POST' }),
+
+  // Suspend / Unsuspend users
+  suspendUser: (userId: number) =>
+    request<{ success: boolean }>(`/users/${userId}/suspend`, { method: 'PUT' }),
+  unsuspendUser: (userId: number) =>
+    request<{ success: boolean }>(`/users/${userId}/unsuspend`, { method: 'PUT' }),
+
+  // Suspend / Unsuspend companies
+  suspendCompany: (companyId: number) =>
+    request<{ success: boolean }>(`/companies/${companyId}/suspend`, { method: 'PUT' }),
+  unsuspendCompany: (companyId: number) =>
+    request<{ success: boolean }>(`/companies/${companyId}/unsuspend`, { method: 'PUT' }),
 
   // Patients
   getPatients: () => request<any[]>('/patients'),

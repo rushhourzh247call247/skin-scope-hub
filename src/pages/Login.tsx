@@ -71,6 +71,8 @@ const Login = () => {
     } catch (err: any) {
       if (err?.status === 429) {
         handleRateLimitError(err);
+      } else if (err?.suspended) {
+        setError(err.message || "Ihr Konto wurde gesperrt. Bitte kontaktieren Sie den Administrator.");
       } else {
         setError("Login fehlgeschlagen. Bitte prüfen Sie Ihre Zugangsdaten.");
       }

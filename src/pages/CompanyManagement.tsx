@@ -12,7 +12,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
-import { Building2, Plus, Trash2, Shield, Download, Loader2 } from "lucide-react";
+import { Building2, Plus, Trash2, Shield, Download, Loader2, Ban, CheckCircle } from "lucide-react";
 import { toast } from "sonner";
 
 const PROTECTED_COMPANY_NAME = "techassist";
@@ -53,6 +53,24 @@ const CompanyManagement = () => {
       setDeleteId(null);
     },
     onError: () => toast.error("Fehler beim Löschen – evtl. sind noch Benutzer zugeordnet"),
+  });
+
+  const suspendMutation = useMutation({
+    mutationFn: (id: number) => api.suspendCompany(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["companies"] });
+      toast.success("Firma gesperrt — alle Benutzer wurden ausgeloggt");
+    },
+    onError: () => toast.error("Fehler beim Sperren"),
+  });
+
+  const unsuspendMutation = useMutation({
+    mutationFn: (id: number) => api.unsuspendCompany(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["companies"] });
+      toast.success("Firma entsperrt");
+    },
+    onError: () => toast.error("Fehler beim Entsperren"),
   });
 
   const handleExport = async (companyId: number, companyName: string) => {
@@ -129,7 +147,8 @@ const CompanyManagement = () => {
                 <TableRow>
                   <TableHead>ID</TableHead>
                   <TableHead>Name</TableHead>
-                  <TableHead className="w-[120px]">Aktion</TableHead>
+                  <TableHead>Status</TableHead>
+                  <TableHead className="w-[160px]">Aktion</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -150,7 +169,42 @@ const CompanyManagement = () => {
                         </span>
                       </TableCell>
                       <TableCell>
+                        {c.suspended_at ? (
+                          <Badge variant="destructive" className="gap-1 text-xs">
+                            <Ban className="h-3 w-3" /> Gesperrt
+                          </Badge>
+                        ) : (
+                          <Badge variant="outline" className="gap-1 text-xs text-emerald-600 border-emerald-300">
+                            <CheckCircle className="h-3 w-3" /> Aktiv
+                          </Badge>
+                        )}
+                      </TableCell>
+                      <TableCell>
                         <div className="flex items-center gap-1">
+                          {/* Suspend / Unsuspend */}
+                          {!isProtected && (
+                            c.suspended_at ? (
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                title="Entsperren"
+                                onClick={() => unsuspendMutation.mutate(c.id)}
+                                className="text-emerald-600 hover:text-emerald-700"
+                              >
+                                <CheckCircle className="h-4 w-4" />
+                              </Button>
+                            ) : (
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                title="Sperren"
+                                onClick={() => suspendMutation.mutate(c.id)}
+                                className="text-amber-600 hover:text-amber-700"
+                              >
+                                <Ban className="h-4 w-4" />
+                              </Button>
+                            )
+                          )}
                           {isAdmin && (
                             <Button
                               variant="ghost"

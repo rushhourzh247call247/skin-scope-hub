@@ -10,7 +10,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { Badge } from "@/components/ui/badge";
-import { UserCog, Plus, Trash2, KeyRound, Eye, EyeOff, ShieldOff, Shield } from "lucide-react";
+import { UserCog, Plus, Trash2, KeyRound, Eye, EyeOff, ShieldOff, Shield, Ban, CheckCircle } from "lucide-react";
 import { toast } from "sonner";
 
 const PROTECTED_EMAIL = "info@techassist.ch";
@@ -93,6 +93,24 @@ const UserManagement = () => {
     onError: () => toast.error("Fehler beim Zurücksetzen der 2FA"),
   });
 
+  const suspendMutation = useMutation({
+    mutationFn: (userId: number) => api.suspendUser(userId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["users"] });
+      toast.success("Benutzer gesperrt");
+    },
+    onError: () => toast.error("Fehler beim Sperren"),
+  });
+
+  const unsuspendMutation = useMutation({
+    mutationFn: (userId: number) => api.unsuspendUser(userId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["users"] });
+      toast.success("Benutzer entsperrt");
+    },
+    onError: () => toast.error("Fehler beim Entsperren"),
+  });
+
   return (
     <div className="container py-8 space-y-6">
       <div className="flex items-center justify-between">
@@ -172,7 +190,8 @@ const UserManagement = () => {
                   <TableHead>E-Mail</TableHead>
                   <TableHead>Firma</TableHead>
                   <TableHead>Rolle</TableHead>
-                  <TableHead className="w-[120px] text-right">Aktionen</TableHead>
+                  <TableHead>Status</TableHead>
+                  <TableHead className="w-[160px] text-right">Aktionen</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -197,8 +216,43 @@ const UserManagement = () => {
                           {u.role === "admin" ? "Admin" : "Benutzer"}
                         </span>
                       </TableCell>
+                      <TableCell>
+                        {u.suspended_at ? (
+                          <Badge variant="destructive" className="gap-1 text-xs">
+                            <Ban className="h-3 w-3" /> Gesperrt
+                          </Badge>
+                        ) : (
+                          <Badge variant="outline" className="gap-1 text-xs text-emerald-600 border-emerald-300">
+                            <CheckCircle className="h-3 w-3" /> Aktiv
+                          </Badge>
+                        )}
+                      </TableCell>
                       <TableCell className="text-right">
                         <div className="flex justify-end gap-1">
+                          {/* Suspend / Unsuspend */}
+                          {!isProtected && (
+                            u.suspended_at ? (
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                title="Entsperren"
+                                onClick={() => unsuspendMutation.mutate(u.id)}
+                                className="text-emerald-600 hover:text-emerald-700"
+                              >
+                                <CheckCircle className="h-4 w-4" />
+                              </Button>
+                            ) : (
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                title="Sperren"
+                                onClick={() => suspendMutation.mutate(u.id)}
+                                className="text-amber-600 hover:text-amber-700"
+                              >
+                                <Ban className="h-4 w-4" />
+                              </Button>
+                            )
+                          )}
                           {!!u.two_factor_enabled && (
                             <Button
                               variant="ghost"
