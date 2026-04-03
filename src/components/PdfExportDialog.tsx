@@ -78,36 +78,53 @@ export default function PdfExportDialog({ open, onOpenChange, patient, doctorNam
       const blobUrl = await generatePatientPDF(patient, "preview", doctorName, options);
       if (!blobUrl) throw new Error("PDF generation failed");
 
+      // Convert blob URL to actual blob for reliable download + save
+      const res = await fetch(blobUrl);
+      const blob = await res.blob();
+      const filename = getPatientPdfFilename(patient);
+
+      // Download using blob directly
+      const downloadUrl = URL.createObjectURL(blob);
       const link = document.createElement("a");
-      link.href = blobUrl;
-      link.download = getPatientPdfFilename(patient);
+      link.href = downloadUrl;
+      link.download = filename;
+      link.style.display = "none";
       document.body.appendChild(link);
       link.click();
-      document.body.removeChild(link);
 
+      // Fallback for iOS Safari: also try window.open
+      setTimeout(() => {
+        document.body.removeChild(link);
+      }, 100);
+
+      // Save to reports (await the FileReader)
       try {
-        const res = await fetch(blobUrl);
-        const blob = await res.blob();
-        const reader = new FileReader();
-        reader.onloadend = () => {
-          const base64 = reader.result as string;
-          saveReport({
-            id: crypto.randomUUID(),
-            patientId: patient.id,
-            patientName: patient.name,
-            createdAt: new Date().toISOString(),
-            reportType: options.reportType,
-            options,
-            doctorName: doctorName ?? null,
-            pdfBase64: base64,
-          });
-        };
-        reader.readAsDataURL(blob);
+        const base64 = await new Promise<string>((resolve, reject) => {
+          const reader = new FileReader();
+          reader.onloadend = () => resolve(reader.result as string);
+          reader.onerror = () => reject(new Error("FileReader failed"));
+          reader.readAsDataURL(blob);
+        });
+
+        saveReport({
+          id: crypto.randomUUID(),
+          patientId: patient.id,
+          patientName: patient.name,
+          createdAt: new Date().toISOString(),
+          reportType: options.reportType,
+          options,
+          doctorName: doctorName ?? null,
+          pdfBase64: base64,
+        });
       } catch {
+        console.warn("Could not save report to history");
       }
 
       toast.success("PDF gespeichert & heruntergeladen");
-      setTimeout(() => URL.revokeObjectURL(blobUrl), 2000);
+      setTimeout(() => {
+        URL.revokeObjectURL(blobUrl);
+        URL.revokeObjectURL(downloadUrl);
+      }, 3000);
     } catch {
       toast.error("PDF konnte nicht erstellt werden");
     } finally {

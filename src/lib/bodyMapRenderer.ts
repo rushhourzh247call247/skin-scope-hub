@@ -1,6 +1,7 @@
 /**
  * Offscreen Three.js renderer for body map thumbnails in PDF export.
  * Renders the actual 3D GLB body model with a spot marker to a base64 image.
+ * Camera zooms to the spot from the surface normal direction, matching the app behavior.
  */
 import * as THREE from "three";
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
@@ -28,35 +29,35 @@ async function loadModel(url: string): Promise<THREE.Group> {
 }
 
 export interface BodyMapRenderOptions {
-  /** Spot x coordinate (0-100 percentage) */
   xPct: number;
-  /** Spot y coordinate (0-100 percentage) */
   yPct: number;
-  /** Which side the spot is on */
   view: "front" | "back";
-  /** 3D anchor if available */
   x3d?: number;
   y3d?: number;
   z3d?: number;
-  /** Gender for model selection */
+  nx?: number;
+  ny?: number;
+  nz?: number;
   gender?: "male" | "female";
-  /** Accent color for the marker */
   accentColor?: string;
-  /** Canvas width in pixels */
   width?: number;
-  /** Canvas height in pixels */
   height?: number;
 }
 
-/**
- * Renders the 3D body model offscreen with a marker and returns a base64 PNG.
- */
+function toFinite(v: unknown): number | null {
+  const n = typeof v === "number" ? v : Number(v);
+  return Number.isFinite(n) ? n : null;
+}
+
 export async function renderBodyMap3DThumbnail(opts: BodyMapRenderOptions): Promise<string | null> {
   const {
     view,
-    x3d,
-    y3d,
-    z3d,
+    x3d: rawX3d,
+    y3d: rawY3d,
+    z3d: rawZ3d,
+    nx: rawNx,
+    ny: rawNy,
+    nz: rawNz,
     gender = "male",
     accentColor = "#00a699",
     width = 300,
@@ -83,18 +84,14 @@ export async function renderBodyMap3DThumbnail(opts: BodyMapRenderOptions): Prom
     const scene = new THREE.Scene();
     scene.background = new THREE.Color(0xf8fafc);
 
-    // Lighting - match the app's setup
-    const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
-    scene.add(ambientLight);
-
+    // Lighting
+    scene.add(new THREE.AmbientLight(0xffffff, 0.6));
     const frontLight = new THREE.DirectionalLight(0xffffff, 0.8);
     frontLight.position.set(0, 2, 4);
     scene.add(frontLight);
-
     const fillLight = new THREE.DirectionalLight(0xfff5ee, 0.3);
     fillLight.position.set(-3, 1, -2);
     scene.add(fillLight);
-
     const rimLight = new THREE.DirectionalLight(0xe8e0ff, 0.4);
     rimLight.position.set(2, 0.5, -3);
     scene.add(rimLight);
@@ -111,75 +108,110 @@ export async function renderBodyMap3DThumbnail(opts: BodyMapRenderOptions): Prom
       emissive: new THREE.Color("hsl(15, 25%, 22%)"),
       emissiveIntensity: 0.06,
     });
-
     modelScene.traverse((child) => {
       if ((child as THREE.Mesh).isMesh) {
-        const mesh = child as THREE.Mesh;
-        mesh.material = skinMat;
+        (child as THREE.Mesh).material = skinMat;
       }
     });
 
-    // Normalize scale and center
+    // Normalize scale and center (same as BodyMap3D component)
     const box = new THREE.Box3().setFromObject(modelScene);
-    const size = box.getSize(new THREE.Vector3());
-    const center = box.getCenter(new THREE.Vector3());
-    const modelHeight = size.y || 1;
+    const modelHeight = box.getSize(new THREE.Vector3()).y || 1;
     const scale = 2.5 / modelHeight;
-
-    // Save original center before mutating
-    const centerOffset = center.clone().multiplyScalar(scale);
+    const centerOffset = box.getCenter(new THREE.Vector3()).clone().multiplyScalar(scale);
     modelScene.scale.setScalar(scale);
     modelScene.position.sub(centerOffset);
-
     scene.add(modelScene);
 
-    // Camera
+    // Determine spot 3D position and camera
+    const x3d = toFinite(rawX3d);
+    const y3d = toFinite(rawY3d);
+    const z3d = toFinite(rawZ3d);
+
     const camera = new THREE.PerspectiveCamera(30, width / height, 0.1, 100);
-    if (view === "back") {
-      camera.position.set(0, 0, -3.8);
-    } else {
-      camera.position.set(0, 0, 3.8);
-    }
-    camera.up.set(0, 1, 0);
-    camera.lookAt(0, 0, 0);
 
-    // Render
-    renderer.render(scene, camera);
+    let markerScreenPos: { x: number; y: number } | null = null;
 
-    // Draw marker on the canvas using 2D context overlay
-    const ctx = canvas.getContext("2d");
-    if (ctx && x3d != null && y3d != null && z3d != null) {
-      // Transform 3D point the same way as the model
-      const markerPos = new THREE.Vector3(
-        Number(x3d) * scale - centerOffset.x,
-        Number(y3d) * scale - centerOffset.y,
-        Number(z3d) * scale - centerOffset.z,
+    if (x3d != null && y3d != null && z3d != null) {
+      // Spot position in model-transformed space
+      const spotPos = new THREE.Vector3(
+        x3d * scale - centerOffset.x,
+        y3d * scale - centerOffset.y,
+        z3d * scale - centerOffset.z,
       );
 
-      markerPos.project(camera);
+      // Surface normal for camera direction (same logic as BodyMap3D auto-focus)
+      const zDir = view === "back" ? -1 : 1;
+      const rawNormal = new THREE.Vector3(
+        toFinite(rawNx) ?? 0,
+        toFinite(rawNy) ?? 0,
+        toFinite(rawNz) ?? 0,
+      );
+      const normal = rawNormal.lengthSq() > 0.0001
+        ? rawNormal.normalize()
+        : new THREE.Vector3(0, 0, zDir);
 
-      const mx = ((markerPos.x + 1) / 2) * width;
-      const my = ((-markerPos.y + 1) / 2) * height;
+      // Camera at 1.2 units along normal from spot (matches app zoom)
+      camera.position.set(
+        spotPos.x + normal.x * 1.2,
+        spotPos.y + normal.y * 1.2,
+        spotPos.z + normal.z * 1.2,
+      );
+      camera.up.set(0, 1, 0);
+      camera.lookAt(spotPos);
 
-      // Parse accent color
+      // Render first, then overlay marker
+      renderer.render(scene, camera);
+
+      // Project spot to screen for marker overlay
+      const projected = spotPos.clone().project(camera);
+      markerScreenPos = {
+        x: ((projected.x + 1) / 2) * width,
+        y: ((-projected.y + 1) / 2) * height,
+      };
+    } else {
+      // Fallback: full body view
+      if (view === "back") {
+        camera.position.set(0, 0, -3.8);
+      } else {
+        camera.position.set(0, 0, 3.8);
+      }
+      camera.up.set(0, 1, 0);
+      camera.lookAt(0, 0, 0);
+      renderer.render(scene, camera);
+    }
+
+    // Draw marker overlay on the 2D canvas
+    const ctx = canvas.getContext("2d");
+    if (ctx && markerScreenPos) {
+      const mx = markerScreenPos.x;
+      const my = markerScreenPos.y;
+
       const r = parseInt(accentColor.slice(1, 3), 16);
       const g = parseInt(accentColor.slice(3, 5), 16);
       const b = parseInt(accentColor.slice(5, 7), 16);
 
       // Outer glow
-      const gradient = ctx.createRadialGradient(mx, my, 0, mx, my, 22);
-      gradient.addColorStop(0, `rgba(${r},${g},${b},0.4)`);
+      const gradient = ctx.createRadialGradient(mx, my, 0, mx, my, 28);
+      gradient.addColorStop(0, `rgba(${r},${g},${b},0.45)`);
       gradient.addColorStop(1, `rgba(${r},${g},${b},0)`);
       ctx.fillStyle = gradient;
       ctx.beginPath();
-      ctx.arc(mx, my, 22, 0, Math.PI * 2);
+      ctx.arc(mx, my, 28, 0, Math.PI * 2);
       ctx.fill();
 
-      // Ring
+      // Outer ring
       ctx.strokeStyle = accentColor;
       ctx.lineWidth = 3;
       ctx.beginPath();
-      ctx.arc(mx, my, 12, 0, Math.PI * 2);
+      ctx.arc(mx, my, 14, 0, Math.PI * 2);
+      ctx.stroke();
+
+      // White inner ring
+      ctx.strokeStyle = "rgba(255,255,255,0.8)";
+      ctx.lineWidth = 1.5;
+      ctx.beginPath();
+      ctx.arc(mx, my, 11, 0, Math.PI * 2);
       ctx.stroke();
 
       // Inner dot
@@ -191,26 +223,26 @@ export async function renderBodyMap3DThumbnail(opts: BodyMapRenderOptions): Prom
       // Crosshair
       ctx.strokeStyle = accentColor;
       ctx.lineWidth = 2;
-      const cs = 18;
+      const cs = 22;
+      const gap = 16;
       ctx.beginPath();
-      ctx.moveTo(mx, my - cs); ctx.lineTo(mx, my - 14);
-      ctx.moveTo(mx, my + 14); ctx.lineTo(mx, my + cs);
-      ctx.moveTo(mx - cs, my); ctx.lineTo(mx - 14, my);
-      ctx.moveTo(mx + 14, my); ctx.lineTo(mx + cs, my);
+      ctx.moveTo(mx, my - cs); ctx.lineTo(mx, my - gap);
+      ctx.moveTo(mx, my + gap); ctx.lineTo(mx, my + cs);
+      ctx.moveTo(mx - cs, my); ctx.lineTo(mx - gap, my);
+      ctx.moveTo(mx + gap, my); ctx.lineTo(mx + cs, my);
       ctx.stroke();
     }
 
     // View label
     if (ctx) {
       ctx.fillStyle = "#94a3b8";
-      ctx.font = "bold 16px sans-serif";
+      ctx.font = "bold 14px sans-serif";
       ctx.textAlign = "center";
-      ctx.fillText(view === "front" ? "Vorne" : "Hinten", width / 2, height - 8);
+      ctx.fillText(view === "front" ? "Vorne" : "Hinten", width / 2, height - 6);
     }
 
     const dataUrl = canvas.toDataURL("image/png");
 
-    // Cleanup
     renderer.dispose();
     skinMat.dispose();
 
