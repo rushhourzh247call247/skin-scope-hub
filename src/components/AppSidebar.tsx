@@ -1,4 +1,4 @@
-import { Users, UserPlus, LogOut, Building2, UserCog, LayoutDashboard, Settings, Database } from "lucide-react";
+import { Users, UserPlus, LogOut, Building2, UserCog, LayoutDashboard, Settings, Database, FileText } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
 import { useLocation } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
@@ -19,6 +19,7 @@ const adminNav = [
   { title: "Firmen", url: "/companies", icon: Building2 },
   { title: "Benutzer", url: "/users", icon: UserCog },
   { title: "Snapshots", url: "/snapshots", icon: Database },
+  { title: "Systemdoku", url: "/system-docs", icon: FileText },
 ];
 
 export function AppSidebar() {
