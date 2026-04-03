@@ -689,54 +689,53 @@ export async function generatePatientPDF(
         }
       }
 
-        // Pin legend below overview image
-        if (pins.length > 0) {
-          y = checkPage(doc, y, pins.length * 5 + 6, margin);
+      // Pin legend below overview image
+      if (pins.length > 0) {
+        y = checkPage(doc, y, pins.length * 5 + 6, margin);
 
-          doc.setFillColor(...C.overviewBg);
-          doc.setDrawColor(...C.overviewBorder);
-          drawRoundedRect(doc, margin, y, contentW, pins.length * 5 + 5, 2, "FD");
+        doc.setFillColor(...C.overviewBg);
+        doc.setDrawColor(...C.overviewBorder);
+        drawRoundedRect(doc, margin, y, contentW, pins.length * 5 + 5, 2, "FD");
 
+        doc.setFont("Roboto", "bold");
+        doc.setFontSize(7);
+        doc.setTextColor(...C.textSecondary);
+        doc.text("MARKIERUNGEN", margin + 4, y + 4);
+        y += 7;
+
+        for (let pi = 0; pi < pins.length; pi++) {
+          const pin = pins[pi];
+          const spot = spotLocations.find(s => s.id === pin.linked_location_id);
+          const spotName = spot?.name || pin.label || `Spot ${pi + 1}`;
+          const cls = spot?.classification;
+          const clsLabel = cls && cls !== "unclassified" ? LESION_CLASSIFICATIONS[cls]?.label : null;
+
+          // Number circle
+          const cx = margin + 7;
+          doc.setFillColor(...C.headerAccent);
+          doc.circle(cx, y, 2, "F");
           doc.setFont("Roboto", "bold");
-          doc.setFontSize(7);
-          doc.setTextColor(...C.textSecondary);
-          doc.text("MARKIERUNGEN", margin + 4, y + 4);
-          y += 7;
+          doc.setFontSize(6.5);
+          doc.setTextColor(...C.white);
+          doc.text(`${pi + 1}`, cx, y + 0.8, { align: "center" });
 
-          for (let pi = 0; pi < pins.length; pi++) {
-            const pin = pins[pi];
-            const spot = spotLocations.find(s => s.id === pin.linked_location_id);
-            const spotName = spot?.name || pin.label || `Spot ${pi + 1}`;
-            const cls = spot?.classification;
-            const clsLabel = cls && cls !== "unclassified" ? LESION_CLASSIFICATIONS[cls]?.label : null;
+          // Spot name
+          doc.setFont("Roboto", "normal");
+          doc.setFontSize(8);
+          doc.setTextColor(...C.textPrimary);
+          doc.text(spotName, margin + 12, y + 1);
 
-            // Number circle
-            const cx = margin + 7;
-            doc.setFillColor(...C.headerAccent);
-            doc.circle(cx, y, 2, "F");
-            doc.setFont("Roboto", "bold");
-            doc.setFontSize(6.5);
-            doc.setTextColor(...C.white);
-            doc.text(`${pi + 1}`, cx, y + 0.8, { align: "center" });
-
-            // Spot name
+          // Classification if available
+          if (clsLabel) {
             doc.setFont("Roboto", "normal");
-            doc.setFontSize(8);
-            doc.setTextColor(...C.textPrimary);
-            doc.text(spotName, margin + 12, y + 1);
-
-            // Classification if available
-            if (clsLabel) {
-              doc.setFont("Roboto", "normal");
-              doc.setFontSize(7);
-              doc.setTextColor(...C.textSecondary);
-              doc.text(`(${clsLabel})`, margin + 12 + doc.getTextWidth(spotName) + 2, y + 1);
-            }
-
-            y += 5;
+            doc.setFontSize(7);
+            doc.setTextColor(...C.textSecondary);
+            doc.text(`(${clsLabel})`, margin + 12 + doc.getTextWidth(spotName) + 2, y + 1);
           }
-          y += 3;
+
+          y += 5;
         }
+        y += 3;
       }
 
       y += 4;
