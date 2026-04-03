@@ -404,41 +404,7 @@ export async function generatePatientPDF(
 
   y += 28;
 
-  /* ═══ SUMMARY BAR ══════════════════════════════════ */
-  const totalImages = spotLocations.reduce((sum, l) => sum + (l.images?.length ?? 0), 0);
-  const highRiskSpots = spotLocations.filter(l => l.images?.some(img => (img.risk_score ?? 0) >= 4)).length;
-
-  doc.setFillColor(...C.summaryBg);
-  doc.setDrawColor(...C.summaryBorder);
-  drawRoundedRect(doc, margin, y, contentW, 14, 2, "FD");
-
-  const summaryItems = [
-    { label: "Hautstellen", value: `${spotLocations.length}` },
-    { label: "Aufnahmen", value: `${totalImages}` },
-    { label: "Kritisch", value: `${highRiskSpots}` },
-  ];
-
-  const colW = contentW / summaryItems.length;
-  summaryItems.forEach((item, i) => {
-    const cx = margin + colW * i + colW / 2;
-    doc.setFont("Roboto", "bold");
-    doc.setFontSize(14);
-    doc.setTextColor(...C.textPrimary);
-    if (item.label === "Kritisch" && highRiskSpots > 0) doc.setTextColor(...C.riskHigh);
-    doc.text(item.value, cx, y + 7, { align: "center" });
-
-    doc.setFont("Roboto", "normal");
-    doc.setFontSize(7);
-    doc.setTextColor(...C.textMuted);
-    doc.text(item.label.toUpperCase(), cx, y + 11.5, { align: "center" });
-
-    if (i < summaryItems.length - 1) {
-      doc.setDrawColor(...C.border);
-      doc.line(margin + colW * (i + 1), y + 2.5, margin + colW * (i + 1), y + 11.5);
-    }
-  });
-
-  y += 20;
+  /* summary bar removed – keep layout clean */
 
   /* ═══ DOCTOR SUMMARY ═══════════════════════════════ */
   if (options.doctorSummary.trim()) {
