@@ -149,6 +149,18 @@ export const api = {
   adminReset2FA: (userId: number) =>
     request<{ success: boolean }>(`/admin/users/${userId}/reset-2fa`, { method: 'POST' }),
 
+  // Suspend / Unsuspend users
+  suspendUser: (userId: number) =>
+    request<{ success: boolean }>(`/users/${userId}/suspend`, { method: 'PUT' }),
+  unsuspendUser: (userId: number) =>
+    request<{ success: boolean }>(`/users/${userId}/unsuspend`, { method: 'PUT' }),
+
+  // Suspend / Unsuspend companies
+  suspendCompany: (companyId: number) =>
+    request<{ success: boolean }>(`/companies/${companyId}/suspend`, { method: 'PUT' }),
+  unsuspendCompany: (companyId: number) =>
+    request<{ success: boolean }>(`/companies/${companyId}/unsuspend`, { method: 'PUT' }),
+
   // Patients
   getPatients: () => request<any[]>('/patients'),
   createPatient: (data: { name: string; birth_date: string; gender?: string; email?: string; phone?: string; insurance_number?: string; notes?: string }) =>
