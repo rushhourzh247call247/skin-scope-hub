@@ -289,8 +289,6 @@ function riskColor(score: number): [number, number, number] {
 }
 
 
-
-  xPct: number,
   yPct: number,
   view: "front" | "back",
   accentColor: string = "#00a699",
