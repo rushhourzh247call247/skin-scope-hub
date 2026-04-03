@@ -18,6 +18,7 @@ import Settings from "./pages/Settings";
 import NotFound from "./pages/NotFound";
 import Snapshots from "./pages/Snapshots";
 import Calibrate from "./pages/Calibrate";
+import SystemDocs from "./pages/SystemDocs";
 
 const queryClient = new QueryClient({
   defaultOptions: {
