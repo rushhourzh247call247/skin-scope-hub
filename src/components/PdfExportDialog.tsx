@@ -4,13 +4,13 @@ import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
-import { Badge } from "@/components/ui/badge";
 import { Loader2, FileDown, Eye, Save, Settings2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import type { FullPatient, PdfExportOptions } from "@/types/patient";
 import { generatePatientPDF, getPatientPdfFilename } from "@/lib/pdfExport";
 import { saveReport, getDefaultPdfOptions, saveDefaultPdfOptions } from "@/lib/pdfReportStorage";
+import PdfPreviewPages from "@/components/PdfPreviewPages";
 
 interface PdfExportDialogProps {
   open: boolean;
@@ -75,11 +75,9 @@ export default function PdfExportDialog({ open, onOpenChange, patient, doctorNam
     setLoading(true);
     try {
       const options = buildOptions();
-      // Generate final PDF
       const blobUrl = await generatePatientPDF(patient, "preview", doctorName, options);
       if (!blobUrl) throw new Error("PDF generation failed");
 
-      // Download it
       const link = document.createElement("a");
       link.href = blobUrl;
       link.download = getPatientPdfFilename(patient);
@@ -87,7 +85,6 @@ export default function PdfExportDialog({ open, onOpenChange, patient, doctorNam
       link.click();
       document.body.removeChild(link);
 
-      // Save to history
       try {
         const res = await fetch(blobUrl);
         const blob = await res.blob();
@@ -107,7 +104,6 @@ export default function PdfExportDialog({ open, onOpenChange, patient, doctorNam
         };
         reader.readAsDataURL(blob);
       } catch {
-        // Save failed silently — download still works
       }
 
       toast.success("PDF gespeichert & heruntergeladen");
@@ -137,7 +133,7 @@ export default function PdfExportDialog({ open, onOpenChange, patient, doctorNam
     <Dialog open={open} onOpenChange={handleClose}>
       <DialogContent className={cn(
         "max-h-[90vh] overflow-y-auto",
-        step === "preview" ? "max-w-4xl" : "max-w-md"
+        step === "preview" ? "max-w-5xl" : "max-w-md"
       )}>
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
@@ -148,7 +144,6 @@ export default function PdfExportDialog({ open, onOpenChange, patient, doctorNam
 
         {step === "config" && (
           <div className="space-y-5">
-            {/* Report Type */}
             <div className="space-y-2">
               <Label className="text-sm font-semibold">Berichtstyp</Label>
               <div className="flex gap-2">
@@ -162,7 +157,7 @@ export default function PdfExportDialog({ open, onOpenChange, patient, doctorNam
                   )}
                 >
                   <span className="font-medium">Letzte Konsultation</span>
-                  <p className="text-xs text-muted-foreground mt-0.5">Nur neueste Befunde</p>
+                  <p className="mt-0.5 text-xs text-muted-foreground">Nur neueste Befunde</p>
                 </button>
                 <button
                   onClick={() => setReportType("fullHistory")}
@@ -174,12 +169,11 @@ export default function PdfExportDialog({ open, onOpenChange, patient, doctorNam
                   )}
                 >
                   <span className="font-medium">Gesamtverlauf</span>
-                  <p className="text-xs text-muted-foreground mt-0.5">Chronologisch komplett</p>
+                  <p className="mt-0.5 text-xs text-muted-foreground">Chronologisch komplett</p>
                 </button>
               </div>
             </div>
 
-            {/* Content Toggles */}
             <div className="space-y-2">
               <Label className="text-sm font-semibold">Inhalte</Label>
               <div className="space-y-2.5">
@@ -196,13 +190,12 @@ export default function PdfExportDialog({ open, onOpenChange, patient, doctorNam
                       checked={item.checked}
                       onCheckedChange={(c) => item.set(c === true)}
                     />
-                    <Label htmlFor={item.id} className="text-sm cursor-pointer">{item.label}</Label>
+                    <Label htmlFor={item.id} className="cursor-pointer text-sm">{item.label}</Label>
                   </div>
                 ))}
               </div>
             </div>
 
-            {/* Doctor Summary */}
             <div className="space-y-2">
               <Label className="text-sm font-semibold">Ärztliche Zusammenfassung (optional)</Label>
               <Textarea
@@ -214,7 +207,6 @@ export default function PdfExportDialog({ open, onOpenChange, patient, doctorNam
               />
             </div>
 
-            {/* Actions */}
             <div className="flex items-center gap-2 pt-2">
               <Button onClick={handlePreview} disabled={loading} className="flex-1 gap-1.5">
                 {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Eye className="h-4 w-4" />}
@@ -229,18 +221,16 @@ export default function PdfExportDialog({ open, onOpenChange, patient, doctorNam
 
         {step === "preview" && (
           <div className="space-y-4">
-            {/* PDF Preview */}
-            <div className="rounded-lg border bg-muted/30 overflow-hidden" style={{ height: "50vh" }}>
+            <div className="overflow-hidden rounded-lg border bg-muted/30" style={{ height: "52vh" }}>
               {previewUrl ? (
-                <iframe src={previewUrl} className="w-full h-full" title="PDF Vorschau" />
+                <PdfPreviewPages pdfUrl={previewUrl} />
               ) : (
-                <div className="flex items-center justify-center h-full text-sm text-muted-foreground">
+                <div className="flex h-full items-center justify-center text-sm text-muted-foreground">
                   Keine Vorschau verfügbar
                 </div>
               )}
             </div>
 
-            {/* Editable Summary */}
             <div className="space-y-2">
               <Label className="text-sm font-semibold">Ärztliche Zusammenfassung</Label>
               <Textarea
@@ -256,7 +246,6 @@ export default function PdfExportDialog({ open, onOpenChange, patient, doctorNam
               </Button>
             </div>
 
-            {/* Actions */}
             <div className="flex items-center gap-2">
               <Button variant="outline" onClick={() => setStep("config")} className="gap-1.5">
                 <Settings2 className="h-4 w-4" />
