@@ -147,7 +147,8 @@ const CompanyManagement = () => {
                 <TableRow>
                   <TableHead>ID</TableHead>
                   <TableHead>Name</TableHead>
-                  <TableHead className="w-[120px]">Aktion</TableHead>
+                  <TableHead>Status</TableHead>
+                  <TableHead className="w-[160px]">Aktion</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
