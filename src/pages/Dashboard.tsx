@@ -10,8 +10,11 @@ import { format } from "date-fns";
 import { de } from "date-fns/locale";
 import { useState } from "react";
 
-const StatCard = ({ title, value, icon: Icon, color }: { title: string; value: number; icon: any; color: string }) => (
-  <Card>
+const StatCard = ({ title, value, icon: Icon, color, onClick }: { title: string; value: number; icon: any; color: string; onClick?: () => void }) => (
+  <Card
+    className={onClick ? "cursor-pointer transition-all hover:shadow-md hover:scale-[1.02]" : ""}
+    onClick={onClick}
+  >
     <CardContent className="flex items-center gap-4 p-6">
       <div className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-lg ${color}`}>
         <Icon className="h-6 w-6" />
@@ -186,11 +189,11 @@ const Dashboard = () => {
 
       {/* Stats Grid */}
       <div className={`grid gap-4 sm:grid-cols-2 ${isAdmin ? "lg:grid-cols-4" : "lg:grid-cols-3"}`}>
-        <StatCard title="Patienten" value={data.totalPatients ?? 0} icon={Users} color="bg-primary/10 text-primary" />
-        <StatCard title="Körperstellen" value={data.totalLocations ?? 0} icon={MapPin} color="bg-accent/10 text-accent" />
-        <StatCard title="Aufnahmen" value={data.totalImages ?? 0} icon={ImageIcon} color="bg-[hsl(var(--clinical-warning))]/10 text-[hsl(var(--clinical-warning))]" />
+        <StatCard title="Patienten" value={data.totalPatients ?? 0} icon={Users} color="bg-primary/10 text-primary" onClick={() => navigate("/patients")} />
+        <StatCard title="Körperstellen" value={data.totalLocations ?? 0} icon={MapPin} color="bg-accent/10 text-accent" onClick={() => navigate("/patients")} />
+        <StatCard title="Aufnahmen" value={data.totalImages ?? 0} icon={ImageIcon} color="bg-[hsl(var(--clinical-warning))]/10 text-[hsl(var(--clinical-warning))]" onClick={() => navigate("/patients")} />
         {isAdmin && (
-          <StatCard title="Firmen" value={data.totalCompanies ?? 0} icon={Building2} color="bg-secondary text-secondary-foreground" />
+          <StatCard title="Firmen" value={data.totalCompanies ?? 0} icon={Building2} color="bg-secondary text-secondary-foreground" onClick={() => navigate("/companies")} />
         )}
       </div>
 
