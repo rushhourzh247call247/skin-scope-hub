@@ -60,6 +60,7 @@ const App = () => (
             <Route path="/users" element={<ProtectedPage><AdminRoute><UserManagement /></AdminRoute></ProtectedPage>} />
             <Route path="/snapshots" element={<ProtectedPage><AdminRoute><Snapshots /></AdminRoute></ProtectedPage>} />
             <Route path="/settings" element={<ProtectedPage><Settings /></ProtectedPage>} />
+            <Route path="/system-docs" element={<ProtectedPage><AdminRoute><SystemDocs /></AdminRoute></ProtectedPage>} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>

@@ -19,6 +19,7 @@ const adminNav = [
   { title: "Firmen", url: "/companies", icon: Building2 },
   { title: "Benutzer", url: "/users", icon: UserCog },
   { title: "Snapshots", url: "/snapshots", icon: Database },
+  { title: "Systemdoku", url: "/system-docs", icon: FileText },
 ];
 
 export function AppSidebar() {
