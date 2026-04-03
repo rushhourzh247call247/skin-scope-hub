@@ -55,6 +55,20 @@ async function request<T>(path: string, options?: RequestInit): Promise<T> {
       (err as any).retryAfter = isNaN(seconds) ? 120 : seconds;
       throw err;
     }
+    if (res.status === 403) {
+      const body = await res.json().catch(() => ({}));
+      if (body.suspended) {
+        sessionStorage.removeItem('auth_token');
+        sessionStorage.removeItem('auth_user');
+        const err = new Error(body.error || 'Konto gesperrt');
+        (err as any).status = 403;
+        (err as any).suspended = true;
+        throw err;
+      }
+      const err = new Error(body.error || 'Keine Berechtigung');
+      (err as any).status = 403;
+      throw err;
+    }
     if (res.status === 401) {
       sessionStorage.removeItem('auth_token');
       sessionStorage.removeItem('auth_user');
