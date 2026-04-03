@@ -10,8 +10,11 @@ import { format } from "date-fns";
 import { de } from "date-fns/locale";
 import { useState } from "react";
 
-const StatCard = ({ title, value, icon: Icon, color }: { title: string; value: number; icon: any; color: string }) => (
-  <Card>
+const StatCard = ({ title, value, icon: Icon, color, onClick }: { title: string; value: number; icon: any; color: string; onClick?: () => void }) => (
+  <Card
+    className={onClick ? "cursor-pointer transition-all hover:shadow-md hover:scale-[1.02]" : ""}
+    onClick={onClick}
+  >
     <CardContent className="flex items-center gap-4 p-6">
       <div className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-lg ${color}`}>
         <Icon className="h-6 w-6" />
