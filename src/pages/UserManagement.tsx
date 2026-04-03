@@ -190,7 +190,8 @@ const UserManagement = () => {
                   <TableHead>E-Mail</TableHead>
                   <TableHead>Firma</TableHead>
                   <TableHead>Rolle</TableHead>
-                  <TableHead className="w-[120px] text-right">Aktionen</TableHead>
+                  <TableHead>Status</TableHead>
+                  <TableHead className="w-[160px] text-right">Aktionen</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
