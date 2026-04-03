@@ -288,10 +288,7 @@ function riskColor(score: number): [number, number, number] {
   return C.riskLow;
 }
 
-/* ─── Body Map Thumbnail Renderer ─────────────────────── */
 
-/** Renders a small body silhouette with a marker dot on canvas */
-function renderBodyMapThumbnail(
   xPct: number,
   yPct: number,
   view: "front" | "back",
