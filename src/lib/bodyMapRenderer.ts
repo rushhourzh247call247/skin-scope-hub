@@ -114,7 +114,7 @@ export async function renderBodyMap3DThumbnail(opts: BodyMapRenderOptions): Prom
       }
     });
 
-    // Normalize scale and center (same as BodyMap3D component)
+    // Normalize scale and center (same world transform as BodyMap3D)
     const box = new THREE.Box3().setFromObject(modelScene);
     const modelHeight = box.getSize(new THREE.Vector3()).y || 1;
     const scale = 2.5 / modelHeight;
@@ -133,12 +133,9 @@ export async function renderBodyMap3DThumbnail(opts: BodyMapRenderOptions): Prom
     let markerScreenPos: { x: number; y: number } | null = null;
 
     if (x3d != null && y3d != null && z3d != null) {
-      // Spot position in model-transformed space
-      const spotPos = new THREE.Vector3(
-        x3d * scale - centerOffset.x,
-        y3d * scale - centerOffset.y,
-        z3d * scale - centerOffset.z,
-      );
+      // Stored 3D coordinates are already captured from the normalized body scene.
+      // Applying scale/centering again shifts the marker to the wrong body region.
+      const spotPos = new THREE.Vector3(x3d, y3d, z3d);
 
       // Surface normal for camera direction (same logic as BodyMap3D auto-focus)
       const zDir = view === "back" ? -1 : 1;
