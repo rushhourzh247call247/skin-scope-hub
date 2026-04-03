@@ -46,6 +46,7 @@ export default function PdfPreviewPages({ pdfUrl }: PdfPreviewPagesProps) {
           canvas.height = viewport.height;
 
           await page.render({
+            canvas,
             canvasContext: context,
             viewport,
           }).promise;
