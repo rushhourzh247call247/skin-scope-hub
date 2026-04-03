@@ -216,8 +216,43 @@ const UserManagement = () => {
                           {u.role === "admin" ? "Admin" : "Benutzer"}
                         </span>
                       </TableCell>
+                      <TableCell>
+                        {u.suspended_at ? (
+                          <Badge variant="destructive" className="gap-1 text-xs">
+                            <Ban className="h-3 w-3" /> Gesperrt
+                          </Badge>
+                        ) : (
+                          <Badge variant="outline" className="gap-1 text-xs text-emerald-600 border-emerald-300">
+                            <CheckCircle className="h-3 w-3" /> Aktiv
+                          </Badge>
+                        )}
+                      </TableCell>
                       <TableCell className="text-right">
                         <div className="flex justify-end gap-1">
+                          {/* Suspend / Unsuspend */}
+                          {!isProtected && (
+                            u.suspended_at ? (
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                title="Entsperren"
+                                onClick={() => unsuspendMutation.mutate(u.id)}
+                                className="text-emerald-600 hover:text-emerald-700"
+                              >
+                                <CheckCircle className="h-4 w-4" />
+                              </Button>
+                            ) : (
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                title="Sperren"
+                                onClick={() => suspendMutation.mutate(u.id)}
+                                className="text-amber-600 hover:text-amber-700"
+                              >
+                                <Ban className="h-4 w-4" />
+                              </Button>
+                            )
+                          )}
                           {!!u.two_factor_enabled && (
                             <Button
                               variant="ghost"
