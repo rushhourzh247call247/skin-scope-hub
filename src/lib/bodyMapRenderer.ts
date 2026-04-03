@@ -119,14 +119,17 @@ export async function renderBodyMap3DThumbnail(opts: BodyMapRenderOptions): Prom
       }
     });
 
-    // Normalize scale
+    // Normalize scale and center
     const box = new THREE.Box3().setFromObject(modelScene);
     const size = box.getSize(new THREE.Vector3());
     const center = box.getCenter(new THREE.Vector3());
     const modelHeight = size.y || 1;
     const scale = 2.5 / modelHeight;
+
+    // Save original center before mutating
+    const centerOffset = center.clone().multiplyScalar(scale);
     modelScene.scale.setScalar(scale);
-    modelScene.position.sub(center.multiplyScalar(scale));
+    modelScene.position.sub(centerOffset);
 
     scene.add(modelScene);
 
@@ -134,14 +137,11 @@ export async function renderBodyMap3DThumbnail(opts: BodyMapRenderOptions): Prom
     const camera = new THREE.PerspectiveCamera(30, width / height, 0.1, 100);
     if (view === "back") {
       camera.position.set(0, 0, -3.8);
-      camera.lookAt(0, 0, 0);
-      // Need to rotate 180 since camera looks from behind
-      camera.up.set(0, 1, 0);
-      camera.lookAt(0, 0, 0);
     } else {
       camera.position.set(0, 0, 3.8);
-      camera.lookAt(0, 0, 0);
     }
+    camera.up.set(0, 1, 0);
+    camera.lookAt(0, 0, 0);
 
     // Render
     renderer.render(scene, camera);
@@ -149,22 +149,12 @@ export async function renderBodyMap3DThumbnail(opts: BodyMapRenderOptions): Prom
     // Draw marker on the canvas using 2D context overlay
     const ctx = canvas.getContext("2d");
     if (ctx && x3d != null && y3d != null && z3d != null) {
-      // Project 3D point to screen coordinates
-      const point3d = new THREE.Vector3(
-        Number(x3d) * scale - (box.getCenter(new THREE.Vector3()).x * scale),
-        Number(y3d) * scale - (box.getCenter(new THREE.Vector3()).y * scale),
-        Number(z3d) * scale - (box.getCenter(new THREE.Vector3()).z * scale),
-      );
-
-      // Re-calculate center (since we modified modelScene.position)
-      const origCenter = new THREE.Box3().setFromObject(modelScene).getCenter(new THREE.Vector3());
+      // Transform 3D point the same way as the model
       const markerPos = new THREE.Vector3(
-        Number(x3d) * scale,
-        Number(y3d) * scale,
-        Number(z3d) * scale,
+        Number(x3d) * scale - centerOffset.x,
+        Number(y3d) * scale - centerOffset.y,
+        Number(z3d) * scale - centerOffset.z,
       );
-      // Adjust for the centering offset we applied
-      markerPos.sub(center);
 
       markerPos.project(camera);
 
