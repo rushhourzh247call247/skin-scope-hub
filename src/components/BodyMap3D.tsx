@@ -1128,7 +1128,7 @@ const BodyMap3D: React.FC<BodyMap3DProps> = (props) => {
   const preset = placementPreset ?? selectedMarkerPreset ?? CAMERA_PRESETS[activeRegion];
 
   return (
-    <div className="flex h-full flex-col">
+    <div className="flex h-full flex-col" style={{ isolation: "isolate", position: "relative", zIndex: 0 }}>
       <div className={cn(
         "relative min-h-[300px] flex-1 overflow-hidden rounded-lg border bg-gradient-to-b from-muted/20 via-muted/40 to-muted/60",
         markMode && (markType === "region" ? "ring-2 ring-amber-500/50" : "ring-2 ring-primary/50"),
