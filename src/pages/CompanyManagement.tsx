@@ -169,7 +169,42 @@ const CompanyManagement = () => {
                         </span>
                       </TableCell>
                       <TableCell>
+                        {c.suspended_at ? (
+                          <Badge variant="destructive" className="gap-1 text-xs">
+                            <Ban className="h-3 w-3" /> Gesperrt
+                          </Badge>
+                        ) : (
+                          <Badge variant="outline" className="gap-1 text-xs text-emerald-600 border-emerald-300">
+                            <CheckCircle className="h-3 w-3" /> Aktiv
+                          </Badge>
+                        )}
+                      </TableCell>
+                      <TableCell>
                         <div className="flex items-center gap-1">
+                          {/* Suspend / Unsuspend */}
+                          {!isProtected && (
+                            c.suspended_at ? (
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                title="Entsperren"
+                                onClick={() => unsuspendMutation.mutate(c.id)}
+                                className="text-emerald-600 hover:text-emerald-700"
+                              >
+                                <CheckCircle className="h-4 w-4" />
+                              </Button>
+                            ) : (
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                title="Sperren"
+                                onClick={() => suspendMutation.mutate(c.id)}
+                                className="text-amber-600 hover:text-amber-700"
+                              >
+                                <Ban className="h-4 w-4" />
+                              </Button>
+                            )
+                          )}
                           {isAdmin && (
                             <Button
                               variant="ghost"
