@@ -55,6 +55,24 @@ const CompanyManagement = () => {
     onError: () => toast.error("Fehler beim Löschen – evtl. sind noch Benutzer zugeordnet"),
   });
 
+  const suspendMutation = useMutation({
+    mutationFn: (id: number) => api.suspendCompany(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["companies"] });
+      toast.success("Firma gesperrt — alle Benutzer wurden ausgeloggt");
+    },
+    onError: () => toast.error("Fehler beim Sperren"),
+  });
+
+  const unsuspendMutation = useMutation({
+    mutationFn: (id: number) => api.unsuspendCompany(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["companies"] });
+      toast.success("Firma entsperrt");
+    },
+    onError: () => toast.error("Fehler beim Entsperren"),
+  });
+
   const handleExport = async (companyId: number, companyName: string) => {
     setExportingId(companyId);
     setExportProgress({ phase: "Starte…", pct: 0 });
