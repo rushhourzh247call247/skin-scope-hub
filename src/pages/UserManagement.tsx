@@ -93,6 +93,24 @@ const UserManagement = () => {
     onError: () => toast.error("Fehler beim Zurücksetzen der 2FA"),
   });
 
+  const suspendMutation = useMutation({
+    mutationFn: (userId: number) => api.suspendUser(userId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["users"] });
+      toast.success("Benutzer gesperrt");
+    },
+    onError: () => toast.error("Fehler beim Sperren"),
+  });
+
+  const unsuspendMutation = useMutation({
+    mutationFn: (userId: number) => api.unsuspendUser(userId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["users"] });
+      toast.success("Benutzer entsperrt");
+    },
+    onError: () => toast.error("Fehler beim Entsperren"),
+  });
+
   return (
     <div className="container py-8 space-y-6">
       <div className="flex items-center justify-between">
