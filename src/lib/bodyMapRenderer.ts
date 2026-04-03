@@ -65,12 +65,12 @@ export async function renderBodyMap3DThumbnail(opts: BodyMapRenderOptions): Prom
   } = opts;
 
   try {
-    const canvas = document.createElement("canvas");
-    canvas.width = width;
-    canvas.height = height;
+    const renderCanvas = document.createElement("canvas");
+    renderCanvas.width = width;
+    renderCanvas.height = height;
 
     const renderer = new THREE.WebGLRenderer({
-      canvas,
+      canvas: renderCanvas,
       antialias: true,
       alpha: true,
       preserveDrawingBuffer: true,
@@ -178,8 +178,17 @@ export async function renderBodyMap3DThumbnail(opts: BodyMapRenderOptions): Prom
       renderer.render(scene, camera);
     }
 
-    // Draw marker overlay on the 2D canvas
-    const ctx = canvas.getContext("2d");
+    const outputCanvas = document.createElement("canvas");
+    outputCanvas.width = width;
+    outputCanvas.height = height;
+
+    // Composite WebGL render + 2D overlay on a separate canvas.
+    const ctx = outputCanvas.getContext("2d");
+    if (ctx) {
+      ctx.drawImage(renderCanvas, 0, 0, width, height);
+    }
+
+    // Draw marker overlay on the output canvas
     if (ctx && markerScreenPos) {
       const mx = markerScreenPos.x;
       const my = markerScreenPos.y;
@@ -189,39 +198,61 @@ export async function renderBodyMap3DThumbnail(opts: BodyMapRenderOptions): Prom
       const b = parseInt(accentColor.slice(5, 7), 16);
 
       // Outer glow
-      const gradient = ctx.createRadialGradient(mx, my, 0, mx, my, 28);
-      gradient.addColorStop(0, `rgba(${r},${g},${b},0.45)`);
+      const gradient = ctx.createRadialGradient(mx, my, 0, mx, my, 34);
+      gradient.addColorStop(0, `rgba(${r},${g},${b},0.55)`);
       gradient.addColorStop(1, `rgba(${r},${g},${b},0)`);
       ctx.fillStyle = gradient;
       ctx.beginPath();
-      ctx.arc(mx, my, 28, 0, Math.PI * 2);
+      ctx.arc(mx, my, 34, 0, Math.PI * 2);
       ctx.fill();
 
-      // Outer ring
+      // White halo for contrast on skin tones
+      ctx.strokeStyle = "rgba(255,255,255,0.95)";
+      ctx.lineWidth = 5;
+      ctx.beginPath();
+      ctx.arc(mx, my, 16, 0, Math.PI * 2);
+      ctx.stroke();
+
+      // Main accent ring
       ctx.strokeStyle = accentColor;
       ctx.lineWidth = 3;
       ctx.beginPath();
-      ctx.arc(mx, my, 14, 0, Math.PI * 2);
+      ctx.arc(mx, my, 16, 0, Math.PI * 2);
       ctx.stroke();
 
       // White inner ring
       ctx.strokeStyle = "rgba(255,255,255,0.8)";
-      ctx.lineWidth = 1.5;
+      ctx.lineWidth = 2;
       ctx.beginPath();
-      ctx.arc(mx, my, 11, 0, Math.PI * 2);
+      ctx.arc(mx, my, 10, 0, Math.PI * 2);
       ctx.stroke();
 
-      // Inner dot
-      ctx.fillStyle = accentColor;
+      // Center target
+      ctx.fillStyle = "rgba(255,255,255,0.95)";
       ctx.beginPath();
-      ctx.arc(mx, my, 5, 0, Math.PI * 2);
+      ctx.arc(mx, my, 7, 0, Math.PI * 2);
       ctx.fill();
 
-      // Crosshair
+      ctx.fillStyle = accentColor;
+      ctx.beginPath();
+      ctx.arc(mx, my, 4.5, 0, Math.PI * 2);
+      ctx.fill();
+
+      // Crosshair underlay for contrast
+      const cs = 26;
+      const gap = 18;
+      ctx.strokeStyle = "rgba(255,255,255,0.95)";
+      ctx.lineWidth = 4;
+      ctx.beginPath();
+      ctx.moveTo(mx, my - cs); ctx.lineTo(mx, my - gap);
+      ctx.moveTo(mx, my + gap); ctx.lineTo(mx, my + cs);
+      ctx.moveTo(mx - cs, my); ctx.lineTo(mx - gap, my);
+      ctx.moveTo(mx + gap, my); ctx.lineTo(mx + cs, my);
+      ctx.stroke();
+
+      // Main crosshair
       ctx.strokeStyle = accentColor;
-      ctx.lineWidth = 2;
-      const cs = 22;
-      const gap = 16;
+      ctx.lineWidth = 2.2;
       ctx.beginPath();
       ctx.moveTo(mx, my - cs); ctx.lineTo(mx, my - gap);
       ctx.moveTo(mx, my + gap); ctx.lineTo(mx, my + cs);
@@ -238,7 +269,7 @@ export async function renderBodyMap3DThumbnail(opts: BodyMapRenderOptions): Prom
       ctx.fillText(view === "front" ? "Vorne" : "Hinten", width / 2, height - 6);
     }
 
-    const dataUrl = canvas.toDataURL("image/png");
+    const dataUrl = ctx ? outputCanvas.toDataURL("image/png") : renderCanvas.toDataURL("image/png");
 
     renderer.dispose();
     skinMat.dispose();
