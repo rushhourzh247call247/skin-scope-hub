@@ -687,8 +687,7 @@ export async function generatePatientPDF(
 
       // Position zone badge below spot name
       doc.setFillColor(255, 255, 255);
-      doc.setGlobalAlpha?.(0.15);
-      // Use slightly translucent white background
+      doc.setFillColor(40, 55, 75);
       drawRoundedRect(doc, margin + 12, y + 8, zW, 4.5, 1, "F");
       doc.setTextColor(200, 220, 240);
       doc.text(zoneText, margin + 14.5, y + 11);
