@@ -16,6 +16,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import PdfPreviewPages from "@/components/PdfPreviewPages";
 
 interface PdfReportHistoryProps {
   patientId: number;
@@ -38,7 +39,6 @@ export default function PdfReportHistory({ patientId, patientName }: PdfReportHi
   };
 
   const handlePreview = (report: typeof reports[0]) => {
-    // Convert base64 data URL to blob URL for iframe
     try {
       const byteString = atob(report.pdfBase64.split(",")[1]);
       const mimeString = report.pdfBase64.split(",")[0].split(":")[1].split(";")[0];
@@ -51,7 +51,6 @@ export default function PdfReportHistory({ patientId, patientName }: PdfReportHi
       const url = URL.createObjectURL(blob);
       setPreviewUrl(url);
     } catch {
-      // Fallback: open data URL directly
       window.open(report.pdfBase64, "_blank");
     }
   };
@@ -67,26 +66,27 @@ export default function PdfReportHistory({ patientId, patientName }: PdfReportHi
   if (reports.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center py-12 text-center">
-        <FileDown className="h-10 w-10 text-muted-foreground/40 mb-3" />
+        <FileDown className="mb-3 h-10 w-10 text-muted-foreground/40" />
         <p className="text-sm text-muted-foreground">Noch keine Berichte gespeichert.</p>
-        <p className="text-xs text-muted-foreground mt-1">Erstellen Sie einen PDF-Bericht über den Export-Button.</p>
+        <p className="mt-1 text-xs text-muted-foreground">Erstellen Sie einen PDF-Bericht über den Export-Button.</p>
       </div>
     );
   }
 
   return (
     <div className="space-y-3">
-      {/* Preview overlay */}
       {previewUrl && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60">
-          <div className="bg-background rounded-lg shadow-xl w-[90vw] max-w-4xl h-[85vh] flex flex-col">
-            <div className="flex items-center justify-between p-3 border-b">
+          <div className="flex h-[85vh] w-[90vw] max-w-5xl flex-col rounded-lg bg-background shadow-xl">
+            <div className="flex items-center justify-between border-b p-3">
               <span className="text-sm font-medium">PDF-Vorschau</span>
               <Button variant="ghost" size="sm" onClick={() => { URL.revokeObjectURL(previewUrl); setPreviewUrl(null); }}>
                 Schliessen
               </Button>
             </div>
-            <iframe src={previewUrl} className="flex-1 w-full" title="PDF Vorschau" />
+            <div className="min-h-0 flex-1 p-3">
+              <PdfPreviewPages pdfUrl={previewUrl} />
+            </div>
           </div>
         </div>
       )}
@@ -94,14 +94,14 @@ export default function PdfReportHistory({ patientId, patientName }: PdfReportHi
       {reports.map((report) => (
         <div
           key={report.id}
-          className="flex items-center gap-3 rounded-lg border bg-card p-3 hover:bg-accent/30 transition-colors"
+          className="flex items-center gap-3 rounded-lg border bg-card p-3 transition-colors hover:bg-accent/30"
         >
-          <div className="flex-1 min-w-0">
-            <div className="flex items-center gap-2 mb-0.5">
-              <span className="text-sm font-medium truncate">
+          <div className="min-w-0 flex-1">
+            <div className="mb-0.5 flex items-center gap-2">
+              <span className="truncate text-sm font-medium">
                 {format(new Date(report.createdAt), "dd.MM.yyyy HH:mm", { locale: de })}
               </span>
-              <Badge variant="outline" className="text-[10px] shrink-0">
+              <Badge variant="outline" className="shrink-0 text-[10px]">
                 {report.reportType === "lastVisit" ? "Letzte Konsultation" : "Gesamtverlauf"}
               </Badge>
             </div>
@@ -109,12 +109,12 @@ export default function PdfReportHistory({ patientId, patientName }: PdfReportHi
               <p className="text-xs text-muted-foreground">Arzt: {report.doctorName}</p>
             )}
             {report.options.doctorSummary && (
-              <p className="text-xs text-muted-foreground mt-0.5 truncate">
+              <p className="mt-0.5 truncate text-xs text-muted-foreground">
                 {report.options.doctorSummary.slice(0, 80)}{report.options.doctorSummary.length > 80 ? "…" : ""}
               </p>
             )}
           </div>
-          <div className="flex items-center gap-1 shrink-0">
+          <div className="flex shrink-0 items-center gap-1">
             <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => handlePreview(report)} title="Vorschau">
               <Eye className="h-3.5 w-3.5" />
             </Button>
