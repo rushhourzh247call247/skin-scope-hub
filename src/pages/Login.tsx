@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { api } from "@/lib/api";
@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardDescription } from "@/components/ui/card";
 import { DermLogo } from "@/components/DermLogo";
-import { LogIn, Shield } from "lucide-react";
+import { LogIn, Shield, Clock } from "lucide-react";
 
 const Login = () => {
   const { setSession } = useAuth();
@@ -17,32 +17,63 @@ const Login = () => {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
-  // 2FA state — token held temporarily until verified
+  // 2FA state
   const [needs2FA, setNeeds2FA] = useState(false);
   const [pendingUser, setPendingUser] = useState<any>(null);
   const [pendingToken, setPendingToken] = useState<string>("");
   const [totpCode, setTotpCode] = useState("");
   const [verifying2FA, setVerifying2FA] = useState(false);
 
+  // Rate-limit lockout state
+  const [lockedUntil, setLockedUntil] = useState<number | null>(null);
+  const [countdown, setCountdown] = useState(0);
+
+  // Countdown timer
+  useEffect(() => {
+    if (!lockedUntil) {
+      setCountdown(0);
+      return;
+    }
+    const tick = () => {
+      const remaining = Math.max(0, Math.ceil((lockedUntil - Date.now()) / 1000));
+      setCountdown(remaining);
+      if (remaining <= 0) setLockedUntil(null);
+    };
+    tick();
+    const id = setInterval(tick, 1000);
+    return () => clearInterval(id);
+  }, [lockedUntil]);
+
+  const isLocked = countdown > 0;
+
+  const handleRateLimitError = useCallback((err: any) => {
+    const seconds = (err as any).retryAfter ?? 120;
+    setLockedUntil(Date.now() + seconds * 1000);
+    setError(`Zu viele Anmeldeversuche. Bitte warten Sie ${Math.ceil(seconds / 60)} Minute(n).`);
+  }, []);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (isLocked) return;
     setError("");
     setLoading(true);
     try {
       const res = await api.login({ email, password });
       if (res.user?.two_factor_enabled) {
-        // Hold credentials — don't authenticate yet
         setPendingUser(res.user);
         setPendingToken(res.token);
-        api.setToken(res.token); // needed for /2fa/verify call
+        api.setToken(res.token);
         setNeeds2FA(true);
       } else {
-        // No 2FA — login immediately
         setSession(res.user, res.token);
         navigate("/");
       }
-    } catch {
-      setError("Login fehlgeschlagen. Bitte prüfen Sie Ihre Zugangsdaten.");
+    } catch (err: any) {
+      if (err?.status === 429) {
+        handleRateLimitError(err);
+      } else {
+        setError("Login fehlgeschlagen. Bitte prüfen Sie Ihre Zugangsdaten.");
+      }
     } finally {
       setLoading(false);
     }
@@ -55,7 +86,6 @@ const Login = () => {
     setVerifying2FA(true);
     try {
       await api.verify2FA(totpCode);
-      // 2FA passed — now fully authenticate
       setSession(pendingUser, pendingToken);
       navigate("/");
     } catch {
@@ -72,6 +102,12 @@ const Login = () => {
     setPendingUser(null);
     setPendingToken("");
     api.setToken(null);
+  };
+
+  const formatCountdown = (s: number) => {
+    const m = Math.floor(s / 60);
+    const sec = s % 60;
+    return m > 0 ? `${m}:${String(sec).padStart(2, "0")}` : `${sec}s`;
   };
 
   return (
@@ -91,16 +127,26 @@ const Login = () => {
                   {error}
                 </div>
               )}
+              {isLocked && (
+                <div className="flex items-center justify-center gap-2 rounded-md border border-amber-500/30 bg-amber-500/10 p-3 text-sm text-amber-700 dark:text-amber-400">
+                  <Clock className="h-4 w-4" />
+                  <span>Gesperrt — {formatCountdown(countdown)}</span>
+                </div>
+              )}
               <div className="space-y-2">
                 <Label htmlFor="email">E-Mail</Label>
-                <Input id="email" type="email" required value={email} onChange={(e) => setEmail(e.target.value)} placeholder="name@praxis.de" />
+                <Input id="email" type="email" required value={email} onChange={(e) => setEmail(e.target.value)} placeholder="name@praxis.de" disabled={isLocked} />
               </div>
               <div className="space-y-2">
                 <Label htmlFor="password">Passwort</Label>
-                <Input id="password" type="password" required value={password} onChange={(e) => setPassword(e.target.value)} placeholder="••••••••" />
+                <Input id="password" type="password" required value={password} onChange={(e) => setPassword(e.target.value)} placeholder="••••••••" disabled={isLocked} />
               </div>
-              <Button className="w-full" type="submit" disabled={loading}>
-                {loading ? "Anmeldung…" : <><LogIn className="mr-2 h-4 w-4" /> Anmelden</>}
+              <Button className="w-full" type="submit" disabled={loading || isLocked}>
+                {isLocked
+                  ? `Gesperrt (${formatCountdown(countdown)})`
+                  : loading
+                    ? "Anmeldung…"
+                    : <><LogIn className="mr-2 h-4 w-4" /> Anmelden</>}
               </Button>
             </form>
           ) : (

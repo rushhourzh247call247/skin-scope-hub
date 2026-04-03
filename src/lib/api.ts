@@ -47,6 +47,14 @@ async function request<T>(path: string, options?: RequestInit): Promise<T> {
   }
 
   if (!res.ok) {
+    if (res.status === 429) {
+      const retryAfter = res.headers.get('Retry-After');
+      const seconds = retryAfter ? parseInt(retryAfter, 10) : 120;
+      const err = new Error('Zu viele Anmeldeversuche. Bitte warten Sie.');
+      (err as any).status = 429;
+      (err as any).retryAfter = isNaN(seconds) ? 120 : seconds;
+      throw err;
+    }
     if (res.status === 401) {
       sessionStorage.removeItem('auth_token');
       sessionStorage.removeItem('auth_user');
