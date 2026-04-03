@@ -480,54 +480,193 @@ export async function generatePatientPDF(
 
       y += 11;
 
-      // Load and composite image with pins
-      const imgUrl = api.resolveImageSrc(refImage);
-      let composited: string | null = null;
-      if (pins.length > 0) {
-        composited = await compositeOverviewWithPins(imgUrl, pins, spotLocations);
-      }
-      if (!composited) {
-        composited = await loadImageAsBase64(imgUrl);
+      // Sort all images chronologically
+      const sortedImages = [...(ov.images ?? [])].sort(
+        (a, b) => new Date(a.created_at ?? 0).getTime() - new Date(b.created_at ?? 0).getTime()
+      );
+      const oldestImg = sortedImages[0];
+      const newestImg = sortedImages.length > 1 ? sortedImages[sortedImages.length - 1] : null;
+      const hasComparison = !!newestImg && newestImg.id !== oldestImg?.id;
+
+      // Load oldest image (with pins composited)
+      const oldestUrl = oldestImg ? api.resolveImageSrc(oldestImg) : null;
+      let oldestBase64: string | null = null;
+      if (oldestUrl) {
+        if (pins.length > 0) {
+          oldestBase64 = await compositeOverviewWithPins(oldestUrl, pins, spotLocations);
+        }
+        if (!oldestBase64) {
+          oldestBase64 = await loadImageAsBase64(oldestUrl);
+        }
       }
 
-      if (composited) {
-        // Calculate proportional dimensions — overview is large (full content width)
+      // Load newest image if different
+      let newestBase64: string | null = null;
+      if (hasComparison && newestImg) {
+        const newestUrl = api.resolveImageSrc(newestImg);
+        if (pins.length > 0) {
+          newestBase64 = await compositeOverviewWithPins(newestUrl, pins, spotLocations);
+        }
+        if (!newestBase64) {
+          newestBase64 = await loadImageAsBase64(newestUrl);
+        }
+      }
+
+      if (hasComparison && oldestBase64 && newestBase64) {
+        // ── Side-by-side comparison layout ──
+        const gap = 4; // mm between images
+        const halfW = (contentW - gap) / 2;
+        const maxCompH = 75; // mm
+
+        // Helper to calculate proportional image dimensions
+        const calcDims = async (base64: string, maxW: number, maxH: number) => {
+          const tmp = await loadHTMLImage(base64);
+          let w = maxW, h = maxH;
+          if (tmp) {
+            const aspect = tmp.naturalWidth / tmp.naturalHeight;
+            w = maxW;
+            h = w / aspect;
+            if (h > maxH) { h = maxH; w = h * aspect; }
+          }
+          return { w, h };
+        };
+
+        const oldDims = await calcDims(oldestBase64, halfW, maxCompH);
+        const newDims = await calcDims(newestBase64, halfW, maxCompH);
+        const rowH = Math.max(oldDims.h, newDims.h);
+
+        y = checkPage(doc, y, rowH + 20, margin);
+
+        // "Älteste" / "Neueste" labels
+        doc.setFont("Roboto", "bold");
+        doc.setFontSize(7);
+
+        const leftX = margin;
+        const rightX = margin + halfW + gap;
+
+        // Left label badge — "REFERENZ"
+        doc.setFillColor(...C.headerAccent);
+        const refLabel = "REFERENZ";
+        const refLabelW = doc.getTextWidth(refLabel) + 5;
+        drawRoundedRect(doc, leftX + (halfW - oldDims.w) / 2 + 1.5, y + 1.5, refLabelW, 4.5, 1, "F");
+        doc.setTextColor(...C.white);
+        doc.text(refLabel, leftX + (halfW - oldDims.w) / 2 + 4, y + 4.5);
+
+        // Right label badge — "AKTUELL"
+        doc.setFillColor(59, 130, 246);
+        const actLabel = "AKTUELL";
+        const actLabelW = doc.getTextWidth(actLabel) + 5;
+        drawRoundedRect(doc, rightX + (halfW - newDims.w) / 2 + 1.5, y + 1.5, actLabelW, 4.5, 1, "F");
+        doc.setTextColor(...C.white);
+        doc.text(actLabel, rightX + (halfW - newDims.w) / 2 + 4, y + 4.5);
+
+        const imgY = y + 7;
+
+        // Draw oldest (left)
+        const oldImgX = leftX + (halfW - oldDims.w) / 2;
+        doc.setFillColor(220, 220, 220);
+        drawRoundedRect(doc, oldImgX + 0.3, imgY + 0.3, oldDims.w, oldDims.h, 2, "F");
+        doc.setDrawColor(...C.border);
+        doc.setLineWidth(0.4);
+        drawRoundedRect(doc, oldImgX, imgY, oldDims.w, oldDims.h, 2, "S");
+        try {
+          const fmt = oldestBase64.startsWith("data:image/png") ? "PNG" : "JPEG";
+          doc.addImage(oldestBase64, fmt, oldImgX + 0.5, imgY + 0.5, oldDims.w - 1, oldDims.h - 1);
+          doc.link(oldImgX, imgY, oldDims.w, oldDims.h, { url: api.resolveImageSrc(oldestImg) });
+        } catch {}
+
+        // Draw newest (right)
+        const newImgX = rightX + (halfW - newDims.w) / 2;
+        doc.setFillColor(220, 220, 220);
+        drawRoundedRect(doc, newImgX + 0.3, imgY + 0.3, newDims.w, newDims.h, 2, "F");
+        doc.setDrawColor(...C.border);
+        doc.setLineWidth(0.4);
+        drawRoundedRect(doc, newImgX, imgY, newDims.w, newDims.h, 2, "S");
+        try {
+          const fmt = newestBase64.startsWith("data:image/png") ? "PNG" : "JPEG";
+          doc.addImage(newestBase64, fmt, newImgX + 0.5, imgY + 0.5, newDims.w - 1, newDims.h - 1);
+          if (newestImg) doc.link(newImgX, imgY, newDims.w, newDims.h, { url: api.resolveImageSrc(newestImg) });
+        } catch {}
+
+        doc.setLineWidth(0.2);
+        y = imgY + rowH + 3;
+
+        // Date labels under each image
+        doc.setFont("Roboto", "normal");
+        doc.setFontSize(7);
+        doc.setTextColor(...C.textSecondary);
+        if (oldestImg?.created_at) {
+          doc.text(
+            format(new Date(oldestImg.created_at), "dd.MM.yyyy", { locale: de }),
+            leftX + halfW / 2, y, { align: "center" }
+          );
+        }
+        if (newestImg?.created_at) {
+          doc.text(
+            format(new Date(newestImg.created_at), "dd.MM.yyyy", { locale: de }),
+            rightX + halfW / 2, y, { align: "center" }
+          );
+        }
+
+        // Time interval badge between dates
+        if (oldestImg?.created_at && newestImg?.created_at) {
+          const d1 = new Date(oldestImg.created_at);
+          const d2 = new Date(newestImg.created_at);
+          const diffDays = Math.round((d2.getTime() - d1.getTime()) / (1000 * 60 * 60 * 24));
+          let interval = "";
+          if (diffDays < 1) interval = "Gleicher Tag";
+          else if (diffDays < 30) interval = `${diffDays} Tag${diffDays > 1 ? "e" : ""}`;
+          else if (diffDays < 365) {
+            const months = Math.round(diffDays / 30);
+            interval = `${months} Monat${months > 1 ? "e" : ""}`;
+          } else {
+            const years = Math.round(diffDays / 365 * 10) / 10;
+            interval = `${years} Jahr${years !== 1 ? "e" : ""}`;
+          }
+
+          doc.setFont("Roboto", "normal");
+          doc.setFontSize(6.5);
+          const iLabel = `Zeitraum: ${interval}`;
+          const iLabelW = doc.getTextWidth(iLabel) + 6;
+          const iX = margin + (contentW - iLabelW) / 2;
+          doc.setFillColor(...C.cardBg);
+          doc.setDrawColor(...C.border);
+          drawRoundedRect(doc, iX, y + 2, iLabelW, 5, 1, "FD");
+          doc.setTextColor(...C.textSecondary);
+          doc.text(iLabel, iX + 3, y + 5.5);
+          y += 9;
+        } else {
+          y += 5;
+        }
+
+      } else if (oldestBase64) {
+        // ── Single image layout (original behavior) ──
         const maxImgW = contentW;
-        const maxImgH = 85; // mm
-
-        // Get aspect ratio from the base64 image
-        const tempImg = await loadHTMLImage(composited);
+        const maxImgH = 85;
+        const tempImg = await loadHTMLImage(oldestBase64);
         let imgW = maxImgW;
         let imgH = maxImgH;
         if (tempImg) {
           const aspect = tempImg.naturalWidth / tempImg.naturalHeight;
           imgW = maxImgW;
           imgH = imgW / aspect;
-          if (imgH > maxImgH) {
-            imgH = maxImgH;
-            imgW = imgH * aspect;
-          }
+          if (imgH > maxImgH) { imgH = maxImgH; imgW = imgH * aspect; }
         }
 
         y = checkPage(doc, y, imgH + 8, margin);
 
-        // Image frame with subtle shadow
         const imgX = margin + (contentW - imgW) / 2;
         doc.setFillColor(220, 220, 220);
         drawRoundedRect(doc, imgX + 0.5, y + 0.5, imgW, imgH, 2, "F");
-
         doc.setDrawColor(...C.border);
         doc.setLineWidth(0.4);
         drawRoundedRect(doc, imgX, y, imgW, imgH, 2, "S");
         doc.setLineWidth(0.2);
 
         try {
-          const fmt = composited.startsWith("data:image/png") ? "PNG" : "JPEG";
-          doc.addImage(composited, fmt, imgX + 0.5, y + 0.5, imgW - 1, imgH - 1);
-
-          // Clickable link to full-res image
-          const originalUrl = api.resolveImageSrc(refImage);
-          doc.link(imgX, y, imgW, imgH, { url: originalUrl });
+          const fmt = oldestBase64.startsWith("data:image/png") ? "PNG" : "JPEG";
+          doc.addImage(oldestBase64, fmt, imgX + 0.5, y + 0.5, imgW - 1, imgH - 1);
+          if (oldestImg) doc.link(imgX, y, imgW, imgH, { url: api.resolveImageSrc(oldestImg) });
         } catch {
           doc.setFillColor(...C.cardBg);
           drawRoundedRect(doc, imgX, y, imgW, imgH, 2, "F");
@@ -538,19 +677,17 @@ export async function generatePatientPDF(
 
         y += imgH + 3;
 
-        // Date label
-        if (refImage.created_at) {
+        if (oldestImg?.created_at) {
           doc.setFont("Roboto", "normal");
           doc.setFontSize(7);
           doc.setTextColor(...C.textSecondary);
           doc.text(
-            `Aufnahme: ${format(new Date(refImage.created_at), "dd.MM.yyyy", { locale: de })}`,
-            margin + (contentW) / 2,
-            y,
-            { align: "center" }
+            `Aufnahme: ${format(new Date(oldestImg.created_at), "dd.MM.yyyy", { locale: de })}`,
+            margin + contentW / 2, y, { align: "center" }
           );
           y += 5;
         }
+      }
 
         // Pin legend below overview image
         if (pins.length > 0) {
