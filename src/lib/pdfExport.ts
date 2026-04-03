@@ -2,10 +2,12 @@ import jsPDF from "jspdf";
 import "jspdf-autotable";
 import { ROBOTO_REGULAR } from "@/assets/fonts/roboto-regular";
 import { ROBOTO_BOLD } from "@/assets/fonts/roboto-bold";
-import type { FullPatient, LocationImage, PdfExportOptions } from "@/types/patient";
+import type { FullPatient, LocationImage, PdfExportOptions, OverviewPin } from "@/types/patient";
 import { LESION_CLASSIFICATIONS } from "@/types/patient";
 import { format } from "date-fns";
 import { de } from "date-fns/locale";
+import { api } from "@/lib/api";
+import { getAnatomicalName } from "@/lib/anatomyLookup";
 
 /* ─── Helpers ─────────────────────────────────────────── */
 
@@ -95,24 +97,174 @@ async function loadImageAsBase64(url: string): Promise<string | null> {
   return await loadViaFetch();
 }
 
+/** Loads an image as HTMLImageElement for canvas compositing */
+function loadHTMLImage(url: string): Promise<HTMLImageElement | null> {
+  return new Promise((resolve) => {
+    const img = new Image();
+    img.crossOrigin = "anonymous";
+    img.onload = () => resolve(img);
+    img.onerror = () => resolve(null);
+    img.src = url;
+  });
+}
+
+/** Composites pins directly onto an overview image using canvas */
+async function compositeOverviewWithPins(
+  imageUrl: string,
+  pins: OverviewPin[],
+  spotLocations: FullPatient["locations"],
+): Promise<string | null> {
+  const img = await loadHTMLImage(imageUrl);
+  if (!img) return null;
+
+  const canvas = document.createElement("canvas");
+  const w = img.naturalWidth || img.width;
+  const h = img.naturalHeight || img.height;
+  canvas.width = w;
+  canvas.height = h;
+  const ctx = canvas.getContext("2d");
+  if (!ctx) return null;
+
+  // Draw base image
+  ctx.drawImage(img, 0, 0, w, h);
+
+  // Draw each pin
+  for (let i = 0; i < pins.length; i++) {
+    const pin = pins[i];
+    const px = (pin.x_pct / 100) * w;
+    const py = (pin.y_pct / 100) * h;
+    const spot = spotLocations.find(s => s.id === pin.linked_location_id);
+    const cls = spot?.classification;
+    const colorHex = cls && cls !== "unclassified"
+      ? LESION_CLASSIFICATIONS[cls]?.color ?? "#00a699"
+      : "#00a699";
+
+    // Parse hex to rgb
+    const r = parseInt(colorHex.slice(1, 3), 16);
+    const g = parseInt(colorHex.slice(3, 5), 16);
+    const b = parseInt(colorHex.slice(5, 7), 16);
+
+    // Crosshair at exact position
+    const crossSize = Math.max(w * 0.012, 6);
+    ctx.strokeStyle = `rgb(${r},${g},${b})`;
+    ctx.lineWidth = Math.max(w * 0.002, 1.5);
+    // Vertical
+    ctx.beginPath();
+    ctx.moveTo(px, py - crossSize);
+    ctx.lineTo(px, py - crossSize * 0.35);
+    ctx.moveTo(px, py + crossSize * 0.35);
+    ctx.lineTo(px, py + crossSize);
+    // Horizontal
+    ctx.moveTo(px - crossSize, py);
+    ctx.lineTo(px - crossSize * 0.35, py);
+    ctx.moveTo(px + crossSize * 0.35, py);
+    ctx.lineTo(px + crossSize, py);
+    ctx.stroke();
+
+    // Leader line offset
+    const labelOffsetX = pin.x_pct > 50 ? -w * 0.04 : w * 0.04;
+    const labelOffsetY = pin.y_pct > 30 ? -h * 0.04 : h * 0.04;
+    const lx = px + labelOffsetX;
+    const ly = py + labelOffsetY;
+
+    // Dashed leader line
+    ctx.setLineDash([Math.max(w * 0.004, 3), Math.max(w * 0.003, 2)]);
+    ctx.strokeStyle = `rgba(${r},${g},${b},0.6)`;
+    ctx.lineWidth = Math.max(w * 0.0015, 1);
+    ctx.beginPath();
+    ctx.moveTo(px, py);
+    ctx.lineTo(lx, ly);
+    ctx.stroke();
+    ctx.setLineDash([]);
+
+    // Numbered circle at offset
+    const circR = Math.max(w * 0.015, 10);
+    ctx.beginPath();
+    ctx.arc(lx, ly, circR, 0, Math.PI * 2);
+    ctx.fillStyle = `rgb(${r},${g},${b})`;
+    ctx.fill();
+    ctx.strokeStyle = "rgba(255,255,255,0.7)";
+    ctx.lineWidth = Math.max(w * 0.002, 1.5);
+    ctx.stroke();
+
+    // Number text
+    ctx.fillStyle = "#ffffff";
+    ctx.font = `bold ${Math.max(circR * 1.1, 9)}px sans-serif`;
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+    ctx.fillText(`${i + 1}`, lx, ly + 1);
+
+    // Spot name label next to circle
+    const label = spot?.name || pin.label || `Spot ${i + 1}`;
+    const labelFontSize = Math.max(w * 0.012, 9);
+    ctx.font = `bold ${labelFontSize}px sans-serif`;
+    const labelW = ctx.measureText(label).width;
+    const labelPadX = labelFontSize * 0.4;
+    const labelPadY = labelFontSize * 0.3;
+    const labelBoxX = pin.x_pct > 50 ? lx - circR - labelW - labelPadX * 2 - 2 : lx + circR + 2;
+    const labelBoxY = ly - labelFontSize / 2 - labelPadY;
+    const labelBoxW = labelW + labelPadX * 2;
+    const labelBoxH = labelFontSize + labelPadY * 2;
+
+    // Label background
+    ctx.fillStyle = "rgba(20,33,52,0.85)";
+    const lbr = Math.max(labelBoxH * 0.2, 3);
+    ctx.beginPath();
+    ctx.moveTo(labelBoxX + lbr, labelBoxY);
+    ctx.lineTo(labelBoxX + labelBoxW - lbr, labelBoxY);
+    ctx.quadraticCurveTo(labelBoxX + labelBoxW, labelBoxY, labelBoxX + labelBoxW, labelBoxY + lbr);
+    ctx.lineTo(labelBoxX + labelBoxW, labelBoxY + labelBoxH - lbr);
+    ctx.quadraticCurveTo(labelBoxX + labelBoxW, labelBoxY + labelBoxH, labelBoxX + labelBoxW - lbr, labelBoxY + labelBoxH);
+    ctx.lineTo(labelBoxX + lbr, labelBoxY + labelBoxH);
+    ctx.quadraticCurveTo(labelBoxX, labelBoxY + labelBoxH, labelBoxX, labelBoxY + labelBoxH - lbr);
+    ctx.lineTo(labelBoxX, labelBoxY + lbr);
+    ctx.quadraticCurveTo(labelBoxX, labelBoxY, labelBoxX + lbr, labelBoxY);
+    ctx.closePath();
+    ctx.fill();
+
+    // Label text
+    ctx.fillStyle = "#ffffff";
+    ctx.textAlign = "left";
+    ctx.fillText(label, labelBoxX + labelPadX, ly + 1);
+  }
+
+  return canvas.toDataURL("image/jpeg", 0.92);
+}
+
+/** Get anatomical zone name for a location */
+function getZoneName(loc: { x3d?: number; y3d?: number; z3d?: number; view?: "front" | "back"; name?: string }): string {
+  if (loc.x3d != null && loc.y3d != null && loc.z3d != null && loc.view) {
+    return getAnatomicalName(
+      Number(loc.x3d),
+      Number(loc.y3d),
+      Number(loc.z3d),
+      loc.view,
+    );
+  }
+  return loc.name || "–";
+}
+
 /* ─── Colors ──────────────────────────────────────────── */
 
 const C = {
-  headerBg: [20, 33, 52] as [number, number, number],       // deep navy
-  headerAccent: [0, 166, 153] as [number, number, number],   // teal accent
+  headerBg: [20, 33, 52] as [number, number, number],
+  headerAccent: [0, 166, 153] as [number, number, number],
   white: [255, 255, 255] as [number, number, number],
-  textPrimary: [30, 41, 59] as [number, number, number],     // slate-800
-  textSecondary: [100, 116, 139] as [number, number, number],// slate-500
-  textMuted: [148, 163, 184] as [number, number, number],    // slate-400
-  border: [226, 232, 240] as [number, number, number],       // slate-200
-  cardBg: [248, 250, 252] as [number, number, number],       // slate-50
-  summaryBg: [240, 249, 255] as [number, number, number],    // sky-50
-  summaryBorder: [186, 230, 253] as [number, number, number],// sky-200
+  textPrimary: [30, 41, 59] as [number, number, number],
+  textSecondary: [100, 116, 139] as [number, number, number],
+  textMuted: [148, 163, 184] as [number, number, number],
+  border: [226, 232, 240] as [number, number, number],
+  cardBg: [248, 250, 252] as [number, number, number],
+  summaryBg: [240, 249, 255] as [number, number, number],
+  summaryBorder: [186, 230, 253] as [number, number, number],
   riskLow: [22, 163, 74] as [number, number, number],
   riskMed: [202, 138, 4] as [number, number, number],
   riskHigh: [220, 38, 38] as [number, number, number],
-  abcdeBg: [245, 243, 255] as [number, number, number],      // violet-50
-  abcdeKey: [109, 40, 217] as [number, number, number],      // violet-600
+  abcdeBg: [245, 243, 255] as [number, number, number],
+  abcdeKey: [109, 40, 217] as [number, number, number],
+  overviewBg: [236, 253, 245] as [number, number, number],    // emerald-50
+  overviewBorder: [167, 243, 208] as [number, number, number], // emerald-200
+  zoneBg: [241, 245, 249] as [number, number, number],         // slate-100
 };
 
 /* ─── Drawing primitives ─────────────────────────────── */
@@ -154,7 +306,7 @@ export async function generatePatientPDF(
   opts?: PdfExportOptions
 ): Promise<string | void> {
   const options = { ...DEFAULT_OPTIONS, ...opts };
-  const imageCache: Record<number, string | null> = {};
+  const imageCache: Record<string, string | null> = {};
   const doc = new jsPDF({ orientation: "portrait", unit: "mm", format: "a4" });
   registerFonts(doc);
 
@@ -164,16 +316,29 @@ export async function generatePatientPDF(
   const contentW = pageW - margin * 2;
   let y = 0;
 
+  // Separate overview and spot locations
+  const allLocations = patient.locations ?? [];
+  const overviewLocations = allLocations.filter(l => l.type === "overview");
+  const spotLocations = allLocations.filter(l => l.type !== "overview");
+
+  // Fetch pins for all overview locations
+  const overviewPinsMap: Record<number, OverviewPin[]> = {};
+  for (const ov of overviewLocations) {
+    try {
+      overviewPinsMap[ov.id] = await api.getOverviewPins(ov.id);
+    } catch {
+      overviewPinsMap[ov.id] = [];
+    }
+  }
+
   /* ═══ HEADER ═══════════════════════════════════════ */
   const headerH = 32;
   doc.setFillColor(...C.headerBg);
   doc.rect(0, 0, pageW, headerH, "F");
 
-  // Accent stripe
   doc.setFillColor(...C.headerAccent);
   doc.rect(0, headerH, pageW, 1.2, "F");
 
-  // Logo text
   doc.setFont("Roboto", "bold");
   doc.setFontSize(20);
   doc.setTextColor(...C.white);
@@ -181,13 +346,11 @@ export async function generatePatientPDF(
   doc.setTextColor(...C.headerAccent);
   doc.text("247", margin + doc.getTextWidth("DERM"), 14);
 
-  // Subtitle
   doc.setFont("Roboto", "normal");
   doc.setFontSize(8);
   doc.setTextColor(180, 200, 220);
   doc.text("Dermatologischer Patientenbericht", margin, 20);
 
-  // Right side: date & doctor
   doc.setTextColor(...C.white);
   doc.setFontSize(8);
   const dateStr = format(new Date(), "dd. MMMM yyyy, HH:mm", { locale: de });
@@ -200,7 +363,6 @@ export async function generatePatientPDF(
     doc.text(`Arzt: ${resolvedDoctor}`, pageW - margin, 18, { align: "right" });
   }
 
-  // Report type badge
   doc.setFontSize(7);
   const typeLabel = options.reportType === "lastVisit" ? "LETZTE KONSULTATION" : "GESAMTVERLAUF";
   const badgeW = doc.getTextWidth(typeLabel) + 6;
@@ -243,16 +405,15 @@ export async function generatePatientPDF(
   y += 28;
 
   /* ═══ SUMMARY BAR ══════════════════════════════════ */
-  const locations = patient.locations ?? [];
-  const totalImages = locations.reduce((sum, l) => sum + (l.images?.length ?? 0), 0);
-  const highRiskSpots = locations.filter(l => l.images?.some(img => (img.risk_score ?? 0) >= 4)).length;
+  const totalImages = spotLocations.reduce((sum, l) => sum + (l.images?.length ?? 0), 0);
+  const highRiskSpots = spotLocations.filter(l => l.images?.some(img => (img.risk_score ?? 0) >= 4)).length;
 
   doc.setFillColor(...C.summaryBg);
   doc.setDrawColor(...C.summaryBorder);
   drawRoundedRect(doc, margin, y, contentW, 14, 2, "FD");
 
   const summaryItems = [
-    { label: "Hautstellen", value: `${locations.length}` },
+    { label: "Hautstellen", value: `${spotLocations.length}` },
     { label: "Aufnahmen", value: `${totalImages}` },
     { label: "Kritisch", value: `${highRiskSpots}` },
   ];
@@ -271,7 +432,6 @@ export async function generatePatientPDF(
     doc.setTextColor(...C.textMuted);
     doc.text(item.label.toUpperCase(), cx, y + 11.5, { align: "center" });
 
-    // Vertical divider
     if (i < summaryItems.length - 1) {
       doc.setDrawColor(...C.border);
       doc.line(margin + colW * (i + 1), y + 2.5, margin + colW * (i + 1), y + 11.5);
@@ -284,20 +444,18 @@ export async function generatePatientPDF(
   if (options.doctorSummary.trim()) {
     y = checkPage(doc, y, 25, margin);
 
-    doc.setFillColor(255, 251, 235); // amber-50
-    doc.setDrawColor(253, 230, 138); // amber-200
+    doc.setFillColor(255, 251, 235);
+    doc.setDrawColor(253, 230, 138);
     drawRoundedRect(doc, margin, y, contentW, 6, 2, "FD");
 
-    // Title bar
     doc.setFont("Roboto", "bold");
     doc.setFontSize(8);
-    doc.setTextColor(146, 64, 14); // amber-800
+    doc.setTextColor(146, 64, 14);
     doc.text("ÄRZTLICHE ZUSAMMENFASSUNG", margin + 4, y + 4);
 
     const summaryLines = doc.splitTextToSize(clean(options.doctorSummary), contentW - 10);
     const textH = summaryLines.length * 4.2 + 4;
 
-    // Text area
     doc.setFillColor(255, 254, 249);
     doc.setDrawColor(253, 230, 138);
     drawRoundedRect(doc, margin, y + 6, contentW, textH, 2, "FD");
@@ -314,13 +472,182 @@ export async function generatePatientPDF(
     y += 6 + textH + 6;
   }
 
+  /* ═══ OVERVIEW PHOTOS ══════════════════════════════ */
+  if (options.showImages && overviewLocations.length > 0) {
+    for (const ov of overviewLocations) {
+      const refImage = ov.images?.length
+        ? [...ov.images].sort((a, b) =>
+            new Date(a.created_at ?? 0).getTime() - new Date(b.created_at ?? 0).getTime()
+          )[0]
+        : null;
+      if (!refImage) continue;
+
+      const pins = overviewPinsMap[ov.id] || [];
+      const ovName = ov.name || "Übersichtsaufnahme";
+
+      // Need ~100mm height for overview section
+      y = checkPage(doc, y, 100, margin);
+
+      // Section header
+      doc.setFillColor(...C.headerBg);
+      drawRoundedRect(doc, margin, y, contentW, 8, 2, "F");
+      doc.setFont("Roboto", "bold");
+      doc.setFontSize(9);
+      doc.setTextColor(...C.headerAccent);
+      doc.text("ÜBERSICHTSAUFNAHME", margin + 4, y + 5.5);
+      doc.setTextColor(...C.white);
+      doc.setFontSize(9);
+      const nameX = margin + 4 + doc.getTextWidth("ÜBERSICHTSAUFNAHME") + 6;
+      doc.text(ovName, nameX > pageW - margin - 10 ? margin + 4 : nameX, y + 5.5);
+
+      // Pin count badge
+      if (pins.length > 0) {
+        const pinLabel = `${pins.length} Markierung${pins.length > 1 ? "en" : ""}`;
+        doc.setFont("Roboto", "normal");
+        doc.setFontSize(7);
+        const plW = doc.getTextWidth(pinLabel) + 5;
+        doc.setFillColor(...C.headerAccent);
+        drawRoundedRect(doc, pageW - margin - plW - 3, y + 1.5, plW, 5, 1, "F");
+        doc.setTextColor(...C.white);
+        doc.text(pinLabel, pageW - margin - plW - 0.5, y + 5);
+      }
+
+      y += 11;
+
+      // Load and composite image with pins
+      const imgUrl = api.resolveImageSrc(refImage);
+      let composited: string | null = null;
+      if (pins.length > 0) {
+        composited = await compositeOverviewWithPins(imgUrl, pins, spotLocations);
+      }
+      if (!composited) {
+        composited = await loadImageAsBase64(imgUrl);
+      }
+
+      if (composited) {
+        // Calculate proportional dimensions — overview is large (full content width)
+        const maxImgW = contentW;
+        const maxImgH = 85; // mm
+
+        // Get aspect ratio from the base64 image
+        const tempImg = await loadHTMLImage(composited);
+        let imgW = maxImgW;
+        let imgH = maxImgH;
+        if (tempImg) {
+          const aspect = tempImg.naturalWidth / tempImg.naturalHeight;
+          imgW = maxImgW;
+          imgH = imgW / aspect;
+          if (imgH > maxImgH) {
+            imgH = maxImgH;
+            imgW = imgH * aspect;
+          }
+        }
+
+        y = checkPage(doc, y, imgH + 8, margin);
+
+        // Image frame with subtle shadow
+        const imgX = margin + (contentW - imgW) / 2;
+        doc.setFillColor(220, 220, 220);
+        drawRoundedRect(doc, imgX + 0.5, y + 0.5, imgW, imgH, 2, "F");
+
+        doc.setDrawColor(...C.border);
+        doc.setLineWidth(0.4);
+        drawRoundedRect(doc, imgX, y, imgW, imgH, 2, "S");
+        doc.setLineWidth(0.2);
+
+        try {
+          const fmt = composited.startsWith("data:image/png") ? "PNG" : "JPEG";
+          doc.addImage(composited, fmt, imgX + 0.5, y + 0.5, imgW - 1, imgH - 1);
+
+          // Clickable link to full-res image
+          const originalUrl = api.resolveImageSrc(refImage);
+          doc.link(imgX, y, imgW, imgH, { url: originalUrl });
+        } catch {
+          doc.setFillColor(...C.cardBg);
+          drawRoundedRect(doc, imgX, y, imgW, imgH, 2, "F");
+          doc.setFontSize(8);
+          doc.setTextColor(...C.textMuted);
+          doc.text("Bild nicht verfügbar", imgX + imgW / 2, y + imgH / 2, { align: "center" });
+        }
+
+        y += imgH + 3;
+
+        // Date label
+        if (refImage.created_at) {
+          doc.setFont("Roboto", "normal");
+          doc.setFontSize(7);
+          doc.setTextColor(...C.textSecondary);
+          doc.text(
+            `Aufnahme: ${format(new Date(refImage.created_at), "dd.MM.yyyy", { locale: de })}`,
+            margin + (contentW) / 2,
+            y,
+            { align: "center" }
+          );
+          y += 5;
+        }
+
+        // Pin legend below overview image
+        if (pins.length > 0) {
+          y = checkPage(doc, y, pins.length * 5 + 6, margin);
+
+          doc.setFillColor(...C.overviewBg);
+          doc.setDrawColor(...C.overviewBorder);
+          drawRoundedRect(doc, margin, y, contentW, pins.length * 5 + 5, 2, "FD");
+
+          doc.setFont("Roboto", "bold");
+          doc.setFontSize(7);
+          doc.setTextColor(...C.textSecondary);
+          doc.text("MARKIERUNGEN", margin + 4, y + 4);
+          y += 7;
+
+          for (let pi = 0; pi < pins.length; pi++) {
+            const pin = pins[pi];
+            const spot = spotLocations.find(s => s.id === pin.linked_location_id);
+            const spotName = spot?.name || pin.label || `Spot ${pi + 1}`;
+            const cls = spot?.classification;
+            const clsLabel = cls && cls !== "unclassified" ? LESION_CLASSIFICATIONS[cls]?.label : null;
+
+            // Number circle
+            const cx = margin + 7;
+            doc.setFillColor(...C.headerAccent);
+            doc.circle(cx, y, 2, "F");
+            doc.setFont("Roboto", "bold");
+            doc.setFontSize(6.5);
+            doc.setTextColor(...C.white);
+            doc.text(`${pi + 1}`, cx, y + 0.8, { align: "center" });
+
+            // Spot name
+            doc.setFont("Roboto", "normal");
+            doc.setFontSize(8);
+            doc.setTextColor(...C.textPrimary);
+            doc.text(spotName, margin + 12, y + 1);
+
+            // Classification if available
+            if (clsLabel) {
+              doc.setFont("Roboto", "normal");
+              doc.setFontSize(7);
+              doc.setTextColor(...C.textSecondary);
+              doc.text(`(${clsLabel})`, margin + 12 + doc.getTextWidth(spotName) + 2, y + 1);
+            }
+
+            y += 5;
+          }
+          y += 3;
+        }
+      }
+
+      y += 4;
+    }
+  }
+
   /* ═══ SPOT SECTIONS ════════════════════════════════ */
-  for (let si = 0; si < locations.length; si++) {
-    const loc = locations[si];
+  for (let si = 0; si < spotLocations.length; si++) {
+    const loc = spotLocations[si];
     const spotName = loc.name || `Spot #${loc.id}`;
     const classification = loc.classification
       ? LESION_CLASSIFICATIONS[loc.classification]?.label ?? loc.classification
       : null;
+    const zoneName = getZoneName(loc);
 
     let images = [...(loc.images ?? [])].sort(
       (a, b) => new Date(a.created_at ?? 0).getTime() - new Date(b.created_at ?? 0).getTime()
@@ -329,30 +656,44 @@ export async function generatePatientPDF(
       images = [images[images.length - 1]];
     }
 
-    // Estimate height needed
-    const estimatedH = 12 + (options.showImages && images.length > 0 ? 42 : 0) +
+    const estimatedH = 18 + (options.showImages && images.length > 0 ? 50 : 0) +
       (options.showRiskScore ? 12 : 0) + (options.showAbcde ? 20 : 0) + (options.showNotes ? 8 : 0);
     y = checkPage(doc, y, Math.min(estimatedH, 80), margin);
 
     /* ─── Spot Header ─── */
     doc.setFillColor(...C.headerBg);
-    drawRoundedRect(doc, margin, y, contentW, 9, 2, "F");
+    drawRoundedRect(doc, margin, y, contentW, 14, 2, "F");
 
     // Spot number circle
     doc.setFillColor(...C.headerAccent);
-    doc.circle(margin + 6, y + 4.5, 3.2, "F");
+    doc.circle(margin + 6, y + 5, 3.2, "F");
     doc.setFont("Roboto", "bold");
     doc.setFontSize(8);
     doc.setTextColor(...C.white);
-    doc.text(`${si + 1}`, margin + 6, y + 5.5, { align: "center" });
+    doc.text(`${si + 1}`, margin + 6, y + 6, { align: "center" });
 
     // Spot name
     doc.setFont("Roboto", "bold");
     doc.setFontSize(10);
     doc.setTextColor(...C.white);
-    doc.text(spotName, margin + 12, y + 5.5);
+    doc.text(spotName, margin + 12, y + 6);
 
-    // Classification badge
+    // Anatomical zone badge
+    if (zoneName && zoneName !== "–") {
+      doc.setFont("Roboto", "normal");
+      doc.setFontSize(7);
+      const zoneText = zoneName;
+      const zW = doc.getTextWidth(zoneText) + 5;
+
+      // Position zone badge below spot name
+      doc.setFillColor(255, 255, 255);
+      doc.setFillColor(40, 55, 75);
+      drawRoundedRect(doc, margin + 12, y + 8, zW, 4.5, 1, "F");
+      doc.setTextColor(200, 220, 240);
+      doc.text(zoneText, margin + 14.5, y + 11);
+    }
+
+    // Classification badge (top right)
     if (options.showClassification && classification) {
       const classColor = loc.classification
         ? LESION_CLASSIFICATIONS[loc.classification]?.color ?? "#64748b"
@@ -361,66 +702,58 @@ export async function generatePatientPDF(
       const bw = doc.getTextWidth(badgeText) + 5;
       const bx = pageW - margin - bw - 3;
 
-      // Parse hex color
-      const r = parseInt(classColor.slice(1, 3), 16);
-      const g = parseInt(classColor.slice(3, 5), 16);
-      const b = parseInt(classColor.slice(5, 7), 16);
-      doc.setFillColor(r, g, b);
-      drawRoundedRect(doc, bx, y + 1.8, bw, 5.5, 1.2, "F");
+      const cr = parseInt(classColor.slice(1, 3), 16);
+      const cg = parseInt(classColor.slice(3, 5), 16);
+      const cb = parseInt(classColor.slice(5, 7), 16);
+      doc.setFillColor(cr, cg, cb);
+      drawRoundedRect(doc, bx, y + 2, bw, 5.5, 1.2, "F");
       doc.setFont("Roboto", "normal");
       doc.setFontSize(7);
       doc.setTextColor(...C.white);
-      doc.text(badgeText, bx + 2.5, y + 5.5);
+      doc.text(badgeText, bx + 2.5, y + 5.8);
     }
 
-    y += 12;
-
-    // Card body wrapper
-    const cardStartY = y;
-    doc.setDrawColor(...C.border);
+    y += 17;
 
     /* ─── Images Grid ─── */
     if (options.showImages && images.length > 0) {
       const displayImages = images.slice(-4);
-      const imgSize = 34;
+      const imgSize = 38;
       const imgGap = 5;
-      const totalImgW = displayImages.length * imgSize + (displayImages.length - 1) * imgGap;
       let imgX = margin + 3;
 
       y = checkPage(doc, y, imgSize + 12, margin);
 
       for (const img of displayImages) {
         if (imgX + imgSize > pageW - margin) {
-          // Overflow — wrap to next line
           imgX = margin + 3;
           y += imgSize + 10;
           y = checkPage(doc, y, imgSize + 12, margin);
         }
 
-        const cacheBuster = `${Date.now()}_${img.id}`;
-        const imgUrl = `https://api.derm247.ch/storage/${img.file_path}?v=${cacheBuster}`;
-        if (imageCache[img.id] === undefined) {
-          imageCache[img.id] = await loadImageAsBase64(imgUrl);
+        const imgUrl = `https://api.derm247.ch/storage/${img.file_path}?v=${Date.now()}_${img.id}`;
+        const cacheKey = `img_${img.id}`;
+        if (imageCache[cacheKey] === undefined) {
+          imageCache[cacheKey] = await loadImageAsBase64(imgUrl);
         }
-        const base64 = imageCache[img.id];
+        const base64 = imageCache[cacheKey];
 
-        // Image frame with shadow effect
-        doc.setFillColor(240, 240, 240);
-        drawRoundedRect(doc, imgX + 0.3, y + 0.3, imgSize, imgSize, 1.5, "F"); // shadow
+        // Shadow
+        doc.setFillColor(220, 220, 220);
+        drawRoundedRect(doc, imgX + 0.4, y + 0.4, imgSize, imgSize, 2, "F");
 
         if (base64) {
           try {
             const imageFormat = base64.startsWith("data:image/png") ? "PNG" : "JPEG";
-            // Clip area with rounded rect border
             doc.setDrawColor(...C.border);
             doc.setLineWidth(0.3);
-            drawRoundedRect(doc, imgX, y, imgSize, imgSize, 1.5, "S");
+            drawRoundedRect(doc, imgX, y, imgSize, imgSize, 2, "S");
             doc.addImage(base64, imageFormat, imgX + 0.5, y + 0.5, imgSize - 1, imgSize - 1);
             const originalUrl = `https://api.derm247.ch/storage/${img.file_path}`;
             doc.link(imgX, y, imgSize, imgSize, { url: originalUrl });
           } catch {
             doc.setFillColor(...C.cardBg);
-            drawRoundedRect(doc, imgX, y, imgSize, imgSize, 1.5, "F");
+            drawRoundedRect(doc, imgX, y, imgSize, imgSize, 2, "F");
             doc.setFontSize(7);
             doc.setTextColor(...C.textMuted);
             doc.text("Nicht verfügbar", imgX + imgSize / 2, y + imgSize / 2, { align: "center" });
@@ -428,13 +761,13 @@ export async function generatePatientPDF(
         } else {
           doc.setFillColor(...C.cardBg);
           doc.setDrawColor(...C.border);
-          drawRoundedRect(doc, imgX, y, imgSize, imgSize, 1.5, "FD");
+          drawRoundedRect(doc, imgX, y, imgSize, imgSize, 2, "FD");
           doc.setFontSize(7);
           doc.setTextColor(...C.textMuted);
           doc.text("Nicht verfügbar", imgX + imgSize / 2, y + imgSize / 2, { align: "center" });
         }
 
-        // Date label below image
+        // Date label
         doc.setFontSize(6.5);
         doc.setTextColor(...C.textSecondary);
         doc.setFont("Roboto", "normal");
@@ -443,16 +776,21 @@ export async function generatePatientPDF(
           : "-";
         doc.text(imgDate, imgX + imgSize / 2, y + imgSize + 3.5, { align: "center" });
 
-        // Risk score badge (top-right corner of image)
+        // Risk score badge
         if (img.risk_score != null) {
           const sc = img.risk_score;
-          const badgeR = 3.5;
-          const badgeCx = imgX + imgSize - 2;
-          const badgeCy = y + 2;
+          const badgeR = 3.8;
+          const badgeCx = imgX + imgSize - 2.5;
+          const badgeCy = y + 2.5;
           doc.setFillColor(...riskColor(sc));
           doc.circle(badgeCx, badgeCy, badgeR, "F");
+          // White border
+          doc.setDrawColor(...C.white);
+          doc.setLineWidth(0.5);
+          doc.circle(badgeCx, badgeCy, badgeR, "S");
+          doc.setLineWidth(0.2);
           doc.setFont("Roboto", "bold");
-          doc.setFontSize(7);
+          doc.setFontSize(7.5);
           doc.setTextColor(...C.white);
           doc.text(`${sc}`, badgeCx, badgeCy + 1, { align: "center" });
         }
@@ -473,21 +811,17 @@ export async function generatePatientPDF(
       const first = scores[0];
       const diff = latest - first;
 
-      // Risk indicator bar
       const barX = margin + 3;
       const barW = Math.min(contentW - 6, 70);
       const barH = 3;
 
-      // Background bar
       doc.setFillColor(230, 230, 230);
       drawRoundedRect(doc, barX, y, barW, barH, 1, "F");
 
-      // Filled portion (score out of 5)
       const fillW = Math.max(barW * (latest / 5), 4);
       doc.setFillColor(...riskColor(latest));
       drawRoundedRect(doc, barX, y, fillW, barH, 1, "F");
 
-      // Score text next to bar
       doc.setFont("Roboto", "bold");
       doc.setFontSize(9);
       doc.setTextColor(...riskColor(latest));
@@ -500,7 +834,6 @@ export async function generatePatientPDF(
 
       y += 6;
 
-      // Trend indicator
       if (scores.length >= 2 && diff !== 0) {
         doc.setFontSize(7.5);
         if (diff > 0) {
@@ -528,16 +861,13 @@ export async function generatePatientPDF(
     if (options.showAbcde && abcdeRows.length > 0) {
       y = checkPage(doc, y, abcdeRows.length * 5 + 8, margin);
 
-      // Section label
       doc.setFont("Roboto", "bold");
       doc.setFontSize(7.5);
       doc.setTextColor(...C.textSecondary);
       doc.text("ABCDE-BEWERTUNG", margin + 3, y);
       y += 4;
 
-      // Compact inline pills
       for (const row of abcdeRows) {
-        // Key circle
         doc.setFillColor(...C.abcdeKey);
         doc.circle(margin + 5.5, y + 0.5, 2.2, "F");
         doc.setFont("Roboto", "bold");
@@ -545,7 +875,6 @@ export async function generatePatientPDF(
         doc.setTextColor(...C.white);
         doc.text(row.key, margin + 5.5, y + 1.3, { align: "center" });
 
-        // Label & value
         doc.setFont("Roboto", "normal");
         doc.setFontSize(8);
         doc.setTextColor(...C.textSecondary);
@@ -582,17 +911,14 @@ export async function generatePatientPDF(
     }
 
     /* ─── Spot Separator ─── */
-    if (si < locations.length - 1) {
+    if (si < spotLocations.length - 1) {
       y += 2;
       doc.setDrawColor(...C.border);
       doc.setLineWidth(0.15);
-      // Dashed line
-      const dashLen = 1.5;
-      const gapLen = 1.5;
       let dx = margin;
       while (dx < pageW - margin) {
-        doc.line(dx, y, Math.min(dx + dashLen, pageW - margin), y);
-        dx += dashLen + gapLen;
+        doc.line(dx, y, Math.min(dx + 1.5, pageW - margin), y);
+        dx += 3;
       }
       doc.setLineWidth(0.2);
       y += 6;
@@ -605,13 +931,11 @@ export async function generatePatientPDF(
     doc.setPage(i);
     const fY = pageH - 10;
 
-    // Accent line
     doc.setDrawColor(...C.headerAccent);
     doc.setLineWidth(0.4);
     doc.line(margin, fY - 2, pageW - margin, fY - 2);
     doc.setLineWidth(0.2);
 
-    // Left: branding
     doc.setFont("Roboto", "bold");
     doc.setFontSize(7);
     doc.setTextColor(...C.headerBg);
@@ -619,13 +943,11 @@ export async function generatePatientPDF(
     doc.setTextColor(...C.headerAccent);
     doc.text("247", margin + doc.getTextWidth("DERM"), fY + 1);
 
-    // Center: disclaimer
     doc.setFont("Roboto", "normal");
     doc.setFontSize(6);
     doc.setTextColor(...C.textMuted);
     doc.text("Vertraulich — Ausschliesslich zur medizinischen Dokumentation", pageW / 2, fY + 1, { align: "center" });
 
-    // Right: page
     doc.setFont("Roboto", "normal");
     doc.setFontSize(7);
     doc.setTextColor(...C.textSecondary);
