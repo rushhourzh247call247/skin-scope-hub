@@ -272,11 +272,15 @@ const Snapshots = () => {
                       className="cursor-pointer touch-manipulation hover:bg-transparent active:bg-muted/50 md:hover:bg-muted/50"
                       tabIndex={0}
                       role="button"
-                      onClick={() => setView({ type: "patient-detail", date: view.date, patientId: p.id, patientName: p.name })}
+                      onClick={() => {
+                        const date = (view as any).date;
+                        if (date) setView({ type: "patient-detail", date, patientId: p.id, patientName: p.name });
+                      }}
                       onKeyDown={(event) => {
                         if (event.key === "Enter" || event.key === " ") {
                           event.preventDefault();
-                          setView({ type: "patient-detail", date: view.date, patientId: p.id, patientName: p.name });
+                          const date = (view as any).date;
+                          if (date) setView({ type: "patient-detail", date, patientId: p.id, patientName: p.name });
                         }
                       }}
                     >
