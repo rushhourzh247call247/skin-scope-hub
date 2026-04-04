@@ -267,13 +267,22 @@ const Snapshots = () => {
                 </TableHeader>
                 <TableBody>
                   {patients.map((p: any) => (
-                    <TableRow key={p.id}>
+                    <TableRow
+                      key={p.id}
+                      className="cursor-pointer touch-manipulation hover:bg-transparent active:bg-muted/50 md:hover:bg-muted/50"
+                      tabIndex={0}
+                      role="button"
+                      onClick={() => setView({ type: "patient-detail", date: view.date, patientId: p.id, patientName: p.name })}
+                      onKeyDown={(event) => {
+                        if (event.key === "Enter" || event.key === " ") {
+                          event.preventDefault();
+                          setView({ type: "patient-detail", date: view.date, patientId: p.id, patientName: p.name });
+                        }
+                      }}
+                    >
                       <TableCell className="font-mono text-xs text-muted-foreground">{p.id}</TableCell>
                       <TableCell>
-                        <button className="font-medium text-primary hover:underline"
-                          onClick={() => setView({ type: "patient-detail", date: view.date, patientId: p.id, patientName: p.name })}>
-                          {p.name}
-                        </button>
+                        <span className="font-medium text-primary">{p.name}</span>
                       </TableCell>
                       <TableCell>
                         <div className="flex items-center gap-1.5 text-sm text-muted-foreground"><MapPin className="h-3.5 w-3.5" /> {p.location_count}</div>
@@ -282,8 +291,15 @@ const Snapshots = () => {
                         <div className="flex items-center gap-1.5 text-sm text-muted-foreground"><Image className="h-3.5 w-3.5" /> {p.image_count}</div>
                       </TableCell>
                       <TableCell className="text-right">
-                        <Button variant="outline" size="sm" className="h-7 gap-1 text-xs"
-                          onClick={() => setRestoreConfirm({ type: "patient", date: view.date, id: p.id, name: p.name })}>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="h-7 gap-1 text-xs"
+                          onClick={(event) => {
+                            event.stopPropagation();
+                            setRestoreConfirm({ type: "patient", date: view.date, id: p.id, name: p.name });
+                          }}
+                        >
                           <RotateCcw className="h-3 w-3" /> Wiederherstellen
                         </Button>
                       </TableCell>
