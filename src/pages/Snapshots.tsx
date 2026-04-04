@@ -334,11 +334,18 @@ const Snapshots = () => {
                     <CardContent className="space-y-3">
                       {(loc.images ?? []).length > 0 && (
                         <div className="flex gap-2 flex-wrap">
-                          {(loc.images as any[]).slice(0, 6).map((img: any) => (
-                            <div key={img.id} className="w-16 h-16 rounded border bg-muted flex items-center justify-center overflow-hidden">
-                              <Image className="h-6 w-6 text-muted-foreground/40" />
-                            </div>
-                          ))}
+                          {(loc.images as any[]).slice(0, 6).map((img: any) => {
+                            const src = api.resolveImageSrc(img);
+                            return (
+                              <div key={img.id} className="w-16 h-16 rounded border bg-muted flex items-center justify-center overflow-hidden">
+                                {src ? (
+                                  <img src={src} alt="" className="w-full h-full object-cover" />
+                                ) : (
+                                  <Image className="h-6 w-6 text-muted-foreground/40" />
+                                )}
+                              </div>
+                            );
+                          })}
                           {(loc.images as any[]).length > 6 && (
                             <div className="w-16 h-16 rounded border bg-muted flex items-center justify-center text-xs text-muted-foreground">
                               +{(loc.images as any[]).length - 6}
