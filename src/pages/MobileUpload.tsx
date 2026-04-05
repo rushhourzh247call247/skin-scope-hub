@@ -434,11 +434,11 @@ function SessionInfoCard({ session }: { session: Extract<SessionState, { status:
       </div>
       <div className="flex gap-4 text-xs">
         <div>
-          <span className="text-muted-foreground">Patient</span>
+          <span className="text-muted-foreground">{t('mobileUpload.patient')}</span>
           <p className="font-medium text-foreground">{session.patientName}</p>
         </div>
         <div>
-          <span className="text-muted-foreground">Stelle</span>
+          <span className="text-muted-foreground">{t('mobileUpload.location')}</span>
           <p className="font-medium text-foreground">{session.locationName}</p>
         </div>
       </div>
