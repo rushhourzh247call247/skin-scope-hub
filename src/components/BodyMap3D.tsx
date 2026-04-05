@@ -1285,9 +1285,9 @@ const BodyMap3D: React.FC<BodyMap3DProps> = (props) => {
       <p className="mt-2 text-center text-[10px] text-muted-foreground">
         {markMode
           ? markType === "region"
-            ? "Region-Modus: Klicken für Mittelpunkt · Nochmal klicken zum Beenden"
-            : "Spot-Modus: Klicken um Spot zu setzen · Nochmal klicken zum Beenden"
-          : "Drehen & Zoomen · «Spot» oder «Region» zum Markieren"
+            ? i18n.t('bodyMap.regionModeHelp', { defaultValue: 'Region mode: Click for center · Click again to finish' })
+            : i18n.t('bodyMap.spotModeHelp', { defaultValue: 'Spot mode: Click to place · Click again to finish' })
+          : i18n.t('bodyMap.defaultHelp', { defaultValue: 'Rotate & zoom · Click "Spot" or "Region" to mark' })
         }
       </p>
     </div>
