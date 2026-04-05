@@ -619,7 +619,7 @@ const PatientDetail = () => {
                   return (
                     <div
                       key={loc.id}
-                      className="flex w-full items-center gap-2.5 rounded-md px-2.5 py-1.5 transition-all text-xs hover:bg-muted text-foreground border border-transparent bg-accent/30 group"
+                      className={cn("flex w-full items-center gap-2.5 rounded-md px-2.5 py-1.5 transition-all text-xs hover:bg-muted text-foreground border group", selectedLocationId === loc.id && activeTab === "uebersicht" ? "bg-primary/15 border-primary/30" : "border-transparent bg-accent/30")}
                     >
                       <button
                         className="flex items-center gap-2.5 flex-1 min-w-0 text-left"
