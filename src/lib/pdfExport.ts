@@ -1064,7 +1064,7 @@ export async function generatePatientPDF(
       doc.setFont("Roboto", "bold");
       doc.setFontSize(7.5);
       doc.setTextColor(...C.textSecondary);
-      doc.text("NOTIZ", margin + 3, y);
+      doc.text(i18n.t('pdf.notesTitle'), margin + 3, y);
       y += 4;
 
       doc.setFont("Roboto", "normal");
