@@ -108,7 +108,7 @@ const OverviewPhoto = ({ overviewLocation, spotLocations, patientId, onNavigateT
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["full-patient", patientId] });
       setUploading(false);
-      toast.success("Übersichtsfoto hochgeladen");
+      toast.success(t('overviewPhoto.overviewUploaded'));
     },
     onError: () => setUploading(false),
   });
