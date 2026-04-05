@@ -609,7 +609,7 @@ const PatientDetail = () => {
                         <button
                           onClick={(e) => { e.stopPropagation(); setDeleteConfirmId(loc.id); }}
                           className="h-5 w-5 rounded flex items-center justify-center hover:bg-destructive/10 text-muted-foreground hover:text-destructive"
-                          title="Löschen"
+                          title={t('common.delete')}
                         >
                           <Trash2 className="h-3 w-3" />
                         </button>
