@@ -3,6 +3,7 @@ import { api } from "@/lib/api";
 import type { Patient } from "@/types/patient";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import { Search, Calendar, Hash, Power, PowerOff, Trash2 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { Input } from "@/components/ui/input";
@@ -21,8 +22,10 @@ import {
 } from "@/components/ui/alert-dialog";
 import { toast } from "sonner";
 import { formatDate } from "@/lib/dateUtils";
+
 const PatientList = () => {
   const { user } = useAuth();
+  const { t } = useTranslation();
   const isAdmin = user?.role === "admin";
   const navigate = useNavigate();
   const queryClient = useQueryClient();
@@ -39,7 +42,7 @@ const PatientList = () => {
     mutationFn: (id: number) => api.deactivatePatient(id),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["patients"] });
-      toast.success("Patient deaktiviert");
+      toast.success(t("patients.deactivated"));
     },
   });
 
@@ -47,7 +50,7 @@ const PatientList = () => {
     mutationFn: (id: number) => api.activatePatient(id),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["patients"] });
-      toast.success("Patient aktiviert");
+      toast.success(t("patients.activated"));
     },
   });
 
@@ -55,10 +58,10 @@ const PatientList = () => {
     mutationFn: (id: number) => api.deletePatient(id),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["patients"] });
-      toast.success("Patient gelöscht");
+      toast.success(t("patients.deleted"));
       setDeletePatientId(null);
     },
-    onError: () => toast.error("Fehler beim Löschen"),
+    onError: () => toast.error(t("patients.deleteError")),
   });
 
   const activePatients = patients.filter((p: any) => !p.deactivated_at);
@@ -75,16 +78,16 @@ const PatientList = () => {
       <div className="mb-6 flex items-start justify-between">
         <div>
           <h2 className="text-2xl font-semibold tracking-tight text-foreground">
-            Patienten
+            {t("patients.title")}
           </h2>
           <p className="text-sm text-muted-foreground">
-            {activePatients.length} aktiv{deactivatedPatients.length > 0 && ` · ${deactivatedPatients.length} deaktiviert`}
+            {t("patients.activeCount", { count: activePatients.length })}{deactivatedPatients.length > 0 && ` \u00B7 ${t("patients.deactivatedCount", { count: deactivatedPatients.length })}`}
           </p>
         </div>
         {deactivatedPatients.length > 0 && (
           <div className="flex items-center gap-2">
             <label htmlFor="show-deactivated" className="text-xs text-muted-foreground cursor-pointer select-none">
-              Deaktivierte anzeigen
+              {t("patients.showDeactivated")}
             </label>
             <Switch
               id="show-deactivated"
@@ -98,7 +101,7 @@ const PatientList = () => {
       <div className="relative mb-4">
         <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
         <Input
-          placeholder="Patient suchen…"
+          placeholder={t("patients.searchPlaceholder")}
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           className="pl-9"
@@ -111,7 +114,7 @@ const PatientList = () => {
         </div>
       ) : error ? (
         <div className="rounded-md border border-destructive/20 bg-destructive/5 p-6 text-center text-sm text-destructive">
-          Fehler beim Laden der Patienten.
+          {t("patients.loadError")}
         </div>
       ) : (
         <div className="rounded-md border bg-card">
@@ -120,25 +123,25 @@ const PatientList = () => {
               <tr className="border-b text-left text-xs font-medium uppercase tracking-wider text-muted-foreground">
                 <th className="px-4 py-3">
                   <div className="flex items-center gap-1.5">
-                    <Hash className="h-3 w-3" /> ID
+                    <Hash className="h-3 w-3" /> {t("common.id")}
                   </div>
                 </th>
-                <th className="px-4 py-3">Name</th>
+                <th className="px-4 py-3">{t("common.name")}</th>
                 <th className="px-4 py-3">
                   <div className="flex items-center gap-1.5">
-                    <Calendar className="h-3 w-3" /> Geburtsdatum
+                    <Calendar className="h-3 w-3" /> {t("common.birthDate")}
                   </div>
                 </th>
-                <th className="px-4 py-3">Letzter Arzt</th>
-                <th className="px-4 py-3">Erstellt</th>
-                <th className="px-4 py-3 text-right">Aktion</th>
+                <th className="px-4 py-3">{t("patients.lastDoctor")}</th>
+                <th className="px-4 py-3">{t("common.created")}</th>
+                <th className="px-4 py-3 text-right">{t("common.action")}</th>
               </tr>
             </thead>
             <tbody>
               {filtered.length === 0 ? (
                 <tr>
-                  <td colSpan={5} className="px-4 py-12 text-center text-sm text-muted-foreground">
-                    {search ? "Keine Patienten gefunden." : "Noch keine Patienten vorhanden."}
+                  <td colSpan={6} className="px-4 py-12 text-center text-sm text-muted-foreground">
+                    {search ? t("patients.noResults") : t("patients.noPatients")}
                   </td>
                 </tr>
               ) : (
@@ -159,19 +162,19 @@ const PatientList = () => {
                         <div className="flex items-center gap-2">
                           <span className="text-sm font-medium text-foreground">{patient.name}</span>
                           {(patient as any).deactivated_at && (
-                            <Badge variant="secondary" className="text-[10px] px-1.5 py-0">Deaktiviert</Badge>
+                            <Badge variant="secondary" className="text-[10px] px-1.5 py-0">{t("common.deactivated")}</Badge>
                           )}
                         </div>
                       </div>
                     </td>
                     <td className="px-4 py-3 tabular-nums text-sm text-muted-foreground">
-                      {patient.birth_date ? formatDate(patient.birth_date, "dd. MMM yyyy") : "–"}
+                      {patient.birth_date ? formatDate(patient.birth_date, "dd. MMM yyyy") : "\u2013"}
                     </td>
                     <td className="px-4 py-3 text-sm text-muted-foreground">
-                      {(patient as any).last_doctor || <span className="text-muted-foreground/50">–</span>}
+                      {(patient as any).last_doctor || <span className="text-muted-foreground/50">{"\u2013"}</span>}
                     </td>
                     <td className="px-4 py-3 tabular-nums text-sm text-muted-foreground">
-                      {patient.created_at ? formatDate(patient.created_at, "dd.MM.yyyy") : "–"}
+                      {patient.created_at ? formatDate(patient.created_at, "dd.MM.yyyy") : "\u2013"}
                     </td>
                     <td className="px-4 py-3 text-right">
                       <div className="flex justify-end gap-1">
@@ -182,7 +185,7 @@ const PatientList = () => {
                             className="h-7 gap-1 text-xs"
                             onClick={(e) => { e.stopPropagation(); activateMutation.mutate(patient.id); }}
                           >
-                            <Power className="h-3 w-3" /> Aktivieren
+                            <Power className="h-3 w-3" /> {t("common.activate")}
                           </Button>
                         ) : (
                           <Button
@@ -191,7 +194,7 @@ const PatientList = () => {
                             className="h-7 gap-1 text-xs text-muted-foreground hover:text-destructive"
                             onClick={(e) => { e.stopPropagation(); deactivateMutation.mutate(patient.id); }}
                           >
-                            <PowerOff className="h-3 w-3" /> Deaktivieren
+                            <PowerOff className="h-3 w-3" /> {t("common.deactivate")}
                           </Button>
                         )}
                         {isAdmin && (
@@ -215,27 +218,26 @@ const PatientList = () => {
       )}
     </div>
 
-    {/* Admin: Delete Patient Confirmation */}
     <AlertDialog open={deletePatientId !== null} onOpenChange={(open) => !open && setDeletePatientId(null)}>
       <AlertDialogContent>
         <AlertDialogHeader>
-          <AlertDialogTitle>Patient endgültig löschen?</AlertDialogTitle>
+          <AlertDialogTitle>{t("patients.deleteTitle")}</AlertDialogTitle>
           <AlertDialogDescription>
             {(() => {
               const p = patients.find((p: any) => p.id === deletePatientId);
               return p
-                ? <><strong>{p.name}</strong> und alle zugehörigen Daten (Spots, Bilder, Befunde) werden unwiderruflich gelöscht.</>
-                : "Dieser Patient wird unwiderruflich gelöscht.";
+                ? t("patients.deleteDescription", { name: p.name })
+                : t("patients.deleteGeneric");
             })()}
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
-          <AlertDialogCancel>Abbrechen</AlertDialogCancel>
+          <AlertDialogCancel>{t("common.cancel")}</AlertDialogCancel>
           <AlertDialogAction
             className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
             onClick={() => deletePatientId && deleteMutation.mutate(deletePatientId)}
           >
-            Endgültig löschen
+            {t("common.permanentDelete")}
           </AlertDialogAction>
         </AlertDialogFooter>
       </AlertDialogContent>
