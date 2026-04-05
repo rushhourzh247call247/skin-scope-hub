@@ -568,7 +568,7 @@ const PatientDetail = () => {
               </div>
               )}
               <Button className="w-full h-8 text-xs" onClick={handleCreateLocation} disabled={createLocationMutation.isPending}>
-                {createLocationMutation.isPending ? t('common.creating') : mapClickDialog.markType === "zone" ? t('patientDetail.createFirstZone') : mapClickDialog.markType === "region" ? t('patientDetail.createRegion') : t('patientDetail.createSpot')}
+                {createLocationMutation.isPending ? t('common.creating') : mapClickDialog.markType === "zone" ? t('overviewPhoto.createFirstZone') : mapClickDialog.markType === "region" ? t('patientDetail.createRegion') : t('patientDetail.createSpot')}
               </Button>
             </div>
           )}
@@ -813,8 +813,8 @@ const PatientDetail = () => {
                 {overviewLocations.length === 0 ? (
                   <div className="flex flex-col items-center justify-center py-16 text-muted-foreground">
                     <Eye className="h-10 w-10 mb-3" />
-                    <p className="text-sm font-medium">{t('patientDetail.noZonesYet')}</p>
-                    <p className="text-xs mt-1">{t('patientDetail.zonesDescription')}</p>
+                    <p className="text-sm font-medium">{t('overviewPhoto.noZonesYet')}</p>
+                    <p className="text-xs mt-1">{t('overviewPhoto.zonesDescription')}</p>
                     <Button
                       size="sm"
                       className="mt-4 gap-1.5"
@@ -829,7 +829,7 @@ const PatientDetail = () => {
                       disabled={createLocationMutation.isPending}
                     >
                       <Plus className="h-3.5 w-3.5" />
-                      {t('patientDetail.createFirstZone')}
+                      {t('overviewPhoto.createFirstZone')}
                     </Button>
                   </div>
                 ) : (
