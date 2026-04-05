@@ -306,7 +306,7 @@ const MobileUpload = () => {
             <Loader2 className="h-5 w-5 animate-spin" />
           ) : (
             <>
-              <Camera className="h-5 w-5" /> Kamera
+              <Camera className="h-5 w-5" /> {t('mobileUpload.camera')}
             </>
           )}
         </Button>
