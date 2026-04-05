@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import { useAuth } from "@/contexts/AuthContext";
 import { api } from "@/lib/api";
 import { Button } from "@/components/ui/button";
@@ -8,8 +9,10 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardDescription } from "@/components/ui/card";
 import { DermLogo } from "@/components/DermLogo";
 import { LogIn, Shield, Clock } from "lucide-react";
+import { SUPPORTED_LANGUAGES } from "@/i18n";
 
 const Login = () => {
+  const { t, i18n } = useTranslation();
   const { setSession } = useAuth();
   const navigate = useNavigate();
   const [email, setEmail] = useState("");
@@ -17,18 +20,15 @@ const Login = () => {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
-  // 2FA state
   const [needs2FA, setNeeds2FA] = useState(false);
   const [pendingUser, setPendingUser] = useState<any>(null);
   const [pendingToken, setPendingToken] = useState<string>("");
   const [totpCode, setTotpCode] = useState("");
   const [verifying2FA, setVerifying2FA] = useState(false);
 
-  // Rate-limit lockout state
   const [lockedUntil, setLockedUntil] = useState<number | null>(null);
   const [countdown, setCountdown] = useState(0);
 
-  // Countdown timer
   useEffect(() => {
     if (!lockedUntil) {
       setCountdown(0);
@@ -49,8 +49,8 @@ const Login = () => {
   const handleRateLimitError = useCallback((err: any) => {
     const seconds = (err as any).retryAfter ?? 120;
     setLockedUntil(Date.now() + seconds * 1000);
-    setError(`Zu viele Anmeldeversuche. Bitte warten Sie ${Math.ceil(seconds / 60)} Minute(n).`);
-  }, []);
+    setError(t("login.tooManyAttempts", { minutes: Math.ceil(seconds / 60) }));
+  }, [t]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -72,9 +72,9 @@ const Login = () => {
       if (err?.status === 429) {
         handleRateLimitError(err);
       } else if (err?.suspended) {
-        setError(err.message || "Ihr Konto wurde gesperrt. Bitte kontaktieren Sie den Administrator.");
+        setError(err.message || t("login.accountSuspended"));
       } else {
-        setError("Login fehlgeschlagen. Bitte prüfen Sie Ihre Zugangsdaten.");
+        setError(t("login.failed"));
       }
     } finally {
       setLoading(false);
@@ -91,7 +91,7 @@ const Login = () => {
       setSession(pendingUser, pendingToken);
       navigate("/");
     } catch {
-      setError("Ungültiger Code. Bitte erneut versuchen.");
+      setError(t("login.twoFactor.invalid"));
     } finally {
       setVerifying2FA(false);
     }
@@ -118,7 +118,7 @@ const Login = () => {
         <CardHeader className="text-center">
           <DermLogo size="lg" className="justify-center" />
           <CardDescription className="mt-2">
-            {needs2FA ? "Geben Sie den Code aus Ihrer Authenticator-App ein" : "Melden Sie sich an, um fortzufahren"}
+            {needs2FA ? t("login.twoFactor.subtitle") : t("login.subtitle")}
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -132,23 +132,23 @@ const Login = () => {
               {isLocked && (
                 <div className="flex items-center justify-center gap-2 rounded-md border border-amber-500/30 bg-amber-500/10 p-3 text-sm text-amber-700 dark:text-amber-400">
                   <Clock className="h-4 w-4" />
-                  <span>Gesperrt — {formatCountdown(countdown)}</span>
+                  <span>{t("login.locked")} — {formatCountdown(countdown)}</span>
                 </div>
               )}
               <div className="space-y-2">
-                <Label htmlFor="email">E-Mail</Label>
-                <Input id="email" type="email" required value={email} onChange={(e) => setEmail(e.target.value)} placeholder="name@praxis.de" disabled={isLocked} />
+                <Label htmlFor="email">{t("login.email")}</Label>
+                <Input id="email" type="email" required value={email} onChange={(e) => setEmail(e.target.value)} placeholder={t("login.emailPlaceholder")} disabled={isLocked} />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="password">Passwort</Label>
-                <Input id="password" type="password" required value={password} onChange={(e) => setPassword(e.target.value)} placeholder="••••••••" disabled={isLocked} />
+                <Label htmlFor="password">{t("login.password")}</Label>
+                <Input id="password" type="password" required value={password} onChange={(e) => setPassword(e.target.value)} placeholder={t("login.passwordPlaceholder")} disabled={isLocked} />
               </div>
               <Button className="w-full" type="submit" disabled={loading || isLocked}>
                 {isLocked
-                  ? `Gesperrt (${formatCountdown(countdown)})`
+                  ? t("login.lockedCountdown", { countdown: formatCountdown(countdown) })
                   : loading
-                    ? "Anmeldung…"
-                    : <><LogIn className="mr-2 h-4 w-4" /> Anmelden</>}
+                    ? t("login.submitting")
+                    : <><LogIn className="mr-2 h-4 w-4" /> {t("login.submit")}</>}
               </Button>
             </form>
           ) : (
@@ -164,7 +164,7 @@ const Login = () => {
                 </div>
               </div>
               <div className="space-y-2">
-                <Label htmlFor="totp">6-stelliger Code</Label>
+                <Label htmlFor="totp">{t("login.twoFactor.codeLabel")}</Label>
                 <Input
                   id="totp"
                   type="text"
@@ -180,14 +180,33 @@ const Login = () => {
                 />
               </div>
               <Button className="w-full" type="submit" disabled={totpCode.length !== 6 || verifying2FA}>
-                {verifying2FA ? "Wird geprüft…" : <><Shield className="mr-2 h-4 w-4" /> Bestätigen</>}
+                {verifying2FA ? t("login.twoFactor.submitting") : <><Shield className="mr-2 h-4 w-4" /> {t("login.twoFactor.submit")}</>}
               </Button>
               <button type="button" onClick={handleBack} className="w-full text-sm text-muted-foreground hover:text-foreground transition-colors">
-                ← Zurück zum Login
+                {t("login.twoFactor.backToLogin")}
               </button>
             </form>
           )}
-          <p className="mt-4 text-center text-[9px] text-muted-foreground/50">
+
+          {/* Language selector */}
+          <div className="mt-4 flex justify-center gap-1.5">
+            {SUPPORTED_LANGUAGES.map((lang) => (
+              <button
+                key={lang.code}
+                onClick={() => i18n.changeLanguage(lang.code)}
+                className={`text-xs px-2 py-1 rounded transition-colors ${
+                  i18n.language === lang.code
+                    ? "text-primary font-medium bg-primary/5"
+                    : "text-muted-foreground/50 hover:text-muted-foreground"
+                }`}
+                title={lang.label}
+              >
+                {lang.flag}
+              </button>
+            ))}
+          </div>
+
+          <p className="mt-3 text-center text-[9px] text-muted-foreground/50">
             designed by{" "}
             <a href="https://www.techassist.ch" target="_blank" rel="noopener noreferrer" className="font-medium hover:text-muted-foreground transition-colors">
               techassist.ch
