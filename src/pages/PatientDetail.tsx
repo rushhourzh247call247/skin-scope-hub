@@ -508,7 +508,7 @@ const PatientDetail = () => {
                 <Badge variant="outline" className="text-[10px]">{mapClickDialog.view === "back" ? t('common.backSide') : t('common.front')}</Badge>
                 {mapClickDialog.markType !== "region" && (
                   <span className="flex items-center gap-1 text-green-600 font-medium">
-                    <Move className="h-3 w-3" /> Marker ziehen zum Verschieben
+                    <Move className="h-3 w-3" /> {t('patientDetail.dragToMove')}
                   </span>
                 )}
               </div>
