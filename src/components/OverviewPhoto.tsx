@@ -203,10 +203,10 @@ const OverviewPhoto = ({ overviewLocation, spotLocations, patientId, onNavigateT
             <button
               className="flex items-center gap-1.5 rounded-md px-1.5 py-0.5 -ml-1.5 hover:bg-muted transition-colors group"
               onClick={() => { setRenameValue(overviewLocation.name || ""); setIsRenaming(true); }}
-              title="Klicken zum Umbenennen"
+            title={t('overviewPhoto.clickToRemovePin')}
             >
               <h4 className="text-sm font-medium text-foreground">
-                {overviewLocation.name || "Übersichtsfoto"}
+                {overviewLocation.name || t('overviewPhoto.noOverviewPhoto')}
               </h4>
               <Pencil className="h-3 w-3 text-muted-foreground" />
             </button>
