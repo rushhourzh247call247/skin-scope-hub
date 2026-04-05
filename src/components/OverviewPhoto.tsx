@@ -467,7 +467,7 @@ const OverviewPhoto = ({ overviewLocation, spotLocations, patientId, onNavigateT
                         })()}
                       </div>
                     </div>
-                    <p className="text-[10px] text-primary mt-1.5 text-center">Klicken → Spot anzeigen</p>
+                    <p className="text-[10px] text-primary mt-1.5 text-center">{t('overviewPhoto.clickToViewSpot')}</p>
                   </div>
                 </div>
               )}
