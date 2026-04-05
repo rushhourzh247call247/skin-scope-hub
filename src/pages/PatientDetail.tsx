@@ -1147,9 +1147,9 @@ const PatientDetail = () => {
                     </h4>
                     <div className="flex gap-1.5">
                       {([
-                        { key: "none", label: "Kein Status", icon: "–" },
-                        { key: "praesens", label: "Status praesens", icon: "Sp" },
-                        { key: "post", label: "Status post", icon: "St.p." },
+                        { key: "none", label: t('patientDetail.noStatus'), icon: "–" },
+                        { key: "praesens", label: t('patientDetail.statusPraesens'), icon: "Sp" },
+                        { key: "post", label: t('patientDetail.statusPost'), icon: "St.p." },
                       ] as const).map((opt) => {
                         const current = (selectedLocation as any).op_status || "none";
                         const isActive = current === opt.key;
