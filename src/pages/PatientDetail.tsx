@@ -191,7 +191,7 @@ const PatientDetail = () => {
       setMapClickDialog(null);
       setLocationName("");
       if (wasZone) {
-        setSelectedLocationId(null);
+        setSelectedLocationId(newLoc.id);
         setActiveTab("uebersicht");
         setNewlyCreatedZoneId(newLoc.id);
       } else {
