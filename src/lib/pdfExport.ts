@@ -1032,7 +1032,7 @@ export async function generatePatientPDF(
       doc.setFont("Roboto", "bold");
       doc.setFontSize(7.5);
       doc.setTextColor(...C.textSecondary);
-      doc.text("ABCDE-BEWERTUNG", margin + 3, y);
+      doc.text(i18n.t('pdf.abcdeTitle'), margin + 3, y);
       y += 4;
 
       for (const row of abcdeRows) {
