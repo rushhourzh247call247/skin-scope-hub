@@ -574,24 +574,7 @@ const PatientDetail = () => {
                    <Camera className="h-3 w-3" />
                    {t('patientDetail.overviewPhotos')}
                 </h3>
-                <div className="flex items-center gap-1.5">
-                  <span className="text-[10px] text-muted-foreground">{overviewLocations.length}</span>
-                  <button
-                    onClick={() => {
-                      createLocationMutation.mutate({
-                        name: `Zone ${overviewLocations.length + 1}`,
-                        x: 0, y: 0,
-                        view: "front",
-                        type: "overview",
-                      });
-                    }}
-                    disabled={createLocationMutation.isPending}
-                    className="h-5 w-5 rounded flex items-center justify-center hover:bg-muted text-muted-foreground hover:text-foreground transition-colors"
-                    title={t('patientDetail.newOverview')}
-                  >
-                    <Plus className="h-3 w-3" />
-                  </button>
-                </div>
+                <span className="text-[10px] text-muted-foreground">{overviewLocations.length}</span>
               </div>
               {overviewLocations.length > 0 && (
               <div className="space-y-1 mb-4">
