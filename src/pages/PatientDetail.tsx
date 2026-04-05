@@ -701,7 +701,7 @@ const PatientDetail = () => {
                       })()}
                     </div>
                     <p className="text-[10px] text-muted-foreground">
-                      {loc.images?.length ?? 0} Bilder · {loc.view === "back" ? "Hinten" : "Vorne"}
+                      {loc.images?.length ?? 0} {t('common.images')} · {loc.view === "back" ? t('common.backSide') : t('common.front')}
                     </p>
                   </div>
                 </button>
