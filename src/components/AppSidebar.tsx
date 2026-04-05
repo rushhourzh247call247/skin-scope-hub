@@ -3,38 +3,39 @@ import { NavLink } from "@/components/NavLink";
 import { useLocation } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { DermLogo } from "@/components/DermLogo";
+import { useTranslation } from "react-i18next";
 import {
   Sidebar, SidebarContent, SidebarGroup, SidebarGroupContent, SidebarGroupLabel,
   SidebarMenu, SidebarMenuButton, SidebarMenuItem, SidebarFooter, useSidebar,
 } from "@/components/ui/sidebar";
 
-const mainNav = [
-  { title: "Dashboard", url: "/", icon: LayoutDashboard },
-  { title: "Patienten", url: "/patients", icon: Users },
-  { title: "Neuer Patient", url: "/new-patient", icon: UserPlus },
-  { title: "Einstellungen", url: "/settings", icon: Settings },
-];
-
-const adminNav = [
-  { title: "Firmen", url: "/companies", icon: Building2 },
-  { title: "Benutzer", url: "/users", icon: UserCog },
-  { title: "Snapshots", url: "/snapshots", icon: Database },
-  { title: "Systemdoku", url: "/system-docs", icon: FileText },
-];
-
 export function AppSidebar() {
+  const { t } = useTranslation();
   const { state } = useSidebar();
   const collapsed = state === "collapsed";
   const location = useLocation();
   const { user, logout } = useAuth();
   const isAdmin = user?.role === "admin";
 
+  const mainNav = [
+    { title: t("nav.dashboard"), url: "/", icon: LayoutDashboard },
+    { title: t("nav.patients"), url: "/patients", icon: Users },
+    { title: t("nav.newPatient"), url: "/new-patient", icon: UserPlus },
+    { title: t("nav.settings"), url: "/settings", icon: Settings },
+  ];
+
+  const adminNav = [
+    { title: t("nav.companies"), url: "/companies", icon: Building2 },
+    { title: t("nav.users"), url: "/users", icon: UserCog },
+    { title: t("nav.snapshots"), url: "/snapshots", icon: Database },
+    { title: t("nav.systemDocs"), url: "/system-docs", icon: FileText },
+  ];
+
   const isActive = (path: string) => location.pathname === path;
 
   return (
     <Sidebar collapsible="icon">
       <SidebarContent className="bg-sidebar">
-        {/* Logo */}
         <div className="flex h-14 items-center border-b border-sidebar-border px-4">
           {collapsed ? (
             <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-primary to-primary/80 text-sm font-bold text-primary-foreground shadow-sm">
@@ -46,11 +47,11 @@ export function AppSidebar() {
         </div>
 
         <SidebarGroup>
-          <SidebarGroupLabel className="text-sidebar-foreground/50 text-[10px] uppercase tracking-widest">Navigation</SidebarGroupLabel>
+          <SidebarGroupLabel className="text-sidebar-foreground/50 text-[10px] uppercase tracking-widest">{t("nav.navigation")}</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
               {mainNav.map((item) => (
-                <SidebarMenuItem key={item.title}>
+                <SidebarMenuItem key={item.url}>
                   <SidebarMenuButton asChild isActive={isActive(item.url)}>
                     <NavLink to={item.url} end className="hover:bg-sidebar-accent" activeClassName="bg-sidebar-accent text-primary font-medium">
                       <item.icon className="mr-2 h-4 w-4" />
@@ -65,11 +66,11 @@ export function AppSidebar() {
 
         {isAdmin && (
           <SidebarGroup>
-            <SidebarGroupLabel className="text-sidebar-foreground/50 text-[10px] uppercase tracking-widest">Administration</SidebarGroupLabel>
+            <SidebarGroupLabel className="text-sidebar-foreground/50 text-[10px] uppercase tracking-widest">{t("nav.administration")}</SidebarGroupLabel>
             <SidebarGroupContent>
               <SidebarMenu>
                 {adminNav.map((item) => (
-                  <SidebarMenuItem key={item.title}>
+                  <SidebarMenuItem key={item.url}>
                     <SidebarMenuButton asChild isActive={isActive(item.url)}>
                       <NavLink to={item.url} end className="hover:bg-sidebar-accent" activeClassName="bg-sidebar-accent text-primary font-medium">
                         <item.icon className="mr-2 h-4 w-4" />
@@ -95,7 +96,7 @@ export function AppSidebar() {
                 <p className="truncate text-sm font-medium text-sidebar-foreground">{user?.name}</p>
                 <p className="truncate text-[10px] text-sidebar-foreground/50">{user?.email}</p>
               </div>
-              <button onClick={logout} className="ml-2 rounded-md p-1.5 text-sidebar-foreground/50 transition-colors hover:bg-destructive/20 hover:text-destructive" title="Abmelden">
+              <button onClick={logout} className="ml-2 rounded-md p-1.5 text-sidebar-foreground/50 transition-colors hover:bg-destructive/20 hover:text-destructive" title={t("nav.logout")}>
                 <LogOut className="h-4 w-4" />
               </button>
             </div>
