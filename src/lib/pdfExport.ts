@@ -1006,7 +1006,7 @@ export async function generatePatientPDF(
         doc.setFontSize(7.5);
         if (diff > 0) {
           doc.setTextColor(...C.riskHigh);
-          doc.text(clean(`Verschlechterung (+${diff})`), barX, y);
+          doc.text(clean(`${i18n.t('riskProgression.worsening')} (+${diff})`), barX, y);
         } else {
           doc.setTextColor(...C.riskLow);
           doc.text(clean(`Verbesserung (${diff})`), barX, y);
