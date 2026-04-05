@@ -872,7 +872,7 @@ export async function generatePatientPDF(
             drawRoundedRect(doc, imgX, y, imgSize, imgSize, 2, "F");
             doc.setFontSize(7);
             doc.setTextColor(...C.textMuted);
-            doc.text("Nicht verfügbar", imgX + imgSize / 2, y + imgSize / 2, { align: "center" });
+            doc.text(i18n.t('pdf.imageNotAvailable'), imgX + imgSize / 2, y + imgSize / 2, { align: "center" });
           }
         } else {
           doc.setFillColor(...C.cardBg);
