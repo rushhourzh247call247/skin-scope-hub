@@ -953,7 +953,7 @@ const PatientDetail = () => {
                   // Collect all events from all locations
                   const events: { date: string; type: "image" | "finding" | "location"; label: string; detail?: string; locationName: string; locationId: number; imagePath?: string; imageUrl?: string; userName?: string }[] = [];
                   locations.forEach((loc) => {
-                    const locName = loc.name || `Spot #${loc.id}`;
+                    const locName = translateAnatomyName(loc.name) || `Spot #${loc.id}`;
                     // Location creation
                     events.push({ date: loc.created_at ?? "", type: "location", label: t('patientDetail.spotCreatedEvent'), detail: locName, locationName: locName, locationId: loc.id });
                     // Images
