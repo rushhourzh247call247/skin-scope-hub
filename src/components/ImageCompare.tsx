@@ -334,7 +334,7 @@ const ImageCompare = ({ images, locationName, onClose }: ImageCompareProps) => {
                     className="absolute inset-0 h-full w-full object-contain"
                     style={{
                       opacity: overlayOpacity / 100,
-                      transform: `rotate(${overlayRotation}deg) scale(${overlayScale / 100}) translate(${overlayOffsetX}px, ${overlayOffsetY}px)`,
+                      transform: `translate(${overlayOffsetX}%, ${overlayOffsetY}%) scale(${overlayScale / 100}) rotate(${overlayRotation}deg)`,
                     }}
                   />
                   <div className="absolute top-2 left-2 rounded-full bg-primary/90 px-2 py-0.5 text-[9px] font-bold text-primary-foreground backdrop-blur-sm">
