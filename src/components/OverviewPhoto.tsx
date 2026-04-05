@@ -449,7 +449,7 @@ const OverviewPhoto = ({ overviewLocation, spotLocations, patientId, onNavigateT
                         </p>
                         {spot && (
                           <p className="text-[10px] text-muted-foreground">
-                            {spot.images?.length ?? 0} Bilder
+                            {spot.images?.length ?? 0} {t('common.images')}
                           </p>
                         )}
                         {(() => {
