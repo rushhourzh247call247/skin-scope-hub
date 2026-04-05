@@ -1147,7 +1147,7 @@ const BodyMap3D: React.FC<BodyMap3DProps> = (props) => {
 
         {/* Gender indicator */}
         <div className="absolute left-2 top-10 rounded-md border border-border/50 bg-card/85 px-2 py-1 text-[10px] font-semibold text-muted-foreground">
-          {gender === "female" ? "♀ Weiblich" : "♂ Männlich"}
+          {gender === "female" ? `♀ ${i18n.t('common.female')}` : `♂ ${i18n.t('common.male')}`}
         </div>
 
         {/* Region buttons */}
