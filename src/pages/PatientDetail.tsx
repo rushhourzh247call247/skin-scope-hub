@@ -749,7 +749,7 @@ const PatientDetail = () => {
                     <button
                       onClick={() => setPermanentDeleteId(loc.id)}
                       className="shrink-0 p-1 rounded hover:bg-destructive/10 text-muted-foreground hover:text-destructive transition-colors"
-                      title="Endgültig löschen"
+                      title={t('patientDetail.permanentlyDelete')}
                     >
                       <X className="h-3.5 w-3.5" />
                     </button>
