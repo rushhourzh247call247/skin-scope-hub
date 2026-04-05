@@ -618,7 +618,7 @@ export async function generatePatientPDF(
           const d2 = new Date(newestImg.created_at);
           const diffDays = Math.round((d2.getTime() - d1.getTime()) / (1000 * 60 * 60 * 24));
           let interval = "";
-          if (diffDays < 1) interval = "Gleicher Tag";
+          if (diffDays < 1) interval = i18n.t('common.sameDay');
           else if (diffDays < 30) interval = `${diffDays} Tag${diffDays > 1 ? "e" : ""}`;
           else if (diffDays < 365) {
             const months = Math.round(diffDays / 30);
