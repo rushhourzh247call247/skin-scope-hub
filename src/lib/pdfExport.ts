@@ -421,7 +421,7 @@ export async function generatePatientPDF(
     doc.setFont("Roboto", "bold");
     doc.setFontSize(8);
     doc.setTextColor(146, 64, 14);
-    doc.text("ÄRZTLICHE ZUSAMMENFASSUNG", margin + 4, y + 4);
+    doc.text(i18n.t('pdf.doctorSummaryTitle'), margin + 4, y + 4);
 
     const summaryLines = doc.splitTextToSize(clean(options.doctorSummary), contentW - 10);
     const textH = summaryLines.length * 4.2 + 4;
