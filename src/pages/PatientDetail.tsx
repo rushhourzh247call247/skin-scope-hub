@@ -997,7 +997,7 @@ const PatientDetail = () => {
                                 {ev.date ? formatDate(ev.date, "dd.MM.yyyy HH:mm") : "–"}
                               </span>
                             </div>
-                            {ev.userName && <p className="text-xs text-muted-foreground italic">von {ev.userName}</p>}
+                            {ev.userName && <p className="text-xs text-muted-foreground italic">{t('patientDetail.by')} {ev.userName}</p>}
                             {ev.detail && <p className="text-sm text-muted-foreground">{ev.detail}</p>}
                             {ev.imagePath && (
                               <img
