@@ -78,7 +78,7 @@ const RiskProgression = ({ images, locationName }: RiskProgressionProps) => {
     idx,
     imageId: img.id,
     date: new Date(img.created_at!).getTime(),
-    dateLabel: formatDate(, ""),
+    dateLabel: formatDate(img.created_at!, "dd.MM.yy"),
     risk_score: img.risk_score ?? null,
     risk_level: img.risk_level ?? null,
   }));
@@ -193,7 +193,7 @@ const RiskProgression = ({ images, locationName }: RiskProgressionProps) => {
               </span>
             )}
             <span className="block text-[8px] text-muted-foreground text-center mt-0.5">
-              {img.created_at ? formatDate(, "") : "–"}
+              {img.created_at ? formatDate(img.created_at, "dd.MM") : "–"}
             </span>
           </button>
         ))}
@@ -212,7 +212,7 @@ const RiskProgression = ({ images, locationName }: RiskProgressionProps) => {
               <div className="flex items-center justify-between px-1">
                 <span className="text-xs text-muted-foreground">
                   {selectedImage.created_at
-                    ? formatDate(, "")
+                    ? formatDate(selectedImage.created_at, "dd.MM.yyyy HH:mm")
                     : "–"}
                 </span>
                 {selectedImage.risk_score != null && (

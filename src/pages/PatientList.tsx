@@ -165,13 +165,13 @@ const PatientList = () => {
                       </div>
                     </td>
                     <td className="px-4 py-3 tabular-nums text-sm text-muted-foreground">
-                      {patient.birth_date ? formatDate(, "") : "–"}
+                      {patient.birth_date ? formatDate(patient.birth_date, "dd. MMM yyyy") : "–"}
                     </td>
                     <td className="px-4 py-3 text-sm text-muted-foreground">
                       {(patient as any).last_doctor || <span className="text-muted-foreground/50">–</span>}
                     </td>
                     <td className="px-4 py-3 tabular-nums text-sm text-muted-foreground">
-                      {patient.created_at ? formatDate(, "") : "–"}
+                      {patient.created_at ? formatDate(patient.created_at, "dd.MM.yyyy") : "–"}
                     </td>
                     <td className="px-4 py-3 text-right">
                       <div className="flex justify-end gap-1">

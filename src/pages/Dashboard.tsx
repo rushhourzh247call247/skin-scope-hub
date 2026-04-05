@@ -222,11 +222,11 @@ const Dashboard = () => {
                   <div className="flex-1 min-w-0">
                     <p className="text-sm font-medium text-foreground">{p.name}</p>
                     <p className="text-xs text-muted-foreground">
-                      Geb. {p.birth_date ? formatDate(, "") : "–"}
+                      Geb. {p.birth_date ? formatDate(p.birth_date, "dd. MMM yyyy") : "–"}
                     </p>
                   </div>
                   <span className="text-xs text-muted-foreground tabular-nums">
-                    {p.created_at ? formatDate(, "") : "–"}
+                    {p.created_at ? formatDate(p.created_at, "dd.MM.yyyy") : "–"}
                   </span>
                 </button>
               ))}

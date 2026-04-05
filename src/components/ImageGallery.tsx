@@ -131,13 +131,13 @@ const ImageGallery = ({ locationId, patientId, images, locationName, locationTyp
       const details: string[] = [];
       if (patientBirthDate) {
         try {
-          details.push(`geb. ${formatDate(, "")}`);
+          details.push(`geb. ${formatDate(patientBirthDate, "dd.MM.yyyy")}`);
         } catch { details.push(patientBirthDate); }
       }
       if (locationName) details.push(locationName);
       if (img.created_at) {
         try {
-          details.push(formatDate(, ""));
+          details.push(formatDate(img.created_at, "dd.MM.yyyy"));
         } catch {}
       }
       ctx.fillText(details.join("  •  "), 12, fontSize + 8 + fontSize * 1.1);
@@ -235,7 +235,7 @@ const ImageGallery = ({ locationId, patientId, images, locationName, locationTyp
                     />
                   </div>
                   <span className="text-[10px] text-muted-foreground tabular-nums">
-                    {img.created_at ? formatDate(, "") : "–"}
+                    {img.created_at ? formatDate(img.created_at, "dd.MM.yy") : "–"}
                   </span>
                 </div>
               ) : (
@@ -251,7 +251,7 @@ const ImageGallery = ({ locationId, patientId, images, locationName, locationTyp
                   <div className="flex items-center gap-1 px-1 py-1.5 text-xs text-muted-foreground">
                     <Calendar className="h-3 w-3" />
                     <span className="tabular-nums">
-                      {img.created_at ? formatDate(, "") : "–"}
+                      {img.created_at ? formatDate(img.created_at, "dd.MM.yyyy") : "–"}
                     </span>
                   </div>
                 </div>
