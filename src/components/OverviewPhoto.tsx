@@ -99,7 +99,7 @@ const OverviewPhoto = ({ overviewLocation, spotLocations, patientId, onNavigateT
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["overview-pins", overviewLocation.id] });
       setDeleteTarget(null);
-      toast.success("Pin entfernt");
+      toast.success(t('overviewPhoto.pinRemoved'));
     },
   });
 
