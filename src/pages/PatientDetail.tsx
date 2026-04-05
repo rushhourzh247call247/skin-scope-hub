@@ -104,7 +104,7 @@ const PatientDetail = () => {
         link.click();
         document.body.removeChild(link);
         setTimeout(() => URL.revokeObjectURL(downloadUrl), 1500);
-        toast.success("PDF heruntergeladen");
+        toast.success(t('patientDetail.pdfDownloaded'));
         return;
       } catch {
         await generatePatientPDF(patient, "download", user?.name);
