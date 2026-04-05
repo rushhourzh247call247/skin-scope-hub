@@ -423,7 +423,7 @@ const PatientDetail = () => {
             </div>
           )}
           <div>
-            <span className="text-muted-foreground">Stellen</span>
+            <span className="text-muted-foreground">{t('common.spots')}</span>
             <p className="font-medium text-foreground">{locations.length}</p>
           </div>
           <div>
