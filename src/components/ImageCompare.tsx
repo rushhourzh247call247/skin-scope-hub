@@ -95,6 +95,11 @@ const ImageCompare = ({ images, locationName, onClose }: ImageCompareProps) => {
       const baseSrc = api.resolveImageSrc(compareImages[0]);
       const overlaySrc = api.resolveImageSrc(compareImages[1]);
       const result = await alignImages(baseSrc, overlaySrc);
+      if (result.rotation === 0 && result.scale === 100 && result.offset_x === 0 && result.offset_y === 0) {
+        toast.info(t('imageCompare.alreadyAligned'));
+      } else {
+        toast.success(t('imageCompare.autoAligned'));
+      }
       setOverlayRotation(result.rotation);
       setOverlayScale(result.scale);
       setOverlayOffsetX(result.offset_x);
@@ -103,7 +108,6 @@ const ImageCompare = ({ images, locationName, onClose }: ImageCompareProps) => {
         rotation: result.rotation, scale: result.scale,
         offset_x: result.offset_x, offset_y: result.offset_y,
       });
-      toast.success(t('imageCompare.autoAligned'));
     } catch (err) {
       console.error("[AutoAlign] Error:", err);
       toast.error(t('imageCompare.autoAlignFailed'));
