@@ -612,7 +612,7 @@ const OverviewPhoto = ({ overviewLocation, spotLocations, patientId, onNavigateT
           }}
         >
           <GitCompareArrows className="h-3.5 w-3.5" />
-          Übersichtsfotos vergleichen ({overviewLocation.images.length} Fotos)
+          {t('overviewPhoto.comparePhotos', { count: overviewLocation.images.length })}
         </Button>
       )}
 
