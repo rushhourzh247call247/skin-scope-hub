@@ -622,7 +622,7 @@ export async function generatePatientPDF(
           else if (diffDays < 30) interval = i18n.t('common.days', { count: diffDays });
           else if (diffDays < 365) {
             const months = Math.round(diffDays / 30);
-            interval = `${months} Monat${months > 1 ? "e" : ""}`;
+            interval = i18n.t('common.months', { count: months });
           } else {
             const years = Math.round(diffDays / 365 * 10) / 10;
             interval = `${years} Jahr${years !== 1 ? "e" : ""}`;
