@@ -911,6 +911,7 @@ const PatientDetail = () => {
                           }
                         }}
                       />
+                      </div>
                     ))}
                   </div>
                 )}
