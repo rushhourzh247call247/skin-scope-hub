@@ -625,7 +625,7 @@ export async function generatePatientPDF(
             interval = i18n.t('common.months', { count: months });
           } else {
             const years = Math.round(diffDays / 365 * 10) / 10;
-            interval = `${years} Jahr${years !== 1 ? "e" : ""}`;
+            interval = i18n.t('common.years', { count: years });
           }
 
           doc.setFont("Roboto", "normal");
