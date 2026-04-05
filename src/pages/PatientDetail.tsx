@@ -777,7 +777,7 @@ const PatientDetail = () => {
                 className="space-y-6"
               >
                 <div className="flex items-center justify-between">
-                  <h2 className="text-lg font-semibold text-foreground">Übersichtsfotos</h2>
+                  <h2 className="text-lg font-semibold text-foreground">{t('patientDetail.overviewPhotos')}</h2>
                   <Button
                     size="sm"
                     variant="outline"
