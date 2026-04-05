@@ -845,7 +845,7 @@ function DraggableSpotPreview({
             ? "bg-green-500 text-white border-green-400"
             : "bg-card/90 text-foreground border-border/50"
         )}>
-          {isDragging ? "Loslassen zum Platzieren" : "Ziehen zum Verschieben"}
+          {isDragging ? i18n.t('bodyMap.releaseToPlace') : i18n.t('bodyMap.dragToMove')}
         </div>
       </Html>
     </group>
