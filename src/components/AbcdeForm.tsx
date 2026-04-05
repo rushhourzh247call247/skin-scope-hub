@@ -1,4 +1,5 @@
 import { useState, useCallback, useRef, useEffect } from "react";
+import { useTranslation } from "react-i18next";
 import { api } from "@/lib/api";
 import { toast } from "sonner";
 import { useQueryClient } from "@tanstack/react-query";
@@ -21,55 +22,56 @@ interface AbcdeFormProps {
   initialData?: Partial<AbcdeData & { risk_score?: number; risk_level?: string }>;
 }
 
-const CRITERIA = [
-  {
-    key: "abc_asymmetry" as const,
-    label: "A – Asymmetrie",
-    options: [
-      { value: "false", label: "Symmetrisch" },
-      { value: "true", label: "Asymmetrisch" },
-    ],
-  },
-  {
-    key: "abc_border" as const,
-    label: "B – Begrenzung",
-    options: [
-      { value: "regelmaessig", label: "Regelmässig" },
-      { value: "unregelmaessig", label: "Unregelmässig" },
-    ],
-  },
-  {
-    key: "abc_color" as const,
-    label: "C – Farbe",
-    options: [
-      { value: "einfarbig", label: "Einfarbig" },
-      { value: "mehrfarbig", label: "Mehrfarbig" },
-    ],
-  },
-  {
-    key: "abc_diameter" as const,
-    label: "D – Durchmesser",
-    options: [
-      { value: "kleiner_6mm", label: "< 6mm" },
-      { value: "groesser_6mm", label: "> 6mm" },
-    ],
-  },
-  {
-    key: "abc_evolution" as const,
-    label: "E – Entwicklung",
-    options: [
-      { value: "stabil", label: "Stabil" },
-      { value: "veraendert", label: "Verändert" },
-    ],
-  },
-];
-
 const AbcdeForm = ({ imageId, patientId, initialData }: AbcdeFormProps) => {
+  const { t } = useTranslation();
   const queryClient = useQueryClient();
   const [saving, setSaving] = useState(false);
   const [riskScore, setRiskScore] = useState<number | null>(initialData?.risk_score ?? null);
   const [riskLevel, setRiskLevel] = useState<string | null>(initialData?.risk_level ?? null);
   const debounceRef = useRef<ReturnType<typeof setTimeout>>();
+
+  const CRITERIA = [
+    {
+      key: "abc_asymmetry" as const,
+      label: t('abcdeForm.asymmetry'),
+      options: [
+        { value: "false", label: t('abcdeForm.symmetric') },
+        { value: "true", label: t('abcdeForm.asymmetric') },
+      ],
+    },
+    {
+      key: "abc_border" as const,
+      label: t('abcdeForm.border'),
+      options: [
+        { value: "regelmaessig", label: t('abcdeForm.regular') },
+        { value: "unregelmaessig", label: t('abcdeForm.irregular') },
+      ],
+    },
+    {
+      key: "abc_color" as const,
+      label: t('abcdeForm.colorLabel'),
+      options: [
+        { value: "einfarbig", label: t('abcdeForm.singleColor') },
+        { value: "mehrfarbig", label: t('abcdeForm.multiColor') },
+      ],
+    },
+    {
+      key: "abc_diameter" as const,
+      label: t('abcdeForm.diameter'),
+      options: [
+        { value: "kleiner_6mm", label: t('abcdeForm.lessThan6mm') },
+        { value: "groesser_6mm", label: t('abcdeForm.moreThan6mm') },
+      ],
+    },
+    {
+      key: "abc_evolution" as const,
+      label: t('abcdeForm.evolution'),
+      options: [
+        { value: "stabil", label: t('abcdeForm.stableEvolution') },
+        { value: "veraendert", label: t('abcdeForm.changed') },
+      ],
+    },
+  ];
 
   const [values, setValues] = useState<Record<string, string>>(() => ({
     abc_asymmetry: initialData?.abc_asymmetry != null ? String(initialData.abc_asymmetry) : "",
@@ -79,7 +81,6 @@ const AbcdeForm = ({ imageId, patientId, initialData }: AbcdeFormProps) => {
     abc_evolution: initialData?.abc_evolution ?? "",
   }));
 
-  // Sync from props
   useEffect(() => {
     if (initialData) {
       setValues({
@@ -116,9 +117,9 @@ const AbcdeForm = ({ imageId, patientId, initialData }: AbcdeFormProps) => {
           setRiskScore(result.risk_score);
           setRiskLevel(result.risk_level);
           queryClient.invalidateQueries({ queryKey: ["full-patient", patientId] });
-          toast.success("ABCDE gespeichert");
+          toast.success(t('abcdeForm.saved'));
         } catch {
-          toast.error("ABCDE konnte nicht gespeichert werden");
+          toast.error(t('abcdeForm.saveError'));
         } finally {
           setSaving(false);
         }
@@ -126,7 +127,7 @@ const AbcdeForm = ({ imageId, patientId, initialData }: AbcdeFormProps) => {
 
       return next;
     });
-  }, [imageId, patientId, queryClient]);
+  }, [imageId, patientId, queryClient, t]);
 
   const hasData = riskLevel != null && riskScore != null;
 
@@ -142,24 +143,25 @@ const AbcdeForm = ({ imageId, patientId, initialData }: AbcdeFormProps) => {
       ? "text-amber-700 bg-amber-50 border-amber-200"
       : "text-red-700 bg-red-50 border-red-200";
 
-  const riskLabel = riskLevel === "low" ? "Niedrig" : riskLevel === "medium" ? "Mittel" : "Hoch";
+  const riskLabel = riskLevel === "low" ? t('abcdeForm.risk') + ": " + t('riskProgression.low') : riskLevel === "medium" ? t('abcdeForm.risk') + ": " + t('riskProgression.medium') : t('abcdeForm.risk') + ": " + t('riskProgression.high');
+  const riskLabelShort = riskLevel === "low" ? t('riskProgression.low') : riskLevel === "medium" ? t('riskProgression.medium') : t('riskProgression.high');
 
   return (
     <Collapsible className="rounded-md border bg-muted/20">
       <CollapsibleTrigger className="flex w-full items-center justify-between px-2 py-1.5 hover:bg-muted/40 transition-colors">
         <div className="flex items-center gap-1.5">
-          <span className="text-[10px] font-semibold text-foreground/70 uppercase tracking-wider">ABCDE-Bewertung</span>
+          <span className="text-[10px] font-semibold text-foreground/70 uppercase tracking-wider">{t('abcdeForm.title')}</span>
           {saving && <Loader2 className="h-3 w-3 animate-spin text-muted-foreground" />}
         </div>
         <div className="flex items-center gap-1.5">
           {hasData && (
             <span className={`flex items-center gap-1 rounded px-1.5 py-0.5 text-[10px] font-semibold border ${riskColorClass}`}>
               {riskIcon}
-              {riskLabel} ({riskScore})
+              {riskLabelShort} ({riskScore})
             </span>
           )}
           {!hasData && (
-            <span className="text-[10px] text-muted-foreground">Optional</span>
+            <span className="text-[10px] text-muted-foreground">{t('abcdeForm.optional')}</span>
           )}
           <ChevronDown className="h-3 w-3 text-muted-foreground transition-transform duration-200 [[data-state=open]>&]:rotate-180" />
         </div>
@@ -190,7 +192,7 @@ const AbcdeForm = ({ imageId, patientId, initialData }: AbcdeFormProps) => {
             <div className={`flex items-center gap-1.5 rounded-md border px-2 py-1.5 ${riskColorClass}`}>
               {riskIcon}
               <span className="text-[11px] font-semibold">
-                Risiko: {riskLabel} (Score: {riskScore})
+                {riskLabel} (Score: {riskScore})
               </span>
             </div>
           )}

@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { getSavedReports, deleteReport, PDF_REPORTS_UPDATED_EVENT } from "@/lib/pdfReportStorage";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -24,6 +25,7 @@ interface PdfReportHistoryProps {
 }
 
 export default function PdfReportHistory({ patientId, patientName }: PdfReportHistoryProps) {
+  const { t } = useTranslation();
   const [reports, setReports] = useState<PdfReport[] | null>(null);
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
@@ -62,7 +64,7 @@ export default function PdfReportHistory({ patientId, patientName }: PdfReportHi
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
-    toast.success("PDF heruntergeladen");
+    toast.success(t('pdfReportHistory.downloaded'));
   };
 
   const handlePreview = (report: PdfReport) => {
@@ -88,14 +90,14 @@ export default function PdfReportHistory({ patientId, patientName }: PdfReportHi
     await deleteReport(deleteId);
     await loadReports();
     setDeleteId(null);
-    toast.success("Bericht gelöscht");
+    toast.success(t('pdfReportHistory.deleted'));
   };
 
   if (reports === null) {
     return (
       <div className="flex flex-col items-center justify-center py-12 text-center">
         <FileDown className="mb-3 h-10 w-10 text-muted-foreground/40" />
-        <p className="text-sm text-muted-foreground">Berichte werden geladen…</p>
+        <p className="text-sm text-muted-foreground">{t('pdfReportHistory.loading')}</p>
       </div>
     );
   }
@@ -104,8 +106,8 @@ export default function PdfReportHistory({ patientId, patientName }: PdfReportHi
     return (
       <div className="flex flex-col items-center justify-center py-12 text-center">
         <FileDown className="mb-3 h-10 w-10 text-muted-foreground/40" />
-        <p className="text-sm text-muted-foreground">Noch keine Berichte gespeichert.</p>
-        <p className="mt-1 text-xs text-muted-foreground">Erstellen Sie einen PDF-Bericht über den Export-Button.</p>
+        <p className="text-sm text-muted-foreground">{t('pdfReportHistory.noReports')}</p>
+        <p className="mt-1 text-xs text-muted-foreground">{t('pdfReportHistory.noReportsDesc')}</p>
       </div>
     );
   }
@@ -116,9 +118,9 @@ export default function PdfReportHistory({ patientId, patientName }: PdfReportHi
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60">
           <div className="flex h-[85vh] w-[90vw] max-w-5xl flex-col rounded-lg bg-background shadow-xl">
             <div className="flex items-center justify-between border-b p-3">
-              <span className="text-sm font-medium">PDF-Vorschau</span>
+              <span className="text-sm font-medium">{t('pdfReportHistory.pdfPreview')}</span>
               <Button variant="ghost" size="sm" onClick={() => { URL.revokeObjectURL(previewUrl); setPreviewUrl(null); }}>
-                Schliessen
+                {t('pdfReportHistory.close')}
               </Button>
             </div>
             <div className="min-h-0 flex-1 p-3">
@@ -139,11 +141,11 @@ export default function PdfReportHistory({ patientId, patientName }: PdfReportHi
                 {formatDate(report.createdAt, "dd.MM.yyyy HH:mm")}
               </span>
               <Badge variant="outline" className="shrink-0 text-[10px]">
-                {report.reportType === "lastVisit" ? "Letzte Konsultation" : "Gesamtverlauf"}
+                {report.reportType === "lastVisit" ? t('pdfReportHistory.lastVisit') : t('pdfReportHistory.fullHistory')}
               </Badge>
             </div>
             {report.doctorName && (
-              <p className="text-xs text-muted-foreground">Arzt: {report.doctorName}</p>
+              <p className="text-xs text-muted-foreground">{t('pdfReportHistory.doctor')}: {report.doctorName}</p>
             )}
             {report.options.doctorSummary && (
               <p className="mt-0.5 truncate text-xs text-muted-foreground">
@@ -152,13 +154,13 @@ export default function PdfReportHistory({ patientId, patientName }: PdfReportHi
             )}
           </div>
           <div className="flex shrink-0 items-center gap-1">
-            <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => handlePreview(report)} title="Vorschau">
+            <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => handlePreview(report)} title={t('common.preview')}>
               <Eye className="h-3.5 w-3.5" />
             </Button>
-            <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => handleDownload(report)} title="Herunterladen">
+            <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => handleDownload(report)} title={t('common.download')}>
               <FileDown className="h-3.5 w-3.5" />
             </Button>
-            <Button variant="ghost" size="icon" className="h-7 w-7 text-destructive hover:text-destructive" onClick={() => setDeleteId(report.id)} title="Löschen">
+            <Button variant="ghost" size="icon" className="h-7 w-7 text-destructive hover:text-destructive" onClick={() => setDeleteId(report.id)} title={t('common.delete')}>
               <Trash2 className="h-3.5 w-3.5" />
             </Button>
           </div>
@@ -168,15 +170,15 @@ export default function PdfReportHistory({ patientId, patientName }: PdfReportHi
       <AlertDialog open={!!deleteId} onOpenChange={(o) => !o && setDeleteId(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Bericht löschen?</AlertDialogTitle>
+            <AlertDialogTitle>{t('pdfReportHistory.deleteTitle')}</AlertDialogTitle>
             <AlertDialogDescription>
-              Dieser Bericht wird unwiderruflich gelöscht.
+              {t('pdfReportHistory.deleteDescription')}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Abbrechen</AlertDialogCancel>
+            <AlertDialogCancel>{t('common.cancel')}</AlertDialogCancel>
             <AlertDialogAction onClick={handleDelete} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
-              Löschen
+              {t('common.delete')}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
