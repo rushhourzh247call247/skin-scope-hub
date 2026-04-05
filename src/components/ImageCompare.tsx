@@ -439,9 +439,9 @@ const ImageCompare = ({ images, locationName, onClose }: ImageCompareProps) => {
                         <div className="space-y-1">
                           <div className="flex items-center justify-between text-[10px] text-muted-foreground">
                             <span>{t('imageCompare.horizontal')}</span>
-                            <span className="font-mono">{overlayOffsetX}px</span>
+                            <span className="font-mono">{overlayOffsetX}%</span>
                           </div>
-                          <Slider value={[overlayOffsetX]} onValueChange={([v]) => setOverlayOffsetX(v)} min={-100} max={100} step={1} />
+                          <Slider value={[overlayOffsetX]} onValueChange={([v]) => setOverlayOffsetX(v)} min={-50} max={50} step={0.5} />
                         </div>
 
                         <div className="space-y-1">
