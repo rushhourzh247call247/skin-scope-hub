@@ -998,7 +998,7 @@ export async function generatePatientPDF(
       doc.setFont("Roboto", "normal");
       doc.setFontSize(8);
       doc.setTextColor(...C.textSecondary);
-      doc.text(`Risiko: ${getRiskLabel(latestImg.risk_level)}`, barX + barW + 12, y + 2.5);
+      doc.text(`${i18n.t('riskProgression.title').replace('📈 ', '')}: ${getRiskLabel(latestImg.risk_level)}`, barX + barW + 12, y + 2.5);
 
       y += 6;
 
