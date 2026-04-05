@@ -9,6 +9,7 @@ import { RotateCcw, Eye, Hand, Footprints, User, Shirt, CircleDot, ArrowDown, Ma
 import type { LesionClassification } from "@/types/patient";
 import { LESION_CLASSIFICATIONS } from "@/types/patient";
 import { getAnatomicalName } from "@/lib/anatomyLookup";
+import { translateAnatomyName } from "@/lib/anatomyTranslation";
 
 /* ─── Types ─── */
 interface Marker {
