@@ -401,8 +401,8 @@ const PatientDetail = () => {
             <p className="font-mono font-medium text-foreground">{patient.id}</p>
           </div>
           <div>
-            <span className="text-muted-foreground">Geschlecht</span>
-            <p className="font-medium text-foreground">{patient.gender === "female" ? "Weiblich" : "Männlich"}</p>
+            <span className="text-muted-foreground">{t('common.gender')}</span>
+            <p className="font-medium text-foreground">{patient.gender === "female" ? t('common.female') : t('common.male')}</p>
           </div>
           <div>
             <span className="text-muted-foreground">Geburtsdatum</span>
