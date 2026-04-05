@@ -505,7 +505,7 @@ const PatientDetail = () => {
               </div>
 
               <div className="flex items-center gap-2 text-[10px] text-muted-foreground">
-                <Badge variant="outline" className="text-[10px]">{mapClickDialog.view === "back" ? "Rückseite" : "Vorderseite"}</Badge>
+                <Badge variant="outline" className="text-[10px]">{mapClickDialog.view === "back" ? t('common.backSide') : t('common.front')}</Badge>
                 {mapClickDialog.markType !== "region" && (
                   <span className="flex items-center gap-1 text-green-600 font-medium">
                     <Move className="h-3 w-3" /> Marker ziehen zum Verschieben
