@@ -1,4 +1,5 @@
 import { useState, useRef, useCallback, useEffect } from "react";
+import { useTranslation } from "react-i18next";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { api } from "@/lib/api";
 import type { LocationImage } from "@/types/patient";
@@ -31,6 +32,7 @@ interface ImageGalleryProps {
 }
 
 const ImageGallery = ({ locationId, patientId, images, locationName, locationType = "spot", patientName, patientBirthDate }: ImageGalleryProps) => {
+  const { t } = useTranslation();
   const queryClient = useQueryClient();
   const fileRef = useRef<HTMLInputElement>(null);
   const [uploading, setUploading] = useState(false);
@@ -39,7 +41,6 @@ const ImageGallery = ({ locationId, patientId, images, locationName, locationTyp
   const [deleteTarget, setDeleteTarget] = useState<number | null>(null);
   const debounceTimers = useRef<Record<number, ReturnType<typeof setTimeout>>>({});
 
-  // Sync note values from API data whenever images prop changes
   useEffect(() => {
     const notes: Record<number, string> = {};
     images.forEach(img => {
@@ -77,11 +78,11 @@ const ImageGallery = ({ locationId, patientId, images, locationName, locationTyp
     mutationFn: (imageId: number) => api.deleteImage(imageId),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["full-patient", patientId] });
-      toast.success("Bild wurde gelöscht");
+      toast.success(t('imageGallery.deleted'));
       setDeleteTarget(null);
     },
     onError: () => {
-      toast.error("Bild konnte nicht gelöscht werden");
+      toast.error(t('imageGallery.deleteError'));
       setDeleteTarget(null);
     },
   });
@@ -95,10 +96,10 @@ const ImageGallery = ({ locationId, patientId, images, locationName, locationTyp
         await api.updateImageNote(imageId, value);
         queryClient.invalidateQueries({ queryKey: ["full-patient", patientId] });
       } catch {
-        toast.error("Notiz konnte nicht gespeichert werden");
+        toast.error(t('imageGallery.noteError'));
       }
     }, 800);
-  }, [patientId, queryClient]);
+  }, [patientId, queryClient, t]);
 
   const handleImageExport = useCallback((img: LocationImage) => {
     const imgEl = new Image();
@@ -110,15 +111,12 @@ const ImageGallery = ({ locationId, patientId, images, locationName, locationTyp
       canvas.height = imgEl.naturalHeight + barHeight;
       const ctx = canvas.getContext("2d")!;
 
-      // Draw white bar at top
       ctx.fillStyle = "#ffffff";
       ctx.fillRect(0, 0, canvas.width, barHeight);
 
-      // Draw separator line
       ctx.fillStyle = "#e2e8f0";
       ctx.fillRect(0, barHeight - 1, canvas.width, 1);
 
-      // Text
       const fontSize = Math.max(14, Math.round(canvas.width / 40));
       ctx.fillStyle = "#1e293b";
       ctx.font = `bold ${fontSize}px sans-serif`;
@@ -131,7 +129,7 @@ const ImageGallery = ({ locationId, patientId, images, locationName, locationTyp
       const details: string[] = [];
       if (patientBirthDate) {
         try {
-          details.push(`geb. ${formatDate(patientBirthDate, "dd.MM.yyyy")}`);
+          details.push(`${t('imageGallery.born')} ${formatDate(patientBirthDate, "dd.MM.yyyy")}`);
         } catch { details.push(patientBirthDate); }
       }
       if (locationName) details.push(locationName);
@@ -142,7 +140,6 @@ const ImageGallery = ({ locationId, patientId, images, locationName, locationTyp
       }
       ctx.fillText(details.join("  •  "), 12, fontSize + 8 + fontSize * 1.1);
 
-      // Draw image below bar
       ctx.drawImage(imgEl, 0, barHeight);
 
       canvas.toBlob((blob) => {
@@ -157,18 +154,18 @@ const ImageGallery = ({ locationId, patientId, images, locationName, locationTyp
         a.click();
         document.body.removeChild(a);
         setTimeout(() => URL.revokeObjectURL(url), 1500);
-        toast.success("Bild exportiert");
+        toast.success(t('imageGallery.exported'));
       }, "image/jpeg", 0.95);
     };
-    imgEl.onerror = () => toast.error("Bild konnte nicht geladen werden");
+    imgEl.onerror = () => toast.error(t('imageGallery.loadError'));
     imgEl.src = api.resolveImageSrc(img);
-  }, [patientName, patientBirthDate, locationName]);
+  }, [patientName, patientBirthDate, locationName, t]);
 
   if (compareMode && images.length >= 2) {
     return (
       <ImageCompare
         images={images}
-        locationName={locationName || `Stelle #${locationId}`}
+        locationName={locationName || `${t('common.spots')} #${locationId}`}
         onClose={() => setCompareMode(false)}
       />
     );
@@ -181,17 +178,17 @@ const ImageGallery = ({ locationId, patientId, images, locationName, locationTyp
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
-        <h4 className="text-sm font-medium text-foreground">Bilder ({images.length})</h4>
+        <h4 className="text-sm font-medium text-foreground">{t('imageGallery.title', { count: images.length })}</h4>
         <div className="flex items-center gap-2">
           {images.length >= 2 && (
             <Button size="sm" variant="outline" onClick={() => setCompareMode(true)}>
-              <GitCompareArrows className="mr-1.5 h-3.5 w-3.5" /> Vergleichen
+              <GitCompareArrows className="mr-1.5 h-3.5 w-3.5" /> {t('imageGallery.compare')}
             </Button>
           )}
           <input ref={fileRef} type="file" accept="image/*" className="hidden" onChange={handleUpload} />
           <Button size="sm" variant="outline" onClick={() => fileRef.current?.click()} disabled={uploading}>
             <Upload className="mr-1.5 h-3.5 w-3.5" />
-            {uploading ? "Lädt hoch…" : "Bild hochladen"}
+            {uploading ? t('imageGallery.uploading') : t('imageGallery.uploadImage')}
           </Button>
         </div>
       </div>
@@ -199,7 +196,7 @@ const ImageGallery = ({ locationId, patientId, images, locationName, locationTyp
       {sorted.length === 0 ? (
         <div className="flex flex-col items-center justify-center rounded-md border border-dashed py-10 text-muted-foreground">
           <ImageIcon className="mb-2 h-8 w-8" />
-          <p className="text-sm">Noch keine Bilder vorhanden</p>
+          <p className="text-sm">{t('imageGallery.noImages')}</p>
         </div>
       ) : (
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
@@ -211,7 +208,7 @@ const ImageGallery = ({ locationId, patientId, images, locationName, locationTyp
                   variant="secondary"
                   className="h-8 w-8 rounded-full shadow-md opacity-80 hover:opacity-100"
                   onClick={() => handleImageExport(img)}
-                  title="Bild exportieren"
+                  title={t('common.export')}
                 >
                   <Download className="h-4 w-4" />
                 </Button>
@@ -229,7 +226,7 @@ const ImageGallery = ({ locationId, patientId, images, locationName, locationTyp
                   <div className="relative h-20 w-20 overflow-hidden rounded-full border-2 border-border shadow-sm">
                     <img
                       src={api.resolveImageSrc(img)}
-                      alt={`Aufnahme #${img.id}`}
+                      alt={`${t('imageGallery.recording')} #${img.id}`}
                       className="h-full w-full object-cover"
                       loading="lazy"
                     />
@@ -243,7 +240,7 @@ const ImageGallery = ({ locationId, patientId, images, locationName, locationTyp
                   <div className="aspect-[3/4] overflow-hidden rounded-md">
                     <img
                       src={api.resolveImageSrc(img)}
-                      alt={`Aufnahme #${img.id}`}
+                      alt={`${t('imageGallery.recording')} #${img.id}`}
                       className="h-full w-full object-cover"
                       loading="lazy"
                     />
@@ -257,16 +254,14 @@ const ImageGallery = ({ locationId, patientId, images, locationName, locationTyp
                 </div>
               )}
 
-              {/* Note field */}
               <Textarea
-                placeholder="Notiz zum Bild…"
+                placeholder={t('imageGallery.notePlaceholder')}
                 className="min-h-[36px] h-9 text-[11px] resize-none bg-muted/30 border-muted"
                 value={noteValues[img.id] ?? ""}
                 onChange={(e) => handleNoteChange(img.id, e.target.value)}
                 rows={1}
               />
 
-              {/* ABCDE Assessment */}
               <AbcdeForm
                 imageId={img.id}
                 patientId={patientId}
@@ -287,19 +282,19 @@ const ImageGallery = ({ locationId, patientId, images, locationName, locationTyp
       <AlertDialog open={deleteTarget !== null} onOpenChange={(open) => !open && setDeleteTarget(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Bild löschen?</AlertDialogTitle>
+            <AlertDialogTitle>{t('imageGallery.deleteTitle')}</AlertDialogTitle>
             <AlertDialogDescription>
-              Dieses Bild wird unwiderruflich gelöscht. Möchten Sie fortfahren?
+              {t('imageGallery.deleteDescription')}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Abbrechen</AlertDialogCancel>
+            <AlertDialogCancel>{t('common.cancel')}</AlertDialogCancel>
             <AlertDialogAction
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
               onClick={() => deleteTarget && deleteMutation.mutate(deleteTarget)}
               disabled={deleteMutation.isPending}
             >
-              {deleteMutation.isPending ? "Löscht…" : "Löschen"}
+              {deleteMutation.isPending ? t('imageGallery.deleting') : t('common.delete')}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
