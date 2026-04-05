@@ -494,7 +494,7 @@ const OverviewPhoto = ({ overviewLocation, spotLocations, patientId, onNavigateT
             </PopoverTrigger>
             <PopoverContent className="w-72 p-2" side="right" align="start" onClick={(e) => e.stopPropagation()}>
               <>
-                <p className="text-xs font-semibold text-foreground mb-2">Mit Spot verknüpfen:</p>
+                <p className="text-xs font-semibold text-foreground mb-2">{t('overviewPhoto.linkToSpot')}</p>
 
                   {onCreateSpotAndLink && (
                     <button
