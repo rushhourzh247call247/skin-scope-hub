@@ -568,7 +568,7 @@ const PatientDetail = () => {
               </div>
               )}
               <Button className="w-full h-8 text-xs" onClick={handleCreateLocation} disabled={createLocationMutation.isPending}>
-                {createLocationMutation.isPending ? t('common.creating') : mapClickDialog.markType === "zone" ? t('patientDetail.createFirstZone') : mapClickDialog.markType === "region" ? t('patientDetail.createRegion') : t('patientDetail.createSpot')}
+                {createLocationMutation.isPending ? t('common.creating') : mapClickDialog.markType === "zone" ? t('overviewPhoto.createFirstZone') : mapClickDialog.markType === "region" ? t('patientDetail.createRegion') : t('patientDetail.createSpot')}
               </Button>
             </div>
           )}
