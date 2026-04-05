@@ -1,4 +1,5 @@
 import React, { useRef, useState, useMemo, Suspense, useCallback } from "react";
+import { useTranslation } from "react-i18next";
 import { Canvas, useThree, ThreeEvent } from "@react-three/fiber";
 import { OrbitControls, Html, useGLTF, Center } from "@react-three/drei";
 import * as THREE from "three";

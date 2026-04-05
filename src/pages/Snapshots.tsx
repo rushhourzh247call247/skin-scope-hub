@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { api } from "@/lib/api";
 import { Button } from "@/components/ui/button";
@@ -25,6 +26,7 @@ function formatBytes(bytes: number) {
 }
 
 const Snapshots = () => {
+  const { t } = useTranslation();
   const queryClient = useQueryClient();
   const [view, setView] = useState<View>({ type: "list" });
   const [restoreConfirm, setRestoreConfirm] = useState<{ type: "patient" | "company"; date: string; id: number; name: string } | null>(null);

@@ -1,3 +1,4 @@
+import { useTranslation } from "react-i18next";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useParams, useNavigate } from "react-router-dom";
 import { api } from "@/lib/api";
@@ -47,6 +48,7 @@ import {
 } from "@/components/ui/alert-dialog";
 
 const PatientDetail = () => {
+  const { t } = useTranslation();
   const { user } = useAuth();
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
@@ -102,14 +104,14 @@ const PatientDetail = () => {
         link.click();
         document.body.removeChild(link);
         setTimeout(() => URL.revokeObjectURL(downloadUrl), 1500);
-        toast.success("PDF heruntergeladen");
+        toast.success(t('patientDetail.pdfDownloaded'));
         return;
       } catch {
         await generatePatientPDF(patient, "download", user?.name);
-        toast.success("PDF heruntergeladen");
+        toast.success(t('patientDetail.pdfDownloaded'));
       }
     } catch {
-      toast.error("PDF konnte nicht erstellt werden");
+      toast.error(t('patientDetail.pdfError'));
     } finally {
       setPdfLoading(false);
     }
@@ -128,7 +130,7 @@ const PatientDetail = () => {
     if (/Mobi|Android|iPhone|iPad/i.test(navigator.userAgent)) {
       window.open(pdfPreviewUrl, "_blank");
     }
-    toast.success("PDF heruntergeladen");
+    toast.success(t('patientDetail.pdfDownloaded'));
   };
 
   const { data: patient, isLoading, error } = useQuery({
@@ -324,8 +326,8 @@ const PatientDetail = () => {
   if (error || !patient) {
     return (
       <div className="flex min-h-[60vh] flex-col items-center justify-center gap-4">
-        <p className="text-sm text-destructive">Patient konnte nicht geladen werden.</p>
-        <Button variant="outline" onClick={() => navigate("/patients")}>Zurück zur Liste</Button>
+        <p className="text-sm text-destructive">{t('patientDetail.notLoaded')}</p>
+        <Button variant="outline" onClick={() => navigate("/patients")}>{t('patientDetail.backToListBtn')}</Button>
       </div>
     );
   }
@@ -337,7 +339,7 @@ const PatientDetail = () => {
         {/* Top row: back + name + tabs */}
         <div className="flex items-center gap-2 lg:gap-4">
           <Button variant="ghost" size="sm" onClick={() => navigate("/patients")} className="gap-1 shrink-0 h-8 px-2 lg:gap-1.5 lg:h-9 lg:px-3">
-            <ArrowLeft className="h-4 w-4" /> <span className="hidden sm:inline">Zurück</span>
+            <ArrowLeft className="h-4 w-4" /> <span className="hidden sm:inline">{t('patientDetail.backToList')}</span>
           </Button>
 
           <div className="h-6 w-px bg-border hidden sm:block" />
@@ -349,9 +351,9 @@ const PatientDetail = () => {
             <div className="min-w-0">
               <div className="flex items-center gap-1.5">
                 <h1 className="text-sm font-semibold text-foreground truncate">{patient.name}</h1>
-                <Badge variant="outline" className="text-[10px] px-1.5 py-0 shrink-0">Aktiv</Badge>
+                <Badge variant="outline" className="text-[10px] px-1.5 py-0 shrink-0">{t('common.active')}</Badge>
               </div>
-              <p className="text-xs text-muted-foreground hidden sm:block">Patient</p>
+              <p className="text-xs text-muted-foreground hidden sm:block">{t('patientDetail.patient')}</p>
             </div>
           </div>
 
@@ -359,11 +361,11 @@ const PatientDetail = () => {
           <div className="ml-auto flex items-center gap-1.5 shrink-0">
             <div className="flex items-center gap-1 rounded-lg bg-muted p-0.5 lg:p-1">
               {[
-                { key: "spots" as const, icon: MapPin, label: "SPOTS" },
-                { key: "uebersicht" as const, icon: Eye, label: "ÜBERSICHT" },
-                { key: "fotos" as const, icon: Camera, label: "FOTOS" },
-                { key: "timeline" as const, icon: Activity, label: "TIMELINE" },
-                { key: "berichte" as const, icon: FileDown, label: "BERICHTE" },
+                { key: "spots" as const, icon: MapPin, label: t('patientDetail.tabs.spots') },
+                { key: "uebersicht" as const, icon: Eye, label: t('patientDetail.tabs.overview') },
+                { key: "fotos" as const, icon: Camera, label: t('patientDetail.tabs.photos') },
+                { key: "timeline" as const, icon: Activity, label: t('patientDetail.tabs.timeline') },
+                { key: "berichte" as const, icon: FileDown, label: t('patientDetail.tabs.reports') },
               ].map(tab => (
                 <button
                   key={tab.key}
@@ -395,15 +397,15 @@ const PatientDetail = () => {
         {/* Patient details row - hidden on mobile, shown on desktop */}
         <div className="hidden lg:flex items-center gap-6 text-xs mt-2 pl-[52px]">
           <div>
-            <span className="text-muted-foreground">ID</span>
+            <span className="text-muted-foreground">{t('common.id')}</span>
             <p className="font-mono font-medium text-foreground">{patient.id}</p>
           </div>
           <div>
-            <span className="text-muted-foreground">Geschlecht</span>
-            <p className="font-medium text-foreground">{patient.gender === "female" ? "Weiblich" : "Männlich"}</p>
+            <span className="text-muted-foreground">{t('common.gender')}</span>
+            <p className="font-medium text-foreground">{patient.gender === "female" ? t('common.female') : t('common.male')}</p>
           </div>
           <div>
-            <span className="text-muted-foreground">Geburtsdatum</span>
+            <span className="text-muted-foreground">{t('common.birthDate')}</span>
             <p className="font-medium text-foreground tabular-nums">
               {patient.birth_date ? formatDate(patient.birth_date, "dd.MM.yyyy") : "–"}
             </p>
@@ -421,11 +423,11 @@ const PatientDetail = () => {
             </div>
           )}
           <div>
-            <span className="text-muted-foreground">Stellen</span>
+            <span className="text-muted-foreground">{t('common.spots')}</span>
             <p className="font-medium text-foreground">{locations.length}</p>
           </div>
           <div>
-            <span className="text-muted-foreground">Aufnahmen</span>
+            <span className="text-muted-foreground">{t('patientDetail.recordings')}</span>
             <p className="font-medium text-foreground">{totalImages}</p>
           </div>
         </div>
@@ -503,10 +505,10 @@ const PatientDetail = () => {
               </div>
 
               <div className="flex items-center gap-2 text-[10px] text-muted-foreground">
-                <Badge variant="outline" className="text-[10px]">{mapClickDialog.view === "back" ? "Rückseite" : "Vorderseite"}</Badge>
+                <Badge variant="outline" className="text-[10px]">{mapClickDialog.view === "back" ? t('common.backSide') : t('common.front')}</Badge>
                 {mapClickDialog.markType !== "region" && (
                   <span className="flex items-center gap-1 text-green-600 font-medium">
-                    <Move className="h-3 w-3" /> Marker ziehen zum Verschieben
+                    <Move className="h-3 w-3" /> {t('patientDetail.dragToMove')}
                   </span>
                 )}
               </div>
@@ -515,16 +517,16 @@ const PatientDetail = () => {
               {mapClickDialog.markType === "region" && (
                 <div className="space-y-2">
                   <div className="flex items-center gap-1.5 text-[10px] font-medium text-muted-foreground">
-                    <Square className="h-3 w-3 text-amber-500" /> Grösse anpassen
+                    <Square className="h-3 w-3 text-amber-500" /> {t('patientDetail.adjustSize')}
                   </div>
                   <div className="space-y-1.5">
                     <div className="flex items-center gap-2">
-                      <Label className="text-[10px] w-10 shrink-0">Breite</Label>
+                      <Label className="text-[10px] w-10 shrink-0">{t('patientDetail.width')}</Label>
                       <Slider value={[regionWidth]} onValueChange={([v]) => setRegionWidth(v)} min={10} max={150} step={1} className="flex-1" />
                       <span className="text-[10px] text-muted-foreground font-mono w-6 text-right">{regionWidth}</span>
                     </div>
                     <div className="flex items-center gap-2">
-                      <Label className="text-[10px] w-10 shrink-0">Höhe</Label>
+                      <Label className="text-[10px] w-10 shrink-0">{t('patientDetail.height')}</Label>
                       <Slider value={[regionHeight]} onValueChange={([v]) => setRegionHeight(v)} min={10} max={150} step={1} className="flex-1" />
                       <span className="text-[10px] text-muted-foreground font-mono w-6 text-right">{regionHeight}</span>
                     </div>
@@ -533,7 +535,7 @@ const PatientDetail = () => {
               )}
 
               <div className="space-y-1.5">
-                <Label className="text-[10px]">Bezeichnung</Label>
+                <Label className="text-[10px]">{t('patientDetail.label')}</Label>
                 {(() => {
                   const neighbors = getNeighborZones(locationName);
                   const options = locationName 
@@ -545,7 +547,7 @@ const PatientDetail = () => {
                       onChange={(e) => setLocationName(e.target.value)}
                       className="flex h-8 w-full rounded-md border border-input bg-background px-2 py-1 text-xs ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                     >
-                      {!locationName && <option value="">Zone wählen…</option>}
+                      {!locationName && <option value="">{t('patientDetail.selectZone')}</option>}
                       {options.map((zone) => (
                         <option key={zone} value={zone}>{zone}</option>
                       ))}
@@ -554,7 +556,7 @@ const PatientDetail = () => {
                 })()}
               </div>
               <Button className="w-full h-8 text-xs" onClick={handleCreateLocation} disabled={createLocationMutation.isPending}>
-                {createLocationMutation.isPending ? "Wird erstellt…" : mapClickDialog.markType === "region" ? "Region anlegen" : "Spot anlegen"}
+                {createLocationMutation.isPending ? t('common.creating') : mapClickDialog.markType === "region" ? t('patientDetail.createRegion') : t('patientDetail.createSpot')}
               </Button>
             </div>
           )}
@@ -564,8 +566,8 @@ const PatientDetail = () => {
             <div className={cn("mt-3 lg:mt-4", !mobileMapExpanded && "lg:block")}>
               <div className="flex items-center justify-between mb-2">
                 <h3 className="text-xs font-semibold text-foreground uppercase tracking-wider flex items-center gap-1.5">
-                  <Camera className="h-3 w-3" />
-                  Übersichtsfotos
+                   <Camera className="h-3 w-3" />
+                   {t('patientDetail.overviewPhotos')}
                 </h3>
                 <span className="text-[10px] text-muted-foreground">{overviewLocations.length}</span>
               </div>
@@ -593,21 +595,21 @@ const PatientDetail = () => {
                             <Camera className="h-3 w-3 text-muted-foreground" />
                           </div>
                         )}
-                        <span className="truncate font-medium flex-1">{loc.name || "Übersicht"}</span>
-                        <span className="text-[10px] text-muted-foreground shrink-0">{imgCount} {imgCount === 1 ? "Bild" : "Bilder"}</span>
+                        <span className="truncate font-medium flex-1">{loc.name || t('patientDetail.overview')}</span>
+                        <span className="text-[10px] text-muted-foreground shrink-0">{imgCount} {imgCount === 1 ? t('common.image') : t('common.images')}</span>
                       </button>
                       <div className="flex items-center gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity shrink-0">
                         <button
                           onClick={(e) => { e.stopPropagation(); setQrLocationId(loc.id); setQrDialogOpen(true); }}
                           className="h-5 w-5 rounded flex items-center justify-center hover:bg-muted-foreground/10 text-muted-foreground hover:text-foreground"
-                          title="Foto vom Handy hochladen"
+                          title={t('patientDetail.uploadFromPhone')}
                         >
                           <QrCode className="h-3 w-3" />
                         </button>
                         <button
                           onClick={(e) => { e.stopPropagation(); setDeleteConfirmId(loc.id); }}
                           className="h-5 w-5 rounded flex items-center justify-center hover:bg-destructive/10 text-muted-foreground hover:text-destructive"
-                          title="Löschen"
+                          title={t('common.delete')}
                         >
                           <Trash2 className="h-3 w-3" />
                         </button>
@@ -622,8 +624,8 @@ const PatientDetail = () => {
           {/* Spots List - collapsible on mobile when map is collapsed */}
           <div className={cn("mt-3 lg:mt-4 space-y-1", !mobileMapExpanded && "lg:block")}>
             <div className="flex items-center justify-between mb-2">
-              <h3 className="text-xs font-semibold text-foreground uppercase tracking-wider">Spots</h3>
-              <span className="text-[10px] text-muted-foreground">{spotLocations.filter(l => l.type !== "region").length} Stellen</span>
+              <h3 className="text-xs font-semibold text-foreground uppercase tracking-wider">{t('patientDetail.tabs.spots')}</h3>
+              <span className="text-[10px] text-muted-foreground">{spotLocations.filter(l => l.type !== "region").length} {t('common.spots')}</span>
             </div>
             {spotLocations.filter(l => l.type !== "region").filter(l => {
               if (classificationFilter.length === 0) return true;
@@ -699,14 +701,14 @@ const PatientDetail = () => {
                       })()}
                     </div>
                     <p className="text-[10px] text-muted-foreground">
-                      {loc.images?.length ?? 0} Bilder · {loc.view === "back" ? "Hinten" : "Vorne"}
+                      {loc.images?.length ?? 0} {t('common.images')} · {loc.view === "back" ? t('common.backSide') : t('common.front')}
                     </p>
                   </div>
                 </button>
                 <button
                   onClick={(e) => { e.stopPropagation(); setDeleteConfirmId(loc.id); }}
                   className="shrink-0 p-1 rounded opacity-0 group-hover:opacity-100 transition-opacity hover:bg-destructive/10 text-muted-foreground hover:text-destructive"
-                  title="In Papierkorb verschieben"
+                  title={t('patientDetail.moveToTrash')}
                 >
                   <Trash2 className="h-3.5 w-3.5" />
                 </button>
@@ -721,7 +723,7 @@ const PatientDetail = () => {
               className="flex w-full items-center justify-between text-[10px] text-muted-foreground hover:text-foreground transition-colors"
             >
               <span className="flex items-center gap-1.5 font-semibold uppercase tracking-wider">
-                <Trash2 className="h-3 w-3" /> Papierkorb
+                <Trash2 className="h-3 w-3" /> {t('patientDetail.trash')}
               </span>
               <span>{trashedLocations.length}</span>
             </button>
@@ -735,19 +737,19 @@ const PatientDetail = () => {
                     <Trash2 className="h-3 w-3 shrink-0 opacity-50" />
                     <div className="min-w-0 flex-1">
                       <p className="truncate font-medium">{loc.name || "Spot"}</p>
-                      <p className="text-[10px]">{loc.images?.length ?? 0} Bilder</p>
+                      <p className="text-[10px]">{loc.images?.length ?? 0} {t('common.images')}</p>
                     </div>
                     <button
                       onClick={() => restoreMutation.mutate(loc.id)}
                       className="shrink-0 p-1 rounded hover:bg-primary/10 text-muted-foreground hover:text-primary transition-colors"
-                      title="Wiederherstellen"
+                      title={t('patientDetail.restoreFromTrash')}
                     >
                       <Undo2 className="h-3.5 w-3.5" />
                     </button>
                     <button
                       onClick={() => setPermanentDeleteId(loc.id)}
                       className="shrink-0 p-1 rounded hover:bg-destructive/10 text-muted-foreground hover:text-destructive transition-colors"
-                      title="Endgültig löschen"
+                      title={t('patientDetail.permanentlyDelete')}
                     >
                       <X className="h-3.5 w-3.5" />
                     </button>
@@ -756,7 +758,7 @@ const PatientDetail = () => {
               </div>
             )}
             {showTrash && trashedLocations.length === 0 && (
-              <p className="mt-2 text-[10px] text-muted-foreground italic">Papierkorb ist leer</p>
+              <p className="mt-2 text-[10px] text-muted-foreground italic">{t('patientDetail.trashEmpty')}</p>
             )}
           </div>
         </div>
@@ -775,7 +777,7 @@ const PatientDetail = () => {
                 className="space-y-6"
               >
                 <div className="flex items-center justify-between">
-                  <h2 className="text-lg font-semibold text-foreground">Übersichtsfotos</h2>
+                  <h2 className="text-lg font-semibold text-foreground">{t('patientDetail.overviewPhotos')}</h2>
                   <Button
                     size="sm"
                     variant="outline"
@@ -952,14 +954,14 @@ const PatientDetail = () => {
                   locations.forEach((loc) => {
                     const locName = loc.name || `Spot #${loc.id}`;
                     // Location creation
-                    events.push({ date: loc.created_at ?? "", type: "location", label: "Spot erstellt", detail: locName, locationName: locName, locationId: loc.id });
+                    events.push({ date: loc.created_at ?? "", type: "location", label: t('patientDetail.spotCreatedEvent'), detail: locName, locationName: locName, locationId: loc.id });
                     // Images
                     (loc.images ?? []).forEach((img) => {
-                      events.push({ date: img.created_at ?? "", type: "image", label: "Bild hochgeladen", locationName: locName, locationId: loc.id, imagePath: img.image_path, imageUrl: img.image_url });
+                      events.push({ date: img.created_at ?? "", type: "image", label: t('patientDetail.imageUploadedEvent'), locationName: locName, locationId: loc.id, imagePath: img.image_path, imageUrl: img.image_url });
                     });
                     // Findings
                     (loc.findings ?? []).forEach((f: any) => {
-                      events.push({ date: f.created_at ?? "", type: "finding", label: "Befund", detail: f.description, locationName: locName, locationId: loc.id, userName: f.user_name });
+                      events.push({ date: f.created_at ?? "", type: "finding", label: t('patientDetail.findingEvent'), detail: f.description, locationName: locName, locationId: loc.id, userName: f.user_name });
                     });
                   });
                   events.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
@@ -968,7 +970,7 @@ const PatientDetail = () => {
                     return (
                       <div className="flex flex-col items-center justify-center py-16 text-muted-foreground">
                         <Activity className="h-10 w-10 mb-3" />
-                        <p className="text-sm">Noch keine Einträge vorhanden</p>
+                        <p className="text-sm">{t('patientDetail.noEntriesYet')}</p>
                       </div>
                     );
                   }
@@ -995,7 +997,7 @@ const PatientDetail = () => {
                                 {ev.date ? formatDate(ev.date, "dd.MM.yyyy HH:mm") : "–"}
                               </span>
                             </div>
-                            {ev.userName && <p className="text-xs text-muted-foreground italic">von {ev.userName}</p>}
+                            {ev.userName && <p className="text-xs text-muted-foreground italic">{t('patientDetail.by')} {ev.userName}</p>}
                             {ev.detail && <p className="text-sm text-muted-foreground">{ev.detail}</p>}
                             {ev.imagePath && (
                               <img
@@ -1009,7 +1011,7 @@ const PatientDetail = () => {
                               onClick={() => { setActiveTab("spots"); setSelectedLocationId(ev.locationId); }}
                               className="text-[10px] text-primary hover:underline"
                             >
-                              → Zum Spot
+                              {t('patientDetail.toSpot')}
                             </button>
                           </div>
                         </div>
@@ -1028,10 +1030,10 @@ const PatientDetail = () => {
                 className="space-y-4"
               >
                 <div className="flex items-center justify-between">
-                  <h2 className="text-lg font-semibold text-foreground">Berichte</h2>
+                  <h2 className="text-lg font-semibold text-foreground">{t('patientDetail.reports')}</h2>
                   <Button onClick={() => setPdfDialogOpen(true)} size="sm" className="gap-1.5">
                     <FileDown className="h-3.5 w-3.5" />
-                    Neuer Bericht
+                    {t('patientDetail.newReport')}
                   </Button>
                 </div>
                 <PdfReportHistory patientId={patient.id} patientName={patient.name} />
@@ -1064,9 +1066,9 @@ const PatientDetail = () => {
                         )}
                       </h2>
                       <p className="text-xs text-muted-foreground flex items-center gap-2">
-                        <span>{selectedLocation.view === "back" ? "Rückseite" : "Vorderseite"}</span>
+                        <span>{selectedLocation.view === "back" ? t('common.backSide') : t('common.front')}</span>
                         <span>·</span>
-                        <span>{selectedLocation.images?.length ?? 0} Aufnahmen</span>
+                        <span>{selectedLocation.images?.length ?? 0} {t('patientDetail.recordings')}</span>
                       </p>
                     </div>
                   </div>
@@ -1092,12 +1094,12 @@ const PatientDetail = () => {
                       <CollapsibleTrigger className="flex w-full items-center justify-between px-4 py-2.5 hover:bg-muted/50 transition-colors">
                         <div className="flex items-center gap-2">
                           <Tag className="h-3.5 w-3.5 text-muted-foreground" />
-                          <span className="text-xs font-semibold text-foreground/70 uppercase tracking-wider">Klassifizierung</span>
+                          <span className="text-xs font-semibold text-foreground/70 uppercase tracking-wider">{t('patientDetail.classification')}</span>
                         </div>
                         <div className="flex items-center gap-2">
                           <span className="flex items-center gap-1.5 text-[11px] font-medium text-foreground/80">
                             <span className="h-2 w-2 rounded-full shrink-0" style={{ backgroundColor: currentInfo?.color || 'hsl(var(--muted-foreground))' }} />
-                            {currentInfo?.label || "Nicht klassifiziert"}
+                            {currentInfo?.label || t('patientDetail.notClassified')}
                           </span>
                           <ChevronDown className="h-3.5 w-3.5 text-muted-foreground transition-transform duration-200 [[data-state=open]>&]:rotate-180" />
                         </div>
@@ -1141,13 +1143,13 @@ const PatientDetail = () => {
                   <div className="rounded-lg border bg-card p-4 space-y-3">
                     <h4 className="text-xs font-semibold text-foreground uppercase tracking-wider flex items-center gap-2">
                       <Activity className="h-3.5 w-3.5 text-primary" />
-                      Klinischer Status
+                      {t('patientDetail.clinicalStatus')}
                     </h4>
                     <div className="flex gap-1.5">
                       {([
-                        { key: "none", label: "Kein Status", icon: "–" },
-                        { key: "praesens", label: "Status praesens", icon: "Sp" },
-                        { key: "post", label: "Status post", icon: "St.p." },
+                        { key: "none", label: t('patientDetail.noStatus'), icon: "–" },
+                        { key: "praesens", label: t('patientDetail.statusPraesens'), icon: "Sp" },
+                        { key: "post", label: t('patientDetail.statusPost'), icon: "St.p." },
                       ] as const).map((opt) => {
                         const current = (selectedLocation as any).op_status || "none";
                         const isActive = current === opt.key;
@@ -1178,7 +1180,7 @@ const PatientDetail = () => {
                   <div className="rounded-lg border bg-card p-4 space-y-4">
                     <h4 className="text-xs font-semibold text-foreground uppercase tracking-wider flex items-center gap-2">
                       <GitCompareArrows className="h-3.5 w-3.5 text-amber-500" />
-                      Verlaufsvergleich
+                      {t('patientDetail.progressComparison')}
                     </h4>
                     {(() => {
                       const sorted = [...(selectedLocation.images ?? [])].sort(
@@ -1196,8 +1198,8 @@ const PatientDetail = () => {
                                   alt="Ältere Aufnahme"
                                   className="h-full w-full object-cover"
                                 />
-                                <div className="absolute top-2 left-2 rounded-full bg-muted/90 px-2 py-0.5 text-[10px] font-semibold text-foreground backdrop-blur-sm">
-                                  ÄLTER
+                                  <div className="absolute top-2 left-2 rounded-full bg-muted/90 px-2 py-0.5 text-[10px] font-semibold text-foreground backdrop-blur-sm">
+                                   {t('patientDetail.older')}
                                 </div>
                               </div>
                               <p className="text-center text-xs text-muted-foreground tabular-nums">
@@ -1211,8 +1213,8 @@ const PatientDetail = () => {
                                   alt="Neuere Aufnahme"
                                   className="h-full w-full object-cover"
                                 />
-                                <div className="absolute top-2 left-2 rounded-full bg-primary/90 px-2 py-0.5 text-[10px] font-semibold text-primary-foreground backdrop-blur-sm">
-                                  NEUER
+                                 <div className="absolute top-2 left-2 rounded-full bg-primary/90 px-2 py-0.5 text-[10px] font-semibold text-primary-foreground backdrop-blur-sm">
+                                   {t('patientDetail.newer')}
                                 </div>
                               </div>
                               <p className="text-center text-xs text-muted-foreground tabular-nums">
@@ -1241,7 +1243,7 @@ const PatientDetail = () => {
 
                 {/* Findings */}
                 <div className="rounded-lg border bg-card p-4 space-y-3">
-                  <h4 className="text-xs font-semibold text-foreground uppercase tracking-wider">Befunde</h4>
+                  <h4 className="text-xs font-semibold text-foreground uppercase tracking-wider">{t('patientDetail.findingsTitle')}</h4>
 
                   {/* Existing findings */}
                   {selectedLocation.findings && selectedLocation.findings.map((f) => (
@@ -1257,10 +1259,10 @@ const PatientDetail = () => {
                           />
                           <div className="flex gap-1.5">
                             <Button size="sm" variant="default" onClick={() => updateFindingMutation.mutate({ findingId: f.id, description: editingFindingText })} disabled={updateFindingMutation.isPending}>
-                              <Save className="mr-1 h-3 w-3" /> Speichern
+                              <Save className="mr-1 h-3 w-3" /> {t('common.save')}
                             </Button>
                             <Button size="sm" variant="ghost" onClick={() => { setEditingFindingId(null); setEditingFindingText(""); }}>
-                              <X className="mr-1 h-3 w-3" /> Abbrechen
+                              <X className="mr-1 h-3 w-3" /> {t('common.cancel')}
                             </Button>
                           </div>
                         </div>
@@ -1290,7 +1292,7 @@ const PatientDetail = () => {
                   {/* Add new finding */}
                   <div className="space-y-2 pt-2 border-t">
                     <Textarea
-                      placeholder="Neuen Befund eingeben…"
+                      placeholder={t('patientDetail.newFindingPlaceholder')}
                       value={newFindingText}
                       onChange={(e) => setNewFindingText(e.target.value)}
                       rows={2}
@@ -1301,7 +1303,7 @@ const PatientDetail = () => {
                       disabled={!newFindingText.trim() || createFindingMutation.isPending}
                       onClick={() => createFindingMutation.mutate({ locationId: selectedLocation.id, description: newFindingText.trim() })}
                     >
-                      <Plus className="mr-1 h-3 w-3" /> Befund hinzufügen
+                      <Plus className="mr-1 h-3 w-3" /> {t('patientDetail.addFinding')}
                     </Button>
                   </div>
                 </div>
@@ -1335,8 +1337,8 @@ const PatientDetail = () => {
                 <div className="flex h-16 w-16 items-center justify-center rounded-full bg-muted mb-4">
                   <MapPin className="h-8 w-8" />
                 </div>
-                <p className="text-sm font-medium">Wählen Sie eine Körperstelle aus</p>
-                <p className="text-xs mt-1">oder klicken Sie auf die Body Map, um eine neue Stelle zu markieren</p>
+                <p className="text-sm font-medium">{t('patientDetail.selectBodyPart')}</p>
+                <p className="text-xs mt-1">{t('patientDetail.clickBodyMapInstruction')}</p>
               </motion.div>
             )}
           </AnimatePresence>
@@ -1361,12 +1363,12 @@ const PatientDetail = () => {
           <AlertDialogHeader>
             <AlertDialogTitle className="flex items-center gap-2">
               <AlertTriangle className="h-5 w-5 text-destructive" />
-              Spot in Papierkorb verschieben?
+              {t('patientDetail.softDeleteTitle')}
             </AlertDialogTitle>
             <AlertDialogDescription>
               {(() => {
                 const loc = locations.find(l => l.id === deleteConfirmId);
-                if (!loc) return "Dieser Spot wird in den Papierkorb verschoben.";
+                if (!loc) return t('patientDetail.softDeleteGeneric');
                 return (
                   <>
                     <strong>{loc.name || "Dieser Spot"}</strong> wird mit {loc.images?.length ?? 0} Bildern und {loc.findings?.length ?? 0} Befunden in den Papierkorb verschoben. Sie können ihn jederzeit wiederherstellen.
@@ -1376,13 +1378,13 @@ const PatientDetail = () => {
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Abbrechen</AlertDialogCancel>
+             <AlertDialogCancel>{t('common.cancel')}</AlertDialogCancel>
             <AlertDialogAction
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
               onClick={() => deleteConfirmId && softDeleteMutation.mutate(deleteConfirmId)}
             >
               <Trash2 className="mr-1.5 h-4 w-4" />
-              In Papierkorb
+              {t('patientDetail.moveToTrashBtn')}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
@@ -1394,12 +1396,12 @@ const PatientDetail = () => {
           <AlertDialogHeader>
             <AlertDialogTitle className="flex items-center gap-2">
               <AlertTriangle className="h-5 w-5 text-destructive" />
-              Endgültig löschen?
+              {t('patientDetail.permanentDeleteTitle')}
             </AlertDialogTitle>
             <AlertDialogDescription>
               {(() => {
                 const loc = trashedLocations.find(l => l.id === permanentDeleteId);
-                if (!loc) return "Dieser Spot wird unwiderruflich gelöscht.";
+                if (!loc) return t('patientDetail.permanentDeleteGeneric');
                 return (
                   <>
                     <strong>{loc.name || "Dieser Spot"}</strong> wird mit allen zugehörigen Bildern und Befunden unwiderruflich gelöscht. Diese Aktion kann nicht rückgängig gemacht werden.
@@ -1409,12 +1411,12 @@ const PatientDetail = () => {
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Abbrechen</AlertDialogCancel>
+            <AlertDialogCancel>{t('common.cancel')}</AlertDialogCancel>
             <AlertDialogAction
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
               onClick={() => permanentDeleteId && permanentDeleteMutation.mutate(permanentDeleteId)}
             >
-              Endgültig löschen
+              {t('patientDetail.permanentlyDelete')}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
@@ -1425,9 +1427,9 @@ const PatientDetail = () => {
         <DialogContent className="max-w-3xl h-[85vh] flex flex-col p-0">
           <DialogHeader className="px-4 pt-4 pb-2">
             <DialogTitle className="flex items-center justify-between">
-              <span className="text-sm">PDF Vorschau</span>
-              <Button size="sm" onClick={handlePdfDownload} className="gap-1.5">
-                <FileDown className="h-3.5 w-3.5" /> Herunterladen
+               <span className="text-sm">{t('patientDetail.pdfPreviewTitle')}</span>
+               <Button size="sm" onClick={handlePdfDownload} className="gap-1.5">
+                 <FileDown className="h-3.5 w-3.5" /> {t('common.download')}
               </Button>
             </DialogTitle>
           </DialogHeader>
@@ -1439,9 +1441,9 @@ const PatientDetail = () => {
                 className="w-full h-full rounded-md border"
               >
                 <div className="flex flex-col items-center justify-center h-full gap-3 text-muted-foreground">
-                  <p className="text-sm">PDF-Vorschau wird nicht unterstützt.</p>
-                  <Button size="sm" onClick={handlePdfDownload} className="gap-1.5">
-                    <FileDown className="h-3.5 w-3.5" /> Direkt herunterladen
+                   <p className="text-sm">{t('patientDetail.pdfNotSupported')}</p>
+                   <Button size="sm" onClick={handlePdfDownload} className="gap-1.5">
+                     <FileDown className="h-3.5 w-3.5" /> {t('patientDetail.directDownload')}
                   </Button>
                 </div>
               </object>

@@ -1,3 +1,4 @@
+import { useTranslation } from "react-i18next";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
@@ -29,12 +30,13 @@ const InfoRow = ({ label, value, badge }: { label: string; value: string; badge?
 );
 
 const SystemDocs = () => {
+  const { t } = useTranslation();
   return (
     <div className="space-y-6 max-w-4xl">
       <div>
-        <h1 className="text-2xl font-bold text-foreground">Systemdokumentation</h1>
+        <h1 className="text-2xl font-bold text-foreground">{t('systemDocs.title')}</h1>
         <p className="text-sm text-muted-foreground">
-          Technische Übersicht der Derm247-Infrastruktur — nur für Administratoren sichtbar.
+          {t('systemDocs.subtitle')}
         </p>
       </div>
 

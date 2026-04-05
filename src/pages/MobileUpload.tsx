@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from "react";
+import { useTranslation } from "react-i18next";
 import { useSearchParams } from "react-router-dom";
 import { api } from "@/lib/api";
 import { Button } from "@/components/ui/button";
@@ -36,6 +37,7 @@ type SessionState =
 // ─── Main Component ───
 
 const MobileUpload = () => {
+  const { t } = useTranslation();
   const [searchParams] = useSearchParams();
   const token = searchParams.get("token");
   const [session, setSession] = useState<SessionState>({ status: "loading" });
@@ -48,7 +50,7 @@ const MobileUpload = () => {
   // Validate token on mount
   useEffect(() => {
     if (!token) {
-      setSession({ status: "invalid", message: "Kein Upload-Token angegeben." });
+      setSession({ status: "invalid", message: t('mobileUpload.noToken') });
       return;
     }
 
@@ -60,7 +62,7 @@ const MobileUpload = () => {
           return;
         }
         if (!result.valid) {
-          setSession({ status: "invalid", message: "Ungültiger oder abgelaufener Token." });
+          setSession({ status: "invalid", message: t('mobileUpload.invalidToken') });
           return;
         }
         if (result.completed) {
@@ -82,7 +84,7 @@ const MobileUpload = () => {
         } else {
           setSession({
             status: "invalid",
-            message: err.message || "Token konnte nicht validiert werden.",
+            message: err.message || t('mobileUpload.invalidToken'),
           });
         }
       }
@@ -140,7 +142,7 @@ const MobileUpload = () => {
           setPhotos((prev) =>
             prev.map((p) =>
               p.order === order
-                ? { ...p, uploading: false, error: err.message || "Upload fehlgeschlagen" }
+                ? { ...p, uploading: false, error: err.message || t('mobileUpload.uploadError') }
                 : p
             )
           );
@@ -193,7 +195,7 @@ const MobileUpload = () => {
         setPhotos((prev) =>
           prev.map((p) =>
             p.order === photo.order
-              ? { ...p, uploading: false, error: err.message || "Upload fehlgeschlagen" }
+              ? { ...p, uploading: false, error: err.message || t('mobileUpload.uploadError') }
               : p
           )
         );
@@ -226,7 +228,7 @@ const MobileUpload = () => {
       <MobileShell>
         <div className="flex flex-col items-center justify-center gap-4 py-20">
           <Loader2 className="h-8 w-8 animate-spin text-primary" />
-          <p className="text-sm text-muted-foreground">Session wird überprüft…</p>
+          <p className="text-sm text-muted-foreground">{t('mobileUpload.checkingSession')}</p>
         </div>
       </MobileShell>
     );
@@ -237,7 +239,7 @@ const MobileUpload = () => {
       <MobileShell>
         <StatusCard
           icon={<AlertTriangle className="h-8 w-8 text-destructive" />}
-          title="Ungültiger Link"
+          title={t('mobileUpload.invalidLink')}
           description={session.message}
         />
       </MobileShell>
@@ -249,8 +251,8 @@ const MobileUpload = () => {
       <MobileShell>
         <StatusCard
           icon={<AlertTriangle className="h-8 w-8 text-amber-500" />}
-          title="Link abgelaufen"
-          description="Dieser Upload-Link ist abgelaufen. Bitte generieren Sie einen neuen QR-Code am PC."
+          title={t('mobileUpload.expiredLink')}
+          description={t('mobileUpload.expiredDescription')}
         />
       </MobileShell>
     );
@@ -261,8 +263,8 @@ const MobileUpload = () => {
       <MobileShell>
         <StatusCard
           icon={<CheckCircle className="h-8 w-8 text-green-600" />}
-          title="Upload abgeschlossen"
-          description={`${session.imageCount} ${session.imageCount === 1 ? "Foto wurde" : "Fotos wurden"} erfolgreich hochgeladen.`}
+          title={t('mobileUpload.uploadComplete')}
+          description={session.imageCount === 1 ? t('mobileUpload.photoUploaded', { count: session.imageCount }) : t('mobileUpload.photosUploaded', { count: session.imageCount })}
         />
       </MobileShell>
     );
@@ -304,7 +306,7 @@ const MobileUpload = () => {
             <Loader2 className="h-5 w-5 animate-spin" />
           ) : (
             <>
-              <Camera className="h-5 w-5" /> Kamera
+              <Camera className="h-5 w-5" /> {t('mobileUpload.camera')}
             </>
           )}
         </Button>
@@ -315,7 +317,7 @@ const MobileUpload = () => {
           onClick={handleOpenGallery}
           disabled={uploadingCount > 0}
         >
-          <Images className="h-5 w-5" /> Galerie
+          <Images className="h-5 w-5" /> {t('mobileUpload.gallery')}
         </Button>
       </div>
 
@@ -325,7 +327,7 @@ const MobileUpload = () => {
           <div className="flex items-center justify-between">
             <h2 className="text-xs font-semibold text-foreground flex items-center gap-1.5">
               <ImageIcon className="h-3.5 w-3.5 text-primary" />
-              {uploadedCount} von {photos.length} {photos.length === 1 ? "Foto" : "Fotos"} hochgeladen
+              {photos.length === 1 ? t('mobileUpload.photoUploadedCount', { uploaded: uploadedCount, total: photos.length }) : t('mobileUpload.photosUploadedCount', { uploaded: uploadedCount, total: photos.length })}
             </h2>
           </div>
 
@@ -333,7 +335,7 @@ const MobileUpload = () => {
           {photos.some((p) => p.error) && (
             <div className="rounded-lg border border-destructive/30 bg-destructive/5 p-3 space-y-2">
               <p className="text-xs text-destructive font-medium">
-                {photos.filter((p) => p.error).length} Upload(s) fehlgeschlagen
+                {t('mobileUpload.uploadsFailed', { count: photos.filter((p) => p.error).length })}
               </p>
               <p className="text-[10px] text-destructive/80">
                 {photos.find((p) => p.error)?.error}
@@ -344,7 +346,7 @@ const MobileUpload = () => {
                 className="text-xs gap-1.5 border-destructive/30 text-destructive"
                 onClick={() => retryFailedUploads()}
               >
-                <AlertTriangle className="h-3 w-3" /> Fehlgeschlagene erneut versuchen
+                <AlertTriangle className="h-3 w-3" /> {t('mobileUpload.retryFailed')}
               </Button>
             </div>
           )}
@@ -372,12 +374,11 @@ const MobileUpload = () => {
         >
           {completing ? (
             <>
-              <Loader2 className="h-4 w-4 animate-spin" /> Wird abgeschlossen…
+              <Loader2 className="h-4 w-4 animate-spin" /> {t('mobileUpload.completing')}
             </>
           ) : (
             <>
-              <CheckCircle className="h-4 w-4" /> Fertig – {uploadedCount}{" "}
-              {uploadedCount === 1 ? "Foto" : "Fotos"} hochgeladen
+              <CheckCircle className="h-4 w-4" /> {uploadedCount === 1 ? t('mobileUpload.completeSingle', { count: uploadedCount }) : t('mobileUpload.complete', { count: uploadedCount })}
             </>
           )}
         </Button>
@@ -389,6 +390,7 @@ const MobileUpload = () => {
 // ─── Sub-Components ───
 
 function MobileShell({ children }: { children: React.ReactNode }) {
+  const { t } = useTranslation();
   return (
     <div className="min-h-screen bg-background">
       <header className="sticky top-0 z-50 border-b bg-card/95 backdrop-blur-sm px-4 py-3">
@@ -397,7 +399,7 @@ function MobileShell({ children }: { children: React.ReactNode }) {
             D
           </div>
           <span className="text-sm font-semibold text-foreground">Derm247</span>
-          <span className="ml-auto text-[10px] text-muted-foreground">Foto-Upload</span>
+          <span className="ml-auto text-[10px] text-muted-foreground">{t('mobileUpload.title')}</span>
         </div>
       </header>
       <main className="mx-auto max-w-md space-y-4 p-4">{children}</main>
@@ -418,6 +420,7 @@ function StatusCard({ icon, title, description }: { icon: React.ReactNode; title
 }
 
 function SessionInfoCard({ session }: { session: Extract<SessionState, { status: "active" }> }) {
+  const { t } = useTranslation();
   return (
     <div className="rounded-xl border bg-card p-4 space-y-2 shadow-sm">
       <div className="flex items-center gap-2">
@@ -425,19 +428,19 @@ function SessionInfoCard({ session }: { session: Extract<SessionState, { status:
           <Camera className="h-4 w-4 text-primary" />
         </div>
         <div>
-          <h1 className="text-sm font-semibold text-foreground">Foto-Upload</h1>
+          <h1 className="text-sm font-semibold text-foreground">{t('mobileUpload.title')}</h1>
           <p className="text-[10px] text-muted-foreground">
-            Gültig bis {formatDate(session.expiresAt, "HH:mm")} Uhr
+            {t('mobileUpload.validUntil', { time: formatDate(session.expiresAt, "HH:mm") })}
           </p>
         </div>
       </div>
       <div className="flex gap-4 text-xs">
         <div>
-          <span className="text-muted-foreground">Patient</span>
+          <span className="text-muted-foreground">{t('mobileUpload.patient')}</span>
           <p className="font-medium text-foreground">{session.patientName}</p>
         </div>
         <div>
-          <span className="text-muted-foreground">Stelle</span>
+          <span className="text-muted-foreground">{t('mobileUpload.location')}</span>
           <p className="font-medium text-foreground">{session.locationName}</p>
         </div>
       </div>
@@ -446,6 +449,7 @@ function SessionInfoCard({ session }: { session: Extract<SessionState, { status:
 }
 
 function PhotoThumbnail({ photo, onRemove }: { photo: UploadedPhoto; onRemove: (order: number) => void }) {
+  const { t } = useTranslation();
   return (
     <div
       className={cn(
@@ -457,7 +461,7 @@ function PhotoThumbnail({ photo, onRemove }: { photo: UploadedPhoto; onRemove: (
     >
       <img
         src={photo.preview}
-        alt={`Foto ${photo.order}`}
+        alt={t('mobileUpload.photo', { order: photo.order })}
         className="h-full w-full object-cover"
       />
 
