@@ -1198,8 +1198,8 @@ const PatientDetail = () => {
                                   alt="Ältere Aufnahme"
                                   className="h-full w-full object-cover"
                                 />
-                                <div className="absolute top-2 left-2 rounded-full bg-muted/90 px-2 py-0.5 text-[10px] font-semibold text-foreground backdrop-blur-sm">
-                                  ÄLTER
+                                  <div className="absolute top-2 left-2 rounded-full bg-muted/90 px-2 py-0.5 text-[10px] font-semibold text-foreground backdrop-blur-sm">
+                                   {t('patientDetail.older')}
                                 </div>
                               </div>
                               <p className="text-center text-xs text-muted-foreground tabular-nums">
