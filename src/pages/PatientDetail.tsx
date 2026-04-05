@@ -574,7 +574,7 @@ const PatientDetail = () => {
                   <button
                     onClick={() => {
                       createLocationMutation.mutate({
-                        name: `Übersicht ${overviewLocations.length + 1}`,
+                        name: `Zone ${overviewLocations.length + 1}`,
                         x: 0, y: 0,
                         view: "front",
                         type: "overview",
