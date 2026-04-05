@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useTranslation } from "react-i18next";
 import { api } from "@/lib/api";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -17,6 +18,7 @@ import { toast } from "sonner";
 const PROTECTED_EMAIL = "info@techassist.ch";
 
 const UserManagement = () => {
+  const { t } = useTranslation();
   const queryClient = useQueryClient();
   const [dialogOpen, setDialogOpen] = useState(false);
   const [name, setName] = useState("");
@@ -52,63 +54,63 @@ const UserManagement = () => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["users"] });
       queryClient.invalidateQueries({ queryKey: ["dashboard-stats"] });
-      toast.success("Benutzer erstellt");
+      toast.success(t("users.created"));
       setName(""); setEmail(""); setPassword(""); setCompanyId(""); setRole("user");
       setDialogOpen(false);
     },
-    onError: () => toast.error("Fehler beim Erstellen"),
+    onError: () => toast.error(t("users.createError")),
   });
 
   const deleteMutation = useMutation({
     mutationFn: api.deleteUser,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["users"] });
-      toast.success("Benutzer gelöscht");
+      toast.success(t("users.deleted"));
       setDeleteUserId(null);
     },
-    onError: () => toast.error("Fehler beim Löschen"),
+    onError: () => toast.error(t("users.deleteError")),
   });
 
   const resetPasswordMutation = useMutation({
     mutationFn: ({ userId, password }: { userId: number; password: string }) =>
       api.adminResetPassword(userId, password),
     onSuccess: () => {
-      toast.success("Passwort wurde zurückgesetzt");
+      toast.success(t("users.passwordChanged"));
       setResetUser(null);
       setNewPassword("");
       setConfirmPassword("");
       setShowNewPw(false);
       setShowConfirmPw(false);
     },
-    onError: () => toast.error("Fehler beim Zurücksetzen"),
+    onError: () => toast.error(t("users.passwordChangeError")),
   });
 
   const reset2faMutation = useMutation({
     mutationFn: (userId: number) => api.adminReset2FA(userId),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["users"] });
-      toast.success(`2FA für ${reset2faUser?.name} wurde zurückgesetzt`);
+      toast.success(t("users.reset2faSuccess", { name: reset2faUser?.name }));
       setReset2faUser(null);
     },
-    onError: () => toast.error("Fehler beim Zurücksetzen der 2FA"),
+    onError: () => toast.error(t("users.reset2faError")),
   });
 
   const suspendMutation = useMutation({
     mutationFn: (userId: number) => api.suspendUser(userId),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["users"] });
-      toast.success("Benutzer gesperrt");
+      toast.success(t("users.suspended"));
     },
-    onError: () => toast.error("Fehler beim Sperren"),
+    onError: () => toast.error(t("users.suspendError")),
   });
 
   const unsuspendMutation = useMutation({
     mutationFn: (userId: number) => api.unsuspendUser(userId),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["users"] });
-      toast.success("Benutzer entsperrt");
+      toast.success(t("users.unsuspended"));
     },
-    onError: () => toast.error("Fehler beim Entsperren"),
+    onError: () => toast.error(t("users.unsuspendError")),
   });
 
   const canSuspend = (u: any) => {
@@ -126,7 +128,7 @@ const UserManagement = () => {
             {u.name}
             {isProtected && (
               <Badge variant="secondary" className="gap-1 text-xs">
-                <Shield className="h-3 w-3" /> Geschützt
+                <Shield className="h-3 w-3" /> {t("common.protected")}
               </Badge>
             )}
           </span>
@@ -135,17 +137,16 @@ const UserManagement = () => {
         <TableCell>{u.company?.name ?? `#${u.company_id}`}</TableCell>
         <TableCell>
           <span className={`inline-flex rounded-full px-2 py-0.5 text-xs font-medium ${u.role === "admin" ? "bg-primary/10 text-primary" : "bg-muted text-muted-foreground"}`}>
-            {u.role === "admin" ? "Admin" : "Benutzer"}
+            {u.role === "admin" ? t("users.roleAdmin") : t("users.roleUser")}
           </span>
         </TableCell>
         <TableCell className="text-right">
           <div className="flex justify-end gap-1">
             {isSuspendedTab ? (
-              /* Suspended tab: show unsuspend button */
               <Button
                 variant="ghost"
                 size="icon"
-                title="Entsperren"
+                title={t("common.unsuspend")}
                 onClick={() => unsuspendMutation.mutate(u.id)}
                 className="text-emerald-600 hover:text-emerald-700"
               >
@@ -157,7 +158,7 @@ const UserManagement = () => {
                   <Button
                     variant="ghost"
                     size="icon"
-                    title="Sperren"
+                    title={t("common.suspend")}
                     onClick={() => suspendMutation.mutate(u.id)}
                     className="text-amber-600 hover:text-amber-700"
                   >
@@ -168,7 +169,7 @@ const UserManagement = () => {
                   <Button
                     variant="ghost"
                     size="icon"
-                    title="2FA zurücksetzen"
+                    title={t("users.reset2fa")}
                     onClick={() => setReset2faUser({ id: u.id, name: u.name })}
                   >
                     <ShieldOff className="h-4 w-4" />
@@ -177,19 +178,19 @@ const UserManagement = () => {
                 <Button
                   variant="ghost"
                   size="icon"
-                  title="Passwort zurücksetzen"
+                  title={t("users.resetPassword")}
                   onClick={() => { setResetUser({ id: u.id, name: u.name }); setNewPassword(""); }}
                 >
                   <KeyRound className="h-4 w-4" />
                 </Button>
                 {isProtected ? (
-                  <span className="inline-flex h-10 w-10 items-center justify-center text-xs text-muted-foreground">—</span>
+                  <span className="inline-flex h-10 w-10 items-center justify-center text-xs text-muted-foreground">\u2014</span>
                 ) : (
                   <Button
                     variant="ghost"
                     size="icon"
                     className="text-destructive hover:text-destructive"
-                    title="Benutzer löschen"
+                    title={t("common.delete")}
                     onClick={() => setDeleteUserId(u.id)}
                   >
                     <Trash2 className="h-4 w-4" />
@@ -206,17 +207,17 @@ const UserManagement = () => {
   const renderTable = (list: any[], isSuspendedTab: boolean) => (
     list.length === 0 ? (
       <p className="py-8 text-center text-muted-foreground">
-        {isSuspendedTab ? "Keine gesperrten Benutzer" : "Keine aktiven Benutzer"}
+        {isSuspendedTab ? t("users.noSuspended") : t("users.noActive")}
       </p>
     ) : (
       <Table>
         <TableHeader>
           <TableRow>
-            <TableHead>Name</TableHead>
-            <TableHead>E-Mail</TableHead>
-            <TableHead>Firma</TableHead>
-            <TableHead>Rolle</TableHead>
-            <TableHead className="w-[160px] text-right">Aktionen</TableHead>
+            <TableHead>{t("common.name")}</TableHead>
+            <TableHead>{t("common.email")}</TableHead>
+            <TableHead>{t("dashboard.company")}</TableHead>
+            <TableHead>{t("common.role")}</TableHead>
+            <TableHead className="w-[160px] text-right">{t("common.actions")}</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -230,37 +231,37 @@ const UserManagement = () => {
     <div className="container py-8 space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-foreground">Benutzer</h1>
-          <p className="text-sm text-muted-foreground">Benutzer erstellen, verwalten und Passwörter zurücksetzen</p>
+          <h1 className="text-2xl font-bold text-foreground">{t("users.title")}</h1>
+          <p className="text-sm text-muted-foreground">{t("users.subtitle")}</p>
         </div>
         <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
           <DialogTrigger asChild>
-            <Button><Plus className="mr-2 h-4 w-4" /> Neuer Benutzer</Button>
+            <Button><Plus className="mr-2 h-4 w-4" /> {t("users.newUser")}</Button>
           </DialogTrigger>
           <DialogContent>
-            <DialogHeader><DialogTitle>Neuen Benutzer erstellen</DialogTitle></DialogHeader>
+            <DialogHeader><DialogTitle>{t("users.createTitle")}</DialogTitle></DialogHeader>
             <form onSubmit={(e) => { e.preventDefault(); createMutation.mutate({ name, email, password, company_id: Number(companyId), role }); }} className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="user-name">Name</Label>
-                <Input id="user-name" required value={name} onChange={(e) => setName(e.target.value)} placeholder="Dr. Max Mustermann" />
+                <Label htmlFor="user-name">{t("common.name")}</Label>
+                <Input id="user-name" required value={name} onChange={(e) => setName(e.target.value)} placeholder={t("users.namePlaceholder")} />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="user-email">E-Mail</Label>
-                <Input id="user-email" type="email" required value={email} onChange={(e) => setEmail(e.target.value)} placeholder="name@praxis.de" />
+                <Label htmlFor="user-email">{t("common.email")}</Label>
+                <Input id="user-email" type="email" required value={email} onChange={(e) => setEmail(e.target.value)} placeholder={t("users.emailPlaceholder")} />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="user-password">Passwort</Label>
+                <Label htmlFor="user-password">{t("common.password")}</Label>
                 <div className="relative">
-                  <Input id="user-password" type={showCreatePw ? "text" : "password"} required value={password} onChange={(e) => setPassword(e.target.value)} placeholder="••••••••" />
+                  <Input id="user-password" type={showCreatePw ? "text" : "password"} required value={password} onChange={(e) => setPassword(e.target.value)} placeholder={t("users.passwordPlaceholder")} />
                   <Button type="button" variant="ghost" size="icon" className="absolute right-0 top-0 h-10 w-10" onClick={() => setShowCreatePw(!showCreatePw)}>
                     {showCreatePw ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                   </Button>
                 </div>
               </div>
               <div className="space-y-2">
-                <Label>Firma</Label>
+                <Label>{t("dashboard.company")}</Label>
                 <Select value={companyId} onValueChange={setCompanyId} required>
-                  <SelectTrigger><SelectValue placeholder="Firma wählen" /></SelectTrigger>
+                  <SelectTrigger><SelectValue placeholder={t("users.selectCompany")} /></SelectTrigger>
                   <SelectContent>
                     {companies.map((c: any) => (
                       <SelectItem key={c.id} value={String(c.id)}>{c.name}</SelectItem>
@@ -269,17 +270,17 @@ const UserManagement = () => {
                 </Select>
               </div>
               <div className="space-y-2">
-                <Label>Rolle</Label>
+                <Label>{t("common.role")}</Label>
                 <Select value={role} onValueChange={setRole}>
                   <SelectTrigger><SelectValue /></SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="admin">Admin</SelectItem>
-                    <SelectItem value="user">Benutzer</SelectItem>
+                    <SelectItem value="admin">{t("users.roleAdmin")}</SelectItem>
+                    <SelectItem value="user">{t("users.roleUser")}</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
               <Button type="submit" className="w-full" disabled={createMutation.isPending}>
-                {createMutation.isPending ? "Erstelle…" : "Benutzer erstellen"}
+                {createMutation.isPending ? t("users.createSubmitting") : t("users.createSubmit")}
               </Button>
             </form>
           </DialogContent>
@@ -288,7 +289,7 @@ const UserManagement = () => {
 
       <Card>
         <CardHeader>
-          <CardTitle className="flex items-center gap-2 text-lg"><UserCog className="h-5 w-5" /> Benutzer</CardTitle>
+          <CardTitle className="flex items-center gap-2 text-lg"><UserCog className="h-5 w-5" /> {t("users.title")}</CardTitle>
         </CardHeader>
         <CardContent>
           {isLoading ? (
@@ -300,12 +301,12 @@ const UserManagement = () => {
               <TabsList>
                 <TabsTrigger value="active" className="gap-1.5">
                   <CheckCircle className="h-3.5 w-3.5" />
-                  Aktiv
+                  {t("users.activeTab")}
                   <Badge variant="secondary" className="ml-1 h-5 min-w-[20px] px-1.5 text-[10px]">{activeUsers.length}</Badge>
                 </TabsTrigger>
                 <TabsTrigger value="suspended" className="gap-1.5">
                   <Ban className="h-3.5 w-3.5" />
-                  Gesperrt
+                  {t("users.suspendedTab")}
                   {suspendedUsers.length > 0 && (
                     <Badge variant="destructive" className="ml-1 h-5 min-w-[20px] px-1.5 text-[10px]">{suspendedUsers.length}</Badge>
                   )}
@@ -322,61 +323,58 @@ const UserManagement = () => {
         </CardContent>
       </Card>
 
-      {/* Delete Confirmation */}
       <AlertDialog open={deleteUserId !== null} onOpenChange={(open) => !open && setDeleteUserId(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Benutzer löschen?</AlertDialogTitle>
+            <AlertDialogTitle>{t("users.deleteTitle")}</AlertDialogTitle>
             <AlertDialogDescription>
-              Dieser Benutzer wird unwiderruflich gelöscht. Diese Aktion kann nicht rückgängig gemacht werden.
+              {t("users.deleteDescription")}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Abbrechen</AlertDialogCancel>
+            <AlertDialogCancel>{t("common.cancel")}</AlertDialogCancel>
             <AlertDialogAction
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
               onClick={() => deleteUserId && deleteMutation.mutate(deleteUserId)}
             >
-              Löschen
+              {t("common.delete")}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
 
-      {/* 2FA Reset Confirmation */}
       <AlertDialog open={reset2faUser !== null} onOpenChange={(open) => !open && setReset2faUser(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>2FA zurücksetzen?</AlertDialogTitle>
+            <AlertDialogTitle>{t("users.reset2faTitle")}</AlertDialogTitle>
             <AlertDialogDescription>
-              Die Zwei-Faktor-Authentifizierung für <span className="font-semibold">{reset2faUser?.name}</span> wird deaktiviert. Der Benutzer kann sich dann ohne Code anmelden und 2FA neu einrichten.
+              <span dangerouslySetInnerHTML={{ __html: t("users.reset2faDescription", { name: reset2faUser?.name }) }} />
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Abbrechen</AlertDialogCancel>
+            <AlertDialogCancel>{t("common.cancel")}</AlertDialogCancel>
             <AlertDialogAction
               onClick={() => reset2faUser && reset2faMutation.mutate(reset2faUser.id)}
             >
-              2FA deaktivieren
+              {t("users.reset2faConfirm")}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
 
-      {/* Password Reset Dialog */}
       <Dialog open={resetUser !== null} onOpenChange={(open) => !open && setResetUser(null)}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Passwort zurücksetzen</DialogTitle>
+            <DialogTitle>{t("users.resetPasswordTitle")}</DialogTitle>
           </DialogHeader>
           <p className="text-sm text-muted-foreground">
-            Neues Passwort für <span className="font-semibold text-foreground">{resetUser?.name}</span> festlegen:
+            <span dangerouslySetInnerHTML={{ __html: t("users.resetPasswordFor", { name: resetUser?.name }) }} />
           </p>
           <form
             onSubmit={(e) => {
               e.preventDefault();
               if (newPassword !== confirmPassword) {
-                toast.error("Passwörter stimmen nicht überein");
+                toast.error(t("users.passwordMismatch"));
                 return;
               }
               if (resetUser && newPassword.length >= 6) {
@@ -386,7 +384,7 @@ const UserManagement = () => {
             className="space-y-4"
           >
             <div className="space-y-2">
-              <Label htmlFor="new-pw">Neues Passwort</Label>
+              <Label htmlFor="new-pw">{t("users.newPassword")}</Label>
               <div className="relative">
                 <Input
                   id="new-pw"
@@ -395,7 +393,7 @@ const UserManagement = () => {
                   minLength={6}
                   value={newPassword}
                   onChange={(e) => setNewPassword(e.target.value)}
-                  placeholder="Min. 6 Zeichen"
+                  placeholder={t("users.minChars")}
                 />
                 <Button type="button" variant="ghost" size="icon" className="absolute right-0 top-0 h-10 w-10" onClick={() => setShowNewPw(!showNewPw)}>
                   {showNewPw ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
@@ -403,7 +401,7 @@ const UserManagement = () => {
               </div>
             </div>
             <div className="space-y-2">
-              <Label htmlFor="confirm-pw">Passwort bestätigen</Label>
+              <Label htmlFor="confirm-pw">{t("users.confirmPassword")}</Label>
               <div className="relative">
                 <Input
                   id="confirm-pw"
@@ -412,7 +410,7 @@ const UserManagement = () => {
                   minLength={6}
                   value={confirmPassword}
                   onChange={(e) => setConfirmPassword(e.target.value)}
-                  placeholder="Passwort wiederholen"
+                  placeholder={t("users.repeatPassword")}
                 />
                 <Button type="button" variant="ghost" size="icon" className="absolute right-0 top-0 h-10 w-10" onClick={() => setShowConfirmPw(!showConfirmPw)}>
                   {showConfirmPw ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
@@ -420,7 +418,7 @@ const UserManagement = () => {
               </div>
             </div>
             <Button type="submit" className="w-full" disabled={resetPasswordMutation.isPending}>
-              {resetPasswordMutation.isPending ? "Setze zurück…" : "Passwort ändern"}
+              {resetPasswordMutation.isPending ? t("users.changingPassword") : t("users.changePassword")}
             </Button>
           </form>
         </DialogContent>
