@@ -44,17 +44,18 @@ function resolveDoctorName(doctorName?: string): string | null {
 }
 
 function getAbcdeLabel(img: LocationImage): { key: string; label: string; value: string }[] {
+  const t = i18n.t.bind(i18n);
   const rows: { key: string; label: string; value: string }[] = [];
   if (img.abc_asymmetry != null)
-    rows.push({ key: "A", label: "Asymmetrie", value: img.abc_asymmetry ? "Asymmetrisch" : "Symmetrisch" });
+    rows.push({ key: "A", label: t('pdf.asymmetry'), value: img.abc_asymmetry ? t('pdf.asymmetric') : t('pdf.symmetric') });
   if (img.abc_border)
-    rows.push({ key: "B", label: "Begrenzung", value: img.abc_border === "unregelmaessig" ? "Unregelmässig" : "Regelmässig" });
+    rows.push({ key: "B", label: t('pdf.borderLabel'), value: img.abc_border === "unregelmaessig" ? t('pdf.borderIrregular') : t('pdf.borderRegular') });
   if (img.abc_color)
-    rows.push({ key: "C", label: "Farbe", value: img.abc_color === "mehrfarbig" ? "Mehrfarbig" : "Einfarbig" });
+    rows.push({ key: "C", label: t('pdf.colorLabel'), value: img.abc_color === "mehrfarbig" ? t('pdf.colorMulti') : t('pdf.colorSingle') });
   if (img.abc_diameter)
-    rows.push({ key: "D", label: "Durchmesser", value: img.abc_diameter === "groesser_6mm" ? "> 6 mm" : "< 6 mm" });
+    rows.push({ key: "D", label: t('pdf.diameterLabel'), value: img.abc_diameter === "groesser_6mm" ? "> 6 mm" : "< 6 mm" });
   if (img.abc_evolution)
-    rows.push({ key: "E", label: "Entwicklung", value: img.abc_evolution === "veraendert" ? "Verändert" : "Stabil" });
+    rows.push({ key: "E", label: t('pdf.evolutionLabel'), value: img.abc_evolution === "veraendert" ? t('pdf.evolutionChanged') : t('pdf.evolutionStable') });
   return rows;
 }
 
