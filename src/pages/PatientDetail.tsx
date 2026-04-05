@@ -883,7 +883,7 @@ const PatientDetail = () => {
                 ) : (
                   <div className="space-y-6">
                     {locations.filter(loc => (loc.images?.length ?? 0) > 0).map((loc) => {
-                      const locName = loc.name || (loc.type === "region" ? "Region" : `Spot #${loc.id}`);
+                      const locName = translateAnatomyName(loc.name) || (loc.type === "region" ? "Region" : `Spot #${loc.id}`);
                       const sortedImages = [...(loc.images ?? [])].sort(
                         (a, b) => new Date(b.created_at ?? 0).getTime() - new Date(a.created_at ?? 0).getTime()
                       );
