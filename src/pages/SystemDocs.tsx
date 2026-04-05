@@ -35,166 +35,152 @@ const SystemDocs = () => {
     <div className="space-y-6 max-w-4xl">
       <div>
         <h1 className="text-2xl font-bold text-foreground">{t('systemDocs.title')}</h1>
-        <p className="text-sm text-muted-foreground">
-          {t('systemDocs.subtitle')}
-        </p>
+        <p className="text-sm text-muted-foreground">{t('systemDocs.subtitle')}</p>
       </div>
 
-      {/* Server & Hosting */}
-      <Section icon={Server} title="Server & Hosting">
-        <InfoRow label="Anbieter" value="Infomaniak (Schweiz)" />
-        <InfoRow label="Produkt" value="VPS (Virtual Private Server)" />
-        <InfoRow label="Betriebssystem" value="Ubuntu 24.04.3 LTS" />
-        <InfoRow label="Kernel" value="6.8.0-106-generic (x86_64)" />
-        <InfoRow label="IP-Adresse (IPv4)" value="83.228.246.191" />
-        <InfoRow label="IP-Adresse (IPv6)" value="2001:1600:18:201::3a1" />
-        <InfoRow label="Speicher" value="57 GB SSD" badge="~14% belegt" />
-        <InfoRow label="RAM" value="~25% Auslastung" />
-        <InfoRow label="Standort" value="Rechenzentrum Schweiz 🇨🇭" />
+      <Section icon={Server} title={t('systemDocs.serverHosting')}>
+        <InfoRow label={t('systemDocs.provider')} value={t('systemDocs.providerVal')} />
+        <InfoRow label={t('systemDocs.product')} value={t('systemDocs.productVal')} />
+        <InfoRow label={t('systemDocs.os')} value="Ubuntu 24.04.3 LTS" />
+        <InfoRow label={t('systemDocs.kernel')} value="6.8.0-106-generic (x86_64)" />
+        <InfoRow label={t('systemDocs.ipv4')} value="83.228.246.191" />
+        <InfoRow label={t('systemDocs.ipv6')} value="2001:1600:18:201::3a1" />
+        <InfoRow label={t('systemDocs.storage')} value="57 GB SSD" badge={t('systemDocs.storageUsed')} />
+        <InfoRow label={t('systemDocs.ram')} value={t('systemDocs.ramUsage')} />
+        <InfoRow label={t('systemDocs.location')} value={t('systemDocs.locationVal')} />
       </Section>
 
-      {/* Domains & SSL */}
-      <Section icon={Globe} title="Domains & SSL">
-        <InfoRow label="Hauptdomain" value="derm247.ch" />
-        <InfoRow label="API-Domain" value="api.derm247.ch" />
-        <InfoRow label="Weiterleitungen" value="app.derm247.ch → derm247.ch" />
-        <InfoRow label="www-Weiterleitung" value="www.derm247.ch → derm247.ch" />
-        <InfoRow label="SSL-Zertifikat" value="Let's Encrypt (automatisch)" badge="Gültig" />
-        <InfoRow label="SSL-Erneuerung" value="Automatisch via Certbot Timer" />
-        <InfoRow label="Protokoll" value="HTTPS (TLS 1.2 / 1.3)" />
+      <Section icon={Globe} title={t('systemDocs.domainsSsl')}>
+        <InfoRow label={t('systemDocs.mainDomain')} value="derm247.ch" />
+        <InfoRow label={t('systemDocs.apiDomain')} value="api.derm247.ch" />
+        <InfoRow label={t('systemDocs.redirects')} value="app.derm247.ch → derm247.ch" />
+        <InfoRow label={t('systemDocs.wwwRedirect')} value="www.derm247.ch → derm247.ch" />
+        <InfoRow label={t('systemDocs.sslCert')} value={t('systemDocs.sslCertVal')} badge={t('systemDocs.valid')} />
+        <InfoRow label={t('systemDocs.sslRenewal')} value={t('systemDocs.sslRenewalVal')} />
+        <InfoRow label={t('systemDocs.protocol')} value={t('systemDocs.protocolVal')} />
       </Section>
 
-      {/* Webserver */}
-      <Section icon={Monitor} title="Webserver (Nginx)">
-        <InfoRow label="Software" value="Nginx 1.24.0" badge="Auto-Start" />
-        <InfoRow label="Frontend" value="/var/www/app.derm247.ch/" />
-        <InfoRow label="SPA-Routing" value="try_files → index.html (Fallback)" />
-        <InfoRow label="MIME-Types" value=".mjs als application/javascript" />
-        <InfoRow label="API-Backend" value="Reverse Proxy → PHP-FPM (Unix Socket)" />
-        <InfoRow label="Max Upload" value="20 MB (client_max_body_size)" />
+      <Section icon={Monitor} title={t('systemDocs.webserver')}>
+        <InfoRow label={t('systemDocs.software')} value="Nginx 1.24.0" badge={t('systemDocs.autoStartLabel')} />
+        <InfoRow label={t('systemDocs.frontend')} value="/var/www/app.derm247.ch/" />
+        <InfoRow label={t('systemDocs.spaRouting')} value={t('systemDocs.spaRoutingVal')} />
+        <InfoRow label={t('systemDocs.mimeTypes')} value={t('systemDocs.mimeTypesVal')} />
+        <InfoRow label={t('systemDocs.apiBackend')} value={t('systemDocs.apiBackendVal')} />
+        <InfoRow label={t('systemDocs.maxUpload')} value={t('systemDocs.maxUploadVal')} />
       </Section>
 
-      {/* Backend / API */}
-      <Section icon={Cpu} title="Backend (Laravel API)">
-        <InfoRow label="Framework" value="Laravel (PHP)" />
-        <InfoRow label="PHP-Version" value="8.3 (PHP-FPM)" badge="Auto-Start" />
-        <InfoRow label="Verbindung" value="Unix Socket (/run/php/php8.3-fpm.sock)" />
-        <InfoRow label="API-URL" value="https://api.derm247.ch" />
-        <InfoRow label="Pfad auf Server" value="/home/ubuntu/derm-api/" />
-        <InfoRow label="Authentifizierung" value="Laravel Sanctum (Bearer Token)" />
-        <InfoRow label="2FA" value="TOTP (Google Authenticator kompatibel)" />
-        <InfoRow label="CORS" value="Storage-Pfade mit Access-Control-Allow-Origin" />
+      <Section icon={Cpu} title={t('systemDocs.backendApi')}>
+        <InfoRow label={t('systemDocs.framework')} value="Laravel (PHP)" />
+        <InfoRow label={t('systemDocs.phpVersion')} value="8.3 (PHP-FPM)" badge={t('systemDocs.autoStartLabel')} />
+        <InfoRow label={t('systemDocs.connection')} value="Unix Socket (/run/php/php8.3-fpm.sock)" />
+        <InfoRow label={t('systemDocs.apiUrl')} value="https://api.derm247.ch" />
+        <InfoRow label={t('systemDocs.serverPath')} value="/home/ubuntu/derm-api/" />
+        <InfoRow label={t('systemDocs.authentication')} value={t('systemDocs.authVal')} />
+        <InfoRow label={t('systemDocs.twoFa')} value={t('systemDocs.twoFaVal')} />
+        <InfoRow label={t('systemDocs.cors')} value={t('systemDocs.corsVal')} />
       </Section>
 
-      {/* Frontend */}
-      <Section icon={Monitor} title="Frontend">
-        <InfoRow label="Framework" value="React 18 + TypeScript 5" />
-        <InfoRow label="Build-Tool" value="Vite 5" />
-        <InfoRow label="CSS" value="Tailwind CSS v3" />
-        <InfoRow label="UI-Komponenten" value="shadcn/ui (Radix UI)" />
-        <InfoRow label="3D-Bodymap" value="Three.js / React Three Fiber" />
-        <InfoRow label="PDF-Export" value="jsPDF + jspdf-autotable" />
-        <InfoRow label="Deployment" value="GitHub → Build → rsync nach /var/www/" />
-        <InfoRow label="Entwicklungsplattform" value="Lovable.dev" />
+      <Section icon={Monitor} title={t('systemDocs.frontendSection')}>
+        <InfoRow label={t('systemDocs.framework')} value="React 18 + TypeScript 5" />
+        <InfoRow label={t('systemDocs.buildTool')} value="Vite 5" />
+        <InfoRow label={t('systemDocs.css')} value="Tailwind CSS v3" />
+        <InfoRow label={t('systemDocs.uiComponents')} value="shadcn/ui (Radix UI)" />
+        <InfoRow label={t('systemDocs.bodymap3d')} value="Three.js / React Three Fiber" />
+        <InfoRow label={t('systemDocs.pdfExport')} value="jsPDF + jspdf-autotable" />
+        <InfoRow label={t('systemDocs.deployment')} value="GitHub → Build → rsync nach /var/www/" />
+        <InfoRow label={t('systemDocs.devPlatform')} value="Lovable.dev" />
       </Section>
 
-      {/* Datenbank */}
-      <Section icon={Database} title="Datenbank">
-        <InfoRow label="Engine" value="SQLite" />
-        <InfoRow label="Pfad" value="/home/ubuntu/derm-api/database/database.sqlite" />
-        <InfoRow label="Tabellen" value="Patienten, Befunde, Bilder, Locations, Users, Firmen" />
-        <InfoRow label="Erweiterte Felder" value="3D-Koordinaten, Oberflächennormalen, Klassifikation" />
-        <InfoRow label="Arzt-Zuordnung" value="user_id pro Befund" />
-        <InfoRow label="Notiz-Felder" value="Bild-Notizen (note-Feld)" />
+      <Section icon={Database} title={t('systemDocs.database')}>
+        <InfoRow label={t('systemDocs.engine')} value="SQLite" />
+        <InfoRow label={t('systemDocs.dbPath')} value="/home/ubuntu/derm-api/database/database.sqlite" />
+        <InfoRow label={t('systemDocs.tables')} value={t('systemDocs.tablesVal')} />
+        <InfoRow label={t('systemDocs.extendedFields')} value={t('systemDocs.extFieldsVal')} />
+        <InfoRow label={t('systemDocs.doctorAssign')} value={t('systemDocs.doctorAssignVal')} />
+        <InfoRow label={t('systemDocs.noteFields')} value={t('systemDocs.noteFieldsVal')} />
       </Section>
 
-      {/* Dateispeicher */}
-      <Section icon={HardDrive} title="Dateispeicher (Bilder)">
-        <InfoRow label="Speicherort" value="Laravel Storage (geschützter Pfad)" />
-        <InfoRow label="Pfad" value="/home/ubuntu/derm-api/storage/app/public/images/" />
-        <InfoRow label="Zugriff" value="Über API mit Authentifizierung" />
-        <InfoRow label="Bereitstellung" value="Absolute URLs via API" />
-        <InfoRow label="Max. Upload-Grösse" value="20 MB" />
+      <Section icon={HardDrive} title={t('systemDocs.fileStorage')}>
+        <InfoRow label={t('systemDocs.storageLocation')} value={t('systemDocs.storageLocVal')} />
+        <InfoRow label={t('systemDocs.dbPath')} value="/home/ubuntu/derm-api/storage/app/public/images/" />
+        <InfoRow label={t('systemDocs.access')} value={t('systemDocs.accessVal')} />
+        <InfoRow label={t('systemDocs.delivery')} value={t('systemDocs.deliveryVal')} />
+        <InfoRow label={t('systemDocs.maxUploadSize')} value="20 MB" />
       </Section>
 
-      {/* Sicherheit */}
-      <Section icon={Shield} title="Sicherheit & Datenschutz">
-        <InfoRow label="Firewall" value="UFW aktiv" badge="Aktiv" />
-        <InfoRow label="Offene Ports" value="22 (SSH), 80 (HTTP), 443 (HTTPS)" />
-        <InfoRow label="Authentifizierung" value="Bearer Token (Sanctum) + 2FA (TOTP)" />
-        <InfoRow label="Session-Speicher" value="sessionStorage (kein localStorage für Tokens)" />
-        <InfoRow label="Auto-Logout" value="Bei 401-Fehler automatische Weiterleitung" />
-        <InfoRow label="Rollensystem" value="RBAC (admin / user)" />
-        <InfoRow label="Datenspeicherung" value="Ausschliesslich auf dem Server in der Schweiz 🇨🇭" />
-        <InfoRow label="Keine Drittanbieter" value="Keine Cloud-Dienste, keine externe Verarbeitung" />
-        <InfoRow label="Patientendaten" value="Werden nie im Browser persistent gespeichert" />
-        <InfoRow label="Verschlüsselung" value="TLS 1.2/1.3 für alle Verbindungen" />
+      <Section icon={Shield} title={t('systemDocs.security')}>
+        <InfoRow label={t('systemDocs.firewall')} value={t('systemDocs.firewallVal')} badge={t('common.active')} />
+        <InfoRow label={t('systemDocs.openPorts')} value={t('systemDocs.openPortsVal')} />
+        <InfoRow label={t('systemDocs.authMethod')} value={t('systemDocs.authMethodVal')} />
+        <InfoRow label={t('systemDocs.sessionStorage')} value={t('systemDocs.sessionVal')} />
+        <InfoRow label={t('systemDocs.autoLogout')} value={t('systemDocs.autoLogoutVal')} />
+        <InfoRow label={t('systemDocs.roleSystem')} value={t('systemDocs.roleVal')} />
+        <InfoRow label={t('systemDocs.dataStorage')} value={t('systemDocs.dataStorageVal')} />
+        <InfoRow label={t('systemDocs.noThirdParty')} value={t('systemDocs.noThirdPartyVal')} />
+        <InfoRow label={t('systemDocs.patientData')} value={t('systemDocs.patientDataVal')} />
+        <InfoRow label={t('systemDocs.encryption')} value={t('systemDocs.encryptionVal')} />
       </Section>
 
-      {/* Backup */}
-      <Section icon={RefreshCw} title="Backup-System">
-        <InfoRow label="Backup-Verzeichnis" value="~/backups/" />
-        <InfoRow label="DB-Backup" value="Täglich um 02:00 Uhr (Cron)" />
-        <InfoRow label="DB-Aufbewahrung" value="30 Tage" />
-        <InfoRow label="Bild-Backup" value="Wöchentlich (Sonntag 03:00 Uhr)" />
-        <InfoRow label="Bild-Aufbewahrung" value="60 Tage" />
-        <InfoRow label="Snapshots" value="2× täglich (03:00 & 15:00 Uhr, pro Firma)" />
-        <InfoRow label="Backup-Format" value="SQLite-Kopie / tar.gz Archiv" />
+      <Section icon={RefreshCw} title={t('systemDocs.backup')}>
+        <InfoRow label={t('systemDocs.backupDir')} value="~/backups/" />
+        <InfoRow label={t('systemDocs.dbBackup')} value={t('systemDocs.dbBackupVal')} />
+        <InfoRow label={t('systemDocs.dbRetention')} value={t('systemDocs.dbRetentionVal')} />
+        <InfoRow label={t('systemDocs.imgBackup')} value={t('systemDocs.imgBackupVal')} />
+        <InfoRow label={t('systemDocs.imgRetention')} value={t('systemDocs.imgRetentionVal')} />
+        <InfoRow label={t('systemDocs.snapshots')} value={t('systemDocs.snapshotsVal')} />
+        <InfoRow label={t('systemDocs.backupFormat')} value={t('systemDocs.backupFormatVal')} />
       </Section>
 
-      {/* Auto-Start Dienste */}
-      <Section icon={Clock} title="Auto-Start nach Reboot">
+      <Section icon={Clock} title={t('systemDocs.autoStart')}>
         <div className="grid grid-cols-2 gap-2">
           {[
-            { name: "Nginx (Webserver)", status: true },
-            { name: "PHP 8.3 FPM (API)", status: true },
-            { name: "Cron (Backups)", status: true },
-            { name: "Certbot (SSL)", status: true },
-            { name: "UFW Firewall", status: true },
-          ].map((s) => (
-            <div key={s.name} className="flex items-center gap-2 rounded-md border border-border/40 px-3 py-2">
-              <div className={`h-2 w-2 rounded-full ${s.status ? "bg-green-500" : "bg-red-500"}`} />
-              <span className="text-foreground text-xs font-medium">{s.name}</span>
+            "Nginx (Webserver)",
+            "PHP 8.3 FPM (API)",
+            "Cron (Backups)",
+            "Certbot (SSL)",
+            "UFW Firewall",
+          ].map((name) => (
+            <div key={name} className="flex items-center gap-2 rounded-md border border-border/40 px-3 py-2">
+              <div className="h-2 w-2 rounded-full bg-green-500" />
+              <span className="text-foreground text-xs font-medium">{name}</span>
             </div>
           ))}
         </div>
       </Section>
 
-      {/* Deployment */}
-      <Section icon={FileText} title="Deployment-Workflow">
+      <Section icon={FileText} title={t('systemDocs.deployWorkflow')}>
         <div className="space-y-2">
-          <p className="text-foreground font-medium text-xs uppercase tracking-wider">Frontend-Deployment:</p>
+          <p className="text-foreground font-medium text-xs uppercase tracking-wider">{t('systemDocs.frontendDeploy')}</p>
           <ol className="list-decimal list-inside space-y-1 ml-1">
-            <li>Code wird auf Lovable.dev entwickelt</li>
-            <li>Automatischer Export nach GitHub (Repository: skin-scope-hub)</li>
-            <li>Server bezieht Code via GitHub API → <code className="text-xs bg-muted px-1 rounded">~/derm-frontend</code></li>
-            <li>Build mit <code className="text-xs bg-muted px-1 rounded">npm run build</code></li>
-            <li>Sync mit <code className="text-xs bg-muted px-1 rounded">rsync -a --delete</code> nach <code className="text-xs bg-muted px-1 rounded">/var/www/app.derm247.ch/</code></li>
+            <li>{t('systemDocs.deployStep1')}</li>
+            <li>{t('systemDocs.deployStep2')}</li>
+            <li>{t('systemDocs.deployStep3')} — <code className="text-xs bg-muted px-1 rounded">~/derm-frontend</code></li>
+            <li>{t('systemDocs.deployStep4')} — <code className="text-xs bg-muted px-1 rounded">npm run build</code></li>
+            <li>{t('systemDocs.deployStep5')} — <code className="text-xs bg-muted px-1 rounded">rsync -a --delete</code></li>
           </ol>
           <Separator className="my-3" />
-          <p className="text-foreground font-medium text-xs uppercase tracking-wider">Backend (API):</p>
+          <p className="text-foreground font-medium text-xs uppercase tracking-wider">{t('systemDocs.backendLabel')}</p>
           <ol className="list-decimal list-inside space-y-1 ml-1">
-            <li>Laravel-Code liegt in <code className="text-xs bg-muted px-1 rounded">/home/ubuntu/derm-api/</code></li>
-            <li>Schema-Updates nur mit <code className="text-xs bg-muted px-1 rounded">php artisan migrate</code></li>
-            <li className="text-destructive font-medium">⚠️ Niemals <code className="text-xs bg-muted px-1 rounded">migrate:fresh</code> in Produktion!</li>
+            <li>{t('systemDocs.backendStep1')}</li>
+            <li>{t('systemDocs.backendStep2')} — <code className="text-xs bg-muted px-1 rounded">php artisan migrate</code></li>
+            <li className="text-destructive font-medium">{t('systemDocs.backendStep3')}</li>
           </ol>
         </div>
       </Section>
 
-      {/* Wichtige Hinweise */}
-      <Section icon={Eye} title="Wichtige Hinweise">
+      <Section icon={Eye} title={t('systemDocs.importantNotes')}>
         <div className="space-y-2 text-xs">
           <div className="rounded-lg border border-primary/20 bg-primary/5 p-3">
-            <p className="font-medium text-foreground mb-1">🔒 Datenschutz</p>
-            <p>Alle Patientendaten werden ausschliesslich auf dem dedizierten Server in der Schweiz gespeichert. Es findet keine Verarbeitung durch externe Cloud-Dienste statt. Die Anwendung erfüllt die Anforderungen des Schweizer Datenschutzgesetzes (DSG).</p>
+            <p className="font-medium text-foreground mb-1">{t('systemDocs.privacyTitle')}</p>
+            <p>{t('systemDocs.privacyText')}</p>
           </div>
           <div className="rounded-lg border border-amber-500/20 bg-amber-500/5 p-3">
-            <p className="font-medium text-foreground mb-1">⚡ Portabilität</p>
-            <p>Das System ist plattformunabhängig aufgebaut. Alle API-URLs sind zentral konfiguriert, um einen Export und Betrieb in anderen Umgebungen zu ermöglichen (kein Vendor Lock-in).</p>
+            <p className="font-medium text-foreground mb-1">{t('systemDocs.portabilityTitle')}</p>
+            <p>{t('systemDocs.portabilityText')}</p>
           </div>
           <div className="rounded-lg border border-destructive/20 bg-destructive/5 p-3">
-            <p className="font-medium text-foreground mb-1">🚨 Wartung</p>
-            <p>Vor Server-Änderungen immer ein manuelles Backup erstellen. Automatische Backups laufen täglich um 02:00 Uhr. Nach einem Reboot starten alle Dienste automatisch.</p>
+            <p className="font-medium text-foreground mb-1">{t('systemDocs.maintenanceTitle')}</p>
+            <p>{t('systemDocs.maintenanceText')}</p>
           </div>
         </div>
       </Section>
