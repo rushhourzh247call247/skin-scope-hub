@@ -759,9 +759,9 @@ const OverviewPhoto = ({ overviewLocation, spotLocations, patientId, onNavigateT
                       }}
                     >
                       {isAutoAligning ? (
-                        <><Loader2 className="h-3 w-3 animate-spin" /> Analysiere…</>
+                       <><Loader2 className="h-3 w-3 animate-spin" /> {t('imageCompare.analyzing')}</>
                       ) : (
-                        <><Wand2 className="h-3 w-3" /> KI Ausrichtung</>
+                        <><Wand2 className="h-3 w-3" /> {t('imageCompare.aiAlignment')}</>
                       )}
                     </Button>
                     {isAlignmentModified && (
