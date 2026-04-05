@@ -934,7 +934,7 @@ function Scene({ markers, selectedLocationId, onMapClick, onMarkerClick, classif
       {markMode && hoverInfo && (
         <Html position={[hoverInfo.point.x, hoverInfo.point.y + 0.08, hoverInfo.point.z]} center style={{ pointerEvents: "none" }}>
           <div className="rounded-md border bg-card/95 px-2 py-1 shadow-lg backdrop-blur-sm whitespace-nowrap">
-            <p className="text-[11px] font-semibold text-foreground">{hoverInfo.zone}</p>
+            <p className="text-[11px] font-semibold text-foreground">{translateAnatomyName(hoverInfo.zone)}</p>
           </div>
         </Html>
       )}
