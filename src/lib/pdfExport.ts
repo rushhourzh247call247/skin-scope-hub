@@ -1009,7 +1009,7 @@ export async function generatePatientPDF(
           doc.text(clean(`${i18n.t('riskProgression.worsening')} (+${diff})`), barX, y);
         } else {
           doc.setTextColor(...C.riskLow);
-          doc.text(clean(`Verbesserung (${diff})`), barX, y);
+          doc.text(clean(`${i18n.t('riskProgression.improvement')} (${diff})`), barX, y);
         }
         y += 4;
       } else if (scores.length >= 2) {
