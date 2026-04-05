@@ -737,7 +737,7 @@ const PatientDetail = () => {
                     <Trash2 className="h-3 w-3 shrink-0 opacity-50" />
                     <div className="min-w-0 flex-1">
                       <p className="truncate font-medium">{loc.name || "Spot"}</p>
-                      <p className="text-[10px]">{loc.images?.length ?? 0} Bilder</p>
+                      <p className="text-[10px]">{loc.images?.length ?? 0} {t('common.images')}</p>
                     </div>
                     <button
                       onClick={() => restoreMutation.mutate(loc.id)}
