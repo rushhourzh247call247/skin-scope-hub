@@ -276,7 +276,7 @@ const OverviewPhoto = ({ overviewLocation, spotLocations, patientId, onNavigateT
       {pinMode && (
         <div className="flex items-center gap-2 rounded-md bg-primary/10 border border-primary/20 px-3 py-2 text-xs text-primary">
           <MapPin className="h-4 w-4 shrink-0" />
-          <span>Klicken Sie auf das Foto, um einen Pin zu platzieren. Danach wählen Sie den zugehörigen Spot.</span>
+          <span>{t('overviewPhoto.pinInstruction')}</span>
           <Button size="sm" variant="ghost" className="ml-auto h-6 px-2" onClick={() => { setPinMode(false); setPendingPin(null); }}>
             <X className="h-3 w-3" />
           </Button>
