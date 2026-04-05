@@ -339,7 +339,7 @@ const PatientDetail = () => {
         {/* Top row: back + name + tabs */}
         <div className="flex items-center gap-2 lg:gap-4">
           <Button variant="ghost" size="sm" onClick={() => navigate("/patients")} className="gap-1 shrink-0 h-8 px-2 lg:gap-1.5 lg:h-9 lg:px-3">
-            <ArrowLeft className="h-4 w-4" /> <span className="hidden sm:inline">Zurück</span>
+            <ArrowLeft className="h-4 w-4" /> <span className="hidden sm:inline">{t('patientDetail.backToList')}</span>
           </Button>
 
           <div className="h-6 w-px bg-border hidden sm:block" />
