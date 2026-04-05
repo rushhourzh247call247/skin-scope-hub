@@ -142,7 +142,7 @@ const MobileUpload = () => {
           setPhotos((prev) =>
             prev.map((p) =>
               p.order === order
-                ? { ...p, uploading: false, error: err.message || "Upload fehlgeschlagen" }
+                ? { ...p, uploading: false, error: err.message || t('mobileUpload.uploadError') }
                 : p
             )
           );
