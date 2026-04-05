@@ -1180,7 +1180,7 @@ const PatientDetail = () => {
                   <div className="rounded-lg border bg-card p-4 space-y-4">
                     <h4 className="text-xs font-semibold text-foreground uppercase tracking-wider flex items-center gap-2">
                       <GitCompareArrows className="h-3.5 w-3.5 text-amber-500" />
-                      Verlaufsvergleich
+                      {t('patientDetail.progressComparison')}
                     </h4>
                     {(() => {
                       const sorted = [...(selectedLocation.images ?? [])].sort(
