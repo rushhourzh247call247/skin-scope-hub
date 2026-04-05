@@ -317,7 +317,7 @@ const MobileUpload = () => {
           onClick={handleOpenGallery}
           disabled={uploadingCount > 0}
         >
-          <Images className="h-5 w-5" /> Galerie
+          <Images className="h-5 w-5" /> {t('mobileUpload.gallery')}
         </Button>
       </div>
 
