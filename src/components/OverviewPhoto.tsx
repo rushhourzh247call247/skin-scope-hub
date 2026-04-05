@@ -639,7 +639,7 @@ const OverviewPhoto = ({ overviewLocation, spotLocations, patientId, onNavigateT
               <div className="flex items-center justify-between">
                 <h4 className="text-sm font-semibold text-foreground flex items-center gap-2">
                   <GitCompareArrows className="h-4 w-4 text-primary" />
-                  Vergleich
+                   {t('overviewPhoto.comparison')}
                 </h4>
                 <div className="flex items-center gap-2">
                   <div className="flex items-center gap-1 rounded-lg bg-muted p-1">
