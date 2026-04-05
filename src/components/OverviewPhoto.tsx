@@ -254,7 +254,7 @@ const OverviewPhoto = ({ overviewLocation, spotLocations, patientId, onNavigateT
             variant="outline"
             onClick={() => onQrUpload(overviewLocation.id)}
             className="gap-1 text-xs h-8"
-            title="Foto vom Handy hochladen"
+            title={t('mobileUpload.title')}
           >
             <QrCode className="h-3.5 w-3.5" />
             <span>QR</span>
