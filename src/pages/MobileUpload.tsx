@@ -346,7 +346,7 @@ const MobileUpload = () => {
                 className="text-xs gap-1.5 border-destructive/30 text-destructive"
                 onClick={() => retryFailedUploads()}
               >
-                <AlertTriangle className="h-3 w-3" /> Fehlgeschlagene erneut versuchen
+                <AlertTriangle className="h-3 w-3" /> {t('mobileUpload.retryFailed')}
               </Button>
             </div>
           )}
