@@ -26,6 +26,7 @@ function formatBytes(bytes: number) {
 }
 
 const Snapshots = () => {
+  const { t } = useTranslation();
   const queryClient = useQueryClient();
   const [view, setView] = useState<View>({ type: "list" });
   const [restoreConfirm, setRestoreConfirm] = useState<{ type: "patient" | "company"; date: string; id: number; name: string } | null>(null);

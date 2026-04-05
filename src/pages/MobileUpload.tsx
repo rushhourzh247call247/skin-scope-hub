@@ -37,6 +37,7 @@ type SessionState =
 // ─── Main Component ───
 
 const MobileUpload = () => {
+  const { t } = useTranslation();
   const [searchParams] = useSearchParams();
   const token = searchParams.get("token");
   const [session, setSession] = useState<SessionState>({ status: "loading" });
