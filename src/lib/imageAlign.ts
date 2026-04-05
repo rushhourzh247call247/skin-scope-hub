@@ -3,8 +3,8 @@ import { loadOpenCV } from "./opencvLoader";
 export interface AlignmentResult {
   rotation: number;   // degrees
   scale: number;      // percentage (100 = no change)
-  offset_x: number;   // pixels
-  offset_y: number;   // pixels
+  offset_x: number;   // percentage of image width
+  offset_y: number;   // percentage of image height
 }
 
 function loadImage(src: string): Promise<HTMLImageElement> {
@@ -17,11 +17,10 @@ function loadImage(src: string): Promise<HTMLImageElement> {
   });
 }
 
-function imageToMat(img: HTMLImageElement, maxDim = 512): any {
+function imageToMat(img: HTMLImageElement, maxDim = 512): { gray: any; w: number; h: number } {
   const cv = window.cv;
   const canvas = document.createElement("canvas");
 
-  // Downscale for performance
   let w = img.naturalWidth;
   let h = img.naturalHeight;
   if (Math.max(w, h) > maxDim) {
@@ -40,7 +39,7 @@ function imageToMat(img: HTMLImageElement, maxDim = 512): any {
   const gray = new cv.Mat();
   cv.cvtColor(mat, gray, cv.COLOR_RGBA2GRAY);
   mat.delete();
-  return gray;
+  return { gray, w, h };
 }
 
 export async function alignImages(
@@ -55,8 +54,10 @@ export async function alignImages(
     loadImage(overlaySrc),
   ]);
 
-  const mat1 = imageToMat(baseImg);
-  const mat2 = imageToMat(overlayImg);
+  const base = imageToMat(baseImg);
+  const overlay = imageToMat(overlayImg);
+  const mat1 = base.gray;
+  const mat2 = overlay.gray;
 
   const orb = new cv.ORB(500);
   const kp1 = new cv.KeyPointVector();
@@ -79,12 +80,10 @@ export async function alignImages(
     return { rotation: 0, scale: 100, offset_x: 0, offset_y: 0 };
   }
 
-  // BFMatcher with Hamming distance
   const bf = new cv.BFMatcher(cv.NORM_HAMMING, true);
   const matches = new cv.DMatchVector();
   bf.match(desc1, desc2, matches);
 
-  // Sort by distance and keep top matches
   const matchArray: { queryIdx: number; trainIdx: number; distance: number }[] = [];
   for (let i = 0; i < matches.size(); i++) {
     const m = matches.get(i);
@@ -102,7 +101,7 @@ export async function alignImages(
     return { rotation: 0, scale: 100, offset_x: 0, offset_y: 0 };
   }
 
-  // Extract matched points
+  // pts1 = base keypoints, pts2 = overlay keypoints
   const pts1: number[] = [];
   const pts2: number[] = [];
   for (const m of topMatches) {
@@ -115,7 +114,7 @@ export async function alignImages(
   const srcPts = cv.matFromArray(topMatches.length, 1, cv.CV_32FC2, pts1);
   const dstPts = cv.matFromArray(topMatches.length, 1, cv.CV_32FC2, pts2);
 
-  // Check if points are nearly identical (same image or very close match)
+  // Check if points are nearly identical (same image)
   let totalDist = 0;
   for (let i = 0; i < topMatches.length; i++) {
     const dx = pts1[i * 2] - pts2[i * 2];
@@ -124,7 +123,6 @@ export async function alignImages(
   }
   const avgDist = totalDist / topMatches.length;
   if (avgDist < 2.0) {
-    // Images are virtually identical — no alignment needed
     srcPts.delete();
     dstPts.delete();
     cleanup();
@@ -132,7 +130,7 @@ export async function alignImages(
     return { rotation: 0, scale: 100, offset_x: 0, offset_y: 0 };
   }
 
-  // Estimate affine transformation (more stable than full homography for our use case)
+  // Estimate affine: maps overlay points → base points
   let affine: any;
   try {
     affine = cv.estimateAffinePartial2D(dstPts, srcPts);
@@ -167,25 +165,25 @@ export async function alignImages(
   const scale = Math.sqrt(a * a + b * b);
   const rotation = Math.atan2(b, a) * (180 / Math.PI);
 
-  // Scale offset back to display coordinates
-  // The images were downscaled for analysis, but overlay transform works in CSS pixels
-  // which are relative, so offset needs to be proportional
-  const scaleBack = baseImg.naturalWidth / (Math.min(baseImg.naturalWidth, baseImg.naturalHeight, 512));
+  // Convert tx/ty from base-image analysis pixels to percentage of base dimensions
+  // This makes offsets display-size-independent
+  const offsetXPct = (tx / base.w) * 100;
+  const offsetYPct = (ty / base.h) * 100;
 
   const rawResult: AlignmentResult = {
     rotation: Math.round(rotation * 10) / 10,
     scale: Math.round(scale * 100),
-    offset_x: Math.round(tx * scaleBack),
-    offset_y: Math.round(ty * scaleBack),
+    offset_x: Math.round(offsetXPct * 10) / 10,
+    offset_y: Math.round(offsetYPct * 10) / 10,
   };
 
-  // Safety bounds: reject extreme values that would make images unrecognizable
+  // Safety bounds
   const isSafe =
     Math.abs(rawResult.rotation) <= 45 &&
     rawResult.scale >= 50 &&
     rawResult.scale <= 200 &&
-    Math.abs(rawResult.offset_x) <= 200 &&
-    Math.abs(rawResult.offset_y) <= 200;
+    Math.abs(rawResult.offset_x) <= 50 &&
+    Math.abs(rawResult.offset_y) <= 50;
 
   if (!isSafe) {
     console.warn("[ImageAlign] Result outside safety bounds, ignoring:", rawResult);

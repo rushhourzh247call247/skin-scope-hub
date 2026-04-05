@@ -334,7 +334,7 @@ const ImageCompare = ({ images, locationName, onClose }: ImageCompareProps) => {
                     className="absolute inset-0 h-full w-full object-contain"
                     style={{
                       opacity: overlayOpacity / 100,
-                      transform: `rotate(${overlayRotation}deg) scale(${overlayScale / 100}) translate(${overlayOffsetX}px, ${overlayOffsetY}px)`,
+                      transform: `translate(${overlayOffsetX}%, ${overlayOffsetY}%) scale(${overlayScale / 100}) rotate(${overlayRotation}deg)`,
                     }}
                   />
                   <div className="absolute top-2 left-2 rounded-full bg-primary/90 px-2 py-0.5 text-[9px] font-bold text-primary-foreground backdrop-blur-sm">
@@ -439,17 +439,17 @@ const ImageCompare = ({ images, locationName, onClose }: ImageCompareProps) => {
                         <div className="space-y-1">
                           <div className="flex items-center justify-between text-[10px] text-muted-foreground">
                             <span>{t('imageCompare.horizontal')}</span>
-                            <span className="font-mono">{overlayOffsetX}px</span>
+                            <span className="font-mono">{overlayOffsetX}%</span>
                           </div>
-                          <Slider value={[overlayOffsetX]} onValueChange={([v]) => setOverlayOffsetX(v)} min={-100} max={100} step={1} />
+                          <Slider value={[overlayOffsetX]} onValueChange={([v]) => setOverlayOffsetX(v)} min={-50} max={50} step={0.5} />
                         </div>
 
                         <div className="space-y-1">
                           <div className="flex items-center justify-between text-[10px] text-muted-foreground">
                             <span>{t('imageCompare.vertical')}</span>
-                            <span className="font-mono">{overlayOffsetY}px</span>
+                            <span className="font-mono">{overlayOffsetY}%</span>
                           </div>
-                          <Slider value={[overlayOffsetY]} onValueChange={([v]) => setOverlayOffsetY(v)} min={-100} max={100} step={1} />
+                          <Slider value={[overlayOffsetY]} onValueChange={([v]) => setOverlayOffsetY(v)} min={-50} max={50} step={0.5} />
                         </div>
                       </div>
                     </motion.div>
