@@ -1012,7 +1012,7 @@ function Scene({ markers, selectedLocationId, onMapClick, onMarkerClick, classif
         >
           <RegionMarker
             position={[0, 0, 0]}
-            name="Neue Region"
+            name={i18n.t('patientDetail.newRegion')}
             isSelected={true}
             onClick={() => {}}
             width={previewMarker.width ?? 40}
