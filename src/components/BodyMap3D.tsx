@@ -954,7 +954,7 @@ function Scene({ markers, selectedLocationId, onMapClick, onMarkerClick, classif
           >
             <SpotMarker
               position={[0, 0, 0]}
-              name={m.name}
+              name={translateAnatomyName(m.name)}
               index={i}
               isSelected={m.id === selectedLocationId}
               onClick={() => onMarkerClick?.(m.id)}
