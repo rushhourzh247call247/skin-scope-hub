@@ -90,7 +90,7 @@ const OverviewPhoto = ({ overviewLocation, spotLocations, patientId, onNavigateT
       queryClient.invalidateQueries({ queryKey: ["overview-pins", overviewLocation.id] });
       setPendingPin(null);
       setPinMode(false);
-      toast.success("Pin gesetzt");
+      toast.success(t('overviewPhoto.pinSet'));
     },
   });
 
