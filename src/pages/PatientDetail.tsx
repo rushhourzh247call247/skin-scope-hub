@@ -1372,7 +1372,7 @@ const PatientDetail = () => {
                 if (!loc) return t('patientDetail.softDeleteGeneric');
                 return (
                   <>
-                    <strong>{loc.name || "Dieser Spot"}</strong> wird mit {loc.images?.length ?? 0} Bildern und {loc.findings?.length ?? 0} Befunden in den Papierkorb verschoben. Sie können ihn jederzeit wiederherstellen.
+                    <strong>{translateAnatomyName(loc.name) || t('patientDetail.softDeleteGeneric')}</strong> {t('patientDetail.softDeleteDesc', { images: loc.images?.length ?? 0, findings: loc.findings?.length ?? 0 })}
                   </>
                 );
               })()}
