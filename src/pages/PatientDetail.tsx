@@ -1401,7 +1401,7 @@ const PatientDetail = () => {
             <AlertDialogDescription>
               {(() => {
                 const loc = trashedLocations.find(l => l.id === permanentDeleteId);
-                if (!loc) return "Dieser Spot wird unwiderruflich gelöscht.";
+                if (!loc) return t('patientDetail.permanentDeleteGeneric');
                 return (
                   <>
                     <strong>{loc.name || "Dieser Spot"}</strong> wird mit allen zugehörigen Bildern und Befunden unwiderruflich gelöscht. Diese Aktion kann nicht rückgängig gemacht werden.
