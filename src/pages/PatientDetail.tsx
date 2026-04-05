@@ -875,8 +875,8 @@ const PatientDetail = () => {
                 ) : (
                   <div className="space-y-8">
                     {overviewLocations.map((loc) => (
+                      <div key={loc.id} id={`zone-${loc.id}`}>
                       <OverviewPhoto
-                        key={loc.id}
                         overviewLocation={loc}
                         spotLocations={spotLocations}
                         patientId={patientId}
