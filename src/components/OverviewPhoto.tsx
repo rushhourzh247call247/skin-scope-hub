@@ -79,7 +79,7 @@ const OverviewPhoto = ({ overviewLocation, spotLocations, patientId, onNavigateT
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["full-patient", patientId] });
       setIsRenaming(false);
-      toast.success("Umbenannt");
+      toast.success(t('overviewPhoto.renamed'));
     },
   });
 
