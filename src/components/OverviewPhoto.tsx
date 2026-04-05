@@ -859,7 +859,7 @@ const OverviewPhoto = ({ overviewLocation, spotLocations, patientId, onNavigateT
                             <Slider value={[overlayRotation]} onValueChange={([v]) => setOverlayRotation(v)} min={-180} max={180} step={1} />
                           </div>
                           <div className="space-y-1">
-                            <div className="flex items-center justify-between text-[10px] text-muted-foreground"><span className="flex items-center gap-1"><ZoomIn className="h-3 w-3" /> Zoom</span><span className="font-mono">{overlayScale}%</span></div>
+                            <div className="flex items-center justify-between text-[10px] text-muted-foreground"><span className="flex items-center gap-1"><ZoomIn className="h-3 w-3" /> {t('imageCompare.scale')}</span><span className="font-mono">{overlayScale}%</span></div>
                             <Slider value={[overlayScale]} onValueChange={([v]) => setOverlayScale(v)} min={50} max={200} step={1} />
                           </div>
                           <div className="space-y-1">
