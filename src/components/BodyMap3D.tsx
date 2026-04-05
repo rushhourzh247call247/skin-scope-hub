@@ -980,7 +980,7 @@ function Scene({ markers, selectedLocationId, onMapClick, onMarkerClick, classif
           >
             <RegionMarker
               position={[0, 0, 0]}
-              name={m.name}
+              name={translateAnatomyName(m.name)}
               isSelected={m.id === selectedLocationId}
               onClick={() => onMarkerClick?.(m.id)}
               imageCount={m.imageCount}
