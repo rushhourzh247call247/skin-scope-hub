@@ -1193,7 +1193,7 @@ const BodyMap3D: React.FC<BodyMap3DProps> = (props) => {
             )}
           >
             <MapPin className="h-3 w-3" />
-            Spot
+            {i18n.t('bodyMap.spotMode')}
           </button>
 
         </div>
