@@ -355,6 +355,7 @@
     "reset2fa": "Reset 2FA",
     "reset2faTitle": "Reset 2FA?",
     "reset2faDescription": "Two-factor authentication for <strong>{{name}}</strong> will be disabled. The user can then log in without a code and set up 2FA again.",
+    "reset2faDescriptionPlain": "Two-factor authentication for {{name}} will be disabled. The user can then log in without a code and set up 2FA again.",
     "reset2faConfirm": "Disable 2FA",
     "reset2faSuccess": "2FA for {{name}} has been reset",
     "reset2faError": "Error resetting 2FA"
