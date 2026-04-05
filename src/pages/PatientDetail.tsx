@@ -1427,9 +1427,9 @@ const PatientDetail = () => {
         <DialogContent className="max-w-3xl h-[85vh] flex flex-col p-0">
           <DialogHeader className="px-4 pt-4 pb-2">
             <DialogTitle className="flex items-center justify-between">
-              <span className="text-sm">PDF Vorschau</span>
-              <Button size="sm" onClick={handlePdfDownload} className="gap-1.5">
-                <FileDown className="h-3.5 w-3.5" /> Herunterladen
+               <span className="text-sm">{t('patientDetail.pdfPreviewTitle')}</span>
+               <Button size="sm" onClick={handlePdfDownload} className="gap-1.5">
+                 <FileDown className="h-3.5 w-3.5" /> {t('common.download')}
               </Button>
             </DialogTitle>
           </DialogHeader>
