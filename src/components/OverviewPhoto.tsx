@@ -650,7 +650,7 @@ const OverviewPhoto = ({ overviewLocation, spotLocations, patientId, onNavigateT
                         compareView === "side" ? "bg-primary text-primary-foreground shadow-sm" : "text-muted-foreground hover:text-foreground"
                       )}
                     >
-                      <GitCompareArrows className="h-3 w-3" /> Nebeneinander
+                      <GitCompareArrows className="h-3 w-3" /> {t('imageCompare.sideMode')}
                     </button>
                     <button
                       onClick={() => setCompareView("overlay")}
