@@ -192,7 +192,7 @@ const OverviewPhoto = ({ overviewLocation, spotLocations, patientId, onNavigateT
                   if (e.key === "Escape") setIsRenaming(false);
                 }}
               />
-              <Button size="sm" variant="ghost" className="h-7 px-2" onClick={() => renameMutation.mutate(renameValue.trim() || overviewLocation.name || "Übersichtsfoto")}>
+              <Button size="sm" variant="ghost" className="h-7 px-2" onClick={() => renameMutation.mutate(renameValue.trim() || overviewLocation.name || "Zone")}>
                 <Save className="h-3 w-3" />
               </Button>
               <Button size="sm" variant="ghost" className="h-7 px-2" onClick={() => setIsRenaming(false)}>
