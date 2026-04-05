@@ -563,7 +563,7 @@ const OverviewPhoto = ({ overviewLocation, spotLocations, patientId, onNavigateT
                   </div>
                   <div className="mt-2 pt-2 border-t">
                     <Button size="sm" variant="ghost" className="w-full text-xs" onClick={() => setPendingPin(null)}>
-                      Abbrechen
+                    {t('common.cancel')}
                     </Button>
                   </div>
                 </>
