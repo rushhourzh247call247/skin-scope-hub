@@ -61,22 +61,22 @@ const Snapshots = () => {
   const restorePatientMutation = useMutation({
     mutationFn: ({ date, id }: { date: string; id: number }) => api.restorePatientFromSnapshot(date, id),
     onSuccess: (data) => {
-      toast.success(data.message || "Patient wiederhergestellt");
+      toast.success(data.message || t('snapshots.restoreSuccess'));
       queryClient.invalidateQueries({ queryKey: ["patients"] });
       setRestoreConfirm(null);
     },
-    onError: () => toast.error("Wiederherstellung fehlgeschlagen"),
+    onError: () => toast.error(t('snapshots.restoreError')),
   });
 
   const restoreCompanyMutation = useMutation({
     mutationFn: ({ date, id }: { date: string; id: number }) => api.restoreCompanyFromSnapshot(date, id),
     onSuccess: (data) => {
-      toast.success(data.message || "Firma wiederhergestellt");
+      toast.success(data.message || t('snapshots.companyRestoreSuccess'));
       queryClient.invalidateQueries({ queryKey: ["companies"] });
       queryClient.invalidateQueries({ queryKey: ["patients"] });
       setRestoreConfirm(null);
     },
-    onError: () => toast.error("Wiederherstellung fehlgeschlagen"),
+    onError: () => toast.error(t('snapshots.restoreError')),
   });
 
   const goBack = () => {
@@ -91,7 +91,7 @@ const Snapshots = () => {
 
   const breadcrumb = () => {
     const parts: { label: string; onClick?: () => void }[] = [
-      { label: "Snapshots", onClick: () => setView({ type: "list" }) },
+      { label: t('snapshots.title'), onClick: () => setView({ type: "list" }) },
     ];
     if (view.type !== "list") {
       const date = (view as any).date;
@@ -125,7 +125,7 @@ const Snapshots = () => {
           </div>
           <h1 className="text-2xl font-bold text-foreground flex items-center gap-2">
             <Database className="h-5 w-5" />
-            {view.type === "list" && "System-Snapshots"}
+            {view.type === "list" && t('snapshots.title')}
             {view.type === "snapshot" && "Snapshot " + (view as any).date}
             {view.type === "company-patients" && view.companyName}
             {view.type === "patient-detail" && view.patientName}
@@ -137,23 +137,23 @@ const Snapshots = () => {
         <Card>
           <CardHeader>
             <CardTitle className="text-lg flex items-center gap-2">
-              <HardDrive className="h-5 w-5" /> Verfügbare Snapshots
+              <HardDrive className="h-5 w-5" /> {t('snapshots.available')}
             </CardTitle>
           </CardHeader>
           <CardContent>
             {loadingSnapshots ? (
               <div className="flex justify-center py-12"><Loader2 className="h-6 w-6 animate-spin text-muted-foreground" /></div>
             ) : snapshots.length === 0 ? (
-              <p className="text-center py-12 text-muted-foreground">Keine Snapshots vorhanden. Der erste wird heute Nacht um 03:00 erstellt.</p>
+              <p className="text-center py-12 text-muted-foreground">{t('snapshots.noSnapshots')}</p>
             ) : (
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>Datum</TableHead>
-                    <TableHead>Erstellt</TableHead>
-                    <TableHead>DB-Grösse</TableHead>
-                    <TableHead>Bilder</TableHead>
-                    <TableHead className="text-right">Aktion</TableHead>
+                    <TableHead>{t('snapshots.date')}</TableHead>
+                    <TableHead>{t('snapshots.created')}</TableHead>
+                    <TableHead>{t('snapshots.dbSize')}</TableHead>
+                    <TableHead>{t('snapshots.imageCount')}</TableHead>
+                    <TableHead className="text-right">{t('common.action')}</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -176,7 +176,7 @@ const Snapshots = () => {
                       </TableCell>
                       <TableCell className="text-right">
                         <Button variant="outline" size="sm" className="h-7 gap-1 text-xs">
-                          Durchsuchen <ChevronRight className="h-3 w-3" />
+                          {t('snapshots.browse')} <ChevronRight className="h-3 w-3" />
                         </Button>
                       </TableCell>
                     </TableRow>
@@ -192,23 +192,23 @@ const Snapshots = () => {
         <Card>
           <CardHeader>
             <CardTitle className="text-lg flex items-center gap-2">
-              <Building2 className="h-5 w-5" /> Firmen im Snapshot
+              <Building2 className="h-5 w-5" /> {t('snapshots.companiesInSnapshot')}
             </CardTitle>
           </CardHeader>
           <CardContent>
             {loadingCompanies ? (
               <div className="flex justify-center py-8"><Loader2 className="h-6 w-6 animate-spin text-muted-foreground" /></div>
             ) : companies.length === 0 ? (
-              <p className="text-center py-8 text-muted-foreground">Keine Firmen in diesem Snapshot.</p>
+              <p className="text-center py-8 text-muted-foreground">{t('snapshots.noCompanies')}</p>
             ) : (
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>ID</TableHead>
-                    <TableHead>Firma</TableHead>
-                    <TableHead>Benutzer</TableHead>
-                    <TableHead>Patienten</TableHead>
-                    <TableHead className="text-right">Aktionen</TableHead>
+                    <TableHead>{t('common.id')}</TableHead>
+                    <TableHead>{t('snapshots.company')}</TableHead>
+                    <TableHead>{t('snapshots.users')}</TableHead>
+                    <TableHead>{t('snapshots.patientsCount')}</TableHead>
+                    <TableHead className="text-right">{t('common.actions')}</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -224,13 +224,13 @@ const Snapshots = () => {
                           className="flex items-center gap-1.5 text-sm text-primary hover:underline"
                           onClick={() => setView({ type: "company-patients", date: (view as any).date, companyId: c.id, companyName: c.name })}
                         >
-                          <User className="h-3.5 w-3.5" /> {c.patient_count} Patienten
+                          <User className="h-3.5 w-3.5" /> {c.patient_count} {t('snapshots.patientsCount')}
                         </button>
                       </TableCell>
                       <TableCell className="text-right">
                         <Button variant="outline" size="sm" className="h-7 gap-1 text-xs"
                           onClick={() => setRestoreConfirm({ type: "company", date: (view as any).date, id: c.id, name: c.name })}>
-                          <RotateCcw className="h-3 w-3" /> Wiederherstellen
+                          <RotateCcw className="h-3 w-3" /> {t('common.restore')}
                         </Button>
                       </TableCell>
                     </TableRow>
@@ -246,23 +246,23 @@ const Snapshots = () => {
         <Card>
           <CardHeader>
             <CardTitle className="text-lg flex items-center gap-2">
-              <User className="h-5 w-5" /> Patienten von {view.companyName}
+              <User className="h-5 w-5" /> {t('snapshots.patientsOf', { name: view.companyName })}
             </CardTitle>
           </CardHeader>
           <CardContent>
             {loadingPatients ? (
               <div className="flex justify-center py-8"><Loader2 className="h-6 w-6 animate-spin text-muted-foreground" /></div>
             ) : patients.length === 0 ? (
-              <p className="text-center py-8 text-muted-foreground">Keine Patienten.</p>
+              <p className="text-center py-8 text-muted-foreground">{t('snapshots.noPatients')}</p>
             ) : (
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>ID</TableHead>
-                    <TableHead>Name</TableHead>
-                    <TableHead>Spots</TableHead>
-                    <TableHead>Bilder</TableHead>
-                    <TableHead className="text-right">Aktionen</TableHead>
+                    <TableHead>{t('common.id')}</TableHead>
+                    <TableHead>{t('common.name')}</TableHead>
+                    <TableHead>{t('common.spots')}</TableHead>
+                    <TableHead>{t('common.images')}</TableHead>
+                    <TableHead className="text-right">{t('common.actions')}</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -304,7 +304,7 @@ const Snapshots = () => {
                             setRestoreConfirm({ type: "patient", date: view.date, id: p.id, name: p.name });
                           }}
                         >
-                          <RotateCcw className="h-3 w-3" /> Wiederherstellen
+                          <RotateCcw className="h-3 w-3" /> {t('common.restore')}
                         </Button>
                       </TableCell>
                     </TableRow>
@@ -321,7 +321,7 @@ const Snapshots = () => {
           <div className="flex justify-end">
             <Button className="gap-1.5"
               onClick={() => setRestoreConfirm({ type: "patient", date: view.date, id: view.patientId, name: view.patientName })}>
-              <RotateCcw className="h-4 w-4" /> Diesen Patienten wiederherstellen
+              <RotateCcw className="h-4 w-4" /> {t('snapshots.restorePatient')}
             </Button>
           </div>
           {loadingDetail ? (
@@ -331,15 +331,15 @@ const Snapshots = () => {
               <Card>
                 <CardContent className="pt-6">
                   <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
-                    <div><span className="text-muted-foreground">Name</span><p className="font-medium">{patientDetail.name}</p></div>
-                    <div><span className="text-muted-foreground">Geburtsdatum</span><p className="font-medium">{patientDetail.birth_date || "–"}</p></div>
-                    <div><span className="text-muted-foreground">E-Mail</span><p className="font-medium">{patientDetail.email || "–"}</p></div>
-                    <div><span className="text-muted-foreground">Versicherungsnr.</span><p className="font-medium">{patientDetail.insurance_number || "–"}</p></div>
+                    <div><span className="text-muted-foreground">{t('common.name')}</span><p className="font-medium">{patientDetail.name}</p></div>
+                    <div><span className="text-muted-foreground">{t('common.birthDate')}</span><p className="font-medium">{patientDetail.birth_date || "–"}</p></div>
+                    <div><span className="text-muted-foreground">{t('common.email')}</span><p className="font-medium">{patientDetail.email || "–"}</p></div>
+                    <div><span className="text-muted-foreground">{t('snapshots.insuranceNumber')}</span><p className="font-medium">{patientDetail.insurance_number || "–"}</p></div>
                   </div>
                 </CardContent>
               </Card>
               {(patientDetail.locations ?? []).length === 0 ? (
-                <p className="text-center py-8 text-muted-foreground">Keine Spots vorhanden.</p>
+                <p className="text-center py-8 text-muted-foreground">{t('snapshots.noSpots')}</p>
               ) : (
                 (patientDetail.locations ?? []).map((loc: any) => (
                   <Card key={loc.id}>
@@ -347,8 +347,8 @@ const Snapshots = () => {
                       <CardTitle className="text-sm flex items-center gap-2">
                         <MapPin className="h-4 w-4 text-muted-foreground" />
                         {loc.name || "Spot #" + loc.id}
-                        <Badge variant="secondary" className="text-[10px]">{loc.images?.length ?? 0} Bilder</Badge>
-                        <Badge variant="outline" className="text-[10px]">{loc.findings?.length ?? 0} Befunde</Badge>
+                        <Badge variant="secondary" className="text-[10px]">{loc.images?.length ?? 0} {t('common.images')}</Badge>
+                        <Badge variant="outline" className="text-[10px]">{loc.findings?.length ?? 0} {t('common.findings')}</Badge>
                       </CardTitle>
                     </CardHeader>
                     <CardContent className="space-y-3">
@@ -397,18 +397,18 @@ const Snapshots = () => {
           <AlertDialogHeader>
             <AlertDialogTitle className="flex items-center gap-2">
               <RotateCcw className="h-5 w-5" />
-              {restoreConfirm?.type === "company" ? "Firma" : "Patient"} wiederherstellen?
+              {t('snapshots.restoreTitle', { type: restoreConfirm?.type === "company" ? t('snapshots.typeCompany') : t('snapshots.typePatient') })}
             </AlertDialogTitle>
             <AlertDialogDescription>
-              <strong>{restoreConfirm?.name}</strong> wird aus dem Snapshot vom{" "}
-              <strong>{restoreConfirm?.date}</strong> wiederhergestellt.
+              <strong>{restoreConfirm?.name}</strong> {t('snapshots.restoreFrom')}{" "}
+              <strong>{restoreConfirm?.date}</strong>.
               {restoreConfirm?.type === "company"
-                ? " Alle aktuellen Daten dieser Firma (Benutzer, Patienten, Bilder, Befunde) werden durch den Snapshot-Stand ersetzt."
-                : " Alle aktuellen Daten dieses Patienten (Spots, Bilder, Befunde) werden durch den Snapshot-Stand ersetzt."}
+                ? " " + t('snapshots.restoreCompanyDesc')
+                : " " + t('snapshots.restorePatientDesc')}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Abbrechen</AlertDialogCancel>
+            <AlertDialogCancel>{t('common.cancel')}</AlertDialogCancel>
             <AlertDialogAction
               onClick={() => {
                 if (!restoreConfirm) return;
@@ -421,7 +421,7 @@ const Snapshots = () => {
               disabled={restorePatientMutation.isPending || restoreCompanyMutation.isPending}
             >
               {(restorePatientMutation.isPending || restoreCompanyMutation.isPending) && <Loader2 className="h-4 w-4 animate-spin mr-1.5" />}
-              Wiederherstellen
+              {t('common.restore')}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

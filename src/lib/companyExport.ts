@@ -14,28 +14,27 @@ export async function exportCompanyData(
   companyName: string,
   onProgress?: (p: ExportProgress) => void
 ) {
+  const t = i18n.t.bind(i18n);
   const zip = new JSZip();
   const imagesFolder = zip.folder("images")!;
 
   // 1. Fetch all patients for this company
-  onProgress?.({ phase: "Patienten laden…", current: 0, total: 1 });
+  onProgress?.({ phase: t('companyExport.loadingPatients'), current: 0, total: 1 });
   let patients: any[];
   try {
     patients = await api.getPatientsByCompany(companyId);
   } catch {
-    // Fallback: get all patients and hope backend filters by company
     patients = await api.getPatients();
   }
 
   // 2. Fetch full data for each patient
   const fullPatients: any[] = [];
   for (let i = 0; i < patients.length; i++) {
-    onProgress?.({ phase: "Patientendaten laden…", current: i + 1, total: patients.length });
+    onProgress?.({ phase: t('companyExport.loadingPatientData'), current: i + 1, total: patients.length });
     try {
       const full = await api.getFullPatient(patients[i].id);
       fullPatients.push(full);
     } catch {
-      // skip patients that fail
       fullPatients.push({ ...patients[i], locations: [] });
     }
   }
@@ -50,7 +49,6 @@ export async function exportCompanyData(
         const ext = url.split(".").pop()?.split("?")[0] || "jpg";
         const imgPath = `patient_${patient.id}/${loc.type || "spot"}_${loc.id}/img_${img.id}.${ext}`;
         imageEntries.push({ path: imgPath, url });
-        // Replace URL with local path in JSON
         img._export_path = `images/${imgPath}`;
       }
     }
@@ -59,7 +57,7 @@ export async function exportCompanyData(
   // Download images in batches of 5
   const batchSize = 5;
   for (let i = 0; i < imageEntries.length; i += batchSize) {
-    onProgress?.({ phase: "Bilder herunterladen…", current: Math.min(i + batchSize, imageEntries.length), total: imageEntries.length });
+    onProgress?.({ phase: t('companyExport.downloadingImages'), current: Math.min(i + batchSize, imageEntries.length), total: imageEntries.length });
     const batch = imageEntries.slice(i, i + batchSize);
     const results = await Promise.allSettled(
       batch.map(async (entry) => {
@@ -85,7 +83,7 @@ export async function exportCompanyData(
   };
   zip.file("manifest.json", JSON.stringify(manifest, null, 2));
 
-  // 5. Build patients.json (clean export)
+  // 5. Build patients.json
   const exportData = fullPatients.map((p) => ({
     id: p.id,
     name: p.name,
@@ -134,7 +132,7 @@ export async function exportCompanyData(
   zip.file("patients.json", JSON.stringify(exportData, null, 2));
 
   // 6. Generate ZIP
-  onProgress?.({ phase: "ZIP erstellen…", current: 1, total: 1 });
+  onProgress?.({ phase: t('companyExport.creatingZip'), current: 1, total: 1 });
   const blob = await zip.generateAsync({ type: "blob" });
   const safeName = companyName.replace(/[^a-zA-Z0-9äöüÄÖÜß_-]/g, "_");
   const date = new Date().toISOString().slice(0, 10);
