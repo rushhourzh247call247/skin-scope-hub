@@ -1184,7 +1184,7 @@ const BodyMap3D: React.FC<BodyMap3DProps> = (props) => {
           {/* Spot mark mode toggle */}
           <button
             onClick={() => { setMarkMode(markType === "spot" ? !markMode : true); setMarkType("spot"); }}
-            title="Spot markieren"
+            title={i18n.t('bodyMap3d.markSpot')}
             className={cn(
               "flex h-7 items-center gap-1.5 rounded-md px-2.5 text-[10px] font-medium transition-all",
               markMode && markType === "spot"
