@@ -8,6 +8,7 @@ import { LESION_CLASSIFICATIONS } from "@/types/patient";
 import { formatDate } from "@/lib/dateUtils";
 import { api } from "@/lib/api";
 import { getAnatomicalName } from "@/lib/anatomyLookup";
+import { translateAnatomyName } from "@/lib/anatomyTranslation";
 import { renderBodyMap3DThumbnail } from "@/lib/bodyMapRenderer";
 
 /* ─── Helpers ─────────────────────────────────────────── */
