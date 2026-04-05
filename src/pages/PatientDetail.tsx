@@ -61,7 +61,7 @@ const PatientDetail = () => {
     x: number;
     y: number;
     view: "front" | "back";
-    markType?: "spot" | "region";
+    markType?: "spot" | "region" | "zone";
     x3d?: number;
     y3d?: number;
     z3d?: number;
@@ -158,10 +158,16 @@ const PatientDetail = () => {
       nz?: number;
     }) => api.createLocation(patientId, loc),
     onSuccess: (newLoc) => {
+      const wasZone = mapClickDialog?.markType === "zone";
       queryClient.invalidateQueries({ queryKey: ["full-patient", patientId] });
       setMapClickDialog(null);
       setLocationName("");
-      setSelectedLocationId(newLoc.id);
+      if (wasZone) {
+        setSelectedLocationId(null);
+        setActiveTab("uebersicht");
+      } else {
+        setSelectedLocationId(newLoc.id);
+      }
     },
   });
 
@@ -298,13 +304,14 @@ const PatientDetail = () => {
   const handleCreateLocation = () => {
     if (!mapClickDialog) return;
     const isRegion = mapClickDialog.markType === "region";
+    const isZone = mapClickDialog.markType === "zone";
 
     createLocationMutation.mutate({
-      name: locationName.trim() || undefined,
+      name: isZone ? `Zone ${overviewLocations.length + 1}` : (locationName.trim() || undefined),
       x: mapClickDialog.x,
       y: mapClickDialog.y,
       view: mapClickDialog.view,
-      type: mapClickDialog.markType || "spot",
+      type: isZone ? "overview" : (mapClickDialog.markType === "region" ? "region" : "spot"),
       width: isRegion ? regionWidth : undefined,
       height: isRegion ? regionHeight : undefined,
       x3d: mapClickDialog.x3d,
@@ -476,7 +483,7 @@ const PatientDetail = () => {
                 x: mapClickDialog.x,
                 y: mapClickDialog.y,
                 view: mapClickDialog.view,
-                type: mapClickDialog.markType || "spot",
+                type: mapClickDialog.markType === "region" ? "region" : "spot",
                 width: mapClickDialog.markType === "region" ? regionWidth : undefined,
                 height: mapClickDialog.markType === "region" ? regionHeight : undefined,
                 x3d: mapClickDialog.x3d,
@@ -494,7 +501,9 @@ const PatientDetail = () => {
             <div className="mt-3 rounded-lg border bg-card p-3 space-y-3 animate-in slide-in-from-top-2 duration-200">
               <div className="flex items-center justify-between">
                 <h3 className="text-xs font-semibold text-foreground flex items-center gap-1.5">
-                  {mapClickDialog.markType === "region" ? (
+                  {mapClickDialog.markType === "zone" ? (
+                    <><Camera className="h-3.5 w-3.5 text-blue-500" /> {t('patientDetail.newOverview')}</>
+                  ) : mapClickDialog.markType === "region" ? (
                     <><Square className="h-3.5 w-3.5 text-amber-500" /> Neue Region</>
                   ) : (
                     <><Plus className="h-3.5 w-3.5 text-primary" /> Neuer Spot</>
@@ -535,6 +544,7 @@ const PatientDetail = () => {
                 </div>
               )}
 
+              {mapClickDialog.markType !== "zone" && (
               <div className="space-y-1.5">
                 <Label className="text-[10px]">{t('patientDetail.label')}</Label>
                 {(() => {
@@ -556,8 +566,9 @@ const PatientDetail = () => {
                   );
                 })()}
               </div>
+              )}
               <Button className="w-full h-8 text-xs" onClick={handleCreateLocation} disabled={createLocationMutation.isPending}>
-                {createLocationMutation.isPending ? t('common.creating') : mapClickDialog.markType === "region" ? t('patientDetail.createRegion') : t('patientDetail.createSpot')}
+                {createLocationMutation.isPending ? t('common.creating') : mapClickDialog.markType === "zone" ? t('patientDetail.createFirstZone') : mapClickDialog.markType === "region" ? t('patientDetail.createRegion') : t('patientDetail.createSpot')}
               </Button>
             </div>
           )}
@@ -569,24 +580,7 @@ const PatientDetail = () => {
                    <Camera className="h-3 w-3" />
                    {t('patientDetail.overviewPhotos')}
                 </h3>
-                <div className="flex items-center gap-1.5">
-                  <span className="text-[10px] text-muted-foreground">{overviewLocations.length}</span>
-                  <button
-                    onClick={() => {
-                      createLocationMutation.mutate({
-                        name: `Zone ${overviewLocations.length + 1}`,
-                        x: 0, y: 0,
-                        view: "front",
-                        type: "overview",
-                      });
-                    }}
-                    disabled={createLocationMutation.isPending}
-                    className="h-5 w-5 rounded flex items-center justify-center hover:bg-muted text-muted-foreground hover:text-foreground transition-colors"
-                    title={t('patientDetail.newOverview')}
-                  >
-                    <Plus className="h-3 w-3" />
-                  </button>
-                </div>
+                <span className="text-[10px] text-muted-foreground">{overviewLocations.length}</span>
               </div>
               {overviewLocations.length > 0 && (
               <div className="space-y-1 mb-4">

@@ -5,7 +5,7 @@ import { OrbitControls, Html, useGLTF, Center } from "@react-three/drei";
 import * as THREE from "three";
 import { cn } from "@/lib/utils";
 import i18n from "@/i18n";
-import { RotateCcw, Eye, Hand, Footprints, User, Shirt, CircleDot, ArrowDown, MapPin, Square, Filter } from "lucide-react";
+import { RotateCcw, Eye, Hand, Footprints, User, Shirt, CircleDot, ArrowDown, MapPin, Square, Filter, Camera } from "lucide-react";
 import type { LesionClassification } from "@/types/patient";
 import { LESION_CLASSIFICATIONS } from "@/types/patient";
 import { getAnatomicalName } from "@/lib/anatomyLookup";
@@ -34,7 +34,7 @@ interface Marker {
 }
 
 type Gender = "female" | "male";
-type MarkType = "spot" | "region";
+type MarkType = "spot" | "region" | "zone";
 
 interface PreviewMarker {
   x: number;
@@ -1197,6 +1197,21 @@ const BodyMap3D: React.FC<BodyMap3DProps> = (props) => {
             {i18n.t('bodyMap.spotMode')}
           </button>
 
+          {/* Zone mark mode toggle */}
+          <button
+            onClick={() => { setMarkMode(markType === "zone" ? !markMode : true); setMarkType("zone"); }}
+            title={i18n.t('bodyMap3d.markZone', { defaultValue: 'Mark zone' })}
+            className={cn(
+              "flex h-7 items-center gap-1.5 rounded-md px-2.5 text-[10px] font-medium transition-all",
+              markMode && markType === "zone"
+                ? "bg-blue-600 text-white shadow-md"
+                : "border border-border/50 bg-card/80 text-muted-foreground hover:text-foreground"
+            )}
+          >
+            <Camera className="h-3 w-3" />
+            Zone
+          </button>
+
         </div>
 
         {/* Mark mode indicator */}
@@ -1205,10 +1220,14 @@ const BodyMap3D: React.FC<BodyMap3DProps> = (props) => {
             "absolute top-2 left-1/2 -translate-x-1/2 rounded-full px-3 py-1 text-[10px] font-semibold shadow-lg animate-pulse",
             markType === "region"
               ? "bg-amber-500 text-white"
+              : markType === "zone"
+              ? "bg-blue-600 text-white"
               : "bg-primary text-primary-foreground"
           )}>
             {markType === "region"
               ? i18n.t('bodyMap.clickToSetRegion', { defaultValue: 'Click to set region center' })
+              : markType === "zone"
+              ? i18n.t('bodyMap.clickToSetZone', { defaultValue: 'Click to place zone' })
               : i18n.t('bodyMap.clickToSetSpot', { defaultValue: 'Click to place spot' })
             }
           </div>
