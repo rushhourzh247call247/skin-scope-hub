@@ -1384,7 +1384,7 @@ const PatientDetail = () => {
               onClick={() => deleteConfirmId && softDeleteMutation.mutate(deleteConfirmId)}
             >
               <Trash2 className="mr-1.5 h-4 w-4" />
-              In Papierkorb
+              {t('patientDetail.moveToTrashBtn')}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
