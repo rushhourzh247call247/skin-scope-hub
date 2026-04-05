@@ -855,7 +855,7 @@ const OverviewPhoto = ({ overviewLocation, spotLocations, patientId, onNavigateT
                             <Button variant="ghost" size="sm" className="h-6 px-2 text-[10px]" onClick={handleReset}><RotateCcw className="mr-1 h-3 w-3" /> {t('common.reset')}</Button>
                           </div>
                           <div className="space-y-1">
-                            <div className="flex items-center justify-between text-[10px] text-muted-foreground"><span className="flex items-center gap-1"><RotateCw className="h-3 w-3" /> Rotation</span><span className="font-mono">{overlayRotation}°</span></div>
+                            <div className="flex items-center justify-between text-[10px] text-muted-foreground"><span className="flex items-center gap-1"><RotateCw className="h-3 w-3" /> {t('imageCompare.rotation')}</span><span className="font-mono">{overlayRotation}°</span></div>
                             <Slider value={[overlayRotation]} onValueChange={([v]) => setOverlayRotation(v)} min={-180} max={180} step={1} />
                           </div>
                           <div className="space-y-1">
