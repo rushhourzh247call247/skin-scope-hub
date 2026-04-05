@@ -259,6 +259,7 @@
         "title": "Configura 2FA",
         "description": "Scansiona il QR code con la tua app Authenticator (es. Google Authenticator).",
         "appNote": "L'Authenticator mostrerà <strong>Derm247</strong>.",
+        "appNotePlain": "L'Authenticator mostrerà Derm247.",
         "codeLabel": "Codice a 6 cifre dall'app",
         "codePlaceholder": "000000",
         "submit": "Conferma codice e attiva",
