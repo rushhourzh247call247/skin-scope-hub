@@ -88,6 +88,34 @@ const PatientDetail = () => {
   const [pdfLoading, setPdfLoading] = useState(false);
   const [pdfPreviewUrl, setPdfPreviewUrl] = useState<string | null>(null);
   const [pdfDialogOpen, setPdfDialogOpen] = useState(false);
+  const [newlyCreatedZoneId, setNewlyCreatedZoneId] = useState<number | null>(null);
+  const zoneFileRef = useRef<HTMLInputElement>(null);
+  const [zoneUploadTargetId, setZoneUploadTargetId] = useState<number | null>(null);
+
+  const handleZoneSidebarUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || !zoneUploadTargetId) return;
+    api.uploadImage(zoneUploadTargetId, file).then(() => {
+      queryClient.invalidateQueries({ queryKey: ["full-patient", patientId] });
+      toast.success(t('overviewPhoto.overviewUploaded'));
+    }).catch(() => {
+      toast.error(t('imageGallery.noteError'));
+    });
+    if (zoneFileRef.current) zoneFileRef.current.value = "";
+  };
+
+  useEffect(() => {
+    if (newlyCreatedZoneId && activeTab === "uebersicht") {
+      const timer = setTimeout(() => {
+        const el = document.getElementById(`zone-${newlyCreatedZoneId}`);
+        if (el) {
+          el.scrollIntoView({ behavior: "smooth", block: "center" });
+          setNewlyCreatedZoneId(null);
+        }
+      }, 300);
+      return () => clearTimeout(timer);
+    }
+  }, [newlyCreatedZoneId, activeTab]);
 
   const handlePdfExport = async () => {
     if (!patient) return;
