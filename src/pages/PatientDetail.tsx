@@ -535,7 +535,7 @@ const PatientDetail = () => {
               )}
 
               <div className="space-y-1.5">
-                <Label className="text-[10px]">Bezeichnung</Label>
+                <Label className="text-[10px]">{t('patientDetail.label')}</Label>
                 {(() => {
                   const neighbors = getNeighborZones(locationName);
                   const options = locationName 
