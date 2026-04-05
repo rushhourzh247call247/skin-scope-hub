@@ -165,12 +165,12 @@ const OverviewPhoto = ({ overviewLocation, spotLocations, patientId, onNavigateT
     return (
       <div className="flex flex-col items-center justify-center rounded-lg border border-dashed py-12 text-muted-foreground">
         <Camera className="mb-3 h-10 w-10" />
-        <p className="text-sm font-medium">Noch kein Übersichtsfoto</p>
-        <p className="text-xs mt-1 mb-4">Laden Sie ein Foto der Körperregion hoch</p>
+        <p className="text-sm font-medium">{t('overviewPhoto.noOverviewPhoto')}</p>
+        <p className="text-xs mt-1 mb-4">{t('overviewPhoto.uploadDescription')}</p>
         <input ref={fileRef} type="file" accept="image/*" className="hidden" onChange={handleUpload} />
         <Button size="sm" onClick={() => fileRef.current?.click()} disabled={uploading}>
           <Upload className="mr-1.5 h-3.5 w-3.5" />
-          {uploading ? "Lädt hoch…" : "Foto hochladen"}
+          {uploading ? t('overviewPhoto.uploading') : t('overviewPhoto.uploadPhoto')}
         </Button>
       </div>
     );
