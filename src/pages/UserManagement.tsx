@@ -114,9 +114,7 @@ const UserManagement = () => {
   });
 
   const canSuspend = (u: any) => {
-    const isProtected = u.email?.toLowerCase() === PROTECTED_EMAIL;
-    const isAdminRole = u.role === "admin";
-    return !isProtected && !isAdminRole;
+    return !u.is_protected && u.role !== "admin";
   };
 
   const renderUserRow = (u: any, isSuspendedTab: boolean) => {
