@@ -704,7 +704,7 @@ export async function generatePatientPDF(
         doc.setFont("Roboto", "bold");
         doc.setFontSize(7);
         doc.setTextColor(...C.textSecondary);
-        doc.text("MARKIERUNGEN", margin + 4, y + 4);
+        doc.text(i18n.t('pdf.markings'), margin + 4, y + 4);
         y += 7;
 
         for (let pi = 0; pi < pins.length; pi++) {
