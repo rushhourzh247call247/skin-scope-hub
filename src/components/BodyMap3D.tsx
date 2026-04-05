@@ -1305,9 +1305,11 @@ const BodyMap3D: React.FC<BodyMap3DProps> = (props) => {
       <p className="mt-2 text-center text-[10px] text-muted-foreground">
         {markMode
           ? markType === "region"
-            ? i18n.t('bodyMap.regionModeHelp', { defaultValue: 'Region mode: Click for center · Click again to finish' })
-            : i18n.t('bodyMap.spotModeHelp', { defaultValue: 'Spot mode: Click to place · Click again to finish' })
-          : i18n.t('bodyMap.defaultHelp', { defaultValue: 'Rotate & zoom · Click "Spot" or "Region" to mark' })
+            ? i18n.t('bodyMap3d.regionModeHelp')
+            : markType === "zone"
+            ? i18n.t('bodyMap3d.zoneModeHelp')
+            : i18n.t('bodyMap3d.spotModeHelp')
+          : i18n.t('bodyMap3d.defaultHelp')
         }
       </p>
     </div>
