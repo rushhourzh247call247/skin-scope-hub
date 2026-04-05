@@ -34,7 +34,7 @@ interface Marker {
 }
 
 type Gender = "female" | "male";
-type MarkType = "spot" | "region";
+type MarkType = "spot" | "region" | "zone";
 
 interface PreviewMarker {
   x: number;
