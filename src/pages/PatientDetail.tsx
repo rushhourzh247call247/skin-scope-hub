@@ -723,7 +723,7 @@ const PatientDetail = () => {
               className="flex w-full items-center justify-between text-[10px] text-muted-foreground hover:text-foreground transition-colors"
             >
               <span className="flex items-center gap-1.5 font-semibold uppercase tracking-wider">
-                <Trash2 className="h-3 w-3" /> Papierkorb
+                <Trash2 className="h-3 w-3" /> {t('patientDetail.trash')}
               </span>
               <span>{trashedLocations.length}</span>
             </button>
