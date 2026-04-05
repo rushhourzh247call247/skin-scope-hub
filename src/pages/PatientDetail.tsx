@@ -397,7 +397,7 @@ const PatientDetail = () => {
         {/* Patient details row - hidden on mobile, shown on desktop */}
         <div className="hidden lg:flex items-center gap-6 text-xs mt-2 pl-[52px]">
           <div>
-            <span className="text-muted-foreground">ID</span>
+            <span className="text-muted-foreground">{t('common.id')}</span>
             <p className="font-mono font-medium text-foreground">{patient.id}</p>
           </div>
           <div>
