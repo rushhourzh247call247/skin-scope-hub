@@ -847,15 +847,15 @@ const PatientDetail = () => {
                               linked_location_id: newLoc.id,
                               x_pct: pinCoords.x_pct,
                               y_pct: pinCoords.y_pct,
-                              label: name || "Neuer Spot",
+                            label: name || t("patientDetail.newSpot"),
                             });
                             queryClient.invalidateQueries({ queryKey: ["full-patient", patientId] });
                             queryClient.invalidateQueries({ queryKey: ["overview-pins", overviewLocId] });
                             setSelectedLocationId(newLoc.id);
                             setActiveTab("spots");
-                            toast.success(`Spot "${name || "Neuer Spot"}" erstellt und verknüpft`);
+                            toast.success(t("patientDetail.spotCreated", { name: name || t("patientDetail.newSpot") }));
                           } catch {
-                            toast.error("Fehler beim Erstellen des Spots");
+                            toast.error(t("patientDetail.spotCreateError"));
                           }
                         }}
                       />
