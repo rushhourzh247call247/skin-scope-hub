@@ -624,8 +624,8 @@ const PatientDetail = () => {
           {/* Spots List - collapsible on mobile when map is collapsed */}
           <div className={cn("mt-3 lg:mt-4 space-y-1", !mobileMapExpanded && "lg:block")}>
             <div className="flex items-center justify-between mb-2">
-              <h3 className="text-xs font-semibold text-foreground uppercase tracking-wider">Spots</h3>
-              <span className="text-[10px] text-muted-foreground">{spotLocations.filter(l => l.type !== "region").length} Stellen</span>
+              <h3 className="text-xs font-semibold text-foreground uppercase tracking-wider">{t('patientDetail.tabs.spots')}</h3>
+              <span className="text-[10px] text-muted-foreground">{spotLocations.filter(l => l.type !== "region").length} {t('common.spots')}</span>
             </div>
             {spotLocations.filter(l => l.type !== "region").filter(l => {
               if (classificationFilter.length === 0) return true;
