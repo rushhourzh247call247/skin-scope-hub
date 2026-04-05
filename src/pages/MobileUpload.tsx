@@ -239,7 +239,7 @@ const MobileUpload = () => {
       <MobileShell>
         <StatusCard
           icon={<AlertTriangle className="h-8 w-8 text-destructive" />}
-          title="Ungültiger Link"
+          title={t('mobileUpload.invalidLink')}
           description={session.message}
         />
       </MobileShell>
