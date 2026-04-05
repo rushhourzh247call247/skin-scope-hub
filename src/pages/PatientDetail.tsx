@@ -803,7 +803,7 @@ const PatientDetail = () => {
                     onClick={() => {
                       // Create a new overview location
                       createLocationMutation.mutate({
-                        name: `Übersicht ${overviewLocations.length + 1}`,
+                        name: `Zone ${overviewLocations.length + 1}`,
                         x: 0, y: 0,
                         view: "front",
                         type: "overview",
@@ -812,7 +812,7 @@ const PatientDetail = () => {
                     disabled={createLocationMutation.isPending}
                   >
                     <Plus className="h-3.5 w-3.5" />
-                    Neues Übersichtsfoto
+                    {t('patientDetail.newOverview')}
                   </Button>
                 </div>
 
