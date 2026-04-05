@@ -1143,7 +1143,7 @@ const PatientDetail = () => {
                   <div className="rounded-lg border bg-card p-4 space-y-3">
                     <h4 className="text-xs font-semibold text-foreground uppercase tracking-wider flex items-center gap-2">
                       <Activity className="h-3.5 w-3.5 text-primary" />
-                      Klinischer Status
+                      {t('patientDetail.clinicalStatus')}
                     </h4>
                     <div className="flex gap-1.5">
                       {([
