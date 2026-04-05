@@ -1094,7 +1094,7 @@ const PatientDetail = () => {
                       <CollapsibleTrigger className="flex w-full items-center justify-between px-4 py-2.5 hover:bg-muted/50 transition-colors">
                         <div className="flex items-center gap-2">
                           <Tag className="h-3.5 w-3.5 text-muted-foreground" />
-                          <span className="text-xs font-semibold text-foreground/70 uppercase tracking-wider">Klassifizierung</span>
+                          <span className="text-xs font-semibold text-foreground/70 uppercase tracking-wider">{t('patientDetail.classification')}</span>
                         </div>
                         <div className="flex items-center gap-2">
                           <span className="flex items-center gap-1.5 text-[11px] font-medium text-foreground/80">
