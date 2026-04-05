@@ -246,7 +246,7 @@ const OverviewPhoto = ({ overviewLocation, spotLocations, patientId, onNavigateT
           title="Weiteres Foto zu dieser Übersicht hinzufügen"
         >
           <Upload className="h-3.5 w-3.5" />
-          <span>Foto +</span>
+          <span>{t('overviewPhoto.addPhoto')}</span>
         </Button>
         {onQrUpload && (
           <Button
