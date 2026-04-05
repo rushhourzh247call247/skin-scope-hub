@@ -374,12 +374,11 @@ const MobileUpload = () => {
         >
           {completing ? (
             <>
-              <Loader2 className="h-4 w-4 animate-spin" /> Wird abgeschlossen…
+              <Loader2 className="h-4 w-4 animate-spin" /> {t('mobileUpload.completing')}
             </>
           ) : (
             <>
-              <CheckCircle className="h-4 w-4" /> Fertig – {uploadedCount}{" "}
-              {uploadedCount === 1 ? "Foto" : "Fotos"} hochgeladen
+              <CheckCircle className="h-4 w-4" /> {uploadedCount === 1 ? t('mobileUpload.completeSingle', { count: uploadedCount }) : t('mobileUpload.complete', { count: uploadedCount })}
             </>
           )}
         </Button>
