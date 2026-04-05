@@ -558,7 +558,7 @@ export async function generatePatientPDF(
 
         // Right label badge — "AKTUELL"
         doc.setFillColor(59, 130, 246);
-        const actLabel = "AKTUELL";
+        const actLabel = i18n.t('pdf.current');
         const actLabelW = doc.getTextWidth(actLabel) + 5;
         drawRoundedRect(doc, rightX + (halfW - newDims.w) / 2 + 1.5, y + 1.5, actLabelW, 4.5, 1, "F");
         doc.setTextColor(...C.white);
