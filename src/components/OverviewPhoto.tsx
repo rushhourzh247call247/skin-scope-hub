@@ -925,7 +925,7 @@ const OverviewPhoto = ({ overviewLocation, spotLocations, patientId, onNavigateT
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Abbrechen</AlertDialogCancel>
+            <AlertDialogCancel>{t('common.cancel')}</AlertDialogCancel>
             <AlertDialogAction
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
               onClick={() => deleteTarget && deletePinMutation.mutate(deleteTarget)}
