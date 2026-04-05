@@ -232,7 +232,7 @@ const OverviewPhoto = ({ overviewLocation, spotLocations, patientId, onNavigateT
           variant={editMode ? "default" : "outline"}
           onClick={() => { setEditMode(!editMode); setPinMode(false); setPendingPin(null); }}
           className="gap-1 text-xs h-8"
-          title="Pins bearbeiten"
+          title={t('overviewPhoto.editPins')}
         >
           <Pencil className="h-3.5 w-3.5" />
         </Button>
