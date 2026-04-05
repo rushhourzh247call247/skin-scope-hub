@@ -505,7 +505,9 @@
     "compare": "VERGLEICH",
     "clickToViewSpot": "Klicken → Spot anzeigen",
     "deleteOverview": "Übersichtsfoto löschen",
-    "clickToRemovePin": "Klicken zum Löschen"
+    "clickToRemovePin": "Klicken zum Löschen",
+    "deletePinTitle": "Pin entfernen?",
+    "deletePinDesc": "Dieser Pin wird vom Übersichtsfoto entfernt. Der verknüpfte Spot bleibt erhalten."
   },
   "pdfExport": {
     "dialogTitle": "PDF-Bericht erstellen",

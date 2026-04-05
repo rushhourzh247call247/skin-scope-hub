@@ -4,6 +4,7 @@ import { Canvas, useFrame, useThree, ThreeEvent } from "@react-three/fiber";
 import { OrbitControls, Html, useGLTF, Center } from "@react-three/drei";
 import * as THREE from "three";
 import { cn } from "@/lib/utils";
+import i18n from "@/i18n";
 import { RotateCcw, Eye, Hand, Footprints, User, Shirt, CircleDot, ArrowDown, MapPin, Square, Filter } from "lucide-react";
 import type { LesionClassification } from "@/types/patient";
 import { LESION_CLASSIFICATIONS } from "@/types/patient";
@@ -80,16 +81,16 @@ type Region = "full" | "head" | "torso" | "left_arm" | "right_arm" | "hands" | "
 type CameraPreset = { position: [number, number, number]; target: [number, number, number]; label: string; icon: React.ElementType };
 
 const CAMERA_PRESETS: Record<Region, CameraPreset> = {
-  full: { position: [0, 0, 3.5], target: [0, 0, 0], label: "Ganzkörper", icon: User },
-  head: { position: [0, 1.15, 0.8], target: [0, 1.15, 0], label: "Kopf", icon: Eye },
-  torso: { position: [0, 0.35, 1.4], target: [0, 0.35, 0], label: "Torso", icon: Shirt },
-  left_arm: { position: [-0.8, 0.4, 1.0], target: [-0.35, 0.4, 0], label: "L. Arm", icon: Hand },
-  right_arm: { position: [0.8, 0.4, 1.0], target: [0.35, 0.4, 0], label: "R. Arm", icon: Hand },
-  hands: { position: [0, -0.2, 0.8], target: [0, -0.2, 0], label: "Hände", icon: CircleDot },
-  legs: { position: [0, -0.7, 1.6], target: [0, -0.7, 0], label: "Beine", icon: Footprints },
-  knees: { position: [0, -0.9, 0.9], target: [0, -0.9, 0], label: "Knie", icon: ArrowDown },
-  feet: { position: [0, -1.35, 0.7], target: [0, -1.35, 0], label: "Füße", icon: Footprints },
-  back: { position: [0, 0, -3.5], target: [0, 0, 0], label: "Rücken", icon: User },
+  full: { position: [0, 0, 3.5], target: [0, 0, 0], label: "bodyMap.fullBody", icon: User },
+  head: { position: [0, 1.15, 0.8], target: [0, 1.15, 0], label: "bodyMap.head", icon: Eye },
+  torso: { position: [0, 0.35, 1.4], target: [0, 0.35, 0], label: "bodyMap.torso", icon: Shirt },
+  left_arm: { position: [-0.8, 0.4, 1.0], target: [-0.35, 0.4, 0], label: "bodyMap.leftArm", icon: Hand },
+  right_arm: { position: [0.8, 0.4, 1.0], target: [0.35, 0.4, 0], label: "bodyMap.rightArm", icon: Hand },
+  hands: { position: [0, -0.2, 0.8], target: [0, -0.2, 0], label: "bodyMap.hands", icon: CircleDot },
+  legs: { position: [0, -0.7, 1.6], target: [0, -0.7, 0], label: "bodyMap.legs", icon: Footprints },
+  knees: { position: [0, -0.9, 0.9], target: [0, -0.9, 0], label: "bodyMap.knees", icon: ArrowDown },
+  feet: { position: [0, -1.35, 0.7], target: [0, -1.35, 0], label: "bodyMap.feet", icon: Footprints },
+  back: { position: [0, 0, -3.5], target: [0, 0, 0], label: "bodyMap.back", icon: User },
 };
 
 const FEMALE_MODEL_URL = "/models/body.glb";
@@ -303,16 +304,16 @@ const SpotMarker = React.forwardRef<THREE.Group, SpotMarkerProps>(function SpotM
             <div className="mt-1 flex items-center gap-3 text-[9px] text-muted-foreground">
               {(imageCount ?? 0) > 0 && (
                 <span className="flex items-center gap-0.5">
-                  📷 {imageCount} {imageCount === 1 ? "Bild" : "Bilder"}
+                  📷 {imageCount} {imageCount === 1 ? i18n.t('common.image') : i18n.t('common.images')}
                 </span>
               )}
               {(findingCount ?? 0) > 0 && (
                 <span className="flex items-center gap-0.5">
-                  📋 {findingCount} {findingCount === 1 ? "Befund" : "Befunde"}
+                  📋 {findingCount} {findingCount === 1 ? i18n.t('common.findings').slice(0, -1) : i18n.t('common.findings')}
                 </span>
               )}
               {(imageCount ?? 0) === 0 && (findingCount ?? 0) === 0 && (
-                <span>Keine Einträge</span>
+                <span>{i18n.t('bodyMap.noEntries')}</span>
               )}
             </div>
           </div>
@@ -457,13 +458,13 @@ const RegionMarker = React.forwardRef<THREE.Group, RegionMarkerProps>(function R
             </p>
             <div className="mt-1 flex items-center gap-3 text-[9px] text-muted-foreground">
               {(imageCount ?? 0) > 0 && (
-                <span>📷 {imageCount} {imageCount === 1 ? "Bild" : "Bilder"}</span>
+                <span>📷 {imageCount} {imageCount === 1 ? i18n.t('common.image') : i18n.t('common.images')}</span>
               )}
               {(findingCount ?? 0) > 0 && (
-                <span>📋 {findingCount} {findingCount === 1 ? "Befund" : "Befunde"}</span>
+                <span>📋 {findingCount} {findingCount === 1 ? i18n.t('common.findings').slice(0, -1) : i18n.t('common.findings')}</span>
               )}
               {(imageCount ?? 0) === 0 && (findingCount ?? 0) === 0 && (
-                <span>Keine Einträge</span>
+                <span>{i18n.t('bodyMap.noEntries')}</span>
               )}
             </div>
           </div>
@@ -844,7 +845,7 @@ function DraggableSpotPreview({
             ? "bg-green-500 text-white border-green-400"
             : "bg-card/90 text-foreground border-border/50"
         )}>
-          {isDragging ? "Loslassen zum Platzieren" : "Ziehen zum Verschieben"}
+          {isDragging ? i18n.t('bodyMap.releaseToPlace') : i18n.t('bodyMap.dragToMove')}
         </div>
       </Html>
     </group>
@@ -857,7 +858,7 @@ function LoadingFallback() {
     <Html center>
       <div className="flex flex-col items-center gap-2">
         <div className="h-6 w-6 animate-spin rounded-full border-2 border-primary border-t-transparent" />
-        <span className="text-[10px] text-muted-foreground">3D Modell laden…</span>
+        <span className="text-[10px] text-muted-foreground">{i18n.t('bodyMap.loading3D')}</span>
       </div>
     </Html>
   );
@@ -1011,7 +1012,7 @@ function Scene({ markers, selectedLocationId, onMapClick, onMarkerClick, classif
         >
           <RegionMarker
             position={[0, 0, 0]}
-            name="Neue Region"
+            name={i18n.t('patientDetail.newRegion')}
             isSelected={true}
             onClick={() => {}}
             width={previewMarker.width ?? 40}
@@ -1146,7 +1147,7 @@ const BodyMap3D: React.FC<BodyMap3DProps> = (props) => {
 
         {/* Gender indicator */}
         <div className="absolute left-2 top-10 rounded-md border border-border/50 bg-card/85 px-2 py-1 text-[10px] font-semibold text-muted-foreground">
-          {gender === "female" ? "♀ Weiblich" : "♂ Männlich"}
+          {gender === "female" ? `♀ ${i18n.t('common.female')}` : `♂ ${i18n.t('common.male')}`}
         </div>
 
         {/* Region buttons */}
@@ -1177,7 +1178,7 @@ const BodyMap3D: React.FC<BodyMap3DProps> = (props) => {
             onClick={() => { setActiveRegion("full"); setResetCounter(c => c + 1); setFocusKey(k => k + 1); if (props.onMarkerClick) props.onMarkerClick(undefined as any); }}
             className="flex h-7 items-center gap-1 rounded-md border border-border/50 bg-card/80 px-2 text-[10px] text-muted-foreground transition-all hover:text-foreground"
           >
-            <RotateCcw className="h-3 w-3" /> Reset
+            <RotateCcw className="h-3 w-3" /> {i18n.t('common.reset')}
           </button>
 
           {/* Spot mark mode toggle */}
@@ -1192,7 +1193,7 @@ const BodyMap3D: React.FC<BodyMap3DProps> = (props) => {
             )}
           >
             <MapPin className="h-3 w-3" />
-            Spot
+            {i18n.t('bodyMap.spotMode')}
           </button>
 
         </div>
@@ -1206,8 +1207,8 @@ const BodyMap3D: React.FC<BodyMap3DProps> = (props) => {
               : "bg-primary text-primary-foreground"
           )}>
             {markType === "region"
-              ? "Klicken um Region-Mittelpunkt zu setzen"
-              : "Klicken um Spot zu setzen"
+              ? i18n.t('bodyMap.clickToSetRegion', { defaultValue: 'Click to set region center' })
+              : i18n.t('bodyMap.clickToSetSpot', { defaultValue: 'Click to place spot' })
             }
           </div>
         )}
@@ -1234,14 +1235,14 @@ const BodyMap3D: React.FC<BodyMap3DProps> = (props) => {
             <div className="absolute bottom-10 left-2 rounded-lg border border-border/50 bg-card/90 backdrop-blur-sm p-1.5 space-y-0.5 max-w-[140px]">
               <div className="flex items-center justify-between px-1 mb-0.5">
                 <span className="text-[8px] font-bold text-muted-foreground uppercase tracking-wider flex items-center gap-1">
-                  <Filter className="h-2.5 w-2.5" /> Legende
+                  <Filter className="h-2.5 w-2.5" /> {i18n.t('bodyMap.filter')}
                 </span>
                 {hasFilter && (
                   <button
                     onClick={() => props.onFilterChange?.([])}
                     className="text-[8px] text-primary hover:underline"
                   >
-                    Alle
+                    {i18n.t('common.all')}
                   </button>
                 )}
               </div>
@@ -1284,9 +1285,9 @@ const BodyMap3D: React.FC<BodyMap3DProps> = (props) => {
       <p className="mt-2 text-center text-[10px] text-muted-foreground">
         {markMode
           ? markType === "region"
-            ? "Region-Modus: Klicken für Mittelpunkt · Nochmal klicken zum Beenden"
-            : "Spot-Modus: Klicken um Spot zu setzen · Nochmal klicken zum Beenden"
-          : "Drehen & Zoomen · «Spot» oder «Region» zum Markieren"
+            ? i18n.t('bodyMap.regionModeHelp', { defaultValue: 'Region mode: Click for center · Click again to finish' })
+            : i18n.t('bodyMap.spotModeHelp', { defaultValue: 'Spot mode: Click to place · Click again to finish' })
+          : i18n.t('bodyMap.defaultHelp', { defaultValue: 'Rotate & zoom · Click "Spot" or "Region" to mark' })
         }
       </p>
     </div>

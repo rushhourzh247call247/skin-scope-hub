@@ -13,20 +13,16 @@ import { useToast } from "@/hooks/use-toast";
 
 /* ─── Labels to place ─── */
 const ZONE_LABELS_FRONT = [
-  // Kopf / Gesicht
   "Stirn", "Augenbraue links", "Augenbraue rechts", "Auge links", "Auge rechts",
   "Nase", "Wange links", "Wange rechts", "Mund", "Kinn",
   "Linkes Ohr", "Rechtes Ohr",
-  // Hals & Torso
   "Hals", "Linke Schulter", "Rechte Schulter",
   "Obere Brust", "Brust", "Bauch (oben)", "Bauchnabel", "Unterbauch",
-  // Hüfte & Beine
   "Linke Hüfte", "Rechte Hüfte",
   "Linker Oberschenkel", "Rechter Oberschenkel",
   "Linkes Knie", "Rechtes Knie",
   "Linker Unterschenkel", "Rechter Unterschenkel",
   "Linker Fuß", "Rechter Fuß",
-  // Arme
   "Linker Oberarm", "Rechter Oberarm",
   "Linker Unterarm", "Rechter Unterarm",
   "Linke Hand", "Rechte Hand",
@@ -95,7 +91,7 @@ function CalibrationBody({ onClick, gender }: { onClick: (e: ThreeEvent<MouseEve
 }
 
 /* ─── Placed label marker ─── */
-function LabelMarker({ label, position, onRemove }: { label: string; position: [number, number, number]; onRemove: () => void }) {
+function LabelMarker({ label, position, onRemove, removeTitle }: { label: string; position: [number, number, number]; onRemove: () => void; removeTitle: string }) {
   return (
     <group position={position}>
       <mesh>
@@ -110,7 +106,7 @@ function LabelMarker({ label, position, onRemove }: { label: string; position: [
             e.stopPropagation();
             onRemove();
           }}
-          title="Klicken zum Entfernen"
+          title={removeTitle}
         >
           📌 {label}
         </div>
@@ -147,6 +143,7 @@ function SceneContent({
   hoverPoint,
   hoverView,
   hideMarkers,
+  removeTitle,
   onPlace,
   onRemove,
   onHover,
@@ -157,6 +154,7 @@ function SceneContent({
   hoverPoint: [number, number, number] | null;
   hoverView: "front" | "back";
   hideMarkers: boolean;
+  removeTitle: string;
   onPlace: (x: number, y: number, z: number, view: "front" | "back") => void;
   onRemove: (id: string) => void;
   onHover: (point: [number, number, number] | null, view: "front" | "back") => void;
@@ -211,6 +209,7 @@ function SceneContent({
           label={pl.label}
           position={[pl.x3d, pl.y3d, pl.z3d]}
           onRemove={() => onRemove(pl.id)}
+          removeTitle={removeTitle}
         />
       ))}
 
@@ -220,7 +219,6 @@ function SceneContent({
 
       <OrbitControls ref={controlsRef} enablePan={false} />
 
-      {/* Reset button */}
       <Html position={[0, -1.5, 0]} center>
         <Button size="sm" variant="outline" onClick={resetCamera} className="bg-white/90">
           <RotateCcw className="w-3 h-3 mr-1" /> Reset
@@ -232,6 +230,7 @@ function SceneContent({
 
 /* ─── Main Page ─── */
 export default function Calibrate() {
+  const { t } = useTranslation();
   const [gender, setGender] = useState<"male" | "female">("male");
   const [activeLabel, setActiveLabel] = useState<string | null>(null);
   const [placedLabels, setPlacedLabels] = useState<PlacedLabel[]>([]);
@@ -251,18 +250,16 @@ export default function Calibrate() {
     const id = `${prefix}${activeLabel}_${Date.now()}`;
     
     setPlacedLabels(prev => {
-      // Remove existing placement of same label for same gender
       const filtered = prev.filter(p => !(p.label === activeLabel && p.id.startsWith(prefix)));
       return [...filtered, { id, label: activeLabel, x3d: x, y3d: y, z3d: z, view }];
     });
     
-    toast({ title: `"${activeLabel}" platziert`, description: `x:${x.toFixed(3)} y:${y.toFixed(3)} z:${z.toFixed(3)} (${view})` });
+    toast({ title: t('calibrate.labelPlaced', { label: activeLabel }), description: `x:${x.toFixed(3)} y:${y.toFixed(3)} z:${z.toFixed(3)} (${view})` });
     
-    // Auto-select next unplaced label
     const currentIndex = allLabels.indexOf(activeLabel);
     const nextUnplaced = allLabels.slice(currentIndex + 1).find(l => !placedLabelNames.has(l) && l !== activeLabel);
     setActiveLabel(nextUnplaced || null);
-  }, [activeLabel, gender, toast, allLabels, placedLabelNames]);
+  }, [activeLabel, gender, toast, allLabels, placedLabelNames, t]);
 
   const handleRemove = useCallback((id: string) => {
     setPlacedLabels(prev => prev.filter(p => p.id !== id));
@@ -284,10 +281,10 @@ export default function Calibrate() {
     }));
     const json = JSON.stringify(data, null, 2);
     navigator.clipboard.writeText(json);
-    toast({ title: "Daten kopiert!", description: `${data.length} Labels in Zwischenablage kopiert` });
+    toast({ title: t('calibrate.dataCopied'), description: t('calibrate.labelsCopied', { count: data.length }) });
     console.log("=== CALIBRATION DATA ===");
     console.log(json);
-  }, [placedLabels, toast]);
+  }, [placedLabels, toast, t]);
 
   const currentGenderLabels = placedLabels.filter(p => {
     const prefix = gender === "male" ? "m_" : "f_";
@@ -296,12 +293,11 @@ export default function Calibrate() {
 
   return (
     <div className="flex h-screen bg-background">
-      {/* Left sidebar - Labels to place */}
       <div className="w-72 border-r flex flex-col">
         <div className="p-3 border-b">
-          <h2 className="font-bold text-lg">🔧 Kalibrierung</h2>
+          <h2 className="font-bold text-lg">🔧 {t('calibrate.title')}</h2>
           <p className="text-xs text-muted-foreground mt-1">
-            Label auswählen → auf Körper klicken
+            {t('calibrate.instruction')}
           </p>
           <div className="flex gap-2 mt-2">
             <Button
@@ -310,7 +306,7 @@ export default function Calibrate() {
               onClick={() => setGender("male")}
               className="flex-1"
             >
-              ♂ Mann
+              ♂ {t('calibrate.male')}
             </Button>
             <Button
               size="sm"
@@ -318,14 +314,14 @@ export default function Calibrate() {
               onClick={() => setGender("female")}
               className="flex-1"
             >
-              ♀ Frau
+              ♀ {t('calibrate.female')}
             </Button>
           </div>
         </div>
 
         <ScrollArea className="flex-1">
           <div className="p-2">
-            <p className="text-xs font-semibold text-muted-foreground px-1 mb-1">VORNE</p>
+            <p className="text-xs font-semibold text-muted-foreground px-1 mb-1">{t('calibrate.front')}</p>
             <div className="flex flex-wrap gap-1 mb-3">
               {ZONE_LABELS_FRONT.map(label => {
                 const isPlaced = currentGenderLabels.some(p => p.label === label);
@@ -345,7 +341,7 @@ export default function Calibrate() {
               })}
             </div>
 
-            <p className="text-xs font-semibold text-muted-foreground px-1 mb-1">HINTEN</p>
+            <p className="text-xs font-semibold text-muted-foreground px-1 mb-1">{t('calibrate.back')}</p>
             <div className="flex flex-wrap gap-1">
               {ZONE_LABELS_BACK.map(label => {
                 const isPlaced = currentGenderLabels.some(p => p.label === label);
@@ -367,20 +363,18 @@ export default function Calibrate() {
           </div>
         </ScrollArea>
 
-        {/* Bottom actions */}
         <div className="p-3 border-t space-y-2">
           <div className="text-xs text-muted-foreground">
-            {currentGenderLabels.length} / {allLabels.length} platziert ({gender === "male" ? "Mann" : "Frau"})
+            {currentGenderLabels.length} / {allLabels.length} {t('calibrate.placed')} ({gender === "male" ? t('calibrate.male') : t('calibrate.female')})
           </div>
           <div className="flex gap-2">
             <Button size="sm" variant="outline" onClick={exportData} className="flex-1">
-              <Copy className="w-3 h-3 mr-1" /> Exportieren
+              <Copy className="w-3 h-3 mr-1" /> {t('calibrate.export')}
             </Button>
             <Button
               size="sm"
               variant={hideMarkers ? "default" : "outline"}
               onClick={() => setHideMarkers(h => !h)}
-              title="Platzierte Marker ein-/ausblenden"
             >
               {hideMarkers ? "👁" : "👁‍🗨"}
             </Button>
@@ -398,11 +392,10 @@ export default function Calibrate() {
         </div>
       </div>
 
-      {/* 3D Canvas */}
       <div className="flex-1 relative">
         {activeLabel && (
           <div className="absolute top-3 left-1/2 -translate-x-1/2 z-10 bg-primary text-primary-foreground px-4 py-2 rounded-full shadow-lg text-sm font-bold animate-pulse">
-            📌 Platziere: {activeLabel}
+            📌 {t('calibrate.placing', { label: activeLabel })}
           </div>
         )}
         <Canvas camera={{ position: [0, 0, 3.5], fov: 35 }} style={{ cursor: activeLabel ? "crosshair" : "grab" }}>
@@ -413,6 +406,7 @@ export default function Calibrate() {
             hoverPoint={hoverPoint}
             hoverView={hoverView}
             hideMarkers={hideMarkers}
+            removeTitle={t('calibrate.clickToRemove')}
             onPlace={handlePlace}
             onRemove={handleRemove}
             onHover={handleHover}
@@ -420,16 +414,15 @@ export default function Calibrate() {
         </Canvas>
       </div>
 
-      {/* Right sidebar - Placed labels summary */}
       <div className="w-64 border-l flex flex-col">
         <div className="p-3 border-b">
-          <h3 className="font-semibold text-sm">Platzierte Labels</h3>
+          <h3 className="font-semibold text-sm">{t('calibrate.placedLabels')}</h3>
         </div>
         <ScrollArea className="flex-1">
           <div className="p-2 space-y-1">
             {currentGenderLabels.length === 0 && (
               <p className="text-xs text-muted-foreground p-2">
-                Noch keine Labels platziert. Wähle links ein Label und klicke auf den Körper.
+                {t('calibrate.noLabelsPlaced')}
               </p>
             )}
             {currentGenderLabels

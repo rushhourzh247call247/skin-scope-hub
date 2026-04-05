@@ -505,7 +505,9 @@
     "compare": "COMPARE",
     "clickToViewSpot": "Click → View spot",
     "deleteOverview": "Delete overview photo",
-    "clickToRemovePin": "Click to delete"
+    "clickToRemovePin": "Click to delete",
+    "deletePinTitle": "Remove pin?",
+    "deletePinDesc": "This pin will be removed from the overview photo. The linked spot will remain."
   },
   "pdfExport": {
     "dialogTitle": "Create PDF Report",

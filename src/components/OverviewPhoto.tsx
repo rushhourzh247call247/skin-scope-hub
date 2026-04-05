@@ -79,7 +79,7 @@ const OverviewPhoto = ({ overviewLocation, spotLocations, patientId, onNavigateT
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["full-patient", patientId] });
       setIsRenaming(false);
-      toast.success("Umbenannt");
+      toast.success(t('overviewPhoto.renamed'));
     },
   });
 
@@ -90,7 +90,7 @@ const OverviewPhoto = ({ overviewLocation, spotLocations, patientId, onNavigateT
       queryClient.invalidateQueries({ queryKey: ["overview-pins", overviewLocation.id] });
       setPendingPin(null);
       setPinMode(false);
-      toast.success("Pin gesetzt");
+      toast.success(t('overviewPhoto.pinSet'));
     },
   });
 
@@ -99,7 +99,7 @@ const OverviewPhoto = ({ overviewLocation, spotLocations, patientId, onNavigateT
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["overview-pins", overviewLocation.id] });
       setDeleteTarget(null);
-      toast.success("Pin entfernt");
+      toast.success(t('overviewPhoto.pinRemoved'));
     },
   });
 
@@ -108,7 +108,7 @@ const OverviewPhoto = ({ overviewLocation, spotLocations, patientId, onNavigateT
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["full-patient", patientId] });
       setUploading(false);
-      toast.success("Übersichtsfoto hochgeladen");
+      toast.success(t('overviewPhoto.overviewUploaded'));
     },
     onError: () => setUploading(false),
   });
@@ -165,12 +165,12 @@ const OverviewPhoto = ({ overviewLocation, spotLocations, patientId, onNavigateT
     return (
       <div className="flex flex-col items-center justify-center rounded-lg border border-dashed py-12 text-muted-foreground">
         <Camera className="mb-3 h-10 w-10" />
-        <p className="text-sm font-medium">Noch kein Übersichtsfoto</p>
-        <p className="text-xs mt-1 mb-4">Laden Sie ein Foto der Körperregion hoch</p>
+        <p className="text-sm font-medium">{t('overviewPhoto.noOverviewPhoto')}</p>
+        <p className="text-xs mt-1 mb-4">{t('overviewPhoto.uploadDescription')}</p>
         <input ref={fileRef} type="file" accept="image/*" className="hidden" onChange={handleUpload} />
         <Button size="sm" onClick={() => fileRef.current?.click()} disabled={uploading}>
           <Upload className="mr-1.5 h-3.5 w-3.5" />
-          {uploading ? "Lädt hoch…" : "Foto hochladen"}
+          {uploading ? t('overviewPhoto.uploading') : t('overviewPhoto.uploadPhoto')}
         </Button>
       </div>
     );
@@ -203,10 +203,10 @@ const OverviewPhoto = ({ overviewLocation, spotLocations, patientId, onNavigateT
             <button
               className="flex items-center gap-1.5 rounded-md px-1.5 py-0.5 -ml-1.5 hover:bg-muted transition-colors group"
               onClick={() => { setRenameValue(overviewLocation.name || ""); setIsRenaming(true); }}
-              title="Klicken zum Umbenennen"
+            title={t('overviewPhoto.clickToRemovePin')}
             >
               <h4 className="text-sm font-medium text-foreground">
-                {overviewLocation.name || "Übersichtsfoto"}
+                {overviewLocation.name || t('overviewPhoto.noOverviewPhoto')}
               </h4>
               <Pencil className="h-3 w-3 text-muted-foreground" />
             </button>
@@ -225,14 +225,14 @@ const OverviewPhoto = ({ overviewLocation, spotLocations, patientId, onNavigateT
           className="gap-1 text-xs h-8"
         >
           <Plus className="h-3.5 w-3.5" />
-          <span>{pinMode ? "Pin ✓" : "Pin"}</span>
+          <span>{pinMode ? t('overviewPhoto.pinActive') : t('overviewPhoto.pin')}</span>
         </Button>
         <Button
           size="sm"
           variant={editMode ? "default" : "outline"}
           onClick={() => { setEditMode(!editMode); setPinMode(false); setPendingPin(null); }}
           className="gap-1 text-xs h-8"
-          title="Pins bearbeiten"
+          title={t('overviewPhoto.editPins')}
         >
           <Pencil className="h-3.5 w-3.5" />
         </Button>
@@ -246,7 +246,7 @@ const OverviewPhoto = ({ overviewLocation, spotLocations, patientId, onNavigateT
           title="Weiteres Foto zu dieser Übersicht hinzufügen"
         >
           <Upload className="h-3.5 w-3.5" />
-          <span>Foto +</span>
+          <span>{t('overviewPhoto.addPhoto')}</span>
         </Button>
         {onQrUpload && (
           <Button
@@ -254,7 +254,7 @@ const OverviewPhoto = ({ overviewLocation, spotLocations, patientId, onNavigateT
             variant="outline"
             onClick={() => onQrUpload(overviewLocation.id)}
             className="gap-1 text-xs h-8"
-            title="Foto vom Handy hochladen"
+            title={t('mobileUpload.title')}
           >
             <QrCode className="h-3.5 w-3.5" />
             <span>QR</span>
@@ -266,7 +266,7 @@ const OverviewPhoto = ({ overviewLocation, spotLocations, patientId, onNavigateT
             variant="outline"
             onClick={() => onDelete(overviewLocation.id)}
             className="gap-1 text-xs h-8 text-destructive hover:text-destructive hover:bg-destructive/10"
-            title="Übersichtsfoto löschen"
+            title={t('overviewPhoto.deleteOverview')}
           >
             <Trash2 className="h-3.5 w-3.5" />
           </Button>
@@ -276,7 +276,7 @@ const OverviewPhoto = ({ overviewLocation, spotLocations, patientId, onNavigateT
       {pinMode && (
         <div className="flex items-center gap-2 rounded-md bg-primary/10 border border-primary/20 px-3 py-2 text-xs text-primary">
           <MapPin className="h-4 w-4 shrink-0" />
-          <span>Klicken Sie auf das Foto, um einen Pin zu platzieren. Danach wählen Sie den zugehörigen Spot.</span>
+          <span>{t('overviewPhoto.pinInstruction')}</span>
           <Button size="sm" variant="ghost" className="ml-auto h-6 px-2" onClick={() => { setPinMode(false); setPendingPin(null); }}>
             <X className="h-3 w-3" />
           </Button>
@@ -411,7 +411,7 @@ const OverviewPhoto = ({ overviewLocation, spotLocations, patientId, onNavigateT
                 }}
                 onMouseEnter={() => setHoveredPin(pin.id)}
                 onMouseLeave={() => setHoveredPin(null)}
-                title={editMode ? "Klicken zum Löschen" : `→ ${spot?.name || pin.label || `Spot #${pin.linked_location_id}`}`}
+                title={editMode ? t('overviewPhoto.clickToRemovePin') : `→ ${spot?.name || pin.label || `Spot #${pin.linked_location_id}`}`}
               >
                 <span
                   className="flex items-center justify-center rounded-full text-[10px] font-bold text-white shadow-md border border-white/50"
@@ -449,7 +449,7 @@ const OverviewPhoto = ({ overviewLocation, spotLocations, patientId, onNavigateT
                         </p>
                         {spot && (
                           <p className="text-[10px] text-muted-foreground">
-                            {spot.images?.length ?? 0} Bilder
+                            {spot.images?.length ?? 0} {t('common.images')}
                           </p>
                         )}
                         {(() => {
@@ -467,7 +467,7 @@ const OverviewPhoto = ({ overviewLocation, spotLocations, patientId, onNavigateT
                         })()}
                       </div>
                     </div>
-                    <p className="text-[10px] text-primary mt-1.5 text-center">Klicken → Spot anzeigen</p>
+                    <p className="text-[10px] text-primary mt-1.5 text-center">{t('overviewPhoto.clickToViewSpot')}</p>
                   </div>
                 </div>
               )}
@@ -494,7 +494,7 @@ const OverviewPhoto = ({ overviewLocation, spotLocations, patientId, onNavigateT
             </PopoverTrigger>
             <PopoverContent className="w-72 p-2" side="right" align="start" onClick={(e) => e.stopPropagation()}>
               <>
-                <p className="text-xs font-semibold text-foreground mb-2">Mit Spot verknüpfen:</p>
+                <p className="text-xs font-semibold text-foreground mb-2">{t('overviewPhoto.linkToSpot')}</p>
 
                   {onCreateSpotAndLink && (
                     <button
@@ -512,15 +512,15 @@ const OverviewPhoto = ({ overviewLocation, spotLocations, patientId, onNavigateT
                         <Plus className="h-3.5 w-3.5 text-primary" />
                       </div>
                       <div className="min-w-0 flex-1">
-                        <p className="text-xs font-medium text-primary">Neuen Spot erstellen</p>
-                        <p className="text-[10px] text-muted-foreground">Automatisch benannt, später umbenennbar</p>
+                        <p className="text-xs font-medium text-primary">{t('overviewPhoto.createNewSpot')}</p>
+                        <p className="text-[10px] text-muted-foreground">{t('overviewPhoto.autoNamed')}</p>
                       </div>
                     </button>
                   )}
 
                   <div className="max-h-48 overflow-y-auto space-y-1">
                     {spotLocations.filter(s => s.type !== "overview").length === 0 && !onCreateSpotAndLink ? (
-                      <p className="text-xs text-muted-foreground py-2 text-center">Keine Spots vorhanden</p>
+                      <p className="text-xs text-muted-foreground py-2 text-center">{t('overviewPhoto.noSpots')}</p>
                     ) : (
                       spotLocations.filter(s => s.type !== "overview").map((spot) => {
                         const cls = (spot as any).classification as LesionClassification | undefined;
@@ -548,7 +548,7 @@ const OverviewPhoto = ({ overviewLocation, spotLocations, patientId, onNavigateT
                                 {spot.name || `Spot #${spot.id}`}
                               </p>
                               <p className="text-[10px] text-muted-foreground">
-                                {spot.images?.length ?? 0} Bilder
+                                {spot.images?.length ?? 0} {t('common.images')}
                                 {clsInfo && (
                                   <span className="ml-1 font-bold" style={{ color: clsInfo.color }}>
                                     {clsInfo.shortLabel}
@@ -563,7 +563,7 @@ const OverviewPhoto = ({ overviewLocation, spotLocations, patientId, onNavigateT
                   </div>
                   <div className="mt-2 pt-2 border-t">
                     <Button size="sm" variant="ghost" className="w-full text-xs" onClick={() => setPendingPin(null)}>
-                      Abbrechen
+                    {t('common.cancel')}
                     </Button>
                   </div>
                 </>
@@ -612,7 +612,7 @@ const OverviewPhoto = ({ overviewLocation, spotLocations, patientId, onNavigateT
           }}
         >
           <GitCompareArrows className="h-3.5 w-3.5" />
-          Übersichtsfotos vergleichen ({overviewLocation.images.length} Fotos)
+          {t('overviewPhoto.comparePhotos', { count: overviewLocation.images.length })}
         </Button>
       )}
 
@@ -639,7 +639,7 @@ const OverviewPhoto = ({ overviewLocation, spotLocations, patientId, onNavigateT
               <div className="flex items-center justify-between">
                 <h4 className="text-sm font-semibold text-foreground flex items-center gap-2">
                   <GitCompareArrows className="h-4 w-4 text-primary" />
-                  Vergleich
+                   {t('overviewPhoto.comparison')}
                 </h4>
                 <div className="flex items-center gap-2">
                   <div className="flex items-center gap-1 rounded-lg bg-muted p-1">
@@ -650,7 +650,7 @@ const OverviewPhoto = ({ overviewLocation, spotLocations, patientId, onNavigateT
                         compareView === "side" ? "bg-primary text-primary-foreground shadow-sm" : "text-muted-foreground hover:text-foreground"
                       )}
                     >
-                      <GitCompareArrows className="h-3 w-3" /> Nebeneinander
+                      <GitCompareArrows className="h-3 w-3" /> {t('imageCompare.sideMode')}
                     </button>
                     <button
                       onClick={() => setCompareView("overlay")}
@@ -659,7 +659,7 @@ const OverviewPhoto = ({ overviewLocation, spotLocations, patientId, onNavigateT
                         compareView === "overlay" ? "bg-primary text-primary-foreground shadow-sm" : "text-muted-foreground hover:text-foreground"
                       )}
                     >
-                      <Layers className="h-3 w-3" /> Overlay
+                      <Layers className="h-3 w-3" /> {t('imageCompare.overlayMode')}
                     </button>
                   </div>
                   <Button size="sm" variant="ghost" className="h-7 px-2" onClick={() => setCompareMode(false)}>
@@ -747,11 +747,11 @@ const OverviewPhoto = ({ overviewLocation, spotLocations, patientId, onNavigateT
                           setOverlayScale(result.scale);
                           setOverlayOffsetX(result.offset_x);
                           setOverlayOffsetY(result.offset_y);
-                          toast.success("Bilder ausgerichtet – wechsle zu Overlay um das Ergebnis zu sehen");
+                          toast.success(t('imageCompare.switchToOverlay'));
                           setCompareView("overlay");
                         } catch (err) {
                           console.error("[AutoAlign] Error:", err);
-                          toast.error("Automatische Ausrichtung fehlgeschlagen");
+                           toast.error(t('imageCompare.autoAlignFailed'));
                           handleReset();
                         } finally {
                           setIsAutoAligning(false);
@@ -759,9 +759,9 @@ const OverviewPhoto = ({ overviewLocation, spotLocations, patientId, onNavigateT
                       }}
                     >
                       {isAutoAligning ? (
-                        <><Loader2 className="h-3 w-3 animate-spin" /> Analysiere…</>
+                       <><Loader2 className="h-3 w-3 animate-spin" /> {t('imageCompare.analyzing')}</>
                       ) : (
-                        <><Wand2 className="h-3 w-3" /> KI Ausrichtung</>
+                        <><Wand2 className="h-3 w-3" /> {t('imageCompare.aiAlignment')}</>
                       )}
                     </Button>
                     {isAlignmentModified && (
@@ -793,7 +793,7 @@ const OverviewPhoto = ({ overviewLocation, spotLocations, patientId, onNavigateT
                   <div className="space-y-2">
                     <div className="flex items-center justify-between text-xs text-muted-foreground">
                       <span className="flex items-center gap-1"><Calendar className="h-3 w-3" />{imgA.created_at ? formatDate(imgA.created_at, "dd.MM.yy") : "–"}</span>
-                      <span className="text-[10px] font-medium text-foreground">Transparenz: {overlayOpacity}%</span>
+                      <span className="text-[10px] font-medium text-foreground">{t('imageCompare.transparency')}: {overlayOpacity}%</span>
                       <span className="flex items-center gap-1"><Calendar className="h-3 w-3" />{imgB.created_at ? formatDate(imgB.created_at, "dd.MM.yy") : "–"}</span>
                     </div>
                     <Slider value={[overlayOpacity]} onValueChange={([v]) => setOverlayOpacity(v)} min={0} max={100} step={1} />
@@ -814,10 +814,10 @@ const OverviewPhoto = ({ overviewLocation, spotLocations, patientId, onNavigateT
                           setOverlayScale(result.scale);
                           setOverlayOffsetX(result.offset_x);
                           setOverlayOffsetY(result.offset_y);
-                          toast.success("Bilder automatisch ausgerichtet");
+                          toast.success(t('imageCompare.autoAligned'));
                         } catch (err) {
                           console.error("[AutoAlign] Error:", err);
-                          toast.error("Automatische Ausrichtung fehlgeschlagen");
+                          toast.error(t('imageCompare.autoAlignFailed'));
                           handleReset();
                         } finally {
                           setIsAutoAligning(false);
@@ -825,9 +825,9 @@ const OverviewPhoto = ({ overviewLocation, spotLocations, patientId, onNavigateT
                       }}
                     >
                       {isAutoAligning ? (
-                        <><Loader2 className="h-3 w-3 animate-spin" /> Analysiere…</>
+                       <><Loader2 className="h-3 w-3 animate-spin" /> {t('imageCompare.analyzing')}</>
                       ) : (
-                        <><Wand2 className="h-3 w-3" /> KI Ausrichtung</>
+                        <><Wand2 className="h-3 w-3" /> {t('imageCompare.aiAlignment')}</>
                       )}
                     </Button>
                     {isAlignmentModified && (
@@ -842,7 +842,7 @@ const OverviewPhoto = ({ overviewLocation, spotLocations, patientId, onNavigateT
                         showAlignControls || isAlignmentModified ? "border-primary/30 bg-primary/5 text-primary" : "border-border bg-card text-muted-foreground hover:text-foreground"
                       )}
                     >
-                      <Move className="h-3 w-3" /> Manuell
+                      <Move className="h-3 w-3" /> {t('imageCompare.manualAlign')}
                       {isAlignmentModified && <span className="h-1.5 w-1.5 rounded-full bg-primary" />}
                       <ChevronDown className={cn("h-3 w-3 transition-transform", showAlignControls && "rotate-180")} />
                     </button>
@@ -852,14 +852,14 @@ const OverviewPhoto = ({ overviewLocation, spotLocations, patientId, onNavigateT
                       <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: "auto", opacity: 1 }} exit={{ height: 0, opacity: 0 }} className="overflow-hidden">
                         <div className="rounded-lg border bg-muted/30 p-3 space-y-3">
                           <div className="flex items-center justify-end">
-                            <Button variant="ghost" size="sm" className="h-6 px-2 text-[10px]" onClick={handleReset}><RotateCcw className="mr-1 h-3 w-3" /> Reset</Button>
+                            <Button variant="ghost" size="sm" className="h-6 px-2 text-[10px]" onClick={handleReset}><RotateCcw className="mr-1 h-3 w-3" /> {t('common.reset')}</Button>
                           </div>
                           <div className="space-y-1">
-                            <div className="flex items-center justify-between text-[10px] text-muted-foreground"><span className="flex items-center gap-1"><RotateCw className="h-3 w-3" /> Rotation</span><span className="font-mono">{overlayRotation}°</span></div>
+                            <div className="flex items-center justify-between text-[10px] text-muted-foreground"><span className="flex items-center gap-1"><RotateCw className="h-3 w-3" /> {t('imageCompare.rotation')}</span><span className="font-mono">{overlayRotation}°</span></div>
                             <Slider value={[overlayRotation]} onValueChange={([v]) => setOverlayRotation(v)} min={-180} max={180} step={1} />
                           </div>
                           <div className="space-y-1">
-                            <div className="flex items-center justify-between text-[10px] text-muted-foreground"><span className="flex items-center gap-1"><ZoomIn className="h-3 w-3" /> Zoom</span><span className="font-mono">{overlayScale}%</span></div>
+                            <div className="flex items-center justify-between text-[10px] text-muted-foreground"><span className="flex items-center gap-1"><ZoomIn className="h-3 w-3" /> {t('imageCompare.scale')}</span><span className="font-mono">{overlayScale}%</span></div>
                             <Slider value={[overlayScale]} onValueChange={([v]) => setOverlayScale(v)} min={50} max={200} step={1} />
                           </div>
                           <div className="space-y-1">
@@ -911,26 +911,26 @@ const OverviewPhoto = ({ overviewLocation, spotLocations, patientId, onNavigateT
 
       {referenceImage?.created_at && (
         <p className="text-[10px] text-muted-foreground">
-          Aufnahme vom {formatDate(referenceImage.created_at, "dd.MM.yyyy")}
-          {overviewLocation.images.length > 1 && ` · ${overviewLocation.images.length} Fotos gespeichert`}
+           {t('pdf.recording')} {formatDate(referenceImage.created_at, "dd.MM.yyyy")}
+          {overviewLocation.images.length > 1 && ` · ${overviewLocation.images.length} ${t('common.images')}`}
         </p>
       )}
 
       <AlertDialog open={deleteTarget !== null} onOpenChange={(open) => !open && setDeleteTarget(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Pin entfernen?</AlertDialogTitle>
+            <AlertDialogTitle>{t('overviewPhoto.deletePinTitle', { defaultValue: 'Remove pin?' })}</AlertDialogTitle>
             <AlertDialogDescription>
-              Dieser Pin wird vom Übersichtsfoto entfernt. Der verknüpfte Spot bleibt erhalten.
+              {t('overviewPhoto.deletePinDesc', { defaultValue: 'This pin will be removed from the overview photo. The linked spot will remain.' })}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Abbrechen</AlertDialogCancel>
+            <AlertDialogCancel>{t('common.cancel')}</AlertDialogCancel>
             <AlertDialogAction
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
               onClick={() => deleteTarget && deletePinMutation.mutate(deleteTarget)}
             >
-              Entfernen
+              {t('common.delete')}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
