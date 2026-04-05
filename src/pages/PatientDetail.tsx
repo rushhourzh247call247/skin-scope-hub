@@ -351,9 +351,9 @@ const PatientDetail = () => {
             <div className="min-w-0">
               <div className="flex items-center gap-1.5">
                 <h1 className="text-sm font-semibold text-foreground truncate">{patient.name}</h1>
-                <Badge variant="outline" className="text-[10px] px-1.5 py-0 shrink-0">Aktiv</Badge>
+                <Badge variant="outline" className="text-[10px] px-1.5 py-0 shrink-0">{t('common.active')}</Badge>
               </div>
-              <p className="text-xs text-muted-foreground hidden sm:block">Patient</p>
+              <p className="text-xs text-muted-foreground hidden sm:block">{t('patientDetail.patient')}</p>
             </div>
           </div>
 
