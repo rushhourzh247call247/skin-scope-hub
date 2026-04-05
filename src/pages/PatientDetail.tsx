@@ -742,7 +742,7 @@ const PatientDetail = () => {
                     <button
                       onClick={() => restoreMutation.mutate(loc.id)}
                       className="shrink-0 p-1 rounded hover:bg-primary/10 text-muted-foreground hover:text-primary transition-colors"
-                      title="Wiederherstellen"
+                      title={t('patientDetail.restoreFromTrash')}
                     >
                       <Undo2 className="h-3.5 w-3.5" />
                     </button>
