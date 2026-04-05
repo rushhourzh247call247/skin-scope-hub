@@ -1225,10 +1225,10 @@ const BodyMap3D: React.FC<BodyMap3DProps> = (props) => {
               : "bg-primary text-primary-foreground"
           )}>
             {markType === "region"
-              ? i18n.t('bodyMap.clickToSetRegion', { defaultValue: 'Click to set region center' })
+              ? i18n.t('bodyMap3d.clickToSetRegion')
               : markType === "zone"
-              ? i18n.t('bodyMap.clickToSetZone', { defaultValue: 'Click to place zone' })
-              : i18n.t('bodyMap.clickToSetSpot', { defaultValue: 'Click to place spot' })
+              ? i18n.t('bodyMap3d.clickToSetZone')
+              : i18n.t('bodyMap3d.clickToSetSpot')
             }
           </div>
         )}
