@@ -335,7 +335,7 @@ const MobileUpload = () => {
           {photos.some((p) => p.error) && (
             <div className="rounded-lg border border-destructive/30 bg-destructive/5 p-3 space-y-2">
               <p className="text-xs text-destructive font-medium">
-                {photos.filter((p) => p.error).length} Upload(s) fehlgeschlagen
+                {t('mobileUpload.uploadsFailed', { count: photos.filter((p) => p.error).length })}
               </p>
               <p className="text-[10px] text-destructive/80">
                 {photos.find((p) => p.error)?.error}
