@@ -970,7 +970,7 @@ const PatientDetail = () => {
                     return (
                       <div className="flex flex-col items-center justify-center py-16 text-muted-foreground">
                         <Activity className="h-10 w-10 mb-3" />
-                        <p className="text-sm">Noch keine Einträge vorhanden</p>
+                        <p className="text-sm">{t('patientDetail.noEntriesYet')}</p>
                       </div>
                     );
                   }
