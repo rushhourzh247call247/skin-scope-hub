@@ -426,9 +426,9 @@ function SessionInfoCard({ session }: { session: Extract<SessionState, { status:
           <Camera className="h-4 w-4 text-primary" />
         </div>
         <div>
-          <h1 className="text-sm font-semibold text-foreground">Foto-Upload</h1>
+          <h1 className="text-sm font-semibold text-foreground">{t('mobileUpload.title')}</h1>
           <p className="text-[10px] text-muted-foreground">
-            Gültig bis {formatDate(session.expiresAt, "HH:mm")} Uhr
+            {t('mobileUpload.validUntil', { time: formatDate(session.expiresAt, "HH:mm") })}
           </p>
         </div>
       </div>
