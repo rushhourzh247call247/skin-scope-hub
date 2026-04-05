@@ -4,8 +4,7 @@ import { ROBOTO_REGULAR } from "@/assets/fonts/roboto-regular";
 import { ROBOTO_BOLD } from "@/assets/fonts/roboto-bold";
 import type { FullPatient, LocationImage, PdfExportOptions, OverviewPin } from "@/types/patient";
 import { LESION_CLASSIFICATIONS } from "@/types/patient";
-import { format } from "date-fns";
-import { de } from "date-fns/locale";
+import { formatDate } from "@/lib/dateUtils";
 import { api } from "@/lib/api";
 import { getAnatomicalName } from "@/lib/anatomyLookup";
 import { renderBodyMap3DThumbnail } from "@/lib/bodyMapRenderer";
@@ -355,7 +354,7 @@ export async function generatePatientPDF(
 
   doc.setTextColor(...C.white);
   doc.setFontSize(8);
-  const dateStr = format(new Date(), "dd. MMMM yyyy, HH:mm", { locale: de });
+  const dateStr = formatDate(new Date(), "");
   doc.text(dateStr, pageW - margin, 12, { align: "right" });
 
   const resolvedDoctor = resolveDoctorName(doctorName);
@@ -390,7 +389,7 @@ export async function generatePatientPDF(
   doc.setTextColor(...C.textSecondary);
 
   const birthDate = patient.birth_date
-    ? format(new Date(patient.birth_date), "dd.MM.yyyy", { locale: de })
+    ? formatDate(, "")
     : "–";
 
   const infoLine1: string[] = [`Geb.: ${birthDate}`];
@@ -599,13 +598,13 @@ export async function generatePatientPDF(
         doc.setTextColor(...C.textSecondary);
         if (oldestImg?.created_at) {
           doc.text(
-            format(new Date(oldestImg.created_at), "dd.MM.yyyy", { locale: de }),
+            formatDate(, ""),
             leftX + halfW / 2, y, { align: "center" }
           );
         }
         if (newestImg?.created_at) {
           doc.text(
-            format(new Date(newestImg.created_at), "dd.MM.yyyy", { locale: de }),
+            formatDate(, ""),
             rightX + halfW / 2, y, { align: "center" }
           );
         }
@@ -684,7 +683,7 @@ export async function generatePatientPDF(
           doc.setFontSize(7);
           doc.setTextColor(...C.textSecondary);
           doc.text(
-            `Aufnahme: ${format(new Date(oldestImg.created_at), "dd.MM.yyyy", { locale: de })}`,
+            `Aufnahme: ${formatDate(, "")}`,
             margin + contentW / 2, y, { align: "center" }
           );
           y += 5;
@@ -886,7 +885,7 @@ export async function generatePatientPDF(
         doc.setTextColor(...C.textSecondary);
         doc.setFont("Roboto", "normal");
         const imgDate = img.created_at
-          ? format(new Date(img.created_at), "dd.MM.yy", { locale: de })
+          ? formatDate(, "")
           : "-";
         doc.text(imgDate, imgX + imgSize / 2, y + imgSize + 3.5, { align: "center" });
 
@@ -1121,7 +1120,7 @@ export async function generatePatientPDF(
   }
 
   /* ═══ OUTPUT ════════════════════════════════════════ */
-  const filename = `Derm247_${patient.name.replace(/\s+/g, "_")}_${format(new Date(), "yyyy-MM-dd")}.pdf`;
+  const filename = `Derm247_${patient.name.replace(/\s+/g, "_")}_${formatDate(new Date(), "")}.pdf`;
   const blob = doc.output("blob");
   const blobUrl = URL.createObjectURL(blob);
 
@@ -1143,5 +1142,5 @@ export async function generatePatientPDF(
 }
 
 export function getPatientPdfFilename(patient: { name: string }): string {
-  return `Derm247_${patient.name.replace(/\s+/g, "_")}_${format(new Date(), "yyyy-MM-dd")}.pdf`;
+  return `Derm247_${patient.name.replace(/\s+/g, "_")}_${formatDate(new Date(), "")}.pdf`;
 }

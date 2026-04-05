@@ -11,9 +11,7 @@ import {
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { ArrowLeft, Database, Building2, User, Image, MapPin, FileText, RotateCcw, Calendar, HardDrive, ChevronRight, Loader2 } from "lucide-react";
 import { toast } from "sonner";
-import { format } from "date-fns";
-import { de } from "date-fns/locale";
-
+import { formatDate } from "@/lib/dateUtils";
 type View =
   | { type: "list" }
   | { type: "snapshot"; date: string }
@@ -166,7 +164,7 @@ const Snapshots = () => {
                         </div>
                       </TableCell>
                       <TableCell className="text-muted-foreground text-sm">
-                        {s.created_at ? format(new Date(s.created_at), "dd.MM.yyyy HH:mm", { locale: de }) : "–"}
+                        {s.created_at ? formatDate(, "") : "–"}
                       </TableCell>
                       <TableCell><Badge variant="secondary">{formatBytes(s.db_size)}</Badge></TableCell>
                       <TableCell>

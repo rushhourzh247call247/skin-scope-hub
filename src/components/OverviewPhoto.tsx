@@ -9,8 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
-import { format } from "date-fns";
-import { de } from "date-fns/locale";
+import { formatDate } from "@/lib/dateUtils";
 import { toast } from "sonner";
 import { alignImages } from "@/lib/imageAlign";
 import { motion, AnimatePresence } from "framer-motion";
@@ -725,7 +724,7 @@ const OverviewPhoto = ({ overviewLocation, spotLocations, patientId, onNavigateT
                           </Button>
                         </div>
                         <p className="text-center text-xs text-muted-foreground tabular-nums">
-                          {img.created_at ? format(new Date(img.created_at), "dd. MMM yyyy", { locale: de }) : "–"}
+                          {img.created_at ? formatDate(, "") : "–"}
                         </p>
                       </div>
                     ))}
@@ -791,9 +790,9 @@ const OverviewPhoto = ({ overviewLocation, spotLocations, patientId, onNavigateT
                   </div>
                   <div className="space-y-2">
                     <div className="flex items-center justify-between text-xs text-muted-foreground">
-                      <span className="flex items-center gap-1"><Calendar className="h-3 w-3" />{imgA.created_at ? format(new Date(imgA.created_at), "dd.MM.yy", { locale: de }) : "–"}</span>
+                      <span className="flex items-center gap-1"><Calendar className="h-3 w-3" />{imgA.created_at ? formatDate(, "") : "–"}</span>
                       <span className="text-[10px] font-medium text-foreground">Transparenz: {overlayOpacity}%</span>
-                      <span className="flex items-center gap-1"><Calendar className="h-3 w-3" />{imgB.created_at ? format(new Date(imgB.created_at), "dd.MM.yy", { locale: de }) : "–"}</span>
+                      <span className="flex items-center gap-1"><Calendar className="h-3 w-3" />{imgB.created_at ? formatDate(, "") : "–"}</span>
                     </div>
                     <Slider value={[overlayOpacity]} onValueChange={([v]) => setOverlayOpacity(v)} min={0} max={100} step={1} />
                   </div>
@@ -910,7 +909,7 @@ const OverviewPhoto = ({ overviewLocation, spotLocations, patientId, onNavigateT
 
       {referenceImage?.created_at && (
         <p className="text-[10px] text-muted-foreground">
-          Aufnahme vom {format(new Date(referenceImage.created_at), "dd.MM.yyyy", { locale: de })}
+          Aufnahme vom {formatDate(, "")}
           {overviewLocation.images.length > 1 && ` · ${overviewLocation.images.length} Fotos gespeichert`}
         </p>
       )}

@@ -13,8 +13,7 @@ import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/component
 import { Slider } from "@/components/ui/slider";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { format } from "date-fns";
-import { de } from "date-fns/locale";
+import { formatDate } from "@/lib/dateUtils";
 import BodyMap3D from "@/components/BodyMap3D";
 import ImageGallery from "@/components/ImageGallery";
 import ImageCompare from "@/components/ImageCompare";
@@ -406,7 +405,7 @@ const PatientDetail = () => {
           <div>
             <span className="text-muted-foreground">Geburtsdatum</span>
             <p className="font-medium text-foreground tabular-nums">
-              {patient.birth_date ? format(new Date(patient.birth_date), "dd.MM.yyyy", { locale: de }) : "–"}
+              {patient.birth_date ? formatDate(, "") : "–"}
             </p>
           </div>
           {patient.email && (
@@ -922,7 +921,7 @@ const PatientDetail = () => {
                                 <div className="absolute bottom-0 left-0 right-0 p-1.5 opacity-0 group-hover:opacity-100 transition-opacity">
                                   <p className="text-[9px] text-white font-medium truncate">{locName}</p>
                                   <p className="text-[8px] text-white/70 tabular-nums">
-                                    {img.created_at ? format(new Date(img.created_at), "dd.MM.yy", { locale: de }) : "–"}
+                                    {img.created_at ? formatDate(, "") : "–"}
                                   </p>
                                 </div>
                                 <div className="absolute top-1 right-1 opacity-0 group-hover:opacity-100 transition-opacity">
@@ -993,7 +992,7 @@ const PatientDetail = () => {
                               </div>
                               <span className="text-[10px] text-muted-foreground tabular-nums flex items-center gap-1">
                                 <Calendar className="h-3 w-3" />
-                                {ev.date ? format(new Date(ev.date), "dd.MM.yyyy HH:mm", { locale: de }) : "–"}
+                                {ev.date ? formatDate(, "") : "–"}
                               </span>
                             </div>
                             {ev.userName && <p className="text-xs text-muted-foreground italic">von {ev.userName}</p>}
@@ -1202,7 +1201,7 @@ const PatientDetail = () => {
                                 </div>
                               </div>
                               <p className="text-center text-xs text-muted-foreground tabular-nums">
-                                {oldest.created_at ? format(new Date(oldest.created_at), "dd. MMM yyyy", { locale: de }) : "–"}
+                                {oldest.created_at ? formatDate(, "") : "–"}
                               </p>
                             </div>
                             <div className="space-y-2">
@@ -1217,7 +1216,7 @@ const PatientDetail = () => {
                                 </div>
                               </div>
                               <p className="text-center text-xs text-muted-foreground tabular-nums">
-                                {newest.created_at ? format(new Date(newest.created_at), "dd. MMM yyyy", { locale: de }) : "–"}
+                                {newest.created_at ? formatDate(, "") : "–"}
                               </p>
                             </div>
                           </div>

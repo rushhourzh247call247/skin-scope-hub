@@ -5,8 +5,7 @@ import type { LocationImage } from "@/types/patient";
 import { Upload, Calendar, ImageIcon, GitCompareArrows, Trash2, Download } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { format } from "date-fns";
-import { de } from "date-fns/locale";
+import { formatDate } from "@/lib/dateUtils";
 import ImageCompare from "@/components/ImageCompare";
 import AbcdeForm from "@/components/AbcdeForm";
 import { toast } from "sonner";
@@ -132,13 +131,13 @@ const ImageGallery = ({ locationId, patientId, images, locationName, locationTyp
       const details: string[] = [];
       if (patientBirthDate) {
         try {
-          details.push(`geb. ${format(new Date(patientBirthDate), "dd.MM.yyyy", { locale: de })}`);
+          details.push(`geb. ${formatDate(, "")}`);
         } catch { details.push(patientBirthDate); }
       }
       if (locationName) details.push(locationName);
       if (img.created_at) {
         try {
-          details.push(format(new Date(img.created_at), "dd.MM.yyyy", { locale: de }));
+          details.push(formatDate(, ""));
         } catch {}
       }
       ctx.fillText(details.join("  •  "), 12, fontSize + 8 + fontSize * 1.1);
@@ -236,7 +235,7 @@ const ImageGallery = ({ locationId, patientId, images, locationName, locationTyp
                     />
                   </div>
                   <span className="text-[10px] text-muted-foreground tabular-nums">
-                    {img.created_at ? format(new Date(img.created_at), "dd.MM.yy", { locale: de }) : "–"}
+                    {img.created_at ? formatDate(, "") : "–"}
                   </span>
                 </div>
               ) : (
@@ -252,7 +251,7 @@ const ImageGallery = ({ locationId, patientId, images, locationName, locationTyp
                   <div className="flex items-center gap-1 px-1 py-1.5 text-xs text-muted-foreground">
                     <Calendar className="h-3 w-3" />
                     <span className="tabular-nums">
-                      {img.created_at ? format(new Date(img.created_at), "dd.MM.yyyy", { locale: de }) : "–"}
+                      {img.created_at ? formatDate(, "") : "–"}
                     </span>
                   </div>
                 </div>

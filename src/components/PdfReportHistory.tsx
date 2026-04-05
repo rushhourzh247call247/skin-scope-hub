@@ -3,8 +3,7 @@ import { getSavedReports, deleteReport, PDF_REPORTS_UPDATED_EVENT } from "@/lib/
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { FileDown, Trash2, Eye } from "lucide-react";
-import { format } from "date-fns";
-import { de } from "date-fns/locale";
+import { formatDate } from "@/lib/dateUtils";
 import { toast } from "sonner";
 import type { PdfReport } from "@/types/patient";
 import {
@@ -59,7 +58,7 @@ export default function PdfReportHistory({ patientId, patientName }: PdfReportHi
   const handleDownload = (report: PdfReport) => {
     const link = document.createElement("a");
     link.href = report.pdfBase64;
-    link.download = `Derm247_${patientName.replace(/\s+/g, "_")}_${format(new Date(report.createdAt), "yyyy-MM-dd")}.pdf`;
+    link.download = `Derm247_${patientName.replace(/\s+/g, "_")}_${formatDate(, "")}.pdf`;
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
@@ -137,7 +136,7 @@ export default function PdfReportHistory({ patientId, patientName }: PdfReportHi
           <div className="min-w-0 flex-1">
             <div className="mb-0.5 flex items-center gap-2">
               <span className="truncate text-sm font-medium">
-                {format(new Date(report.createdAt), "dd.MM.yyyy HH:mm", { locale: de })}
+                {formatDate(, "")}
               </span>
               <Badge variant="outline" className="shrink-0 text-[10px]">
                 {report.reportType === "lastVisit" ? "Letzte Konsultation" : "Gesamtverlauf"}

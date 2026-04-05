@@ -1,8 +1,7 @@
 import { useState } from "react";
 import type { LocationImage } from "@/types/patient";
 import { api } from "@/lib/api";
-import { format } from "date-fns";
-import { de } from "date-fns/locale";
+import { formatDate } from "@/lib/dateUtils";
 import { TrendingUp, TrendingDown, Minus } from "lucide-react";
 import {
   LineChart,
@@ -79,7 +78,7 @@ const RiskProgression = ({ images, locationName }: RiskProgressionProps) => {
     idx,
     imageId: img.id,
     date: new Date(img.created_at!).getTime(),
-    dateLabel: format(new Date(img.created_at!), "dd.MM.yy", { locale: de }),
+    dateLabel: formatDate(, ""),
     risk_score: img.risk_score ?? null,
     risk_level: img.risk_level ?? null,
   }));
@@ -194,7 +193,7 @@ const RiskProgression = ({ images, locationName }: RiskProgressionProps) => {
               </span>
             )}
             <span className="block text-[8px] text-muted-foreground text-center mt-0.5">
-              {img.created_at ? format(new Date(img.created_at), "dd.MM", { locale: de }) : "–"}
+              {img.created_at ? formatDate(, "") : "–"}
             </span>
           </button>
         ))}
@@ -213,7 +212,7 @@ const RiskProgression = ({ images, locationName }: RiskProgressionProps) => {
               <div className="flex items-center justify-between px-1">
                 <span className="text-xs text-muted-foreground">
                   {selectedImage.created_at
-                    ? format(new Date(selectedImage.created_at), "dd.MM.yyyy HH:mm", { locale: de })
+                    ? formatDate(, "")
                     : "–"}
                 </span>
                 {selectedImage.risk_score != null && (

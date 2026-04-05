@@ -1,7 +1,6 @@
 import { useState, useRef, useCallback, useEffect } from "react";
 import type { LocationImage } from "@/types/patient";
-import { format } from "date-fns";
-import { de } from "date-fns/locale";
+import { formatDate } from "@/lib/dateUtils";
 import { ArrowLeft, Calendar, Check, GitCompareArrows, RotateCcw, ZoomIn, Layers, Move, RotateCw, ChevronDown, Wand2, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Slider } from "@/components/ui/slider";
@@ -210,7 +209,7 @@ const ImageCompare = ({ images, locationName, onClose }: ImageCompareProps) => {
                     <div className="flex-1 min-w-0">
                       <p className="text-sm font-medium text-foreground">Aufnahme #{index + 1}</p>
                       <p className="text-xs text-muted-foreground tabular-nums">
-                        {img.created_at ? format(new Date(img.created_at), "dd. MMMM yyyy, HH:mm", { locale: de }) : "–"}
+                        {img.created_at ? formatDate(, "") : "–"}
                       </p>
                     </div>
                     <Button variant="ghost" size="icon" className="shrink-0" onClick={(e) => { e.stopPropagation(); setZoomedImage(img); }}>
@@ -292,7 +291,7 @@ const ImageCompare = ({ images, locationName, onClose }: ImageCompareProps) => {
                         </div>
                       </div>
                       <p className="text-center text-xs text-muted-foreground tabular-nums">
-                        {img.created_at ? format(new Date(img.created_at), "dd. MMM yyyy", { locale: de }) : "–"}
+                        {img.created_at ? formatDate(, "") : "–"}
                       </p>
                     </div>
                   ))}
@@ -354,12 +353,12 @@ const ImageCompare = ({ images, locationName, onClose }: ImageCompareProps) => {
                   <div className="flex items-center justify-between text-xs text-muted-foreground">
                     <span className="flex items-center gap-1">
                       <Calendar className="h-3 w-3" />
-                      {compareImages[0].created_at ? format(new Date(compareImages[0].created_at), "dd.MM.yy", { locale: de }) : "–"}
+                      {compareImages[0].created_at ? formatDate(, "") : "–"}
                     </span>
                     <span className="text-[10px] font-medium text-foreground">Transparenz: {overlayOpacity}%</span>
                     <span className="flex items-center gap-1">
                       <Calendar className="h-3 w-3" />
-                      {compareImages[1].created_at ? format(new Date(compareImages[1].created_at), "dd.MM.yy", { locale: de }) : "–"}
+                      {compareImages[1].created_at ? formatDate(, "") : "–"}
                     </span>
                   </div>
                   <Slider
@@ -490,7 +489,7 @@ const ImageCompare = ({ images, locationName, onClose }: ImageCompareProps) => {
             <div className="space-y-2">
               <img src={api.resolveImageSrc(zoomedImage)} alt="Vergrössert" className="w-full rounded-md object-contain" />
               <p className="text-center text-xs text-muted-foreground tabular-nums">
-                {zoomedImage.created_at ? format(new Date(zoomedImage.created_at), "dd. MMMM yyyy, HH:mm", { locale: de }) : "–"}
+                {zoomedImage.created_at ? formatDate(, "") : "–"}
               </p>
             </div>
           )}
