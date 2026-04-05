@@ -62,7 +62,7 @@ const MobileUpload = () => {
           return;
         }
         if (!result.valid) {
-          setSession({ status: "invalid", message: "Ungültiger oder abgelaufener Token." });
+          setSession({ status: "invalid", message: t('mobileUpload.invalidToken') });
           return;
         }
         if (result.completed) {
