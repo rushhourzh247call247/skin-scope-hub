@@ -24,10 +24,11 @@ function registerFonts(doc: jsPDF) {
 }
 
 function getRiskLabel(level: string | null | undefined): string {
+  const t = i18n.t.bind(i18n);
   if (!level) return "-";
-  if (level === "low") return "Niedrig";
-  if (level === "medium") return "Mittel";
-  return "Hoch";
+  if (level === "low") return t('pdf.riskLow');
+  if (level === "medium") return t('pdf.riskMedium');
+  return t('pdf.riskHigh');
 }
 
 function resolveDoctorName(doctorName?: string): string | null {
