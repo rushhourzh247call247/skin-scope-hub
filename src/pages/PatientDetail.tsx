@@ -1303,7 +1303,7 @@ const PatientDetail = () => {
                       disabled={!newFindingText.trim() || createFindingMutation.isPending}
                       onClick={() => createFindingMutation.mutate({ locationId: selectedLocation.id, description: newFindingText.trim() })}
                     >
-                      <Plus className="mr-1 h-3 w-3" /> Befund hinzufügen
+                      <Plus className="mr-1 h-3 w-3" /> {t('patientDetail.addFinding')}
                     </Button>
                   </div>
                 </div>
