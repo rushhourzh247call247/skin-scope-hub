@@ -686,7 +686,7 @@ export async function generatePatientPDF(
           doc.setFontSize(7);
           doc.setTextColor(...C.textSecondary);
           doc.text(
-            `Aufnahme: ${formatDate(oldestImg.created_at, "dd.MM.yyyy")}`,
+            `${i18n.t('pdf.recording')}: ${formatDate(oldestImg.created_at, "dd.MM.yyyy")}`,
             margin + contentW / 2, y, { align: "center" }
           );
           y += 5;
