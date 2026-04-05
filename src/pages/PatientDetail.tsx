@@ -305,7 +305,7 @@ const PatientDetail = () => {
       x: mapClickDialog.x,
       y: mapClickDialog.y,
       view: mapClickDialog.view,
-      type: isZone ? "overview" : (mapClickDialog.markType || "spot"),
+      type: isZone ? "overview" : (mapClickDialog.markType === "region" ? "region" : "spot"),
       width: isRegion ? regionWidth : undefined,
       height: isRegion ? regionHeight : undefined,
       x3d: mapClickDialog.x3d,
