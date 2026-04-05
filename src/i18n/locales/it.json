@@ -477,6 +477,7 @@
     "comparison": "Confronto",
     "aiAlignment": "Allineamento IA",
     "autoAligned": "Immagini allineate automaticamente",
+    "alreadyAligned": "Le immagini sono già identicamente allineate",
     "autoAlignFailed": "L'allineamento automatico è fallito",
     "newerLabel": "RECENTE",
     "newerPercent": "RECENTE ({{percent}}%)",

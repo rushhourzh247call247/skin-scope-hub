@@ -471,6 +471,7 @@
     "aiAlignment": "AI Alignment",
     "manualAlign": "Manual",
     "autoAligned": "Images automatically aligned",
+    "alreadyAligned": "Images are already identically aligned",
     "autoAlignFailed": "Automatic alignment failed",
     "olderLabel": "OLDER",
     "newerLabel": "NEWER",

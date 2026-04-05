@@ -477,6 +477,7 @@
     "comparison": "Comparaison",
     "aiAlignment": "Alignement IA",
     "autoAligned": "Images automatiquement alignées",
+    "alreadyAligned": "Les images sont déjà identiquement alignées",
     "autoAlignFailed": "L'alignement automatique a échoué",
     "newerLabel": "RÉCENT",
     "newerPercent": "RÉCENT ({{percent}}%)",
