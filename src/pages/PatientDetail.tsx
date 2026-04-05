@@ -574,7 +574,7 @@ const PatientDetail = () => {
                   <button
                     onClick={() => {
                       createLocationMutation.mutate({
-                        name: `Übersicht ${overviewLocations.length + 1}`,
+                        name: `Zone ${overviewLocations.length + 1}`,
                         x: 0, y: 0,
                         view: "front",
                         type: "overview",
@@ -803,7 +803,7 @@ const PatientDetail = () => {
                     onClick={() => {
                       // Create a new overview location
                       createLocationMutation.mutate({
-                        name: `Übersicht ${overviewLocations.length + 1}`,
+                        name: `Zone ${overviewLocations.length + 1}`,
                         x: 0, y: 0,
                         view: "front",
                         type: "overview",
@@ -812,21 +812,21 @@ const PatientDetail = () => {
                     disabled={createLocationMutation.isPending}
                   >
                     <Plus className="h-3.5 w-3.5" />
-                    Neues Übersichtsfoto
+                    {t('patientDetail.newOverview')}
                   </Button>
                 </div>
 
                 {overviewLocations.length === 0 ? (
                   <div className="flex flex-col items-center justify-center py-16 text-muted-foreground">
                     <Eye className="h-10 w-10 mb-3" />
-                    <p className="text-sm font-medium">Noch keine Übersichtsfotos</p>
-                    <p className="text-xs mt-1">Übersichtsfotos zeigen eine ganze Körperregion mit Pin-Markierungen zu einzelnen Spots</p>
+                    <p className="text-sm font-medium">{t('patientDetail.noZonesYet')}</p>
+                    <p className="text-xs mt-1">{t('patientDetail.zonesDescription')}</p>
                     <Button
                       size="sm"
                       className="mt-4 gap-1.5"
                       onClick={() => {
                         createLocationMutation.mutate({
-                          name: "Übersicht 1",
+                          name: "Zone 1",
                           x: 0, y: 0,
                           view: "front",
                           type: "overview",
@@ -835,7 +835,7 @@ const PatientDetail = () => {
                       disabled={createLocationMutation.isPending}
                     >
                       <Plus className="h-3.5 w-3.5" />
-                      Erstes Übersichtsfoto anlegen
+                      {t('patientDetail.createFirstZone')}
                     </Button>
                   </div>
                 ) : (
