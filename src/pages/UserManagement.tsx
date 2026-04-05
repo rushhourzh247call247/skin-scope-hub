@@ -15,7 +15,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { UserCog, Plus, Trash2, KeyRound, Eye, EyeOff, ShieldOff, Shield, Ban, CheckCircle } from "lucide-react";
 import { toast } from "sonner";
 
-const PROTECTED_EMAIL = "info@techassist.ch";
+
 
 const UserManagement = () => {
   const { t } = useTranslation();
