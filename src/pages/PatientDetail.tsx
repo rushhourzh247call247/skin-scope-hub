@@ -517,7 +517,7 @@ const PatientDetail = () => {
               {mapClickDialog.markType === "region" && (
                 <div className="space-y-2">
                   <div className="flex items-center gap-1.5 text-[10px] font-medium text-muted-foreground">
-                    <Square className="h-3 w-3 text-amber-500" /> Grösse anpassen
+                    <Square className="h-3 w-3 text-amber-500" /> {t('patientDetail.adjustSize')}
                   </div>
                   <div className="space-y-1.5">
                     <div className="flex items-center gap-2">
