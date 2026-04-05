@@ -326,8 +326,8 @@ const PatientDetail = () => {
   if (error || !patient) {
     return (
       <div className="flex min-h-[60vh] flex-col items-center justify-center gap-4">
-        <p className="text-sm text-destructive">Patient konnte nicht geladen werden.</p>
-        <Button variant="outline" onClick={() => navigate("/patients")}>Zurück zur Liste</Button>
+        <p className="text-sm text-destructive">{t('patientDetail.notLoaded')}</p>
+        <Button variant="outline" onClick={() => navigate("/patients")}>{t('patientDetail.backToListBtn')}</Button>
       </div>
     );
   }
