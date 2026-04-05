@@ -1197,6 +1197,21 @@ const BodyMap3D: React.FC<BodyMap3DProps> = (props) => {
             {i18n.t('bodyMap.spotMode')}
           </button>
 
+          {/* Zone mark mode toggle */}
+          <button
+            onClick={() => { setMarkMode(markType === "zone" ? !markMode : true); setMarkType("zone"); }}
+            title={i18n.t('bodyMap3d.markZone', { defaultValue: 'Mark zone' })}
+            className={cn(
+              "flex h-7 items-center gap-1.5 rounded-md px-2.5 text-[10px] font-medium transition-all",
+              markMode && markType === "zone"
+                ? "bg-blue-600 text-white shadow-md"
+                : "border border-border/50 bg-card/80 text-muted-foreground hover:text-foreground"
+            )}
+          >
+            <Camera className="h-3 w-3" />
+            Zone
+          </button>
+
         </div>
 
         {/* Mark mode indicator */}
