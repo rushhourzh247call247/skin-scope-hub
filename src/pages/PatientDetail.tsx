@@ -405,7 +405,7 @@ const PatientDetail = () => {
             <p className="font-medium text-foreground">{patient.gender === "female" ? t('common.female') : t('common.male')}</p>
           </div>
           <div>
-            <span className="text-muted-foreground">Geburtsdatum</span>
+            <span className="text-muted-foreground">{t('common.birthDate')}</span>
             <p className="font-medium text-foreground tabular-nums">
               {patient.birth_date ? formatDate(patient.birth_date, "dd.MM.yyyy") : "–"}
             </p>
