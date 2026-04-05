@@ -186,13 +186,14 @@ const PatientDetail = () => {
       nz?: number;
     }) => api.createLocation(patientId, loc),
     onSuccess: (newLoc) => {
-      const wasZone = mapClickDialog?.markType === "zone";
+      const wasZone = mapClickDialog?.markType === "zone" || newLoc.type === "overview";
       queryClient.invalidateQueries({ queryKey: ["full-patient", patientId] });
       setMapClickDialog(null);
       setLocationName("");
       if (wasZone) {
         setSelectedLocationId(null);
         setActiveTab("uebersicht");
+        setNewlyCreatedZoneId(newLoc.id);
       } else {
         setSelectedLocationId(newLoc.id);
       }
