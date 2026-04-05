@@ -566,8 +566,8 @@ const PatientDetail = () => {
             <div className={cn("mt-3 lg:mt-4", !mobileMapExpanded && "lg:block")}>
               <div className="flex items-center justify-between mb-2">
                 <h3 className="text-xs font-semibold text-foreground uppercase tracking-wider flex items-center gap-1.5">
-                  <Camera className="h-3 w-3" />
-                  Übersichtsfotos
+                   <Camera className="h-3 w-3" />
+                   {t('patientDetail.overviewPhotos')}
                 </h3>
                 <span className="text-[10px] text-muted-foreground">{overviewLocations.length}</span>
               </div>
