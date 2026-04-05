@@ -345,7 +345,7 @@ const UserManagement = () => {
           <AlertDialogHeader>
             <AlertDialogTitle>{t("users.reset2faTitle")}</AlertDialogTitle>
             <AlertDialogDescription>
-              <span dangerouslySetInnerHTML={{ __html: t("users.reset2faDescription", { name: reset2faUser?.name }) }} />
+              {t("users.reset2faDescriptionPlain", { name: reset2faUser?.name })}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
