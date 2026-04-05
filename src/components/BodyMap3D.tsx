@@ -1178,7 +1178,7 @@ const BodyMap3D: React.FC<BodyMap3DProps> = (props) => {
             onClick={() => { setActiveRegion("full"); setResetCounter(c => c + 1); setFocusKey(k => k + 1); if (props.onMarkerClick) props.onMarkerClick(undefined as any); }}
             className="flex h-7 items-center gap-1 rounded-md border border-border/50 bg-card/80 px-2 text-[10px] text-muted-foreground transition-all hover:text-foreground"
           >
-            <RotateCcw className="h-3 w-3" /> Reset
+            <RotateCcw className="h-3 w-3" /> {i18n.t('common.reset')}
           </button>
 
           {/* Spot mark mode toggle */}
