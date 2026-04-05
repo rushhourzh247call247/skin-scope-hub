@@ -520,7 +520,7 @@ const OverviewPhoto = ({ overviewLocation, spotLocations, patientId, onNavigateT
 
                   <div className="max-h-48 overflow-y-auto space-y-1">
                     {spotLocations.filter(s => s.type !== "overview").length === 0 && !onCreateSpotAndLink ? (
-                      <p className="text-xs text-muted-foreground py-2 text-center">Keine Spots vorhanden</p>
+                      <p className="text-xs text-muted-foreground py-2 text-center">{t('overviewPhoto.noSpots')}</p>
                     ) : (
                       spotLocations.filter(s => s.type !== "overview").map((spot) => {
                         const cls = (spot as any).classification as LesionClassification | undefined;
