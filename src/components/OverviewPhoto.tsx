@@ -188,7 +188,7 @@ const OverviewPhoto = ({ overviewLocation, spotLocations, patientId, onNavigateT
                 className="h-7 text-sm w-40"
                 autoFocus
                 onKeyDown={(e) => {
-                  if (e.key === "Enter") renameMutation.mutate(renameValue.trim() || overviewLocation.name || "Übersichtsfoto");
+                  if (e.key === "Enter") renameMutation.mutate(renameValue.trim() || overviewLocation.name || "Zone");
                   if (e.key === "Escape") setIsRenaming(false);
                 }}
               />
