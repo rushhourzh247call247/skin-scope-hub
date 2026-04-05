@@ -24,9 +24,9 @@ let companies: MockCompany[] = [
 
 // --- Users ---
 let users: MockUser[] = [
-  { id: 1, name: "Dr. Anna Müller", email: "admin@derm247.ch", role: "admin", company_id: 1, company: { id: 1, name: "Hautarztpraxis Zürich" } },
-  { id: 2, name: "Dr. Peter Meier", email: "p.meier@derm247.ch", role: "user", company_id: 1, company: { id: 1, name: "Hautarztpraxis Zürich" } },
-  { id: 3, name: "Dr. Sara Weber", email: "s.weber@dermbern.ch", role: "user", company_id: 2, company: { id: 2, name: "Dermatologie Bern" } },
+  { id: 1, name: "Dr. Anna Müller", email: "admin@example.com", role: "admin", company_id: 1, company: { id: 1, name: "Hautarztpraxis Zürich" } },
+  { id: 2, name: "Dr. Peter Meier", email: "p.meier@example.com", role: "user", company_id: 1, company: { id: 1, name: "Hautarztpraxis Zürich" } },
+  { id: 3, name: "Dr. Sara Weber", email: "s.weber@example.com", role: "user", company_id: 2, company: { id: 2, name: "Dermatologie Bern" } },
 ];
 
 // --- Demo images (placeholder URLs) ---
