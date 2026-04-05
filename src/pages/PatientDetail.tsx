@@ -1011,7 +1011,7 @@ const PatientDetail = () => {
                               onClick={() => { setActiveTab("spots"); setSelectedLocationId(ev.locationId); }}
                               className="text-[10px] text-primary hover:underline"
                             >
-                              → Zum Spot
+                              {t('patientDetail.toSpot')}
                             </button>
                           </div>
                         </div>
