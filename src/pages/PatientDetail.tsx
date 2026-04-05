@@ -1405,7 +1405,7 @@ const PatientDetail = () => {
                 if (!loc) return t('patientDetail.permanentDeleteGeneric');
                 return (
                   <>
-                    <strong>{loc.name || "Dieser Spot"}</strong> wird mit allen zugehörigen Bildern und Befunden unwiderruflich gelöscht. Diese Aktion kann nicht rückgängig gemacht werden.
+                    <strong>{translateAnatomyName(loc.name) || t('patientDetail.permanentDeleteGeneric')}</strong> {t('patientDetail.permanentDeleteDesc', { images: loc.images?.length ?? 0, findings: loc.findings?.length ?? 0 })}
                   </>
                 );
               })()}
