@@ -327,7 +327,7 @@ const MobileUpload = () => {
           <div className="flex items-center justify-between">
             <h2 className="text-xs font-semibold text-foreground flex items-center gap-1.5">
               <ImageIcon className="h-3.5 w-3.5 text-primary" />
-              {uploadedCount} von {photos.length} {photos.length === 1 ? "Foto" : "Fotos"} hochgeladen
+              {photos.length === 1 ? t('mobileUpload.photoUploadedCount', { uploaded: uploadedCount, total: photos.length }) : t('mobileUpload.photosUploadedCount', { uploaded: uploadedCount, total: photos.length })}
             </h2>
           </div>
 
