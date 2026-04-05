@@ -251,8 +251,8 @@ const MobileUpload = () => {
       <MobileShell>
         <StatusCard
           icon={<AlertTriangle className="h-8 w-8 text-amber-500" />}
-          title="Link abgelaufen"
-          description="Dieser Upload-Link ist abgelaufen. Bitte generieren Sie einen neuen QR-Code am PC."
+          title={t('mobileUpload.expiredLink')}
+          description={t('mobileUpload.expiredDescription')}
         />
       </MobileShell>
     );
