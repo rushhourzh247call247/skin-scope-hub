@@ -1368,7 +1368,7 @@ const PatientDetail = () => {
             <AlertDialogDescription>
               {(() => {
                 const loc = locations.find(l => l.id === deleteConfirmId);
-                if (!loc) return "Dieser Spot wird in den Papierkorb verschoben.";
+                if (!loc) return t('patientDetail.softDeleteGeneric');
                 return (
                   <>
                     <strong>{loc.name || "Dieser Spot"}</strong> wird mit {loc.images?.length ?? 0} Bildern und {loc.findings?.length ?? 0} Befunden in den Papierkorb verschoben. Sie können ihn jederzeit wiederherstellen.
