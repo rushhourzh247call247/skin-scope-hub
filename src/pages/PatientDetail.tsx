@@ -526,7 +526,7 @@ const PatientDetail = () => {
                       <span className="text-[10px] text-muted-foreground font-mono w-6 text-right">{regionWidth}</span>
                     </div>
                     <div className="flex items-center gap-2">
-                      <Label className="text-[10px] w-10 shrink-0">Höhe</Label>
+                      <Label className="text-[10px] w-10 shrink-0">{t('patientDetail.height')}</Label>
                       <Slider value={[regionHeight]} onValueChange={([v]) => setRegionHeight(v)} min={10} max={150} step={1} className="flex-1" />
                       <span className="text-[10px] text-muted-foreground font-mono w-6 text-right">{regionHeight}</span>
                     </div>
