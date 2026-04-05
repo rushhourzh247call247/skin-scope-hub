@@ -815,6 +815,8 @@ const PatientDetail = () => {
           </div>
         </div>
 
+      {/* Hidden file input for zone sidebar upload */}
+      <input ref={zoneFileRef} type="file" accept="image/*" className="hidden" onChange={handleZoneSidebarUpload} />
 
         {/* Center + Right: Content */}
         <div className="flex-1 overflow-y-auto p-3 lg:p-6">
