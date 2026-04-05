@@ -1030,10 +1030,10 @@ const PatientDetail = () => {
                 className="space-y-4"
               >
                 <div className="flex items-center justify-between">
-                  <h2 className="text-lg font-semibold text-foreground">Berichte</h2>
+                  <h2 className="text-lg font-semibold text-foreground">{t('patientDetail.reports')}</h2>
                   <Button onClick={() => setPdfDialogOpen(true)} size="sm" className="gap-1.5">
                     <FileDown className="h-3.5 w-3.5" />
-                    Neuer Bericht
+                    {t('patientDetail.newReport')}
                   </Button>
                 </div>
                 <PdfReportHistory patientId={patient.id} patientName={patient.name} />
