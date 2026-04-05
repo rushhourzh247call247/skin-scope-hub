@@ -1416,7 +1416,7 @@ const PatientDetail = () => {
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
               onClick={() => permanentDeleteId && permanentDeleteMutation.mutate(permanentDeleteId)}
             >
-              Endgültig löschen
+              {t('patientDetail.permanentlyDelete')}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
