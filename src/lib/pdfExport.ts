@@ -364,7 +364,7 @@ export async function generatePatientPDF(
   if (resolvedDoctor) {
     doc.setFontSize(8);
     doc.setTextColor(180, 200, 220);
-    doc.text(`Arzt: ${resolvedDoctor}`, pageW - margin, 18, { align: "right" });
+    doc.text(`${i18n.t('pdf.doctor')}: ${resolvedDoctor}`, pageW - margin, 18, { align: "right" });
   }
 
   doc.setFontSize(7);
