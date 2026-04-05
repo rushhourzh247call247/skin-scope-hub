@@ -1,4 +1,5 @@
 import { useState, useCallback } from "react";
+import { useTranslation } from "react-i18next";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -20,6 +21,7 @@ interface PdfExportDialogProps {
 }
 
 export default function PdfExportDialog({ open, onOpenChange, patient, doctorName }: PdfExportDialogProps) {
+  const { t } = useTranslation();
   const defaults = getDefaultPdfOptions();
   const [reportType, setReportType] = useState<"lastVisit" | "fullHistory">(defaults.reportType);
   const [showClassification, setShowClassification] = useState(defaults.showClassification);
@@ -52,7 +54,7 @@ export default function PdfExportDialog({ open, onOpenChange, patient, doctorNam
         setStep("preview");
       }
     } catch {
-      toast.error("Vorschau konnte nicht erstellt werden");
+      toast.error(t('pdfExport.previewError'));
     } finally {
       setLoading(false);
     }
@@ -65,7 +67,7 @@ export default function PdfExportDialog({ open, onOpenChange, patient, doctorNam
       const url = await generatePatientPDF(patient, "preview", doctorName, buildOptions());
       if (url) setPreviewUrl(url);
     } catch {
-      toast.error("Vorschau konnte nicht aktualisiert werden");
+      toast.error(t('pdfExport.refreshError'));
     } finally {
       setLoading(false);
     }
@@ -78,12 +80,10 @@ export default function PdfExportDialog({ open, onOpenChange, patient, doctorNam
       const blobUrl = await generatePatientPDF(patient, "preview", doctorName, options);
       if (!blobUrl) throw new Error("PDF generation failed");
 
-      // Convert blob URL to actual blob for reliable download + save
       const res = await fetch(blobUrl);
       const blob = await res.blob();
       const filename = getPatientPdfFilename(patient);
 
-      // Download using blob directly
       const downloadUrl = URL.createObjectURL(blob);
       const link = document.createElement("a");
       link.href = downloadUrl;
@@ -92,12 +92,10 @@ export default function PdfExportDialog({ open, onOpenChange, patient, doctorNam
       document.body.appendChild(link);
       link.click();
 
-      // Fallback for iOS Safari: also try window.open
       setTimeout(() => {
         document.body.removeChild(link);
       }, 100);
 
-      // Save to reports (await the FileReader)
       let reportSaved = false;
       try {
         const base64 = await new Promise<string>((resolve, reject) => {
@@ -123,16 +121,16 @@ export default function PdfExportDialog({ open, onOpenChange, patient, doctorNam
       }
 
       if (reportSaved) {
-        toast.success("PDF gespeichert & heruntergeladen");
+        toast.success(t('pdfExport.savedAndDownloaded'));
       } else {
-        toast.error("PDF heruntergeladen, aber nicht in Berichte gespeichert");
+        toast.error(t('pdfExport.downloadedNotSaved'));
       }
       setTimeout(() => {
         URL.revokeObjectURL(blobUrl);
         URL.revokeObjectURL(downloadUrl);
       }, 3000);
     } catch {
-      toast.error("PDF konnte nicht erstellt werden");
+      toast.error(t('pdfExport.createError'));
     } finally {
       setLoading(false);
     }
@@ -140,7 +138,7 @@ export default function PdfExportDialog({ open, onOpenChange, patient, doctorNam
 
   const handleSaveDefaults = () => {
     saveDefaultPdfOptions({ reportType, showClassification, showAbcde, showRiskScore, showImages, showNotes });
-    toast.success("Voreinstellungen gespeichert");
+    toast.success(t('pdfExport.defaultsSaved'));
   };
 
   const handleClose = (open: boolean) => {
@@ -161,14 +159,14 @@ export default function PdfExportDialog({ open, onOpenChange, patient, doctorNam
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <FileDown className="h-5 w-5" />
-            PDF-Bericht erstellen
+            {t('pdfExport.dialogTitle')}
           </DialogTitle>
         </DialogHeader>
 
         {step === "config" && (
           <div className="space-y-5">
             <div className="space-y-2">
-              <Label className="text-sm font-semibold">Berichtstyp</Label>
+              <Label className="text-sm font-semibold">{t('pdfExport.reportType')}</Label>
               <div className="flex gap-2">
                 <button
                   onClick={() => setReportType("lastVisit")}
@@ -179,8 +177,8 @@ export default function PdfExportDialog({ open, onOpenChange, patient, doctorNam
                       : "border-border hover:border-primary/50"
                   )}
                 >
-                  <span className="font-medium">Letzte Konsultation</span>
-                  <p className="mt-0.5 text-xs text-muted-foreground">Nur neueste Befunde</p>
+                  <span className="font-medium">{t('pdfExport.lastVisit')}</span>
+                  <p className="mt-0.5 text-xs text-muted-foreground">{t('pdfExport.lastVisitDesc')}</p>
                 </button>
                 <button
                   onClick={() => setReportType("fullHistory")}
@@ -191,21 +189,21 @@ export default function PdfExportDialog({ open, onOpenChange, patient, doctorNam
                       : "border-border hover:border-primary/50"
                   )}
                 >
-                  <span className="font-medium">Gesamtverlauf</span>
-                  <p className="mt-0.5 text-xs text-muted-foreground">Chronologisch komplett</p>
+                  <span className="font-medium">{t('pdfExport.fullHistory')}</span>
+                  <p className="mt-0.5 text-xs text-muted-foreground">{t('pdfExport.fullHistoryDesc')}</p>
                 </button>
               </div>
             </div>
 
             <div className="space-y-2">
-              <Label className="text-sm font-semibold">Inhalte</Label>
+              <Label className="text-sm font-semibold">{t('pdfExport.contents')}</Label>
               <div className="space-y-2.5">
                 {[
-                  { id: "classification", label: "Klassifizierungen", checked: showClassification, set: setShowClassification },
-                  { id: "abcde", label: "ABCDE-Bewertung", checked: showAbcde, set: setShowAbcde },
-                  { id: "risk", label: "Risiko-Score & Verlauf", checked: showRiskScore, set: setShowRiskScore },
-                  { id: "images", label: "Bilder", checked: showImages, set: setShowImages },
-                  { id: "notes", label: "Notizen & Befunde", checked: showNotes, set: setShowNotes },
+                  { id: "classification", label: t('pdfExport.classifications'), checked: showClassification, set: setShowClassification },
+                  { id: "abcde", label: t('pdfExport.abcdeAssessment'), checked: showAbcde, set: setShowAbcde },
+                  { id: "risk", label: t('pdfExport.riskScoreProgress'), checked: showRiskScore, set: setShowRiskScore },
+                  { id: "images", label: t('pdfExport.imagesContent'), checked: showImages, set: setShowImages },
+                  { id: "notes", label: t('pdfExport.notesFindings'), checked: showNotes, set: setShowNotes },
                 ].map((item) => (
                   <div key={item.id} className="flex items-center gap-2.5">
                     <Checkbox
@@ -220,9 +218,9 @@ export default function PdfExportDialog({ open, onOpenChange, patient, doctorNam
             </div>
 
             <div className="space-y-2">
-              <Label className="text-sm font-semibold">Ärztliche Zusammenfassung (optional)</Label>
+              <Label className="text-sm font-semibold">{t('pdfExport.doctorSummary')}</Label>
               <Textarea
-                placeholder="Freitext für den Bericht eingeben..."
+                placeholder={t('pdfExport.doctorSummaryPlaceholder')}
                 value={doctorSummary}
                 onChange={(e) => setDoctorSummary(e.target.value)}
                 rows={3}
@@ -233,9 +231,9 @@ export default function PdfExportDialog({ open, onOpenChange, patient, doctorNam
             <div className="flex items-center gap-2 pt-2">
               <Button onClick={handlePreview} disabled={loading} className="flex-1 gap-1.5">
                 {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Eye className="h-4 w-4" />}
-                Vorschau
+                {t('pdfExport.preview')}
               </Button>
-              <Button variant="outline" onClick={handleSaveDefaults} size="icon" title="Voreinstellungen speichern">
+              <Button variant="outline" onClick={handleSaveDefaults} size="icon" title={t('pdfExport.saveDefaults')}>
                 <Settings2 className="h-4 w-4" />
               </Button>
             </div>
@@ -249,15 +247,15 @@ export default function PdfExportDialog({ open, onOpenChange, patient, doctorNam
                 <PdfPreviewPages pdfUrl={previewUrl} />
               ) : (
                 <div className="flex h-full items-center justify-center text-sm text-muted-foreground">
-                  Keine Vorschau verfügbar
+                  {t('pdfExport.noPreview')}
                 </div>
               )}
             </div>
 
             <div className="space-y-2">
-              <Label className="text-sm font-semibold">Ärztliche Zusammenfassung</Label>
+              <Label className="text-sm font-semibold">{t('pdfExport.doctorSummary')}</Label>
               <Textarea
-                placeholder="Text eingeben oder anpassen — wird ins PDF übernommen..."
+                placeholder={t('pdfExport.updatePreviewPlaceholder')}
                 value={doctorSummary}
                 onChange={(e) => setDoctorSummary(e.target.value)}
                 rows={3}
@@ -265,18 +263,18 @@ export default function PdfExportDialog({ open, onOpenChange, patient, doctorNam
               />
               <Button variant="ghost" size="sm" onClick={handleRefreshPreview} disabled={loading} className="gap-1 text-xs">
                 {loading ? <Loader2 className="h-3 w-3 animate-spin" /> : null}
-                Vorschau aktualisieren
+                {t('pdfExport.refreshPreview')}
               </Button>
             </div>
 
             <div className="flex items-center gap-2">
               <Button variant="outline" onClick={() => setStep("config")} className="gap-1.5">
                 <Settings2 className="h-4 w-4" />
-                Optionen
+                {t('pdfExport.options')}
               </Button>
               <Button onClick={handleSaveAndDownload} disabled={loading} className="flex-1 gap-1.5">
                 {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
-                Speichern & Herunterladen
+                {t('pdfExport.saveAndDownload')}
               </Button>
             </div>
           </div>

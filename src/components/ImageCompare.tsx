@@ -1,4 +1,5 @@
 import { useState, useRef, useCallback, useEffect } from "react";
+import { useTranslation } from "react-i18next";
 import type { LocationImage } from "@/types/patient";
 import { formatDate } from "@/lib/dateUtils";
 import { ArrowLeft, Calendar, Check, GitCompareArrows, RotateCcw, ZoomIn, Layers, Move, RotateCw, ChevronDown, Wand2, Loader2 } from "lucide-react";
@@ -23,6 +24,7 @@ interface ImageCompareProps {
 }
 
 const ImageCompare = ({ images, locationName, onClose }: ImageCompareProps) => {
+  const { t } = useTranslation();
   const [selected, setSelected] = useState<number[]>([]);
   const [zoomedImage, setZoomedImage] = useState<LocationImage | null>(null);
   const [compareMode, setCompareMode] = useState<"side" | "overlay">("side");
@@ -41,8 +43,6 @@ const ImageCompare = ({ images, locationName, onClose }: ImageCompareProps) => {
   const debounceTimers = useRef<Record<number, ReturnType<typeof setTimeout>>>({});
   const alignSaveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-
-  // Load saved alignment when two images are selected
   useEffect(() => {
     if (selected.length === 2) {
       api.getImageAlignment(selected[0], selected[1]).then(saved => {
@@ -56,7 +56,6 @@ const ImageCompare = ({ images, locationName, onClose }: ImageCompareProps) => {
     }
   }, [selected]);
 
-  // Auto-save alignment on change (debounced)
   useEffect(() => {
     if (selected.length !== 2) return;
     if (alignSaveTimer.current) clearTimeout(alignSaveTimer.current);
@@ -104,10 +103,10 @@ const ImageCompare = ({ images, locationName, onClose }: ImageCompareProps) => {
         rotation: result.rotation, scale: result.scale,
         offset_x: result.offset_x, offset_y: result.offset_y,
       });
-      toast.success("Bilder automatisch ausgerichtet");
+      toast.success(t('imageCompare.autoAligned'));
     } catch (err) {
       console.error("[AutoAlign] Error:", err);
-      toast.error("Automatische Ausrichtung fehlgeschlagen");
+      toast.error(t('imageCompare.autoAlignFailed'));
       setOverlayRotation(0); setOverlayScale(100); setOverlayOffsetX(0); setOverlayOffsetY(0);
     } finally {
       setIsAutoAligning(false);
@@ -140,16 +139,16 @@ const ImageCompare = ({ images, locationName, onClose }: ImageCompareProps) => {
           <div>
             <h3 className="text-sm font-semibold text-foreground flex items-center gap-2">
               <GitCompareArrows className="h-4 w-4 text-primary" />
-              Verlaufsvergleich – {locationName}
+              {t('imageCompare.title', { location: locationName })}
             </h3>
             <p className="text-xs text-muted-foreground">
-              Wählen Sie 2 Bilder zum Vergleichen aus
+              {t('imageCompare.selectImages')}
             </p>
           </div>
         </div>
         {selected.length > 0 && (
           <Button variant="outline" size="sm" onClick={() => setSelected([])}>
-            <RotateCcw className="mr-1.5 h-3.5 w-3.5" /> Auswahl zurücksetzen
+            <RotateCcw className="mr-1.5 h-3.5 w-3.5" /> {t('imageCompare.resetSelection')}
           </Button>
         )}
       </div>
@@ -197,7 +196,7 @@ const ImageCompare = ({ images, locationName, onClose }: ImageCompareProps) => {
                     <div className="relative h-16 w-16 shrink-0 overflow-hidden rounded-full border-2 border-border shadow-sm">
                       <img
                         src={api.resolveImageSrc(img)}
-                        alt={`Aufnahme #${img.id}`}
+                        alt={t('imageCompare.recording', { index: index + 1 })}
                         className="h-full w-full object-cover"
                       />
                       {isSelected && (
@@ -207,7 +206,7 @@ const ImageCompare = ({ images, locationName, onClose }: ImageCompareProps) => {
                       )}
                     </div>
                     <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium text-foreground">Aufnahme #{index + 1}</p>
+                      <p className="text-sm font-medium text-foreground">{t('imageCompare.recording', { index: index + 1 })}</p>
                       <p className="text-xs text-muted-foreground tabular-nums">
                         {img.created_at ? formatDate(img.created_at, "dd. MMMM yyyy, HH:mm") : "–"}
                       </p>
@@ -216,10 +215,9 @@ const ImageCompare = ({ images, locationName, onClose }: ImageCompareProps) => {
                       <ZoomIn className="h-4 w-4" />
                     </Button>
                   </div>
-                  {/* Note + KI row */}
                   <div className="flex items-start gap-2 pl-1">
                     <Textarea
-                      placeholder="Notiz…"
+                      placeholder={t('imageCompare.notePlaceholder')}
                       className="min-h-[32px] h-8 text-[11px] resize-none bg-muted/30 border-muted flex-1"
                       value={noteValues[img.id] ?? ""}
                       onChange={(e) => { e.stopPropagation(); handleNoteChange(img.id, e.target.value); }}
@@ -246,9 +244,8 @@ const ImageCompare = ({ images, locationName, onClose }: ImageCompareProps) => {
             <div className="flex items-center justify-between">
               <h4 className="text-sm font-semibold text-foreground flex items-center gap-2">
                 <GitCompareArrows className="h-4 w-4 text-primary" />
-                Vergleich
+                {t('imageCompare.comparison')}
               </h4>
-              {/* Mode toggle */}
               <div className="flex items-center gap-1 rounded-lg bg-muted p-1">
                 <button
                   onClick={() => setCompareMode("side")}
@@ -259,7 +256,7 @@ const ImageCompare = ({ images, locationName, onClose }: ImageCompareProps) => {
                       : "text-muted-foreground hover:text-foreground"
                   )}
                 >
-                  <GitCompareArrows className="h-3 w-3" /> Nebeneinander
+                  <GitCompareArrows className="h-3 w-3" /> {t('imageCompare.sideMode')}
                 </button>
                 <button
                   onClick={() => setCompareMode("overlay")}
@@ -270,19 +267,18 @@ const ImageCompare = ({ images, locationName, onClose }: ImageCompareProps) => {
                       : "text-muted-foreground hover:text-foreground"
                   )}
                 >
-                  <Layers className="h-3 w-3" /> Overlay
+                  <Layers className="h-3 w-3" /> {t('imageCompare.overlayMode')}
                 </button>
               </div>
             </div>
 
             {compareMode === "side" ? (
-              /* Side-by-side */
               <div className="space-y-3">
                 <div className="grid grid-cols-2 gap-4">
                   {compareImages.map((img, i) => (
                     <div key={img.id} className="space-y-2">
                       <div className="relative overflow-hidden rounded-lg border aspect-square bg-muted">
-                        <img src={api.resolveImageSrc(img)} alt={`Vergleich ${i + 1}`} className="h-full w-full object-contain" />
+                        <img src={api.resolveImageSrc(img)} alt={`${t('imageCompare.comparison')} ${i + 1}`} className="h-full w-full object-contain" />
                         <div className={cn(
                           "absolute top-2 left-2 flex h-6 w-6 items-center justify-center rounded-full text-xs font-bold",
                           i === 0 ? "bg-primary text-primary-foreground" : "bg-accent text-accent-foreground"
@@ -308,54 +304,49 @@ const ImageCompare = ({ images, locationName, onClose }: ImageCompareProps) => {
                     disabled={isAutoAligning}
                   >
                     {isAutoAligning ? (
-                      <><Loader2 className="h-3 w-3 animate-spin" /> Analysiere…</>
+                      <><Loader2 className="h-3 w-3 animate-spin" /> {t('imageCompare.analyzing')}</>
                     ) : (
-                      <><Wand2 className="h-3 w-3" /> KI Ausrichtung</>
+                      <><Wand2 className="h-3 w-3" /> {t('imageCompare.aiAlignment')}</>
                     )}
                   </Button>
                   {isAlignmentModified && (
                     <Button variant="ghost" size="sm" className="h-7 text-[10px] gap-1" onClick={handleReset}>
-                      <RotateCcw className="h-3 w-3" /> Reset
+                      <RotateCcw className="h-3 w-3" /> {t('common.reset')}
                     </Button>
                   )}
                 </div>
               </div>
             ) : (
-              /* Overlay mode */
               <div className="space-y-4">
                 <div className="relative overflow-hidden rounded-lg border aspect-square bg-muted">
-                  {/* Base image (older) */}
                   <img
                     src={api.resolveImageSrc(compareImages[0])}
-                    alt="Ältere Aufnahme"
+                    alt={t('imageCompare.olderAlt')}
                     className="absolute inset-0 h-full w-full object-contain"
                   />
-                  {/* Overlay image (newer) with adjustable opacity */}
                   <img
                     src={api.resolveImageSrc(compareImages[1])}
-                    alt="Neuere Aufnahme"
+                    alt={t('imageCompare.newerAlt')}
                     className="absolute inset-0 h-full w-full object-contain"
                     style={{
                       opacity: overlayOpacity / 100,
                       transform: `rotate(${overlayRotation}deg) scale(${overlayScale / 100}) translate(${overlayOffsetX}px, ${overlayOffsetY}px)`,
                     }}
                   />
-                  {/* Labels */}
                   <div className="absolute top-2 left-2 rounded-full bg-primary/90 px-2 py-0.5 text-[9px] font-bold text-primary-foreground backdrop-blur-sm">
-                    ÄLTER
+                    {t('imageCompare.olderLabel')}
                   </div>
                   <div className="absolute top-2 right-2 rounded-full bg-accent/90 px-2 py-0.5 text-[9px] font-bold text-accent-foreground backdrop-blur-sm">
-                    NEUER ({overlayOpacity}%)
+                    {t('imageCompare.newerPercent', { percent: overlayOpacity })}
                   </div>
                 </div>
-                {/* Opacity slider */}
                 <div className="space-y-2">
                   <div className="flex items-center justify-between text-xs text-muted-foreground">
                     <span className="flex items-center gap-1">
                       <Calendar className="h-3 w-3" />
                       {compareImages[0].created_at ? formatDate(compareImages[0].created_at, "dd.MM.yy") : "–"}
                     </span>
-                    <span className="text-[10px] font-medium text-foreground">Transparenz: {overlayOpacity}%</span>
+                    <span className="text-[10px] font-medium text-foreground">{t('imageCompare.transparency')}: {overlayOpacity}%</span>
                     <span className="flex items-center gap-1">
                       <Calendar className="h-3 w-3" />
                       {compareImages[1].created_at ? formatDate(compareImages[1].created_at, "dd.MM.yy") : "–"}
@@ -370,7 +361,6 @@ const ImageCompare = ({ images, locationName, onClose }: ImageCompareProps) => {
                   />
                 </div>
 
-                {/* Quick Actions */}
                 <div className="flex items-center gap-2">
                   <Button
                     variant="outline"
@@ -380,14 +370,14 @@ const ImageCompare = ({ images, locationName, onClose }: ImageCompareProps) => {
                     disabled={isAutoAligning}
                   >
                     {isAutoAligning ? (
-                      <><Loader2 className="h-3 w-3 animate-spin" /> Analysiere…</>
+                      <><Loader2 className="h-3 w-3 animate-spin" /> {t('imageCompare.analyzing')}</>
                     ) : (
-                      <><Wand2 className="h-3 w-3" /> KI Ausrichtung</>
+                      <><Wand2 className="h-3 w-3" /> {t('imageCompare.aiAlignment')}</>
                     )}
                   </Button>
                   {isAlignmentModified && (
                     <Button variant="ghost" size="sm" className="h-7 text-[10px] gap-1" onClick={handleReset}>
-                      <RotateCcw className="h-3 w-3" /> Reset
+                      <RotateCcw className="h-3 w-3" /> {t('common.reset')}
                     </Button>
                   )}
                   <button
@@ -400,13 +390,12 @@ const ImageCompare = ({ images, locationName, onClose }: ImageCompareProps) => {
                     )}
                   >
                     <Move className="h-3 w-3" />
-                    Manuell
+                    {t('imageCompare.manualAlign')}
                     {isAlignmentModified && <span className="h-1.5 w-1.5 rounded-full bg-primary" />}
                     <ChevronDown className={cn("h-3 w-3 transition-transform", showAlignControls && "rotate-180")} />
                   </button>
                 </div>
 
-                {/* Collapsible Alignment Controls */}
                 <AnimatePresence>
                   {showAlignControls && (
                     <motion.div
@@ -423,41 +412,37 @@ const ImageCompare = ({ images, locationName, onClose }: ImageCompareProps) => {
                             className="h-6 px-2 text-[10px]"
                             onClick={() => { setOverlayRotation(0); setOverlayScale(100); setOverlayOffsetX(0); setOverlayOffsetY(0); }}
                           >
-                            <RotateCcw className="mr-1 h-3 w-3" /> Reset
+                            <RotateCcw className="mr-1 h-3 w-3" /> {t('common.reset')}
                           </Button>
                         </div>
 
-                        {/* Rotation */}
                         <div className="space-y-1">
                           <div className="flex items-center justify-between text-[10px] text-muted-foreground">
-                            <span className="flex items-center gap-1"><RotateCw className="h-3 w-3" /> Rotation</span>
+                            <span className="flex items-center gap-1"><RotateCw className="h-3 w-3" /> {t('imageCompare.rotation')}</span>
                             <span className="font-mono">{overlayRotation}°</span>
                           </div>
                           <Slider value={[overlayRotation]} onValueChange={([v]) => setOverlayRotation(v)} min={-180} max={180} step={1} />
                         </div>
 
-                        {/* Scale */}
                         <div className="space-y-1">
                           <div className="flex items-center justify-between text-[10px] text-muted-foreground">
-                            <span className="flex items-center gap-1"><ZoomIn className="h-3 w-3" /> Zoom</span>
+                            <span className="flex items-center gap-1"><ZoomIn className="h-3 w-3" /> {t('imageCompare.scale')}</span>
                             <span className="font-mono">{overlayScale}%</span>
                           </div>
                           <Slider value={[overlayScale]} onValueChange={([v]) => setOverlayScale(v)} min={50} max={200} step={1} />
                         </div>
 
-                        {/* Offset X */}
                         <div className="space-y-1">
                           <div className="flex items-center justify-between text-[10px] text-muted-foreground">
-                            <span>← Horizontal →</span>
+                            <span>{t('imageCompare.horizontal')}</span>
                             <span className="font-mono">{overlayOffsetX}px</span>
                           </div>
                           <Slider value={[overlayOffsetX]} onValueChange={([v]) => setOverlayOffsetX(v)} min={-100} max={100} step={1} />
                         </div>
 
-                        {/* Offset Y */}
                         <div className="space-y-1">
                           <div className="flex items-center justify-between text-[10px] text-muted-foreground">
-                            <span>↑ Vertikal ↓</span>
+                            <span>{t('imageCompare.vertical')}</span>
                             <span className="font-mono">{overlayOffsetY}px</span>
                           </div>
                           <Slider value={[overlayOffsetY]} onValueChange={([v]) => setOverlayOffsetY(v)} min={-100} max={100} step={1} />
@@ -469,12 +454,11 @@ const ImageCompare = ({ images, locationName, onClose }: ImageCompareProps) => {
               </div>
             )}
 
-            {/* Time difference */}
             {compareImages[0].created_at && compareImages[1].created_at && (
               <div className="text-center">
                 <span className="inline-flex items-center gap-1.5 rounded-full bg-muted px-3 py-1 text-xs font-medium text-muted-foreground">
                   <Calendar className="h-3 w-3" />
-                  Zeitraum: {getDaysDiff(compareImages[0].created_at, compareImages[1].created_at)}
+                  {t('imageCompare.timePeriod')}: {getDaysDiff(compareImages[0].created_at, compareImages[1].created_at)}
                 </span>
               </div>
             )}
@@ -487,7 +471,7 @@ const ImageCompare = ({ images, locationName, onClose }: ImageCompareProps) => {
         <DialogContent className="max-w-2xl p-2">
           {zoomedImage && (
             <div className="space-y-2">
-              <img src={api.resolveImageSrc(zoomedImage)} alt="Vergrössert" className="w-full rounded-md object-contain" />
+              <img src={api.resolveImageSrc(zoomedImage)} alt={t('imageCompare.enlarged')} className="w-full rounded-md object-contain" />
               <p className="text-center text-xs text-muted-foreground tabular-nums">
                 {zoomedImage.created_at ? formatDate(zoomedImage.created_at, "dd. MMMM yyyy, HH:mm") : "–"}
               </p>
@@ -504,13 +488,12 @@ function getDaysDiff(dateA: string, dateB: string): string {
   const b = new Date(dateB);
   const diffMs = Math.abs(b.getTime() - a.getTime());
   const days = Math.floor(diffMs / (1000 * 60 * 60 * 24));
-  if (days === 0) return "Gleicher Tag";
-  if (days < 30) return `${days} Tage`;
+  if (days === 0) return "–";
+  if (days < 30) return `${days}d`;
   const months = Math.floor(days / 30);
-  if (months < 12) return `${months} Monat${months > 1 ? "e" : ""}`;
+  if (months < 12) return `${months}m`;
   const years = Math.floor(months / 12);
-  const remMonths = months % 12;
-  return remMonths > 0 ? `${years} Jahr${years > 1 ? "e" : ""}, ${remMonths} Mon.` : `${years} Jahr${years > 1 ? "e" : ""}`;
+  return `${years}y`;
 }
 
 export default ImageCompare;

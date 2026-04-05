@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { AlertTriangle, Loader2 } from "lucide-react";
 import { getDocument, GlobalWorkerOptions } from "pdfjs-dist";
 import pdfWorker from "pdfjs-dist/build/pdf.worker.min.mjs?url";
@@ -15,6 +16,7 @@ interface PdfPreviewPagesProps {
 }
 
 export default function PdfPreviewPages({ pdfUrl }: PdfPreviewPagesProps) {
+  const { t } = useTranslation();
   const [pages, setPages] = useState<RenderedPage[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -62,7 +64,7 @@ export default function PdfPreviewPages({ pdfUrl }: PdfPreviewPagesProps) {
         }
       } catch {
         if (!cancelled) {
-          setError("PDF-Vorschau konnte nicht gerendert werden");
+          setError(t('pdfPreviewPages.renderError'));
         }
       } finally {
         if (!cancelled) {
@@ -77,14 +79,14 @@ export default function PdfPreviewPages({ pdfUrl }: PdfPreviewPagesProps) {
       cancelled = true;
       void loadingTask.destroy();
     };
-  }, [pdfUrl]);
+  }, [pdfUrl, t]);
 
   if (loading) {
     return (
       <div className="flex h-full items-center justify-center rounded-lg border bg-muted/20">
         <div className="flex items-center gap-2 text-sm text-muted-foreground">
           <Loader2 className="h-4 w-4 animate-spin" />
-          Vorschau wird gerendert...
+          {t('pdfPreviewPages.rendering')}
         </div>
       </div>
     );
@@ -108,7 +110,7 @@ export default function PdfPreviewPages({ pdfUrl }: PdfPreviewPagesProps) {
           <figure key={page.pageNumber} className="overflow-hidden rounded-md border bg-background shadow-sm">
             <img
               src={page.src}
-              alt={`PDF-Seite ${page.pageNumber}`}
+              alt={t('pdfPreviewPages.page', { number: page.pageNumber })}
               loading="lazy"
               className="block h-auto w-full"
             />
