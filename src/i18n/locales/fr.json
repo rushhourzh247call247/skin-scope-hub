@@ -155,7 +155,7 @@
     "patient": "Patient",
     "tabs": {
       "spots": "POINTS",
-      "overview": "APERÇU",
+      "overview": "ZONES",
       "photos": "PHOTOS",
       "timeline": "CHRONOLOGIE",
       "reports": "RAPPORTS"
