@@ -676,7 +676,7 @@ export async function generatePatientPDF(
           drawRoundedRect(doc, imgX, y, imgW, imgH, 2, "F");
           doc.setFontSize(8);
           doc.setTextColor(...C.textMuted);
-          doc.text("Bild nicht verfügbar", imgX + imgW / 2, y + imgH / 2, { align: "center" });
+          doc.text(i18n.t('pdf.imageNotAvailable'), imgX + imgW / 2, y + imgH / 2, { align: "center" });
         }
 
         y += imgH + 3;
