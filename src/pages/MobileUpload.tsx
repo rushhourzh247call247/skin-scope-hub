@@ -84,7 +84,7 @@ const MobileUpload = () => {
         } else {
           setSession({
             status: "invalid",
-            message: err.message || "Token konnte nicht validiert werden.",
+            message: err.message || t('mobileUpload.invalidToken'),
           });
         }
       }
