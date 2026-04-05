@@ -828,7 +828,14 @@
     "page": "Pagina"
   },
   "bodyMap3d": {
-    "markSpot": "Segna spot"
+    "markSpot": "Segna spot",
+    "clickToSetSpot": "Clicca per posizionare uno spot",
+    "clickToSetZone": "Clicca per posizionare una zona",
+    "clickToSetRegion": "Clicca per definire il centro della regione",
+    "spotModeHelp": "Modalità spot: Clicca per posizionare · Clicca di nuovo per terminare",
+    "zoneModeHelp": "Modalità zona: Clicca per posizionare · Clicca di nuovo per terminare",
+    "regionModeHelp": "Modalità regione: Clicca per il centro · Clicca di nuovo per terminare",
+    "defaultHelp": "Ruota e zoom · Clicca su \"Spot\" o \"Zone\" per segnare"
   },
   "anatomy": {
     "forehead": "Fronte",
