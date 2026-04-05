@@ -342,6 +342,7 @@
     "resetPassword": "Réinitialiser le mot de passe",
     "resetPasswordTitle": "Réinitialiser le mot de passe",
     "resetPasswordFor": "Définir un nouveau mot de passe pour <strong>{{name}}</strong> :",
+    "resetPasswordForPlain": "Définir un nouveau mot de passe pour {{name}} :",
     "newPassword": "Nouveau mot de passe",
     "confirmPassword": "Confirmer le mot de passe",
     "minChars": "Min. 6 caractères",
