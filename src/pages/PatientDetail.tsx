@@ -957,7 +957,7 @@ const PatientDetail = () => {
                     events.push({ date: loc.created_at ?? "", type: "location", label: t('patientDetail.spotCreatedEvent'), detail: locName, locationName: locName, locationId: loc.id });
                     // Images
                     (loc.images ?? []).forEach((img) => {
-                      events.push({ date: img.created_at ?? "", type: "image", label: "Bild hochgeladen", locationName: locName, locationId: loc.id, imagePath: img.image_path, imageUrl: img.image_url });
+                      events.push({ date: img.created_at ?? "", type: "image", label: t('patientDetail.imageUploadedEvent'), locationName: locName, locationId: loc.id, imagePath: img.image_path, imageUrl: img.image_url });
                     });
                     // Findings
                     (loc.findings ?? []).forEach((f: any) => {
