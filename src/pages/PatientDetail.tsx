@@ -547,7 +547,7 @@ const PatientDetail = () => {
                       onChange={(e) => setLocationName(e.target.value)}
                       className="flex h-8 w-full rounded-md border border-input bg-background px-2 py-1 text-xs ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                     >
-                      {!locationName && <option value="">Zone wählen…</option>}
+                      {!locationName && <option value="">{t('patientDetail.selectZone')}</option>}
                       {options.map((zone) => (
                         <option key={zone} value={zone}>{zone}</option>
                       ))}
