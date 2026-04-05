@@ -828,7 +828,14 @@
     "page": "Page"
   },
   "bodyMap3d": {
-    "markSpot": "Mark spot"
+    "markSpot": "Mark spot",
+    "clickToSetSpot": "Click to place spot",
+    "clickToSetZone": "Click to place zone",
+    "clickToSetRegion": "Click to set region center",
+    "spotModeHelp": "Spot mode: Click to place · Click again to finish",
+    "zoneModeHelp": "Zone mode: Click to place · Click again to finish",
+    "regionModeHelp": "Region mode: Click for center · Click again to finish",
+    "defaultHelp": "Rotate & zoom · Click \"Spot\" or \"Zone\" to mark"
   },
   "anatomy": {
     "forehead": "Forehead",

@@ -828,7 +828,14 @@
     "page": "Seite"
   },
   "bodyMap3d": {
-    "markSpot": "Spot markieren"
+    "markSpot": "Spot markieren",
+    "clickToSetSpot": "Klicken, um Spot zu platzieren",
+    "clickToSetZone": "Klicken, um Zone zu platzieren",
+    "clickToSetRegion": "Klicken, um Region festzulegen",
+    "spotModeHelp": "Spot-Modus: Klicken zum Platzieren · Nochmals klicken zum Beenden",
+    "zoneModeHelp": "Zone-Modus: Klicken zum Platzieren · Nochmals klicken zum Beenden",
+    "regionModeHelp": "Region-Modus: Klicken für Zentrum · Nochmals klicken zum Beenden",
+    "defaultHelp": "Drehen & Zoomen · Klicken Sie auf \"Spot\" oder \"Zone\" zum Markieren"
   },
   "anatomy": {
     "forehead": "Stirn",
