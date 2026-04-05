@@ -1259,7 +1259,7 @@ const PatientDetail = () => {
                           />
                           <div className="flex gap-1.5">
                             <Button size="sm" variant="default" onClick={() => updateFindingMutation.mutate({ findingId: f.id, description: editingFindingText })} disabled={updateFindingMutation.isPending}>
-                              <Save className="mr-1 h-3 w-3" /> Speichern
+                              <Save className="mr-1 h-3 w-3" /> {t('common.save')}
                             </Button>
                             <Button size="sm" variant="ghost" onClick={() => { setEditingFindingId(null); setEditingFindingText(""); }}>
                               <X className="mr-1 h-3 w-3" /> Abbrechen
