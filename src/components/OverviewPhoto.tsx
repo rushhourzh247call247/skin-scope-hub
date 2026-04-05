@@ -751,7 +751,7 @@ const OverviewPhoto = ({ overviewLocation, spotLocations, patientId, onNavigateT
                           setCompareView("overlay");
                         } catch (err) {
                           console.error("[AutoAlign] Error:", err);
-                          toast.error("Automatische Ausrichtung fehlgeschlagen");
+                           toast.error(t('imageCompare.autoAlignFailed'));
                           handleReset();
                         } finally {
                           setIsAutoAligning(false);
