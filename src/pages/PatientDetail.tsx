@@ -61,7 +61,7 @@ const PatientDetail = () => {
     x: number;
     y: number;
     view: "front" | "back";
-    markType?: "spot" | "region";
+    markType?: "spot" | "region" | "zone";
     x3d?: number;
     y3d?: number;
     z3d?: number;
