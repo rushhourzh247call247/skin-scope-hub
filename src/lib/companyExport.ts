@@ -1,4 +1,5 @@
 import JSZip from "jszip";
+import i18n from "@/i18n";
 import { saveAs } from "file-saver";
 import { api } from "./api";
 

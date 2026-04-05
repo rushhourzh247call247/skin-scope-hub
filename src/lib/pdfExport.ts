@@ -1,4 +1,5 @@
 import jsPDF from "jspdf";
+import i18n from "@/i18n";
 import "jspdf-autotable";
 import { ROBOTO_REGULAR } from "@/assets/fonts/roboto-regular";
 import { ROBOTO_BOLD } from "@/assets/fonts/roboto-bold";
