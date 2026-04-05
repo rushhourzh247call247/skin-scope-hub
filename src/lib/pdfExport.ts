@@ -1114,7 +1114,7 @@ export async function generatePatientPDF(
     doc.setFont("Roboto", "normal");
     doc.setFontSize(6);
     doc.setTextColor(...C.textMuted);
-    doc.text("Vertraulich — Ausschliesslich zur medizinischen Dokumentation", pageW / 2, fY + 1, { align: "center" });
+    doc.text(i18n.t('pdf.confidentialFooter'), pageW / 2, fY + 1, { align: "center" });
 
     doc.setFont("Roboto", "normal");
     doc.setFontSize(7);
