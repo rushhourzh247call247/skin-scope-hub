@@ -191,7 +191,7 @@ const PatientDetail = () => {
       setMapClickDialog(null);
       setLocationName("");
       if (wasZone) {
-        setSelectedLocationId(null);
+        setSelectedLocationId(newLoc.id);
         setActiveTab("uebersicht");
         setNewlyCreatedZoneId(newLoc.id);
       } else {
@@ -619,11 +619,11 @@ const PatientDetail = () => {
                   return (
                     <div
                       key={loc.id}
-                      className="flex w-full items-center gap-2.5 rounded-md px-2.5 py-1.5 transition-all text-xs hover:bg-muted text-foreground border border-transparent bg-accent/30 group"
+                      className={cn("flex w-full items-center gap-2.5 rounded-md px-2.5 py-1.5 transition-all text-xs hover:bg-muted text-foreground border group", selectedLocationId === loc.id && activeTab === "uebersicht" ? "bg-primary/15 border-primary/30" : "border-transparent bg-accent/30")}
                     >
                       <button
                         className="flex items-center gap-2.5 flex-1 min-w-0 text-left"
-                        onClick={() => { setSelectedLocationId(null); setActiveTab("uebersicht"); }}
+                        onClick={() => { setSelectedLocationId(loc.id); setActiveTab("uebersicht"); }}
                       >
                         {firstImg ? (
                           <img
@@ -830,93 +830,112 @@ const PatientDetail = () => {
                 transition={{ duration: 0.15 }}
                 className="space-y-6"
               >
-                <div className="flex items-center justify-between">
-                  <h2 className="text-lg font-semibold text-foreground">{t('patientDetail.overviewPhotos')}</h2>
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    className="gap-1.5 text-xs"
-                    onClick={() => {
-                      // Create a new overview location
-                      createLocationMutation.mutate({
-                        name: `Zone ${overviewLocations.length + 1}`,
-                        x: 0, y: 0,
-                        view: "front",
-                        type: "overview",
-                      });
-                    }}
-                    disabled={createLocationMutation.isPending}
-                  >
-                    <Plus className="h-3.5 w-3.5" />
-                    {t('patientDetail.newOverview')}
-                  </Button>
-                </div>
+                {(() => {
+                  const selectedZone = selectedLocationId
+                    ? overviewLocations.find(l => l.id === selectedLocationId)
+                    : null;
+                  const zonesToShow = selectedZone ? [selectedZone] : overviewLocations;
 
-                {overviewLocations.length === 0 ? (
-                  <div className="flex flex-col items-center justify-center py-16 text-muted-foreground">
-                    <Eye className="h-10 w-10 mb-3" />
-                    <p className="text-sm font-medium">{t('overviewPhoto.noZonesYet')}</p>
-                    <p className="text-xs mt-1">{t('overviewPhoto.zonesDescription')}</p>
-                    <Button
-                      size="sm"
-                      className="mt-4 gap-1.5"
-                      onClick={() => {
-                        createLocationMutation.mutate({
-                          name: "Zone 1",
-                          x: 0, y: 0,
-                          view: "front",
-                          type: "overview",
-                        });
-                      }}
-                      disabled={createLocationMutation.isPending}
-                    >
-                      <Plus className="h-3.5 w-3.5" />
-                      {t('overviewPhoto.createFirstZone')}
-                    </Button>
-                  </div>
-                ) : (
-                  <div className="space-y-8">
-                    {overviewLocations.map((loc) => (
-                      <div key={loc.id} id={`zone-${loc.id}`}>
-                      <OverviewPhoto
-                        overviewLocation={loc}
-                        spotLocations={spotLocations}
-                        patientId={patientId}
-                        onNavigateToSpot={(spotId) => {
-                          setSelectedLocationId(spotId);
-                          setActiveTab("spots");
-                        }}
-                        onDelete={(locationId) => setDeleteConfirmId(locationId)}
-                        onQrUpload={(locationId) => {
-                          setQrLocationId(locationId);
-                          setQrDialogOpen(true);
-                        }}
-                        onCreateSpotAndLink={async (name, pinCoords, overviewLocId) => {
-                          try {
-                            const newLoc = await api.createLocation(patientId, {
-                              name: name || "Neuer Spot",
-                              x: 0, y: 0, view: "front", type: "spot",
+                  return (
+                    <>
+                      <div className="flex items-center justify-between">
+                        {selectedZone ? (
+                          <div className="flex items-center gap-2">
+                            <Button size="sm" variant="ghost" className="gap-1 h-8 px-2" onClick={() => setSelectedLocationId(null)}>
+                              <ArrowLeft className="h-4 w-4" />
+                            </Button>
+                            <h2 className="text-lg font-semibold text-foreground">{translateAnatomyName(selectedZone.name) || t('patientDetail.overview')}</h2>
+                          </div>
+                        ) : (
+                          <h2 className="text-lg font-semibold text-foreground">{t('patientDetail.overviewPhotos')}</h2>
+                        )}
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          className="gap-1.5 text-xs"
+                          onClick={() => {
+                            createLocationMutation.mutate({
+                              name: `Zone ${overviewLocations.length + 1}`,
+                              x: 0, y: 0,
+                              view: "front",
+                              type: "overview",
                             });
-                            await api.createOverviewPin(overviewLocId, {
-                              linked_location_id: newLoc.id,
-                              x_pct: pinCoords.x_pct,
-                              y_pct: pinCoords.y_pct,
-                            label: name || t("patientDetail.newSpot"),
-                            });
-                            queryClient.invalidateQueries({ queryKey: ["full-patient", patientId] });
-                            queryClient.invalidateQueries({ queryKey: ["overview-pins", overviewLocId] });
-                            setSelectedLocationId(newLoc.id);
-                            setActiveTab("spots");
-                            toast.success(t("patientDetail.spotCreated", { name: name || t("patientDetail.newSpot") }));
-                          } catch {
-                            toast.error(t("patientDetail.spotCreateError"));
-                          }
-                        }}
-                      />
+                          }}
+                          disabled={createLocationMutation.isPending}
+                        >
+                          <Plus className="h-3.5 w-3.5" />
+                          {t('patientDetail.newOverview')}
+                        </Button>
                       </div>
-                    ))}
-                  </div>
-                )}
+
+                      {overviewLocations.length === 0 ? (
+                        <div className="flex flex-col items-center justify-center py-16 text-muted-foreground">
+                          <Eye className="h-10 w-10 mb-3" />
+                          <p className="text-sm font-medium">{t('overviewPhoto.noZonesYet')}</p>
+                          <p className="text-xs mt-1">{t('overviewPhoto.zonesDescription')}</p>
+                          <Button
+                            size="sm"
+                            className="mt-4 gap-1.5"
+                            onClick={() => {
+                              createLocationMutation.mutate({
+                                name: "Zone 1",
+                                x: 0, y: 0,
+                                view: "front",
+                                type: "overview",
+                              });
+                            }}
+                            disabled={createLocationMutation.isPending}
+                          >
+                            <Plus className="h-3.5 w-3.5" />
+                            {t('overviewPhoto.createFirstZone')}
+                          </Button>
+                        </div>
+                      ) : (
+                        <div className="space-y-8">
+                          {zonesToShow.map((loc) => (
+                            <div key={loc.id} id={`zone-${loc.id}`}>
+                            <OverviewPhoto
+                              overviewLocation={loc}
+                              spotLocations={spotLocations}
+                              patientId={patientId}
+                              onNavigateToSpot={(spotId) => {
+                                setSelectedLocationId(spotId);
+                                setActiveTab("spots");
+                              }}
+                              onDelete={(locationId) => setDeleteConfirmId(locationId)}
+                              onQrUpload={(locationId) => {
+                                setQrLocationId(locationId);
+                                setQrDialogOpen(true);
+                              }}
+                              onCreateSpotAndLink={async (name, pinCoords, overviewLocId) => {
+                                try {
+                                  const newLoc = await api.createLocation(patientId, {
+                                    name: name || "Neuer Spot",
+                                    x: 0, y: 0, view: "front", type: "spot",
+                                  });
+                                  await api.createOverviewPin(overviewLocId, {
+                                    linked_location_id: newLoc.id,
+                                    x_pct: pinCoords.x_pct,
+                                    y_pct: pinCoords.y_pct,
+                                  label: name || t("patientDetail.newSpot"),
+                                  });
+                                  queryClient.invalidateQueries({ queryKey: ["full-patient", patientId] });
+                                  queryClient.invalidateQueries({ queryKey: ["overview-pins", overviewLocId] });
+                                  setSelectedLocationId(newLoc.id);
+                                  setActiveTab("spots");
+                                  toast.success(t("patientDetail.spotCreated", { name: name || t("patientDetail.newSpot") }));
+                                } catch {
+                                  toast.error(t("patientDetail.spotCreateError"));
+                                }
+                              }}
+                            />
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </>
+                  );
+                })()}
               </motion.div>
             ) : activeTab === "fotos" ? (
               <motion.div
