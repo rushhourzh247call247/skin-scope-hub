@@ -355,6 +355,7 @@
     "reset2fa": "Réinitialiser 2FA",
     "reset2faTitle": "Réinitialiser 2FA ?",
     "reset2faDescription": "L'authentification à deux facteurs pour <strong>{{name}}</strong> sera désactivée.",
+    "reset2faDescriptionPlain": "L'authentification à deux facteurs pour {{name}} sera désactivée.",
     "reset2faConfirm": "Désactiver 2FA",
     "reset2faSuccess": "2FA réinitialisé pour {{name}}",
     "reset2faError": "Erreur lors de la réinitialisation du 2FA"
