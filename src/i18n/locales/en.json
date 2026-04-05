@@ -342,6 +342,7 @@
     "resetPassword": "Reset password",
     "resetPasswordTitle": "Reset Password",
     "resetPasswordFor": "Set new password for <strong>{{name}}</strong>:",
+    "resetPasswordForPlain": "Set new password for {{name}}:",
     "newPassword": "New Password",
     "confirmPassword": "Confirm Password",
     "minChars": "Min. 6 characters",
