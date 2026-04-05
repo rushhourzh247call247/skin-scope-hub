@@ -111,7 +111,7 @@ const PatientDetail = () => {
         toast.success(t('patientDetail.pdfDownloaded'));
       }
     } catch {
-      toast.error("PDF konnte nicht erstellt werden");
+      toast.error(t('patientDetail.pdfError'));
     } finally {
       setPdfLoading(false);
     }
