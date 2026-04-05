@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useTranslation } from "react-i18next";
 import { api } from "@/lib/api";
 import { exportCompanyData } from "@/lib/companyExport";
 import { useAuth } from "@/contexts/AuthContext";
@@ -20,6 +21,7 @@ const PROTECTED_COMPANY_NAME = "techassist";
 
 const CompanyManagement = () => {
   const { user } = useAuth();
+  const { t } = useTranslation();
   const queryClient = useQueryClient();
   const [name, setName] = useState("");
   const [dialogOpen, setDialogOpen] = useState(false);
@@ -42,7 +44,7 @@ const CompanyManagement = () => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["companies"] });
       queryClient.invalidateQueries({ queryKey: ["dashboard-stats"] });
-      toast.success("Firma erstellt");
+      toast.success(t("companies.created"));
       setName("");
       setDialogOpen(false);
     },
@@ -53,28 +55,28 @@ const CompanyManagement = () => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["companies"] });
       queryClient.invalidateQueries({ queryKey: ["dashboard-stats"] });
-      toast.success("Firma gelöscht");
+      toast.success(t("companies.deleted"));
       setDeleteId(null);
     },
-    onError: () => toast.error("Fehler beim Löschen – evtl. sind noch Benutzer zugeordnet"),
+    onError: () => toast.error(t("companies.deleteError")),
   });
 
   const suspendMutation = useMutation({
     mutationFn: (id: number) => api.suspendCompany(id),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["companies"] });
-      toast.success("Firma gesperrt — alle Benutzer wurden ausgeloggt");
+      toast.success(t("companies.suspendedSuccess"));
     },
-    onError: () => toast.error("Fehler beim Sperren"),
+    onError: () => toast.error(t("companies.suspendError")),
   });
 
   const unsuspendMutation = useMutation({
     mutationFn: (id: number) => api.unsuspendCompany(id),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["companies"] });
-      toast.success("Firma entsperrt");
+      toast.success(t("companies.unsuspendSuccess"));
     },
-    onError: () => toast.error("Fehler beim Entsperren"),
+    onError: () => toast.error(t("companies.unsuspendError")),
   });
 
   const canSuspend = (c: any) => {
@@ -83,15 +85,15 @@ const CompanyManagement = () => {
 
   const handleExport = async (companyId: number, companyName: string) => {
     setExportingId(companyId);
-    setExportProgress({ phase: "Starte…", pct: 0 });
+    setExportProgress({ phase: t("companies.starting"), pct: 0 });
     try {
       await exportCompanyData(companyId, companyName, (p) => {
         const pct = p.total > 0 ? Math.round((p.current / p.total) * 100) : 0;
         setExportProgress({ phase: p.phase, pct });
       });
-      toast.success("Export abgeschlossen");
+      toast.success(t("companies.exportComplete"));
     } catch (err: any) {
-      toast.error(`Export fehlgeschlagen: ${err.message}`);
+      toast.error(t("companies.exportFailed", { message: err.message }));
     } finally {
       setExportingId(null);
       setExportProgress(null);
@@ -109,7 +111,7 @@ const CompanyManagement = () => {
             {c.name}
             {isProtected && (
               <Badge variant="secondary" className="gap-1 text-xs">
-                <Shield className="h-3 w-3" /> Geschützt
+                <Shield className="h-3 w-3" /> {t("common.protected")}
               </Badge>
             )}
           </span>
@@ -120,7 +122,7 @@ const CompanyManagement = () => {
               <Button
                 variant="ghost"
                 size="icon"
-                title="Entsperren"
+                title={t("common.unsuspend")}
                 onClick={() => unsuspendMutation.mutate(c.id)}
                 className="text-emerald-600 hover:text-emerald-700"
               >
@@ -132,7 +134,7 @@ const CompanyManagement = () => {
                   <Button
                     variant="ghost"
                     size="icon"
-                    title="Sperren"
+                    title={t("common.suspend")}
                     onClick={() => suspendMutation.mutate(c.id)}
                     className="text-amber-600 hover:text-amber-700"
                   >
@@ -145,7 +147,7 @@ const CompanyManagement = () => {
                     size="icon"
                     disabled={isExporting || exportingId !== null}
                     onClick={() => handleExport(c.id, c.name)}
-                    title="Gesamte Firmendaten exportieren"
+                    title={t("companies.exportTooltip")}
                   >
                     {isExporting ? (
                       <Loader2 className="h-4 w-4 animate-spin" />
@@ -155,7 +157,7 @@ const CompanyManagement = () => {
                   </Button>
                 )}
                 {isProtected ? (
-                  <span className="text-xs text-muted-foreground">—</span>
+                  <span className="text-xs text-muted-foreground">\u2014</span>
                 ) : (
                   <Button variant="ghost" size="icon" onClick={() => setDeleteId(c.id)} className="text-destructive hover:text-destructive">
                     <Trash2 className="h-4 w-4" />
@@ -172,15 +174,15 @@ const CompanyManagement = () => {
   const renderTable = (list: any[], isSuspendedTab: boolean) => (
     list.length === 0 ? (
       <p className="py-8 text-center text-muted-foreground">
-        {isSuspendedTab ? "Keine gesperrten Firmen" : "Keine aktiven Firmen"}
+        {isSuspendedTab ? t("companies.noSuspended") : t("companies.noActive")}
       </p>
     ) : (
       <Table>
         <TableHeader>
           <TableRow>
-            <TableHead>ID</TableHead>
-            <TableHead>Name</TableHead>
-            <TableHead className="w-[160px]">Aktion</TableHead>
+            <TableHead>{t("common.id")}</TableHead>
+            <TableHead>{t("common.name")}</TableHead>
+            <TableHead className="w-[160px]">{t("common.action")}</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -194,22 +196,22 @@ const CompanyManagement = () => {
     <div className="container py-8 space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-foreground">Firmen</h1>
-          <p className="text-sm text-muted-foreground">Firmen / Praxen verwalten</p>
+          <h1 className="text-2xl font-bold text-foreground">{t("companies.title")}</h1>
+          <p className="text-sm text-muted-foreground">{t("companies.subtitle")}</p>
         </div>
         <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
           <DialogTrigger asChild>
-            <Button><Plus className="mr-2 h-4 w-4" /> Neue Firma</Button>
+            <Button><Plus className="mr-2 h-4 w-4" /> {t("companies.newCompany")}</Button>
           </DialogTrigger>
           <DialogContent>
-            <DialogHeader><DialogTitle>Neue Firma erstellen</DialogTitle></DialogHeader>
+            <DialogHeader><DialogTitle>{t("companies.createTitle")}</DialogTitle></DialogHeader>
             <form onSubmit={(e) => { e.preventDefault(); createMutation.mutate({ name }); }} className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="company-name">Firmenname</Label>
-                <Input id="company-name" required value={name} onChange={(e) => setName(e.target.value)} placeholder="Hautarztpraxis Muster" />
+                <Label htmlFor="company-name">{t("companies.companyName")}</Label>
+                <Input id="company-name" required value={name} onChange={(e) => setName(e.target.value)} placeholder={t("companies.companyNamePlaceholder")} />
               </div>
               <Button type="submit" className="w-full" disabled={createMutation.isPending}>
-                {createMutation.isPending ? "Erstelle…" : "Firma erstellen"}
+                {createMutation.isPending ? t("companies.createSubmitting") : t("companies.createSubmit")}
               </Button>
             </form>
           </DialogContent>
@@ -231,7 +233,7 @@ const CompanyManagement = () => {
 
       <Card>
         <CardHeader>
-          <CardTitle className="flex items-center gap-2 text-lg"><Building2 className="h-5 w-5" /> Firmen</CardTitle>
+          <CardTitle className="flex items-center gap-2 text-lg"><Building2 className="h-5 w-5" /> {t("companies.title")}</CardTitle>
         </CardHeader>
         <CardContent>
           {isLoading ? (
@@ -243,12 +245,12 @@ const CompanyManagement = () => {
               <TabsList>
                 <TabsTrigger value="active" className="gap-1.5">
                   <CheckCircle className="h-3.5 w-3.5" />
-                  Aktiv
+                  {t("companies.activeTab")}
                   <Badge variant="secondary" className="ml-1 h-5 min-w-[20px] px-1.5 text-[10px]">{activeCompanies.length}</Badge>
                 </TabsTrigger>
                 <TabsTrigger value="suspended" className="gap-1.5">
                   <Ban className="h-3.5 w-3.5" />
-                  Gesperrt
+                  {t("companies.suspendedTab")}
                   {suspendedCompanies.length > 0 && (
                     <Badge variant="destructive" className="ml-1 h-5 min-w-[20px] px-1.5 text-[10px]">{suspendedCompanies.length}</Badge>
                   )}
@@ -268,18 +270,18 @@ const CompanyManagement = () => {
       <AlertDialog open={deleteId !== null} onOpenChange={(open) => !open && setDeleteId(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Firma endgültig löschen?</AlertDialogTitle>
+            <AlertDialogTitle>{t("companies.deleteTitle")}</AlertDialogTitle>
             <AlertDialogDescription>
-              Diese Firma und alle zugehörigen Daten werden unwiderruflich gelöscht. Diese Aktion kann nicht rückgängig gemacht werden.
+              {t("companies.deleteDescription")}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Abbrechen</AlertDialogCancel>
+            <AlertDialogCancel>{t("common.cancel")}</AlertDialogCancel>
             <AlertDialogAction
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
               onClick={() => deleteId && deleteMutation.mutate(deleteId)}
             >
-              Endgültig löschen
+              {t("common.permanentDelete")}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
