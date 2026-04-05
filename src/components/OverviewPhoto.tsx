@@ -548,7 +548,7 @@ const OverviewPhoto = ({ overviewLocation, spotLocations, patientId, onNavigateT
                                 {spot.name || `Spot #${spot.id}`}
                               </p>
                               <p className="text-[10px] text-muted-foreground">
-                                {spot.images?.length ?? 0} Bilder
+                                {spot.images?.length ?? 0} {t('common.images')}
                                 {clsInfo && (
                                   <span className="ml-1 font-bold" style={{ color: clsInfo.color }}>
                                     {clsInfo.shortLabel}
