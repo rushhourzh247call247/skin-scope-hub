@@ -420,6 +420,7 @@ function StatusCard({ icon, title, description }: { icon: React.ReactNode; title
 }
 
 function SessionInfoCard({ session }: { session: Extract<SessionState, { status: "active" }> }) {
+  const { t } = useTranslation();
   return (
     <div className="rounded-xl border bg-card p-4 space-y-2 shadow-sm">
       <div className="flex items-center gap-2">
