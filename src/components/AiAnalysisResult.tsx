@@ -1,9 +1,7 @@
 import type { AiAnalysis } from "@/types/patient";
 import { AlertTriangle, Sparkles } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
-import { format } from "date-fns";
-import { de } from "date-fns/locale";
-
+import { formatDate } from "@/lib/dateUtils";
 interface AiAnalysisResultProps {
   analysis: AiAnalysis;
   compact?: boolean;
@@ -43,7 +41,7 @@ const AiAnalysisResult = ({ analysis, compact = false }: AiAnalysisResultProps) 
 
       {analysis.created_at && (
         <p className="text-[8px] text-muted-foreground">
-          Analysiert: {format(new Date(analysis.created_at), "dd.MM.yyyy HH:mm", { locale: de })}
+          Analysiert: {formatDate(, "")}
         </p>
       )}
     </div>

@@ -20,9 +20,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { toast } from "sonner";
-import { format } from "date-fns";
-import { de } from "date-fns/locale";
-
+import { formatDate } from "@/lib/dateUtils";
 const PatientList = () => {
   const { user } = useAuth();
   const isAdmin = user?.role === "admin";
@@ -167,13 +165,13 @@ const PatientList = () => {
                       </div>
                     </td>
                     <td className="px-4 py-3 tabular-nums text-sm text-muted-foreground">
-                      {patient.birth_date ? format(new Date(patient.birth_date), "dd. MMM yyyy", { locale: de }) : "–"}
+                      {patient.birth_date ? formatDate(, "") : "–"}
                     </td>
                     <td className="px-4 py-3 text-sm text-muted-foreground">
                       {(patient as any).last_doctor || <span className="text-muted-foreground/50">–</span>}
                     </td>
                     <td className="px-4 py-3 tabular-nums text-sm text-muted-foreground">
-                      {patient.created_at ? format(new Date(patient.created_at), "dd.MM.yyyy", { locale: de }) : "–"}
+                      {patient.created_at ? formatDate(, "") : "–"}
                     </td>
                     <td className="px-4 py-3 text-right">
                       <div className="flex justify-end gap-1">

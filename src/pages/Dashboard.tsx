@@ -6,8 +6,7 @@ import { Users, MapPin, ImageIcon, Building2, ArrowRight, ShieldAlert, Eye, Shie
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { format } from "date-fns";
-import { de } from "date-fns/locale";
+import { formatDate } from "@/lib/dateUtils";
 import { useState } from "react";
 
 const StatCard = ({ title, value, icon: Icon, color, onClick }: { title: string; value: number; icon: any; color: string; onClick?: () => void }) => (
@@ -223,11 +222,11 @@ const Dashboard = () => {
                   <div className="flex-1 min-w-0">
                     <p className="text-sm font-medium text-foreground">{p.name}</p>
                     <p className="text-xs text-muted-foreground">
-                      Geb. {p.birth_date ? format(new Date(p.birth_date), "dd. MMM yyyy", { locale: de }) : "–"}
+                      Geb. {p.birth_date ? formatDate(, "") : "–"}
                     </p>
                   </div>
                   <span className="text-xs text-muted-foreground tabular-nums">
-                    {p.created_at ? format(new Date(p.created_at), "dd.MM.yyyy", { locale: de }) : "–"}
+                    {p.created_at ? formatDate(, "") : "–"}
                   </span>
                 </button>
               ))}

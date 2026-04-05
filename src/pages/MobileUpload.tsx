@@ -4,9 +4,7 @@ import { api } from "@/lib/api";
 import { Button } from "@/components/ui/button";
 import { Camera, CheckCircle, AlertTriangle, Loader2, X, ImageIcon, Images } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { format } from "date-fns";
-import { de } from "date-fns/locale";
-
+import { formatDate } from "@/lib/dateUtils";
 // ─── Types ───
 
 interface UploadedPhoto {
@@ -429,7 +427,7 @@ function SessionInfoCard({ session }: { session: Extract<SessionState, { status:
         <div>
           <h1 className="text-sm font-semibold text-foreground">Foto-Upload</h1>
           <p className="text-[10px] text-muted-foreground">
-            Gültig bis {format(new Date(session.expiresAt), "HH:mm", { locale: de })} Uhr
+            Gültig bis {formatDate(, "")} Uhr
           </p>
         </div>
       </div>
@@ -509,7 +507,7 @@ function PhotoThumbnail({ photo, onRemove }: { photo: UploadedPhoto; onRemove: (
       {/* Timestamp */}
       {photo.created_at && (
         <div className="absolute bottom-1 right-1 rounded bg-background/80 px-1 py-0.5 text-[8px] text-muted-foreground backdrop-blur-sm">
-          {format(new Date(photo.created_at), "HH:mm:ss")}
+          {formatDate(, "")}
         </div>
       )}
     </div>
