@@ -1292,7 +1292,7 @@ const PatientDetail = () => {
                   {/* Add new finding */}
                   <div className="space-y-2 pt-2 border-t">
                     <Textarea
-                      placeholder="Neuen Befund eingeben…"
+                      placeholder={t('patientDetail.newFindingPlaceholder')}
                       value={newFindingText}
                       onChange={(e) => setNewFindingText(e.target.value)}
                       rows={2}
