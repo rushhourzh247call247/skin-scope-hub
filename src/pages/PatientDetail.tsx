@@ -550,7 +550,7 @@ const PatientDetail = () => {
                     >
                       {!locationName && <option value="">{t('patientDetail.selectZone')}</option>}
                       {options.map((zone) => (
-                        <option key={zone} value={zone}>{zone}</option>
+                        <option key={zone} value={zone}>{translateAnatomyName(zone)}</option>
                       ))}
                     </select>
                   );
