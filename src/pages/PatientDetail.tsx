@@ -108,7 +108,7 @@ const PatientDetail = () => {
         return;
       } catch {
         await generatePatientPDF(patient, "download", user?.name);
-        toast.success("PDF heruntergeladen");
+        toast.success(t('patientDetail.pdfDownloaded'));
       }
     } catch {
       toast.error("PDF konnte nicht erstellt werden");
