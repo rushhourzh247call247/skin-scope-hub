@@ -361,11 +361,11 @@ const PatientDetail = () => {
           <div className="ml-auto flex items-center gap-1.5 shrink-0">
             <div className="flex items-center gap-1 rounded-lg bg-muted p-0.5 lg:p-1">
               {[
-                { key: "spots" as const, icon: MapPin, label: "SPOTS" },
-                { key: "uebersicht" as const, icon: Eye, label: "ÜBERSICHT" },
-                { key: "fotos" as const, icon: Camera, label: "FOTOS" },
-                { key: "timeline" as const, icon: Activity, label: "TIMELINE" },
-                { key: "berichte" as const, icon: FileDown, label: "BERICHTE" },
+                { key: "spots" as const, icon: MapPin, label: t('patientDetail.tabs.spots') },
+                { key: "uebersicht" as const, icon: Eye, label: t('patientDetail.tabs.overview') },
+                { key: "fotos" as const, icon: Camera, label: t('patientDetail.tabs.photos') },
+                { key: "timeline" as const, icon: Activity, label: t('patientDetail.tabs.timeline') },
+                { key: "berichte" as const, icon: FileDown, label: t('patientDetail.tabs.reports') },
               ].map(tab => (
                 <button
                   key={tab.key}
