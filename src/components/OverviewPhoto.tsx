@@ -919,9 +919,9 @@ const OverviewPhoto = ({ overviewLocation, spotLocations, patientId, onNavigateT
       <AlertDialog open={deleteTarget !== null} onOpenChange={(open) => !open && setDeleteTarget(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Pin entfernen?</AlertDialogTitle>
+            <AlertDialogTitle>{t('overviewPhoto.deletePinTitle', { defaultValue: 'Remove pin?' })}</AlertDialogTitle>
             <AlertDialogDescription>
-              Dieser Pin wird vom Übersichtsfoto entfernt. Der verknüpfte Spot bleibt erhalten.
+              {t('overviewPhoto.deletePinDesc', { defaultValue: 'This pin will be removed from the overview photo. The linked spot will remain.' })}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
