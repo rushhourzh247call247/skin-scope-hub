@@ -930,7 +930,7 @@ const OverviewPhoto = ({ overviewLocation, spotLocations, patientId, onNavigateT
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
               onClick={() => deleteTarget && deletePinMutation.mutate(deleteTarget)}
             >
-              Entfernen
+              {t('common.delete')}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
