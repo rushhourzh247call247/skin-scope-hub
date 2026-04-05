@@ -563,15 +563,32 @@ const PatientDetail = () => {
           )}
 
           {/* Overview Photos in Sidebar */}
-          {overviewLocations.length > 0 && (
             <div className={cn("mt-3 lg:mt-4", !mobileMapExpanded && "lg:block")}>
               <div className="flex items-center justify-between mb-2">
                 <h3 className="text-xs font-semibold text-foreground uppercase tracking-wider flex items-center gap-1.5">
                    <Camera className="h-3 w-3" />
                    {t('patientDetail.overviewPhotos')}
                 </h3>
-                <span className="text-[10px] text-muted-foreground">{overviewLocations.length}</span>
+                <div className="flex items-center gap-1.5">
+                  <span className="text-[10px] text-muted-foreground">{overviewLocations.length}</span>
+                  <button
+                    onClick={() => {
+                      createLocationMutation.mutate({
+                        name: `Übersicht ${overviewLocations.length + 1}`,
+                        x: 0, y: 0,
+                        view: "front",
+                        type: "overview",
+                      });
+                    }}
+                    disabled={createLocationMutation.isPending}
+                    className="h-5 w-5 rounded flex items-center justify-center hover:bg-muted text-muted-foreground hover:text-foreground transition-colors"
+                    title={t('patientDetail.newOverview')}
+                  >
+                    <Plus className="h-3 w-3" />
+                  </button>
+                </div>
               </div>
+              {overviewLocations.length > 0 && (
               <div className="space-y-1 mb-4">
                 {overviewLocations.map((loc) => {
                   const firstImg = loc.images?.[0];
@@ -619,8 +636,8 @@ const PatientDetail = () => {
                   );
                 })}
               </div>
+              )}
             </div>
-          )}
 
           {/* Spots List - collapsible on mobile when map is collapsed */}
           <div className={cn("mt-3 lg:mt-4 space-y-1", !mobileMapExpanded && "lg:block")}>
