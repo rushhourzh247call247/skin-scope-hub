@@ -27,6 +27,10 @@ function getDateLocale() {
 }
 
 function ensureUtc(dateStr: string): string {
+  // Date-only strings (e.g. "1994-07-23") should not get a Z suffix
+  if (/^\d{4}-\d{2}-\d{2}$/.test(dateStr)) {
+    return dateStr;
+  }
   if (/[Zz]$/.test(dateStr) || /[+-]\d{2}:\d{2}$/.test(dateStr)) {
     return dateStr;
   }
