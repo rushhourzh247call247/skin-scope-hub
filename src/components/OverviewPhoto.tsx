@@ -842,7 +842,7 @@ const OverviewPhoto = ({ overviewLocation, spotLocations, patientId, onNavigateT
                         showAlignControls || isAlignmentModified ? "border-primary/30 bg-primary/5 text-primary" : "border-border bg-card text-muted-foreground hover:text-foreground"
                       )}
                     >
-                      <Move className="h-3 w-3" /> Manuell
+                      <Move className="h-3 w-3" /> {t('imageCompare.manualAlign')}
                       {isAlignmentModified && <span className="h-1.5 w-1.5 rounded-full bg-primary" />}
                       <ChevronDown className={cn("h-3 w-3 transition-transform", showAlignControls && "rotate-180")} />
                     </button>
