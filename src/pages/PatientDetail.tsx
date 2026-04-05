@@ -7,10 +7,10 @@ import { translateAnatomyName } from "@/lib/anatomyTranslation";
 
 import type { FullPatient, LesionClassification } from "@/types/patient";
 import { LESION_CLASSIFICATIONS } from "@/types/patient";
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import type { LesionClassification as LesionClassificationType } from "@/types/patient";
-import { ArrowLeft, MapPin, Plus, Calendar, ImageIcon, User, Hash, Activity, Mail, Phone, Pencil, Trash2, Save, X, Square, GitCompareArrows, Move, Camera, Tag, QrCode, Undo2, AlertTriangle, FileDown, Loader2, Eye, ChevronDown } from "lucide-react";
+import { ArrowLeft, MapPin, Plus, Calendar, ImageIcon, User, Hash, Activity, Mail, Phone, Pencil, Trash2, Save, X, Square, GitCompareArrows, Move, Camera, Tag, QrCode, Undo2, AlertTriangle, FileDown, Loader2, Eye, ChevronDown, Upload } from "lucide-react";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { Slider } from "@/components/ui/slider";
 import { Button } from "@/components/ui/button";
@@ -88,6 +88,34 @@ const PatientDetail = () => {
   const [pdfLoading, setPdfLoading] = useState(false);
   const [pdfPreviewUrl, setPdfPreviewUrl] = useState<string | null>(null);
   const [pdfDialogOpen, setPdfDialogOpen] = useState(false);
+  const [newlyCreatedZoneId, setNewlyCreatedZoneId] = useState<number | null>(null);
+  const zoneFileRef = useRef<HTMLInputElement>(null);
+  const [zoneUploadTargetId, setZoneUploadTargetId] = useState<number | null>(null);
+
+  const handleZoneSidebarUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || !zoneUploadTargetId) return;
+    api.uploadImage(zoneUploadTargetId, file).then(() => {
+      queryClient.invalidateQueries({ queryKey: ["full-patient", patientId] });
+      toast.success(t('overviewPhoto.overviewUploaded'));
+    }).catch(() => {
+      toast.error(t('imageGallery.noteError'));
+    });
+    if (zoneFileRef.current) zoneFileRef.current.value = "";
+  };
+
+  useEffect(() => {
+    if (newlyCreatedZoneId && activeTab === "uebersicht") {
+      const timer = setTimeout(() => {
+        const el = document.getElementById(`zone-${newlyCreatedZoneId}`);
+        if (el) {
+          el.scrollIntoView({ behavior: "smooth", block: "center" });
+          setNewlyCreatedZoneId(null);
+        }
+      }, 300);
+      return () => clearTimeout(timer);
+    }
+  }, [newlyCreatedZoneId, activeTab]);
 
   const handlePdfExport = async () => {
     if (!patient) return;
@@ -158,13 +186,14 @@ const PatientDetail = () => {
       nz?: number;
     }) => api.createLocation(patientId, loc),
     onSuccess: (newLoc) => {
-      const wasZone = mapClickDialog?.markType === "zone";
+      const wasZone = mapClickDialog?.markType === "zone" || newLoc.type === "overview";
       queryClient.invalidateQueries({ queryKey: ["full-patient", patientId] });
       setMapClickDialog(null);
       setLocationName("");
       if (wasZone) {
         setSelectedLocationId(null);
         setActiveTab("uebersicht");
+        setNewlyCreatedZoneId(newLoc.id);
       } else {
         setSelectedLocationId(newLoc.id);
       }
@@ -612,6 +641,17 @@ const PatientDetail = () => {
                       </button>
                       <div className="flex items-center gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity shrink-0">
                         <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setZoneUploadTargetId(loc.id);
+                            setTimeout(() => zoneFileRef.current?.click(), 0);
+                          }}
+                          className="h-5 w-5 rounded flex items-center justify-center hover:bg-muted-foreground/10 text-muted-foreground hover:text-foreground"
+                          title={t('imageGallery.uploadImage')}
+                        >
+                          <Upload className="h-3 w-3" />
+                        </button>
+                        <button
                           onClick={(e) => { e.stopPropagation(); setQrLocationId(loc.id); setQrDialogOpen(true); }}
                           className="h-5 w-5 rounded flex items-center justify-center hover:bg-muted-foreground/10 text-muted-foreground hover:text-foreground"
                           title={t('patientDetail.uploadFromPhone')}
@@ -775,6 +815,8 @@ const PatientDetail = () => {
           </div>
         </div>
 
+      {/* Hidden file input for zone sidebar upload */}
+      <input ref={zoneFileRef} type="file" accept="image/*" className="hidden" onChange={handleZoneSidebarUpload} />
 
         {/* Center + Right: Content */}
         <div className="flex-1 overflow-y-auto p-3 lg:p-6">
@@ -835,8 +877,8 @@ const PatientDetail = () => {
                 ) : (
                   <div className="space-y-8">
                     {overviewLocations.map((loc) => (
+                      <div key={loc.id} id={`zone-${loc.id}`}>
                       <OverviewPhoto
-                        key={loc.id}
                         overviewLocation={loc}
                         spotLocations={spotLocations}
                         patientId={patientId}
@@ -871,6 +913,7 @@ const PatientDetail = () => {
                           }
                         }}
                       />
+                      </div>
                     ))}
                   </div>
                 )}
