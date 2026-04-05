@@ -353,7 +353,7 @@ export async function generatePatientPDF(
   doc.setFont("Roboto", "normal");
   doc.setFontSize(8);
   doc.setTextColor(180, 200, 220);
-  doc.text("Dermatologischer Patientenbericht", margin, 20);
+  doc.text(i18n.t('pdf.reportTitle'), margin, 20);
 
   doc.setTextColor(...C.white);
   doc.setFontSize(8);
