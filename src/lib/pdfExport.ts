@@ -1015,7 +1015,7 @@ export async function generatePatientPDF(
       } else if (scores.length >= 2) {
         doc.setFontSize(7.5);
         doc.setTextColor(...C.textMuted);
-        doc.text("Verlauf stabil", barX, y);
+        doc.text(i18n.t('riskProgression.stable'), barX, y);
         y += 4;
       }
 
