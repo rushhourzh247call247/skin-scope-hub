@@ -398,7 +398,7 @@ function MobileShell({ children }: { children: React.ReactNode }) {
             D
           </div>
           <span className="text-sm font-semibold text-foreground">Derm247</span>
-          <span className="ml-auto text-[10px] text-muted-foreground">Foto-Upload</span>
+          <span className="ml-auto text-[10px] text-muted-foreground">{t('mobileUpload.title')}</span>
         </div>
       </header>
       <main className="mx-auto max-w-md space-y-4 p-4">{children}</main>
