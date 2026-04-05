@@ -602,7 +602,7 @@ const PatientDetail = () => {
                         <button
                           onClick={(e) => { e.stopPropagation(); setQrLocationId(loc.id); setQrDialogOpen(true); }}
                           className="h-5 w-5 rounded flex items-center justify-center hover:bg-muted-foreground/10 text-muted-foreground hover:text-foreground"
-                          title="Foto vom Handy hochladen"
+                          title={t('patientDetail.uploadFromPhone')}
                         >
                           <QrCode className="h-3 w-3" />
                         </button>
