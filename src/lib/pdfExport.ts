@@ -8,6 +8,7 @@ import { LESION_CLASSIFICATIONS } from "@/types/patient";
 import { formatDate } from "@/lib/dateUtils";
 import { api } from "@/lib/api";
 import { getAnatomicalName } from "@/lib/anatomyLookup";
+import { translateAnatomyName } from "@/lib/anatomyTranslation";
 import { renderBodyMap3DThumbnail } from "@/lib/bodyMapRenderer";
 
 /* ─── Helpers ─────────────────────────────────────────── */
@@ -237,14 +238,15 @@ async function compositeOverviewWithPins(
 /** Get anatomical zone name for a location */
 function getZoneName(loc: { x3d?: number; y3d?: number; z3d?: number; view?: "front" | "back"; name?: string }): string {
   if (loc.x3d != null && loc.y3d != null && loc.z3d != null && loc.view) {
-    return getAnatomicalName(
+    const germanName = getAnatomicalName(
       Number(loc.x3d),
       Number(loc.y3d),
       Number(loc.z3d),
       loc.view,
     );
+    return translateAnatomyName(germanName);
   }
-  return loc.name || "–";
+  return translateAnatomyName(loc.name) || loc.name || "–";
 }
 
 /* ─── Colors ──────────────────────────────────────────── */

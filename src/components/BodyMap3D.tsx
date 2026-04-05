@@ -9,6 +9,7 @@ import { RotateCcw, Eye, Hand, Footprints, User, Shirt, CircleDot, ArrowDown, Ma
 import type { LesionClassification } from "@/types/patient";
 import { LESION_CLASSIFICATIONS } from "@/types/patient";
 import { getAnatomicalName } from "@/lib/anatomyLookup";
+import { translateAnatomyName } from "@/lib/anatomyTranslation";
 
 /* ─── Types ─── */
 interface Marker {
@@ -933,7 +934,7 @@ function Scene({ markers, selectedLocationId, onMapClick, onMarkerClick, classif
       {markMode && hoverInfo && (
         <Html position={[hoverInfo.point.x, hoverInfo.point.y + 0.08, hoverInfo.point.z]} center style={{ pointerEvents: "none" }}>
           <div className="rounded-md border bg-card/95 px-2 py-1 shadow-lg backdrop-blur-sm whitespace-nowrap">
-            <p className="text-[11px] font-semibold text-foreground">{hoverInfo.zone}</p>
+            <p className="text-[11px] font-semibold text-foreground">{translateAnatomyName(hoverInfo.zone)}</p>
           </div>
         </Html>
       )}
@@ -953,7 +954,7 @@ function Scene({ markers, selectedLocationId, onMapClick, onMarkerClick, classif
           >
             <SpotMarker
               position={[0, 0, 0]}
-              name={m.name}
+              name={translateAnatomyName(m.name)}
               index={i}
               isSelected={m.id === selectedLocationId}
               onClick={() => onMarkerClick?.(m.id)}
@@ -979,7 +980,7 @@ function Scene({ markers, selectedLocationId, onMapClick, onMarkerClick, classif
           >
             <RegionMarker
               position={[0, 0, 0]}
-              name={m.name}
+              name={translateAnatomyName(m.name)}
               isSelected={m.id === selectedLocationId}
               onClick={() => onMarkerClick?.(m.id)}
               imageCount={m.imageCount}

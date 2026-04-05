@@ -3,6 +3,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useParams, useNavigate } from "react-router-dom";
 import { api } from "@/lib/api";
 import { getAnatomicalName, ANATOMICAL_ZONES, getNeighborZones } from "@/lib/anatomyLookup";
+import { translateAnatomyName } from "@/lib/anatomyTranslation";
 
 import type { FullPatient, LesionClassification } from "@/types/patient";
 import { LESION_CLASSIFICATIONS } from "@/types/patient";
@@ -549,7 +550,7 @@ const PatientDetail = () => {
                     >
                       {!locationName && <option value="">{t('patientDetail.selectZone')}</option>}
                       {options.map((zone) => (
-                        <option key={zone} value={zone}>{zone}</option>
+                        <option key={zone} value={zone}>{translateAnatomyName(zone)}</option>
                       ))}
                     </select>
                   );
@@ -595,7 +596,7 @@ const PatientDetail = () => {
                             <Camera className="h-3 w-3 text-muted-foreground" />
                           </div>
                         )}
-                        <span className="truncate font-medium flex-1">{loc.name || t('patientDetail.overview')}</span>
+                        <span className="truncate font-medium flex-1">{translateAnatomyName(loc.name) || t('patientDetail.overview')}</span>
                         <span className="text-[10px] text-muted-foreground shrink-0">{imgCount} {imgCount === 1 ? t('common.image') : t('common.images')}</span>
                       </button>
                       <div className="flex items-center gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity shrink-0">
@@ -663,7 +664,7 @@ const PatientDetail = () => {
                   })()}
                   <div className="min-w-0 flex-1">
                     <div className="flex items-center gap-1.5">
-                      <p className="truncate font-medium">{loc.name || `Spot ${i + 1}`}</p>
+                      <p className="truncate font-medium">{translateAnatomyName(loc.name) || `Spot ${i + 1}`}</p>
                       {(() => {
                         const cls = (loc as any).classification as LesionClassification | undefined;
                         if (!cls || cls === "unclassified") return null;
@@ -736,7 +737,7 @@ const PatientDetail = () => {
                   >
                     <Trash2 className="h-3 w-3 shrink-0 opacity-50" />
                     <div className="min-w-0 flex-1">
-                      <p className="truncate font-medium">{loc.name || "Spot"}</p>
+                      <p className="truncate font-medium">{translateAnatomyName(loc.name) || "Spot"}</p>
                       <p className="text-[10px]">{loc.images?.length ?? 0} {t('common.images')}</p>
                     </div>
                     <button
@@ -882,7 +883,7 @@ const PatientDetail = () => {
                 ) : (
                   <div className="space-y-6">
                     {locations.filter(loc => (loc.images?.length ?? 0) > 0).map((loc) => {
-                      const locName = loc.name || (loc.type === "region" ? "Region" : `Spot #${loc.id}`);
+                      const locName = translateAnatomyName(loc.name) || (loc.type === "region" ? "Region" : `Spot #${loc.id}`);
                       const sortedImages = [...(loc.images ?? [])].sort(
                         (a, b) => new Date(b.created_at ?? 0).getTime() - new Date(a.created_at ?? 0).getTime()
                       );
@@ -952,7 +953,7 @@ const PatientDetail = () => {
                   // Collect all events from all locations
                   const events: { date: string; type: "image" | "finding" | "location"; label: string; detail?: string; locationName: string; locationId: number; imagePath?: string; imageUrl?: string; userName?: string }[] = [];
                   locations.forEach((loc) => {
-                    const locName = loc.name || `Spot #${loc.id}`;
+                    const locName = translateAnatomyName(loc.name) || `Spot #${loc.id}`;
                     // Location creation
                     events.push({ date: loc.created_at ?? "", type: "location", label: t('patientDetail.spotCreatedEvent'), detail: locName, locationName: locName, locationId: loc.id });
                     // Images
@@ -1371,7 +1372,7 @@ const PatientDetail = () => {
                 if (!loc) return t('patientDetail.softDeleteGeneric');
                 return (
                   <>
-                    <strong>{loc.name || "Dieser Spot"}</strong> wird mit {loc.images?.length ?? 0} Bildern und {loc.findings?.length ?? 0} Befunden in den Papierkorb verschoben. Sie können ihn jederzeit wiederherstellen.
+                    <strong>{translateAnatomyName(loc.name) || t('patientDetail.softDeleteGeneric')}</strong> {t('patientDetail.softDeleteDesc', { images: loc.images?.length ?? 0, findings: loc.findings?.length ?? 0 })}
                   </>
                 );
               })()}
@@ -1404,7 +1405,7 @@ const PatientDetail = () => {
                 if (!loc) return t('patientDetail.permanentDeleteGeneric');
                 return (
                   <>
-                    <strong>{loc.name || "Dieser Spot"}</strong> wird mit allen zugehörigen Bildern und Befunden unwiderruflich gelöscht. Diese Aktion kann nicht rückgängig gemacht werden.
+                    <strong>{translateAnatomyName(loc.name) || t('patientDetail.permanentDeleteGeneric')}</strong> {t('patientDetail.permanentDeleteDesc', { images: loc.images?.length ?? 0, findings: loc.findings?.length ?? 0 })}
                   </>
                 );
               })()}
