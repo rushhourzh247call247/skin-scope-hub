@@ -596,7 +596,7 @@ const PatientDetail = () => {
                             <Camera className="h-3 w-3 text-muted-foreground" />
                           </div>
                         )}
-                        <span className="truncate font-medium flex-1">{loc.name || t('patientDetail.overview')}</span>
+                        <span className="truncate font-medium flex-1">{translateAnatomyName(loc.name) || t('patientDetail.overview')}</span>
                         <span className="text-[10px] text-muted-foreground shrink-0">{imgCount} {imgCount === 1 ? t('common.image') : t('common.images')}</span>
                       </button>
                       <div className="flex items-center gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity shrink-0">
