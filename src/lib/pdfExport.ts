@@ -550,7 +550,7 @@ export async function generatePatientPDF(
 
         // Left label badge — "REFERENZ"
         doc.setFillColor(...C.headerAccent);
-        const refLabel = "REFERENZ";
+        const refLabel = i18n.t('pdf.reference');
         const refLabelW = doc.getTextWidth(refLabel) + 5;
         drawRoundedRect(doc, leftX + (halfW - oldDims.w) / 2 + 1.5, y + 1.5, refLabelW, 4.5, 1, "F");
         doc.setTextColor(...C.white);
