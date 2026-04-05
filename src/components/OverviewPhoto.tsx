@@ -225,7 +225,7 @@ const OverviewPhoto = ({ overviewLocation, spotLocations, patientId, onNavigateT
           className="gap-1 text-xs h-8"
         >
           <Plus className="h-3.5 w-3.5" />
-          <span>{pinMode ? "Pin ✓" : "Pin"}</span>
+          <span>{pinMode ? t('overviewPhoto.pinActive') : t('overviewPhoto.pin')}</span>
         </Button>
         <Button
           size="sm"
