@@ -1396,7 +1396,7 @@ const PatientDetail = () => {
           <AlertDialogHeader>
             <AlertDialogTitle className="flex items-center gap-2">
               <AlertTriangle className="h-5 w-5 text-destructive" />
-              Endgültig löschen?
+              {t('patientDetail.permanentDeleteTitle')}
             </AlertDialogTitle>
             <AlertDialogDescription>
               {(() => {
