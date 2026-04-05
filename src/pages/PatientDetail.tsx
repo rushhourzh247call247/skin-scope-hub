@@ -1243,7 +1243,7 @@ const PatientDetail = () => {
 
                 {/* Findings */}
                 <div className="rounded-lg border bg-card p-4 space-y-3">
-                  <h4 className="text-xs font-semibold text-foreground uppercase tracking-wider">Befunde</h4>
+                  <h4 className="text-xs font-semibold text-foreground uppercase tracking-wider">{t('patientDetail.findingsTitle')}</h4>
 
                   {/* Existing findings */}
                   {selectedLocation.findings && selectedLocation.findings.map((f) => (
