@@ -1242,7 +1242,7 @@ const BodyMap3D: React.FC<BodyMap3DProps> = (props) => {
                     onClick={() => props.onFilterChange?.([])}
                     className="text-[8px] text-primary hover:underline"
                   >
-                    Alle
+                    {i18n.t('common.all')}
                   </button>
                 )}
               </div>
