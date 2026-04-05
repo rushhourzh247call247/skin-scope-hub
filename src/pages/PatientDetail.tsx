@@ -1441,9 +1441,9 @@ const PatientDetail = () => {
                 className="w-full h-full rounded-md border"
               >
                 <div className="flex flex-col items-center justify-center h-full gap-3 text-muted-foreground">
-                  <p className="text-sm">PDF-Vorschau wird nicht unterstützt.</p>
-                  <Button size="sm" onClick={handlePdfDownload} className="gap-1.5">
-                    <FileDown className="h-3.5 w-3.5" /> Direkt herunterladen
+                   <p className="text-sm">{t('patientDetail.pdfNotSupported')}</p>
+                   <Button size="sm" onClick={handlePdfDownload} className="gap-1.5">
+                     <FileDown className="h-3.5 w-3.5" /> {t('patientDetail.directDownload')}
                   </Button>
                 </div>
               </object>
