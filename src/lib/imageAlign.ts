@@ -166,6 +166,6 @@ export async function alignImages(
     return { rotation: 0, scale: 100, offset_x: 0, offset_y: 0 };
   }
 
-  console.log("[ImageAlign] Result:", rawResult);
+  if (import.meta.env.DEV) console.log("[ImageAlign] Result:", rawResult);
   return rawResult;
 }

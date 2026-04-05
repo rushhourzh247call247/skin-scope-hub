@@ -282,8 +282,10 @@ export default function Calibrate() {
     const json = JSON.stringify(data, null, 2);
     navigator.clipboard.writeText(json);
     toast({ title: t('calibrate.dataCopied'), description: t('calibrate.labelsCopied', { count: data.length }) });
-    console.log("=== CALIBRATION DATA ===");
-    console.log(json);
+    if (import.meta.env.DEV) {
+      console.log("=== CALIBRATION DATA ===");
+      console.log(json);
+    }
   }, [placedLabels, toast, t]);
 
   const currentGenderLabels = placedLabels.filter(p => {

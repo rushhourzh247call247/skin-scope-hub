@@ -44,7 +44,7 @@ export function loadOpenCV(): Promise<void> {
     const originalResolve = resolve;
     window.Module.onRuntimeInitialized = () => {
       clearTimeout(timeout);
-      console.log("[OpenCV] Loaded and ready");
+      if (import.meta.env.DEV) console.log("[OpenCV] Loaded and ready");
       originalResolve();
     };
 

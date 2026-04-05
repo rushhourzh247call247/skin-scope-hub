@@ -365,7 +365,7 @@ const UserManagement = () => {
             <DialogTitle>{t("users.resetPasswordTitle")}</DialogTitle>
           </DialogHeader>
           <p className="text-sm text-muted-foreground">
-            <span dangerouslySetInnerHTML={{ __html: t("users.resetPasswordFor", { name: resetUser?.name }) }} />
+            {t("users.resetPasswordForPlain", { name: resetUser?.name })}
           </p>
           <form
             onSubmit={(e) => {

@@ -219,7 +219,7 @@ const Settings = () => {
                 <img src={qrData} alt="2FA QR-Code" className="h-48 w-48" />
               </div>
             )}
-            <p className="text-center text-sm text-muted-foreground" dangerouslySetInnerHTML={{ __html: t("settings.twoFactor.setup.appNote") }} />
+            <p className="text-center text-sm text-muted-foreground">{t("settings.twoFactor.setup.appNotePlain")}</p>
             <div className="space-y-2">
               <Label htmlFor="totp-code">{t("settings.twoFactor.setup.codeLabel")}</Label>
               <Input
