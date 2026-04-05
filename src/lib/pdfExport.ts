@@ -368,7 +368,7 @@ export async function generatePatientPDF(
   }
 
   doc.setFontSize(7);
-  const typeLabel = options.reportType === "lastVisit" ? "LETZTE KONSULTATION" : "GESAMTVERLAUF";
+  const typeLabel = options.reportType === "lastVisit" ? i18n.t('pdf.lastVisit') : i18n.t('pdf.fullHistory');
   const badgeW = doc.getTextWidth(typeLabel) + 6;
   doc.setFillColor(...C.headerAccent);
   drawRoundedRect(doc, pageW - margin - badgeW, 22, badgeW, 5, 1, "F");
