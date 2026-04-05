@@ -458,7 +458,7 @@ function PhotoThumbnail({ photo, onRemove }: { photo: UploadedPhoto; onRemove: (
     >
       <img
         src={photo.preview}
-        alt={`Foto ${photo.order}`}
+        alt={t('mobileUpload.photo', { order: photo.order })}
         className="h-full w-full object-cover"
       />
 
