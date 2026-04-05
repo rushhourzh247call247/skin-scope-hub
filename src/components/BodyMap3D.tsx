@@ -1207,8 +1207,8 @@ const BodyMap3D: React.FC<BodyMap3DProps> = (props) => {
               : "bg-primary text-primary-foreground"
           )}>
             {markType === "region"
-              ? "Klicken um Region-Mittelpunkt zu setzen"
-              : "Klicken um Spot zu setzen"
+              ? i18n.t('bodyMap.clickToSetRegion', { defaultValue: 'Click to set region center' })
+              : i18n.t('bodyMap.clickToSetSpot', { defaultValue: 'Click to place spot' })
             }
           </div>
         )}
