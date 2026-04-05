@@ -1262,7 +1262,7 @@ const PatientDetail = () => {
                               <Save className="mr-1 h-3 w-3" /> {t('common.save')}
                             </Button>
                             <Button size="sm" variant="ghost" onClick={() => { setEditingFindingId(null); setEditingFindingText(""); }}>
-                              <X className="mr-1 h-3 w-3" /> Abbrechen
+                              <X className="mr-1 h-3 w-3" /> {t('common.cancel')}
                             </Button>
                           </div>
                         </div>
