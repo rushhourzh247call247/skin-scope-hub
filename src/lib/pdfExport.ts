@@ -630,7 +630,7 @@ export async function generatePatientPDF(
 
           doc.setFont("Roboto", "normal");
           doc.setFontSize(6.5);
-          const iLabel = `Zeitraum: ${interval}`;
+          const iLabel = `${i18n.t('pdf.timePeriod')}: ${interval}`;
           const iLabelW = doc.getTextWidth(iLabel) + 6;
           const iX = margin + (contentW - iLabelW) / 2;
           doc.setFillColor(...C.cardBg);
