@@ -130,7 +130,7 @@ const PatientDetail = () => {
     if (/Mobi|Android|iPhone|iPad/i.test(navigator.userAgent)) {
       window.open(pdfPreviewUrl, "_blank");
     }
-    toast.success("PDF heruntergeladen");
+    toast.success(t('patientDetail.pdfDownloaded'));
   };
 
   const { data: patient, isLoading, error } = useQuery({
