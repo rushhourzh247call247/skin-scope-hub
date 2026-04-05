@@ -472,7 +472,7 @@ export async function generatePatientPDF(
 
       // Pin count badge
       if (pins.length > 0) {
-        const pinLabel = `${pins.length} Markierung${pins.length > 1 ? "en" : ""}`;
+        const pinLabel = `${pins.length} ${i18n.t('pdf.markingCount', { count: pins.length })}`.replace(/^\d+\s*/, '');
         doc.setFont("Roboto", "normal");
         doc.setFontSize(7);
         const plW = doc.getTextWidth(pinLabel) + 5;
