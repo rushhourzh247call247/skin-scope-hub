@@ -495,7 +495,9 @@ const PatientDetail = () => {
             <div className="mt-3 rounded-lg border bg-card p-3 space-y-3 animate-in slide-in-from-top-2 duration-200">
               <div className="flex items-center justify-between">
                 <h3 className="text-xs font-semibold text-foreground flex items-center gap-1.5">
-                  {mapClickDialog.markType === "region" ? (
+                  {mapClickDialog.markType === "zone" ? (
+                    <><Camera className="h-3.5 w-3.5 text-blue-500" /> {t('patientDetail.newOverview')}</>
+                  ) : mapClickDialog.markType === "region" ? (
                     <><Square className="h-3.5 w-3.5 text-amber-500" /> Neue Region</>
                   ) : (
                     <><Plus className="h-3.5 w-3.5 text-primary" /> Neuer Spot</>
