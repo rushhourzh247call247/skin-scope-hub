@@ -664,7 +664,7 @@ const PatientDetail = () => {
                   })()}
                   <div className="min-w-0 flex-1">
                     <div className="flex items-center gap-1.5">
-                      <p className="truncate font-medium">{loc.name || `Spot ${i + 1}`}</p>
+                      <p className="truncate font-medium">{translateAnatomyName(loc.name) || `Spot ${i + 1}`}</p>
                       {(() => {
                         const cls = (loc as any).classification as LesionClassification | undefined;
                         if (!cls || cls === "unclassified") return null;
