@@ -758,7 +758,7 @@ const PatientDetail = () => {
               </div>
             )}
             {showTrash && trashedLocations.length === 0 && (
-              <p className="mt-2 text-[10px] text-muted-foreground italic">Papierkorb ist leer</p>
+              <p className="mt-2 text-[10px] text-muted-foreground italic">{t('patientDetail.trashEmpty')}</p>
             )}
           </div>
         </div>
