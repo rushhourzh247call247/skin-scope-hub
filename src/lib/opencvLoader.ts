@@ -23,7 +23,7 @@ export function loadOpenCV(): Promise<void> {
     // OpenCV.js calls Module.onRuntimeInitialized when ready
     window.Module = {
       onRuntimeInitialized: () => {
-        console.log("[OpenCV] Loaded and ready");
+        if (import.meta.env.DEV) console.log("[OpenCV] Loaded and ready");
         resolve();
       },
     };
