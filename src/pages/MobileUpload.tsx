@@ -449,6 +449,7 @@ function SessionInfoCard({ session }: { session: Extract<SessionState, { status:
 }
 
 function PhotoThumbnail({ photo, onRemove }: { photo: UploadedPhoto; onRemove: (order: number) => void }) {
+  const { t } = useTranslation();
   return (
     <div
       className={cn(
