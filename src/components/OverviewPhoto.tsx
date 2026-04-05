@@ -411,7 +411,7 @@ const OverviewPhoto = ({ overviewLocation, spotLocations, patientId, onNavigateT
                 }}
                 onMouseEnter={() => setHoveredPin(pin.id)}
                 onMouseLeave={() => setHoveredPin(null)}
-                title={editMode ? "Klicken zum Löschen" : `→ ${spot?.name || pin.label || `Spot #${pin.linked_location_id}`}`}
+                title={editMode ? t('overviewPhoto.clickToRemovePin') : `→ ${spot?.name || pin.label || `Spot #${pin.linked_location_id}`}`}
               >
                 <span
                   className="flex items-center justify-center rounded-full text-[10px] font-bold text-white shadow-md border border-white/50"
