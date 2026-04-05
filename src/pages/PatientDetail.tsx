@@ -3,6 +3,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useParams, useNavigate } from "react-router-dom";
 import { api } from "@/lib/api";
 import { getAnatomicalName, ANATOMICAL_ZONES, getNeighborZones } from "@/lib/anatomyLookup";
+import { translateAnatomyName } from "@/lib/anatomyTranslation";
 
 import type { FullPatient, LesionClassification } from "@/types/patient";
 import { LESION_CLASSIFICATIONS } from "@/types/patient";
