@@ -659,7 +659,7 @@ const OverviewPhoto = ({ overviewLocation, spotLocations, patientId, onNavigateT
                         compareView === "overlay" ? "bg-primary text-primary-foreground shadow-sm" : "text-muted-foreground hover:text-foreground"
                       )}
                     >
-                      <Layers className="h-3 w-3" /> Overlay
+                      <Layers className="h-3 w-3" /> {t('imageCompare.overlayMode')}
                     </button>
                   </div>
                   <Button size="sm" variant="ghost" className="h-7 px-2" onClick={() => setCompareMode(false)}>
