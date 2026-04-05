@@ -118,13 +118,12 @@ const UserManagement = () => {
   };
 
   const renderUserRow = (u: any, isSuspendedTab: boolean) => {
-    const isProtected = u.email?.toLowerCase() === PROTECTED_EMAIL;
     return (
       <TableRow key={u.id} className={isSuspendedTab ? "opacity-60" : ""}>
         <TableCell className="font-medium">
           <span className="flex items-center gap-2">
             {u.name}
-            {isProtected && (
+            {u.is_protected && (
               <Badge variant="secondary" className="gap-1 text-xs">
                 <Shield className="h-3 w-3" /> {t("common.protected")}
               </Badge>
