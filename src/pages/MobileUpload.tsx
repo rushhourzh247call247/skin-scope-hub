@@ -390,6 +390,7 @@ const MobileUpload = () => {
 // ─── Sub-Components ───
 
 function MobileShell({ children }: { children: React.ReactNode }) {
+  const { t } = useTranslation();
   return (
     <div className="min-h-screen bg-background">
       <header className="sticky top-0 z-50 border-b bg-card/95 backdrop-blur-sm px-4 py-3">
