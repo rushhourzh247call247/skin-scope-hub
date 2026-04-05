@@ -1220,10 +1220,14 @@ const BodyMap3D: React.FC<BodyMap3DProps> = (props) => {
             "absolute top-2 left-1/2 -translate-x-1/2 rounded-full px-3 py-1 text-[10px] font-semibold shadow-lg animate-pulse",
             markType === "region"
               ? "bg-amber-500 text-white"
+              : markType === "zone"
+              ? "bg-blue-600 text-white"
               : "bg-primary text-primary-foreground"
           )}>
             {markType === "region"
               ? i18n.t('bodyMap.clickToSetRegion', { defaultValue: 'Click to set region center' })
+              : markType === "zone"
+              ? i18n.t('bodyMap.clickToSetZone', { defaultValue: 'Click to place zone' })
               : i18n.t('bodyMap.clickToSetSpot', { defaultValue: 'Click to place spot' })
             }
           </div>
