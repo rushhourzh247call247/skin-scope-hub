@@ -467,7 +467,7 @@ export async function generatePatientPDF(
       doc.text(i18n.t('pdf.overviewPhoto'), margin + 4, y + 5.5);
       doc.setTextColor(...C.white);
       doc.setFontSize(9);
-      const nameX = margin + 4 + doc.getTextWidth("ÜBERSICHTSAUFNAHME") + 6;
+      const nameX = margin + 4 + doc.getTextWidth(i18n.t('pdf.overviewPhoto')) + 6;
       doc.text(ovName, nameX > pageW - margin - 10 ? margin + 4 : nameX, y + 5.5);
 
       // Pin count badge
