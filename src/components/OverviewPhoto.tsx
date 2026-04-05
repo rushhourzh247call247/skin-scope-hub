@@ -911,8 +911,8 @@ const OverviewPhoto = ({ overviewLocation, spotLocations, patientId, onNavigateT
 
       {referenceImage?.created_at && (
         <p className="text-[10px] text-muted-foreground">
-          Aufnahme vom {formatDate(referenceImage.created_at, "dd.MM.yyyy")}
-          {overviewLocation.images.length > 1 && ` · ${overviewLocation.images.length} Fotos gespeichert`}
+           {t('pdf.recording')} {formatDate(referenceImage.created_at, "dd.MM.yyyy")}
+          {overviewLocation.images.length > 1 && ` · ${overviewLocation.images.length} ${t('common.images')}`}
         </p>
       )}
 
