@@ -41,7 +41,7 @@ const AiAnalysisResult = ({ analysis, compact = false }: AiAnalysisResultProps) 
 
       {analysis.created_at && (
         <p className="text-[8px] text-muted-foreground">
-          Analysiert: {formatDate(, "")}
+          Analysiert: {formatDate(analysis.created_at, "dd.MM.yyyy HH:mm")}
         </p>
       )}
     </div>

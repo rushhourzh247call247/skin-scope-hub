@@ -724,7 +724,7 @@ const OverviewPhoto = ({ overviewLocation, spotLocations, patientId, onNavigateT
                           </Button>
                         </div>
                         <p className="text-center text-xs text-muted-foreground tabular-nums">
-                          {img.created_at ? formatDate(, "") : "–"}
+                          {img.created_at ? formatDate(img.created_at, "dd. MMM yyyy") : "–"}
                         </p>
                       </div>
                     ))}
@@ -790,9 +790,9 @@ const OverviewPhoto = ({ overviewLocation, spotLocations, patientId, onNavigateT
                   </div>
                   <div className="space-y-2">
                     <div className="flex items-center justify-between text-xs text-muted-foreground">
-                      <span className="flex items-center gap-1"><Calendar className="h-3 w-3" />{imgA.created_at ? formatDate(, "") : "–"}</span>
+                      <span className="flex items-center gap-1"><Calendar className="h-3 w-3" />{imgA.created_at ? formatDate(imgA.created_at, "dd.MM.yy") : "–"}</span>
                       <span className="text-[10px] font-medium text-foreground">Transparenz: {overlayOpacity}%</span>
-                      <span className="flex items-center gap-1"><Calendar className="h-3 w-3" />{imgB.created_at ? formatDate(, "") : "–"}</span>
+                      <span className="flex items-center gap-1"><Calendar className="h-3 w-3" />{imgB.created_at ? formatDate(imgB.created_at, "dd.MM.yy") : "–"}</span>
                     </div>
                     <Slider value={[overlayOpacity]} onValueChange={([v]) => setOverlayOpacity(v)} min={0} max={100} step={1} />
                   </div>
@@ -909,7 +909,7 @@ const OverviewPhoto = ({ overviewLocation, spotLocations, patientId, onNavigateT
 
       {referenceImage?.created_at && (
         <p className="text-[10px] text-muted-foreground">
-          Aufnahme vom {formatDate(, "")}
+          Aufnahme vom {formatDate(referenceImage.created_at, "dd.MM.yyyy")}
           {overviewLocation.images.length > 1 && ` · ${overviewLocation.images.length} Fotos gespeichert`}
         </p>
       )}

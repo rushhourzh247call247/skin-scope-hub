@@ -209,7 +209,7 @@ const ImageCompare = ({ images, locationName, onClose }: ImageCompareProps) => {
                     <div className="flex-1 min-w-0">
                       <p className="text-sm font-medium text-foreground">Aufnahme #{index + 1}</p>
                       <p className="text-xs text-muted-foreground tabular-nums">
-                        {img.created_at ? formatDate(, "") : "–"}
+                        {img.created_at ? formatDate(img.created_at, "dd. MMMM yyyy, HH:mm") : "–"}
                       </p>
                     </div>
                     <Button variant="ghost" size="icon" className="shrink-0" onClick={(e) => { e.stopPropagation(); setZoomedImage(img); }}>
@@ -291,7 +291,7 @@ const ImageCompare = ({ images, locationName, onClose }: ImageCompareProps) => {
                         </div>
                       </div>
                       <p className="text-center text-xs text-muted-foreground tabular-nums">
-                        {img.created_at ? formatDate(, "") : "–"}
+                        {img.created_at ? formatDate(img.created_at, "dd. MMM yyyy") : "–"}
                       </p>
                     </div>
                   ))}
@@ -353,12 +353,12 @@ const ImageCompare = ({ images, locationName, onClose }: ImageCompareProps) => {
                   <div className="flex items-center justify-between text-xs text-muted-foreground">
                     <span className="flex items-center gap-1">
                       <Calendar className="h-3 w-3" />
-                      {compareImages[0].created_at ? formatDate(, "") : "–"}
+                      {compareImages[0].created_at ? formatDate(compareImages[0].created_at, "dd.MM.yy") : "–"}
                     </span>
                     <span className="text-[10px] font-medium text-foreground">Transparenz: {overlayOpacity}%</span>
                     <span className="flex items-center gap-1">
                       <Calendar className="h-3 w-3" />
-                      {compareImages[1].created_at ? formatDate(, "") : "–"}
+                      {compareImages[1].created_at ? formatDate(compareImages[1].created_at, "dd.MM.yy") : "–"}
                     </span>
                   </div>
                   <Slider
@@ -489,7 +489,7 @@ const ImageCompare = ({ images, locationName, onClose }: ImageCompareProps) => {
             <div className="space-y-2">
               <img src={api.resolveImageSrc(zoomedImage)} alt="Vergrössert" className="w-full rounded-md object-contain" />
               <p className="text-center text-xs text-muted-foreground tabular-nums">
-                {zoomedImage.created_at ? formatDate(, "") : "–"}
+                {zoomedImage.created_at ? formatDate(zoomedImage.created_at, "dd. MMMM yyyy, HH:mm") : "–"}
               </p>
             </div>
           )}

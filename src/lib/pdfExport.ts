@@ -354,7 +354,7 @@ export async function generatePatientPDF(
 
   doc.setTextColor(...C.white);
   doc.setFontSize(8);
-  const dateStr = formatDate(new Date(), "");
+  const dateStr = formatDate(new Date(), "dd. MMMM yyyy, HH:mm");
   doc.text(dateStr, pageW - margin, 12, { align: "right" });
 
   const resolvedDoctor = resolveDoctorName(doctorName);
@@ -389,7 +389,7 @@ export async function generatePatientPDF(
   doc.setTextColor(...C.textSecondary);
 
   const birthDate = patient.birth_date
-    ? formatDate(, "")
+    ? formatDate(patient.birth_date, "dd.MM.yyyy")
     : "–";
 
   const infoLine1: string[] = [`Geb.: ${birthDate}`];
@@ -598,13 +598,13 @@ export async function generatePatientPDF(
         doc.setTextColor(...C.textSecondary);
         if (oldestImg?.created_at) {
           doc.text(
-            formatDate(, ""),
+            formatDate(oldestImg.created_at, "dd.MM.yyyy"),
             leftX + halfW / 2, y, { align: "center" }
           );
         }
         if (newestImg?.created_at) {
           doc.text(
-            formatDate(, ""),
+            formatDate(newestImg.created_at, "dd.MM.yyyy"),
             rightX + halfW / 2, y, { align: "center" }
           );
         }
@@ -683,7 +683,7 @@ export async function generatePatientPDF(
           doc.setFontSize(7);
           doc.setTextColor(...C.textSecondary);
           doc.text(
-            `Aufnahme: ${formatDate(, "")}`,
+            `Aufnahme: ${formatDate(oldestImg.created_at, "dd.MM.yyyy")}`,
             margin + contentW / 2, y, { align: "center" }
           );
           y += 5;
@@ -885,7 +885,7 @@ export async function generatePatientPDF(
         doc.setTextColor(...C.textSecondary);
         doc.setFont("Roboto", "normal");
         const imgDate = img.created_at
-          ? formatDate(, "")
+          ? formatDate(img.created_at, "dd.MM.yy")
           : "-";
         doc.text(imgDate, imgX + imgSize / 2, y + imgSize + 3.5, { align: "center" });
 
@@ -1120,7 +1120,7 @@ export async function generatePatientPDF(
   }
 
   /* ═══ OUTPUT ════════════════════════════════════════ */
-  const filename = `Derm247_${patient.name.replace(/\s+/g, "_")}_${formatDate(new Date(), "")}.pdf`;
+  const filename = `Derm247_${patient.name.replace(/\s+/g, "_")}_${formatDate(new Date(), "yyyy-MM-dd")}.pdf`;
   const blob = doc.output("blob");
   const blobUrl = URL.createObjectURL(blob);
 
@@ -1142,5 +1142,5 @@ export async function generatePatientPDF(
 }
 
 export function getPatientPdfFilename(patient: { name: string }): string {
-  return `Derm247_${patient.name.replace(/\s+/g, "_")}_${formatDate(new Date(), "")}.pdf`;
+  return `Derm247_${patient.name.replace(/\s+/g, "_")}_${formatDate(new Date(), "yyyy-MM-dd")}.pdf`;
 }

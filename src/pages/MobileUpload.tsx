@@ -427,7 +427,7 @@ function SessionInfoCard({ session }: { session: Extract<SessionState, { status:
         <div>
           <h1 className="text-sm font-semibold text-foreground">Foto-Upload</h1>
           <p className="text-[10px] text-muted-foreground">
-            Gültig bis {formatDate(, "")} Uhr
+            Gültig bis {formatDate(session.expiresAt, "HH:mm")} Uhr
           </p>
         </div>
       </div>
@@ -507,7 +507,7 @@ function PhotoThumbnail({ photo, onRemove }: { photo: UploadedPhoto; onRemove: (
       {/* Timestamp */}
       {photo.created_at && (
         <div className="absolute bottom-1 right-1 rounded bg-background/80 px-1 py-0.5 text-[8px] text-muted-foreground backdrop-blur-sm">
-          {formatDate(, "")}
+          {formatDate(photo.created_at, "HH:mm:ss")}
         </div>
       )}
     </div>

@@ -164,7 +164,7 @@ const Snapshots = () => {
                         </div>
                       </TableCell>
                       <TableCell className="text-muted-foreground text-sm">
-                        {s.created_at ? formatDate(, "") : "–"}
+                        {s.created_at ? formatDate(s.created_at, "dd.MM.yyyy HH:mm") : "–"}
                       </TableCell>
                       <TableCell><Badge variant="secondary">{formatBytes(s.db_size)}</Badge></TableCell>
                       <TableCell>
