@@ -427,7 +427,7 @@ const PatientDetail = () => {
             <p className="font-medium text-foreground">{locations.length}</p>
           </div>
           <div>
-            <span className="text-muted-foreground">Aufnahmen</span>
+            <span className="text-muted-foreground">{t('patientDetail.recordings')}</span>
             <p className="font-medium text-foreground">{totalImages}</p>
           </div>
         </div>
