@@ -708,7 +708,7 @@ const PatientDetail = () => {
                 <button
                   onClick={(e) => { e.stopPropagation(); setDeleteConfirmId(loc.id); }}
                   className="shrink-0 p-1 rounded opacity-0 group-hover:opacity-100 transition-opacity hover:bg-destructive/10 text-muted-foreground hover:text-destructive"
-                  title="In Papierkorb verschieben"
+                  title={t('patientDetail.moveToTrash')}
                 >
                   <Trash2 className="h-3.5 w-3.5" />
                 </button>
