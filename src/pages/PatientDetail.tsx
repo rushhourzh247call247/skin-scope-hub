@@ -961,7 +961,7 @@ const PatientDetail = () => {
                     });
                     // Findings
                     (loc.findings ?? []).forEach((f: any) => {
-                      events.push({ date: f.created_at ?? "", type: "finding", label: "Befund", detail: f.description, locationName: locName, locationId: loc.id, userName: f.user_name });
+                      events.push({ date: f.created_at ?? "", type: "finding", label: t('patientDetail.findingEvent'), detail: f.description, locationName: locName, locationId: loc.id, userName: f.user_name });
                     });
                   });
                   events.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
