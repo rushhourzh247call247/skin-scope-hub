@@ -395,8 +395,8 @@ export async function generatePatientPDF(
     ? formatDate(patient.birth_date, "dd.MM.yyyy")
     : "–";
 
-  const infoLine1: string[] = [`Geb.: ${birthDate}`];
-  if (patient.insurance_number) infoLine1.push(`Vers.-Nr.: ${patient.insurance_number}`);
+  const infoLine1: string[] = [`${i18n.t('pdf.birthDate')}: ${birthDate}`];
+  if (patient.insurance_number) infoLine1.push(`${i18n.t('pdf.insuranceNumber')}: ${patient.insurance_number}`);
   doc.text(infoLine1.join("   |   "), margin + 5, y + 14);
 
   const infoLine2: string[] = [];
