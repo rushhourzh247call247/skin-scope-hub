@@ -263,8 +263,8 @@ const MobileUpload = () => {
       <MobileShell>
         <StatusCard
           icon={<CheckCircle className="h-8 w-8 text-green-600" />}
-          title="Upload abgeschlossen"
-          description={`${session.imageCount} ${session.imageCount === 1 ? "Foto wurde" : "Fotos wurden"} erfolgreich hochgeladen.`}
+          title={t('mobileUpload.uploadComplete')}
+          description={session.imageCount === 1 ? t('mobileUpload.photoUploaded', { count: session.imageCount }) : t('mobileUpload.photosUploaded', { count: session.imageCount })}
         />
       </MobileShell>
     );
