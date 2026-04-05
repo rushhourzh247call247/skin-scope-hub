@@ -829,7 +829,7 @@ const PatientDetail = () => {
                       disabled={createLocationMutation.isPending}
                     >
                       <Plus className="h-3.5 w-3.5" />
-                      {t('patientDetail.createFirstZone')}
+                      {t('overviewPhoto.createFirstZone')}
                     </Button>
                   </div>
                 ) : (
