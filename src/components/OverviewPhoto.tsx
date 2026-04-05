@@ -512,8 +512,8 @@ const OverviewPhoto = ({ overviewLocation, spotLocations, patientId, onNavigateT
                         <Plus className="h-3.5 w-3.5 text-primary" />
                       </div>
                       <div className="min-w-0 flex-1">
-                        <p className="text-xs font-medium text-primary">Neuen Spot erstellen</p>
-                        <p className="text-[10px] text-muted-foreground">Automatisch benannt, später umbenennbar</p>
+                        <p className="text-xs font-medium text-primary">{t('overviewPhoto.createNewSpot')}</p>
+                        <p className="text-[10px] text-muted-foreground">{t('overviewPhoto.autoNamed')}</p>
                       </div>
                     </button>
                   )}
