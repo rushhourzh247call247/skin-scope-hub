@@ -1066,9 +1066,9 @@ const PatientDetail = () => {
                         )}
                       </h2>
                       <p className="text-xs text-muted-foreground flex items-center gap-2">
-                        <span>{selectedLocation.view === "back" ? "Rückseite" : "Vorderseite"}</span>
+                        <span>{selectedLocation.view === "back" ? t('common.backSide') : t('common.front')}</span>
                         <span>·</span>
-                        <span>{selectedLocation.images?.length ?? 0} Aufnahmen</span>
+                        <span>{selectedLocation.images?.length ?? 0} {t('patientDetail.recordings')}</span>
                       </p>
                     </div>
                   </div>
