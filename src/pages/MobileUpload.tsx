@@ -228,7 +228,7 @@ const MobileUpload = () => {
       <MobileShell>
         <div className="flex flex-col items-center justify-center gap-4 py-20">
           <Loader2 className="h-8 w-8 animate-spin text-primary" />
-          <p className="text-sm text-muted-foreground">Session wird überprüft…</p>
+          <p className="text-sm text-muted-foreground">{t('mobileUpload.checkingSession')}</p>
         </div>
       </MobileShell>
     );
