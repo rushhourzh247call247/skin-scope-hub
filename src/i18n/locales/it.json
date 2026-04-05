@@ -259,6 +259,7 @@
         "title": "Configura 2FA",
         "description": "Scansiona il QR code con la tua app Authenticator (es. Google Authenticator).",
         "appNote": "L'Authenticator mostrerà <strong>Derm247</strong>.",
+        "appNotePlain": "L'Authenticator mostrerà Derm247.",
         "codeLabel": "Codice a 6 cifre dall'app",
         "codePlaceholder": "000000",
         "submit": "Conferma codice e attiva",
@@ -341,6 +342,7 @@
     "resetPassword": "Reimposta password",
     "resetPasswordTitle": "Reimposta password",
     "resetPasswordFor": "Imposta una nuova password per <strong>{{name}}</strong>:",
+    "resetPasswordForPlain": "Imposta una nuova password per {{name}}:",
     "newPassword": "Nuova password",
     "confirmPassword": "Conferma password",
     "minChars": "Min. 6 caratteri",
@@ -353,6 +355,7 @@
     "reset2fa": "Reimposta 2FA",
     "reset2faTitle": "Reimpostare 2FA?",
     "reset2faDescription": "L'autenticazione a due fattori per <strong>{{name}}</strong> verrà disattivata.",
+    "reset2faDescriptionPlain": "L'autenticazione a due fattori per {{name}} verrà disattivata.",
     "reset2faConfirm": "Disattiva 2FA",
     "reset2faSuccess": "2FA reimpostato per {{name}}",
     "reset2faError": "Errore nella reimpostazione del 2FA"

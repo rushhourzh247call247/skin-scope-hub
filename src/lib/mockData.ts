@@ -24,9 +24,9 @@ let companies: MockCompany[] = [
 
 // --- Users ---
 let users: MockUser[] = [
-  { id: 1, name: "Dr. Anna Müller", email: "admin@derm247.ch", role: "admin", company_id: 1, company: { id: 1, name: "Hautarztpraxis Zürich" } },
-  { id: 2, name: "Dr. Peter Meier", email: "p.meier@derm247.ch", role: "user", company_id: 1, company: { id: 1, name: "Hautarztpraxis Zürich" } },
-  { id: 3, name: "Dr. Sara Weber", email: "s.weber@dermbern.ch", role: "user", company_id: 2, company: { id: 2, name: "Dermatologie Bern" } },
+  { id: 1, name: "Dr. Anna Müller", email: "admin@example.com", role: "admin", company_id: 1, company: { id: 1, name: "Hautarztpraxis Zürich" } },
+  { id: 2, name: "Dr. Peter Meier", email: "p.meier@example.com", role: "user", company_id: 1, company: { id: 1, name: "Hautarztpraxis Zürich" } },
+  { id: 3, name: "Dr. Sara Weber", email: "s.weber@example.com", role: "user", company_id: 2, company: { id: 2, name: "Dermatologie Bern" } },
 ];
 
 // --- Demo images (placeholder URLs) ---
@@ -42,12 +42,12 @@ const demoImages: LocationImage[] = [
 
 // --- Patients with locations ---
 let patients: Patient[] = [
-  { id: 1, name: "Maria Schneider", birth_date: "1985-03-14", gender: "female", email: "m.schneider@mail.ch", phone: "+41 79 123 45 67", created_at: "2025-05-20T08:30:00Z" },
-  { id: 2, name: "Thomas Brunner", birth_date: "1972-11-08", gender: "male", email: "t.brunner@mail.ch", phone: "+41 78 234 56 78", created_at: "2025-06-15T10:00:00Z" },
-  { id: 3, name: "Elena Fischer", birth_date: "1990-07-22", gender: "female", email: "e.fischer@mail.ch", created_at: "2025-08-01T14:00:00Z" },
-  { id: 4, name: "Hans Keller", birth_date: "1958-01-30", gender: "male", phone: "+41 76 345 67 89", created_at: "2025-09-10T09:15:00Z" },
-  { id: 5, name: "Sophie Huber", birth_date: "1995-12-05", gender: "female", email: "s.huber@mail.ch", phone: "+41 79 456 78 90", created_at: "2025-10-22T11:45:00Z" },
-  { id: 6, name: "Marco Rossi", birth_date: "1968-06-17", gender: "male", email: "m.rossi@mail.ch", created_at: "2025-11-30T16:00:00Z" },
+  { id: 1, name: "Maria Schneider", birth_date: "1985-03-14", gender: "female", email: "m.schneider@example.com", phone: "+41 79 000 00 01", created_at: "2025-05-20T08:30:00Z" },
+  { id: 2, name: "Thomas Brunner", birth_date: "1972-11-08", gender: "male", email: "t.brunner@example.com", phone: "+41 79 000 00 02", created_at: "2025-06-15T10:00:00Z" },
+  { id: 3, name: "Elena Fischer", birth_date: "1990-07-22", gender: "female", email: "e.fischer@example.com", created_at: "2025-08-01T14:00:00Z" },
+  { id: 4, name: "Hans Keller", birth_date: "1958-01-30", gender: "male", phone: "+41 79 000 00 03", created_at: "2025-09-10T09:15:00Z" },
+  { id: 5, name: "Sophie Huber", birth_date: "1995-12-05", gender: "female", email: "s.huber@example.com", phone: "+41 79 000 00 04", created_at: "2025-10-22T11:45:00Z" },
+  { id: 6, name: "Marco Rossi", birth_date: "1968-06-17", gender: "male", email: "m.rossi@example.com", created_at: "2025-11-30T16:00:00Z" },
 ];
 
 let locations: (Location & { images: LocationImage[]; findings: Finding[]; classification?: string })[] = [

@@ -15,7 +15,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { UserCog, Plus, Trash2, KeyRound, Eye, EyeOff, ShieldOff, Shield, Ban, CheckCircle } from "lucide-react";
 import { toast } from "sonner";
 
-const PROTECTED_EMAIL = "info@techassist.ch";
+
 
 const UserManagement = () => {
   const { t } = useTranslation();
@@ -114,19 +114,16 @@ const UserManagement = () => {
   });
 
   const canSuspend = (u: any) => {
-    const isProtected = u.email?.toLowerCase() === PROTECTED_EMAIL;
-    const isAdminRole = u.role === "admin";
-    return !isProtected && !isAdminRole;
+    return !u.is_protected && u.role !== "admin";
   };
 
   const renderUserRow = (u: any, isSuspendedTab: boolean) => {
-    const isProtected = u.email?.toLowerCase() === PROTECTED_EMAIL;
     return (
       <TableRow key={u.id} className={isSuspendedTab ? "opacity-60" : ""}>
         <TableCell className="font-medium">
           <span className="flex items-center gap-2">
             {u.name}
-            {isProtected && (
+            {u.is_protected && (
               <Badge variant="secondary" className="gap-1 text-xs">
                 <Shield className="h-3 w-3" /> {t("common.protected")}
               </Badge>
@@ -183,7 +180,7 @@ const UserManagement = () => {
                 >
                   <KeyRound className="h-4 w-4" />
                 </Button>
-                {isProtected ? (
+                {u.is_protected ? (
                   <span className="inline-flex h-10 w-10 items-center justify-center text-xs text-muted-foreground">—</span>
                 ) : (
                   <Button
@@ -348,7 +345,7 @@ const UserManagement = () => {
           <AlertDialogHeader>
             <AlertDialogTitle>{t("users.reset2faTitle")}</AlertDialogTitle>
             <AlertDialogDescription>
-              <span dangerouslySetInnerHTML={{ __html: t("users.reset2faDescription", { name: reset2faUser?.name }) }} />
+              {t("users.reset2faDescriptionPlain", { name: reset2faUser?.name })}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
@@ -368,7 +365,7 @@ const UserManagement = () => {
             <DialogTitle>{t("users.resetPasswordTitle")}</DialogTitle>
           </DialogHeader>
           <p className="text-sm text-muted-foreground">
-            <span dangerouslySetInnerHTML={{ __html: t("users.resetPasswordFor", { name: resetUser?.name }) }} />
+            {t("users.resetPasswordForPlain", { name: resetUser?.name })}
           </p>
           <form
             onSubmit={(e) => {
