@@ -793,7 +793,7 @@ const OverviewPhoto = ({ overviewLocation, spotLocations, patientId, onNavigateT
                   <div className="space-y-2">
                     <div className="flex items-center justify-between text-xs text-muted-foreground">
                       <span className="flex items-center gap-1"><Calendar className="h-3 w-3" />{imgA.created_at ? formatDate(imgA.created_at, "dd.MM.yy") : "–"}</span>
-                      <span className="text-[10px] font-medium text-foreground">Transparenz: {overlayOpacity}%</span>
+                      <span className="text-[10px] font-medium text-foreground">{t('imageCompare.transparency')}: {overlayOpacity}%</span>
                       <span className="flex items-center gap-1"><Calendar className="h-3 w-3" />{imgB.created_at ? formatDate(imgB.created_at, "dd.MM.yy") : "–"}</span>
                     </div>
                     <Slider value={[overlayOpacity]} onValueChange={([v]) => setOverlayOpacity(v)} min={0} max={100} step={1} />
