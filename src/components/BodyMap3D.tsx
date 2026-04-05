@@ -458,13 +458,13 @@ const RegionMarker = React.forwardRef<THREE.Group, RegionMarkerProps>(function R
             </p>
             <div className="mt-1 flex items-center gap-3 text-[9px] text-muted-foreground">
               {(imageCount ?? 0) > 0 && (
-                <span>📷 {imageCount} {imageCount === 1 ? "Bild" : "Bilder"}</span>
+                <span>📷 {imageCount} {imageCount === 1 ? i18n.t('common.image') : i18n.t('common.images')}</span>
               )}
               {(findingCount ?? 0) > 0 && (
-                <span>📋 {findingCount} {findingCount === 1 ? "Befund" : "Befunde"}</span>
+                <span>📋 {findingCount} {findingCount === 1 ? i18n.t('common.findings').slice(0, -1) : i18n.t('common.findings')}</span>
               )}
               {(imageCount ?? 0) === 0 && (findingCount ?? 0) === 0 && (
-                <span>Keine Einträge</span>
+                <span>{i18n.t('bodyMap.noEntries')}</span>
               )}
             </div>
           </div>
