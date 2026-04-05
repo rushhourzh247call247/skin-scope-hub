@@ -471,6 +471,7 @@
     "aiAlignment": "KI Ausrichtung",
     "manualAlign": "Manuell",
     "autoAligned": "Bilder automatisch ausgerichtet",
+    "alreadyAligned": "Bilder sind bereits identisch ausgerichtet",
     "autoAlignFailed": "Automatische Ausrichtung fehlgeschlagen",
     "olderLabel": "ÄLTER",
     "newerLabel": "NEUER",

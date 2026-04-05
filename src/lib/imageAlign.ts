@@ -115,8 +115,34 @@ export async function alignImages(
   const srcPts = cv.matFromArray(topMatches.length, 1, cv.CV_32FC2, pts1);
   const dstPts = cv.matFromArray(topMatches.length, 1, cv.CV_32FC2, pts2);
 
+  // Check if points are nearly identical (same image or very close match)
+  let totalDist = 0;
+  for (let i = 0; i < topMatches.length; i++) {
+    const dx = pts1[i * 2] - pts2[i * 2];
+    const dy = pts1[i * 2 + 1] - pts2[i * 2 + 1];
+    totalDist += Math.sqrt(dx * dx + dy * dy);
+  }
+  const avgDist = totalDist / topMatches.length;
+  if (avgDist < 2.0) {
+    // Images are virtually identical — no alignment needed
+    srcPts.delete();
+    dstPts.delete();
+    cleanup();
+    if (import.meta.env.DEV) console.log("[ImageAlign] Images are nearly identical, skipping alignment");
+    return { rotation: 0, scale: 100, offset_x: 0, offset_y: 0 };
+  }
+
   // Estimate affine transformation (more stable than full homography for our use case)
-  const affine = cv.estimateAffinePartial2D(dstPts, srcPts);
+  let affine: any;
+  try {
+    affine = cv.estimateAffinePartial2D(dstPts, srcPts);
+  } catch (e) {
+    srcPts.delete();
+    dstPts.delete();
+    cleanup();
+    console.warn("[ImageAlign] estimateAffinePartial2D failed:", e);
+    return { rotation: 0, scale: 100, offset_x: 0, offset_y: 0 };
+  }
 
   srcPts.delete();
   dstPts.delete();
