@@ -298,13 +298,14 @@ const PatientDetail = () => {
   const handleCreateLocation = () => {
     if (!mapClickDialog) return;
     const isRegion = mapClickDialog.markType === "region";
+    const isZone = mapClickDialog.markType === "zone";
 
     createLocationMutation.mutate({
-      name: locationName.trim() || undefined,
+      name: isZone ? `Zone ${overviewLocations.length + 1}` : (locationName.trim() || undefined),
       x: mapClickDialog.x,
       y: mapClickDialog.y,
       view: mapClickDialog.view,
-      type: mapClickDialog.markType || "spot",
+      type: isZone ? "overview" : (mapClickDialog.markType || "spot"),
       width: isRegion ? regionWidth : undefined,
       height: isRegion ? regionHeight : undefined,
       x3d: mapClickDialog.x3d,
