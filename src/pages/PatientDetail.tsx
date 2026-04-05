@@ -1337,8 +1337,8 @@ const PatientDetail = () => {
                 <div className="flex h-16 w-16 items-center justify-center rounded-full bg-muted mb-4">
                   <MapPin className="h-8 w-8" />
                 </div>
-                <p className="text-sm font-medium">Wählen Sie eine Körperstelle aus</p>
-                <p className="text-xs mt-1">oder klicken Sie auf die Body Map, um eine neue Stelle zu markieren</p>
+                <p className="text-sm font-medium">{t('patientDetail.selectBodyPart')}</p>
+                <p className="text-xs mt-1">{t('patientDetail.clickBodyMapInstruction')}</p>
               </motion.div>
             )}
           </AnimatePresence>
