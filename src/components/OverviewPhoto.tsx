@@ -747,7 +747,7 @@ const OverviewPhoto = ({ overviewLocation, spotLocations, patientId, onNavigateT
                           setOverlayScale(result.scale);
                           setOverlayOffsetX(result.offset_x);
                           setOverlayOffsetY(result.offset_y);
-                          toast.success("Bilder ausgerichtet – wechsle zu Overlay um das Ergebnis zu sehen");
+                          toast.success(t('imageCompare.switchToOverlay'));
                           setCompareView("overlay");
                         } catch (err) {
                           console.error("[AutoAlign] Error:", err);
