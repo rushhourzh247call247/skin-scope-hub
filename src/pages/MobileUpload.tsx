@@ -50,7 +50,7 @@ const MobileUpload = () => {
   // Validate token on mount
   useEffect(() => {
     if (!token) {
-      setSession({ status: "invalid", message: "Kein Upload-Token angegeben." });
+      setSession({ status: "invalid", message: t('mobileUpload.noToken') });
       return;
     }
 
