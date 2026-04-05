@@ -157,7 +157,7 @@ const CompanyManagement = () => {
                   </Button>
                 )}
                 {isProtected ? (
-                  <span className="text-xs text-muted-foreground">\u2014</span>
+                  <span className="text-xs text-muted-foreground">—</span>
                 ) : (
                   <Button variant="ghost" size="icon" onClick={() => setDeleteId(c.id)} className="text-destructive hover:text-destructive">
                     <Trash2 className="h-4 w-4" />
