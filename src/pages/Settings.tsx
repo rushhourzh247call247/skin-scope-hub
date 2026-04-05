@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import { useAuth } from "@/contexts/AuthContext";
 import { api } from "@/lib/api";
 import { Button } from "@/components/ui/button";
@@ -6,21 +7,21 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
-import { Shield, ShieldCheck, ShieldOff, Lock, KeyRound } from "lucide-react";
+import { Shield, ShieldCheck, ShieldOff, Lock, KeyRound, Globe } from "lucide-react";
 import { toast } from "sonner";
+import { SUPPORTED_LANGUAGES } from "@/i18n";
 
 const Settings = () => {
-  const { user, login } = useAuth();
+  const { t, i18n } = useTranslation();
+  const { user } = useAuth();
   const [twoFactorEnabled, setTwoFactorEnabled] = useState(user?.two_factor_enabled ?? false);
 
-  // 2FA Setup state
   const [setupOpen, setSetupOpen] = useState(false);
   const [qrData, setQrData] = useState<string | null>(null);
   const [verifyCode, setVerifyCode] = useState("");
   const [setupLoading, setSetupLoading] = useState(false);
   const [verifyLoading, setVerifyLoading] = useState(false);
 
-  // Password change state
   const [currentPassword, setCurrentPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
@@ -33,7 +34,7 @@ const Settings = () => {
       setQrData(res.qr);
       setSetupOpen(true);
     } catch {
-      toast.error("2FA konnte nicht aktiviert werden.");
+      toast.error(t("settings.twoFactor.enableError"));
     } finally {
       setSetupLoading(false);
     }
@@ -48,9 +49,9 @@ const Settings = () => {
       setSetupOpen(false);
       setQrData(null);
       setVerifyCode("");
-      toast.success("2FA erfolgreich aktiviert! 🔐");
+      toast.success(t("settings.twoFactor.enableSuccess"));
     } catch {
-      toast.error("Code ungültig. Bitte erneut versuchen.");
+      toast.error(t("settings.twoFactor.setup.invalidCode"));
     } finally {
       setVerifyLoading(false);
     }
@@ -60,20 +61,20 @@ const Settings = () => {
     try {
       await api.disable2FA();
       setTwoFactorEnabled(false);
-      toast.success("2FA deaktiviert.");
+      toast.success(t("settings.twoFactor.disabled"));
     } catch {
-      toast.error("2FA konnte nicht deaktiviert werden.");
+      toast.error(t("settings.twoFactor.disableError"));
     }
   };
 
   const handleChangePassword = async (e: React.FormEvent) => {
     e.preventDefault();
     if (newPassword !== confirmPassword) {
-      toast.error("Passwörter stimmen nicht überein.");
+      toast.error(t("settings.password.mismatch"));
       return;
     }
     if (newPassword.length < 8) {
-      toast.error("Neues Passwort muss mindestens 8 Zeichen haben.");
+      toast.error(t("settings.password.tooShort"));
       return;
     }
     setPasswordLoading(true);
@@ -82,31 +83,63 @@ const Settings = () => {
       setCurrentPassword("");
       setNewPassword("");
       setConfirmPassword("");
-      toast.success("Passwort erfolgreich geändert.");
+      toast.success(t("settings.password.success"));
     } catch {
-      toast.error("Passwort konnte nicht geändert werden. Bitte aktuelles Passwort prüfen.");
+      toast.error(t("settings.password.error"));
     } finally {
       setPasswordLoading(false);
     }
   };
 
+  const changeLanguage = (lng: string) => {
+    i18n.changeLanguage(lng);
+    toast.success(t("settings.language.changed"));
+  };
+
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-bold text-foreground">Einstellungen</h1>
-        <p className="text-sm text-muted-foreground">Sicherheit & Kontoeinstellungen</p>
+        <h1 className="text-2xl font-bold text-foreground">{t("settings.title")}</h1>
+        <p className="text-sm text-muted-foreground">{t("settings.subtitle")}</p>
       </div>
+
+      {/* Language Card */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Globe className="h-5 w-5 text-primary" />
+            {t("settings.language.title")}
+          </CardTitle>
+          <CardDescription>{t("settings.language.description")}</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="flex flex-wrap gap-2">
+            {SUPPORTED_LANGUAGES.map((lang) => (
+              <button
+                key={lang.code}
+                onClick={() => changeLanguage(lang.code)}
+                className={`flex items-center gap-2 rounded-lg border-2 px-4 py-2.5 text-sm font-medium transition-all ${
+                  i18n.language === lang.code
+                    ? "border-primary bg-primary/5 text-primary"
+                    : "border-border text-muted-foreground hover:border-primary/40 hover:text-foreground"
+                }`}
+              >
+                <span className="text-lg">{lang.flag}</span>
+                {lang.label}
+              </button>
+            ))}
+          </div>
+        </CardContent>
+      </Card>
 
       {/* 2FA Card */}
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Shield className="h-5 w-5 text-primary" />
-            Zwei-Faktor-Authentifizierung (2FA)
+            {t("settings.twoFactor.title")}
           </CardTitle>
-          <CardDescription>
-            Schützen Sie Ihr Konto mit Google Authenticator oder einer kompatiblen App.
-          </CardDescription>
+          <CardDescription>{t("settings.twoFactor.description")}</CardDescription>
         </CardHeader>
         <CardContent>
           {twoFactorEnabled ? (
@@ -114,13 +147,13 @@ const Settings = () => {
               <div className="flex items-center gap-3">
                 <ShieldCheck className="h-6 w-6 text-primary" />
                 <div>
-                  <p className="font-medium text-foreground">2FA ist aktiv</p>
-                  <p className="text-sm text-muted-foreground">Ihr Konto ist zusätzlich geschützt.</p>
+                  <p className="font-medium text-foreground">{t("settings.twoFactor.active")}</p>
+                  <p className="text-sm text-muted-foreground">{t("settings.twoFactor.activeDescription")}</p>
                 </div>
               </div>
               <Button variant="outline" size="sm" onClick={handleDisable2FA} className="text-destructive hover:bg-destructive/10">
                 <ShieldOff className="mr-2 h-4 w-4" />
-                Deaktivieren
+                {t("settings.twoFactor.disable")}
               </Button>
             </div>
           ) : (
@@ -128,13 +161,13 @@ const Settings = () => {
               <div className="flex items-center gap-3">
                 <Shield className="h-6 w-6 text-muted-foreground" />
                 <div>
-                  <p className="font-medium text-foreground">2FA ist nicht aktiv</p>
-                  <p className="text-sm text-muted-foreground">Aktivieren Sie 2FA für mehr Sicherheit.</p>
+                  <p className="font-medium text-foreground">{t("settings.twoFactor.inactive")}</p>
+                  <p className="text-sm text-muted-foreground">{t("settings.twoFactor.inactiveDescription")}</p>
                 </div>
               </div>
               <Button onClick={handleEnable2FA} disabled={setupLoading} size="sm">
                 <Lock className="mr-2 h-4 w-4" />
-                {setupLoading ? "Wird geladen…" : "2FA aktivieren"}
+                {setupLoading ? t("settings.twoFactor.enableLoading") : t("settings.twoFactor.enable")}
               </Button>
             </div>
           )}
@@ -146,25 +179,25 @@ const Settings = () => {
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <KeyRound className="h-5 w-5 text-primary" />
-            Passwort ändern
+            {t("settings.password.title")}
           </CardTitle>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleChangePassword} className="space-y-4 max-w-md">
             <div className="space-y-2">
-              <Label htmlFor="current-pw">Aktuelles Passwort</Label>
+              <Label htmlFor="current-pw">{t("settings.password.current")}</Label>
               <Input id="current-pw" type="password" value={currentPassword} onChange={(e) => setCurrentPassword(e.target.value)} required />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="new-pw">Neues Passwort</Label>
+              <Label htmlFor="new-pw">{t("settings.password.new")}</Label>
               <Input id="new-pw" type="password" value={newPassword} onChange={(e) => setNewPassword(e.target.value)} required minLength={8} />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="confirm-pw">Passwort bestätigen</Label>
+              <Label htmlFor="confirm-pw">{t("settings.password.confirm")}</Label>
               <Input id="confirm-pw" type="password" value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} required />
             </div>
             <Button type="submit" disabled={passwordLoading}>
-              {passwordLoading ? "Wird gespeichert…" : "Passwort ändern"}
+              {passwordLoading ? t("settings.password.submitting") : t("settings.password.submit")}
             </Button>
           </form>
         </CardContent>
@@ -176,11 +209,9 @@ const Settings = () => {
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <Shield className="h-5 w-5 text-primary" />
-              2FA einrichten
+              {t("settings.twoFactor.setup.title")}
             </DialogTitle>
-            <DialogDescription>
-              Scannen Sie den QR-Code mit Ihrer Authenticator-App (z.B. Google Authenticator).
-            </DialogDescription>
+            <DialogDescription>{t("settings.twoFactor.setup.description")}</DialogDescription>
           </DialogHeader>
           <div className="space-y-6">
             {qrData && (
@@ -188,17 +219,15 @@ const Settings = () => {
                 <img src={qrData} alt="2FA QR-Code" className="h-48 w-48" />
               </div>
             )}
-            <p className="text-center text-sm text-muted-foreground">
-              Im Authenticator wird <span className="font-semibold text-foreground">Derm247</span> angezeigt.
-            </p>
+            <p className="text-center text-sm text-muted-foreground" dangerouslySetInnerHTML={{ __html: t("settings.twoFactor.setup.appNote") }} />
             <div className="space-y-2">
-              <Label htmlFor="totp-code">6-stelliger Code aus der App</Label>
+              <Label htmlFor="totp-code">{t("settings.twoFactor.setup.codeLabel")}</Label>
               <Input
                 id="totp-code"
                 type="text"
                 inputMode="numeric"
                 maxLength={6}
-                placeholder="000000"
+                placeholder={t("settings.twoFactor.setup.codePlaceholder")}
                 value={verifyCode}
                 onChange={(e) => setVerifyCode(e.target.value.replace(/\D/g, "").slice(0, 6))}
                 className="text-center text-2xl tracking-[0.5em] font-mono"
@@ -206,7 +235,7 @@ const Settings = () => {
               />
             </div>
             <Button className="w-full" onClick={handleVerify2FA} disabled={verifyCode.length !== 6 || verifyLoading}>
-              {verifyLoading ? "Wird geprüft…" : "Code bestätigen & aktivieren"}
+              {verifyLoading ? t("settings.twoFactor.setup.submitting") : t("settings.twoFactor.setup.submit")}
             </Button>
           </div>
         </DialogContent>
