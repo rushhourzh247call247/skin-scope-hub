@@ -1235,7 +1235,7 @@ const BodyMap3D: React.FC<BodyMap3DProps> = (props) => {
             <div className="absolute bottom-10 left-2 rounded-lg border border-border/50 bg-card/90 backdrop-blur-sm p-1.5 space-y-0.5 max-w-[140px]">
               <div className="flex items-center justify-between px-1 mb-0.5">
                 <span className="text-[8px] font-bold text-muted-foreground uppercase tracking-wider flex items-center gap-1">
-                  <Filter className="h-2.5 w-2.5" /> Legende
+                  <Filter className="h-2.5 w-2.5" /> {i18n.t('bodyMap.filter')}
                 </span>
                 {hasFilter && (
                   <button
