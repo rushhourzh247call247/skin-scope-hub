@@ -742,7 +742,7 @@ export async function generatePatientPDF(
     const loc = spotLocations[si];
     const spotName = loc.name || `Spot #${loc.id}`;
     const classification = loc.classification
-      ? LESION_CLASSIFICATIONS[loc.classification]?.label ?? loc.classification
+      ? getClassificationLabel(loc.classification)
       : null;
     const zoneName = getZoneName(loc);
 
