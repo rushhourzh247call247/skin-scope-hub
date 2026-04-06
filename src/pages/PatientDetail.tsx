@@ -1173,7 +1173,7 @@ const PatientDetail = () => {
                         <div className="flex items-center gap-2">
                           <span className="flex items-center gap-1.5 text-[11px] font-medium text-foreground/80">
                             <span className="h-2 w-2 rounded-full shrink-0" style={{ backgroundColor: currentInfo?.color || 'hsl(var(--muted-foreground))' }} />
-                            {currentInfo?.label || t('patientDetail.notClassified')}
+                            {getClassificationLabel(currentCls)}
                           </span>
                           <ChevronDown className="h-3.5 w-3.5 text-muted-foreground transition-transform duration-200 [[data-state=open]>&]:rotate-180" />
                         </div>
