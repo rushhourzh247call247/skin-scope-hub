@@ -10,7 +10,7 @@ import { useState, useRef } from "react";
 import {
   User, Calendar, Mail, Phone, Hash, Activity, MapPin,
   Plus, Trash2, FileText, Upload, Download, AlertTriangle,
-  Clock, ClipboardList, X, Save, FileUp
+  Clock, ClipboardList, X, Save, FileUp, Eye
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
