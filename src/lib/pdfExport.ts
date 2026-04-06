@@ -499,16 +499,11 @@ export async function generatePatientPDF(
         }
       }
 
-      // Load newest image if different
+      // Load newest image if different (without pins — only reference gets pins)
       let newestBase64: string | null = null;
       if (hasComparison && newestImg) {
         const newestUrl = api.resolveImageSrc(newestImg);
-        if (pins.length > 0) {
-          newestBase64 = await compositeOverviewWithPins(newestUrl, pins, spotLocations);
-        }
-        if (!newestBase64) {
-          newestBase64 = await loadImageAsBase64(newestUrl);
-        }
+        newestBase64 = await loadImageAsBase64(newestUrl);
       }
 
       if (hasComparison && oldestBase64 && newestBase64) {
