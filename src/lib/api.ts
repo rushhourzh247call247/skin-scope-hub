@@ -119,6 +119,19 @@ async function requestBlob(path: string, options?: RequestInit): Promise<Blob> {
   return res.blob();
 }
 
+function isApiNotFoundError(error: unknown) {
+  return error instanceof Error && error.message.includes('API Error: 404');
+}
+
+async function requestWithFallback<T>(primaryPath: string, fallbackPath: string, options?: RequestInit): Promise<T> {
+  try {
+    return await request<T>(primaryPath, options);
+  } catch (error) {
+    if (!isApiNotFoundError(error)) throw error;
+    return request<T>(fallbackPath, options);
+  }
+}
+
 export const api = {
   setToken,
 
