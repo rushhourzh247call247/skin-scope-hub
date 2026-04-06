@@ -460,23 +460,39 @@ const PatientAkte = ({ patient, onNavigateToSpot }: PatientAkteProps) => {
                 </div>
                 <div className="flex items-center gap-1 shrink-0">
                   <button
-                    onClick={() => {
-                      const url = api.getDocumentDownloadUrl(doc.id);
-                      window.open(url, "_blank");
+                    onClick={async () => {
+                      try {
+                        const blob = await api.downloadDocumentBlob(doc.id);
+                        const blobUrl = URL.createObjectURL(blob);
+                        window.open(blobUrl, "_blank");
+                      } catch {
+                        toast.error(t("akte.downloadError", "Fehler beim Öffnen"));
+                      }
                     }}
                     className="p-1 rounded hover:bg-primary/10 text-muted-foreground hover:text-primary transition-colors"
                     title={t("akte.preview", "Vorschau")}
                   >
                     <Eye className="h-3.5 w-3.5" />
                   </button>
-                  <a
-                    href={api.getDocumentDownloadUrl(doc.id)}
-                    download
+                  <button
+                    onClick={async () => {
+                      try {
+                        const blob = await api.downloadDocumentBlob(doc.id);
+                        const blobUrl = URL.createObjectURL(blob);
+                        const a = document.createElement("a");
+                        a.href = blobUrl;
+                        a.download = doc.original_name || "document";
+                        a.click();
+                        URL.revokeObjectURL(blobUrl);
+                      } catch {
+                        toast.error(t("akte.downloadError", "Fehler beim Herunterladen"));
+                      }
+                    }}
                     className="p-1 rounded hover:bg-primary/10 text-muted-foreground hover:text-primary transition-colors"
                     title={t("common.download")}
                   >
                     <Download className="h-3.5 w-3.5" />
-                  </a>
+                  </button>
                   <button
                     onClick={() => deleteDocumentMutation.mutate(doc.id)}
                     className="p-1 rounded opacity-0 group-hover:opacity-100 transition-opacity hover:bg-destructive/10 text-muted-foreground hover:text-destructive"
