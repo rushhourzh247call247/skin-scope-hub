@@ -740,7 +740,7 @@ export async function generatePatientPDF(
   /* ═══ SPOT SECTIONS ════════════════════════════════ */
   for (let si = 0; si < spotLocations.length; si++) {
     const loc = spotLocations[si];
-    const spotName = loc.name || `Spot #${loc.id}`;
+    const spotName = translateAnatomyName(loc.name) || loc.name || `Spot #${loc.id}`;
     const classification = loc.classification
       ? getClassificationLabel(loc.classification)
       : null;
