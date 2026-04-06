@@ -366,15 +366,26 @@ export const api = {
 
   // Patient Documents
   getPatientDocuments: (patientId: number) =>
-    request<PatientDocument[]>(`/patients/${patientId}/documents`),
+    requestWithFallback<PatientDocument[]>(
+      `/patients/${patientId}/documents`,
+      `/snapshots/patients/${patientId}/documents`,
+    ),
   uploadPatientDocument: (patientId: number, file: File, notes?: string) => {
     const formData = new FormData();
     formData.append('document', file);
     if (notes) formData.append('notes', notes);
-    return request<PatientDocument>(`/patients/${patientId}/documents`, { method: 'POST', body: formData });
+    return requestWithFallback<PatientDocument>(
+      `/patients/${patientId}/documents`,
+      `/snapshots/patients/${patientId}/documents`,
+      { method: 'POST', body: formData },
+    );
   },
   deletePatientDocument: (id: number) =>
-    request<{ success: boolean }>(`/documents/${id}`, { method: 'DELETE' }),
+    requestWithFallback<{ success: boolean }>(
+      `/documents/${id}`,
+      `/snapshots/documents/${id}`,
+      { method: 'DELETE' },
+    ),
   getDocumentDownloadUrl: (id: number) =>
     `${getApiBaseUrl()}/documents/${id}/download?token=${authToken}`,
 };
