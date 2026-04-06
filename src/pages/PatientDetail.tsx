@@ -7,6 +7,7 @@ import { translateAnatomyName } from "@/lib/anatomyTranslation";
 
 import type { FullPatient, LesionClassification } from "@/types/patient";
 import { LESION_CLASSIFICATIONS } from "@/types/patient";
+import { getClassificationLabel } from "@/lib/classificationTranslation";
 import { useState, useRef, useEffect } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import type { LesionClassification as LesionClassificationType } from "@/types/patient";
