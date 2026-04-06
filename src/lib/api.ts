@@ -372,7 +372,7 @@ export const api = {
     ),
   uploadPatientDocument: (patientId: number, file: File, notes?: string) => {
     const formData = new FormData();
-    formData.append('document', file);
+    formData.append('file', file);
     if (notes) formData.append('notes', notes);
     return requestWithFallback<PatientDocument>(
       `/patients/${patientId}/documents`,
