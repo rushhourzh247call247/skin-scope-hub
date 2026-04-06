@@ -460,9 +460,14 @@ const PatientAkte = ({ patient, onNavigateToSpot }: PatientAkteProps) => {
                 </div>
                 <div className="flex items-center gap-1 shrink-0">
                   <button
-                    onClick={() => {
-                      const url = `${api.getDocumentDownloadUrl(doc.id)}&inline=1`;
-                      window.open(url, "_blank", "noopener,noreferrer");
+                    onClick={async () => {
+                      try {
+                        const blob = await api.downloadDocumentBlob(doc.id);
+                        const url = URL.createObjectURL(blob);
+                        window.open(url, "_blank", "noopener,noreferrer");
+                      } catch {
+                        toast.error(t("akte.previewError", "Vorschau konnte nicht geladen werden"));
+                      }
                     }}
                     className="p-1 rounded hover:bg-primary/10 text-muted-foreground hover:text-primary transition-colors"
                     title={t("akte.preview", "Vorschau")}
@@ -470,12 +475,18 @@ const PatientAkte = ({ patient, onNavigateToSpot }: PatientAkteProps) => {
                     <Eye className="h-3.5 w-3.5" />
                   </button>
                   <button
-                    onClick={() => {
-                      const url = api.getDocumentDownloadUrl(doc.id);
-                      const a = document.createElement("a");
-                      a.href = url;
-                      a.download = doc.original_name || "document";
-                      a.click();
+                    onClick={async () => {
+                      try {
+                        const blob = await api.downloadDocumentBlob(doc.id);
+                        const url = URL.createObjectURL(blob);
+                        const a = document.createElement("a");
+                        a.href = url;
+                        a.download = doc.original_name || "document";
+                        a.click();
+                        URL.revokeObjectURL(url);
+                      } catch {
+                        toast.error(t("common.downloadError", "Download fehlgeschlagen"));
+                      }
                     }}
                     className="p-1 rounded hover:bg-primary/10 text-muted-foreground hover:text-primary transition-colors"
                     title={t("common.download")}
