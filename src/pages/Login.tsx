@@ -194,14 +194,15 @@ const Login = () => {
               <button
                 key={lang.code}
                 onClick={() => i18n.changeLanguage(lang.code)}
-                className={`text-xs px-2 py-1 rounded transition-colors ${
+                className={`text-xs px-2 py-1 rounded transition-colors flex items-center gap-1 ${
                   i18n.language === lang.code
                     ? "text-primary font-medium bg-primary/5"
                     : "text-muted-foreground/50 hover:text-muted-foreground"
                 }`}
                 title={lang.label}
               >
-                {lang.flag}
+                <span>{lang.flag}</span>
+                <span>{lang.code.toUpperCase()}</span>
               </button>
             ))}
           </div>
