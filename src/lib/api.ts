@@ -1,4 +1,4 @@
-import type { LesionClassification } from '@/types/patient';
+import type { LesionClassification, Appointment, PatientDocument } from '@/types/patient';
 
 const DEFAULT_API_BASE_URL = 'https://api.derm247.ch/api';
 
