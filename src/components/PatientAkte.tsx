@@ -485,7 +485,7 @@ const PatientAkte = ({ patient, onNavigateToSpot }: PatientAkteProps) => {
                         a.click();
                         URL.revokeObjectURL(blobUrl);
                       } catch {
-                        toast({ title: t("common.error"), description: t("akte.downloadError", "Fehler beim Herunterladen"), variant: "destructive" });
+                        toast.error(t("akte.downloadError", "Fehler beim Herunterladen"));
                       }
                     }}
                     className="p-1 rounded hover:bg-primary/10 text-muted-foreground hover:text-primary transition-colors"
