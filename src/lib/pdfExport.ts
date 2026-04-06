@@ -701,7 +701,7 @@ export async function generatePatientPDF(
         for (let pi = 0; pi < pins.length; pi++) {
           const pin = pins[pi];
           const spot = spotLocations.find(s => s.id === pin.linked_location_id);
-          const spotName = spot?.name || pin.label || `Spot ${pi + 1}`;
+          const spotName = translateAnatomyName(spot?.name) || spot?.name || pin.label || `Spot ${pi + 1}`;
           const cls = spot?.classification;
           const clsLabel = cls && cls !== "unclassified" ? getClassificationLabel(cls) : null;
 
