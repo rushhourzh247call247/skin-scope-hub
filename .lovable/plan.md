@@ -1,89 +1,95 @@
 
 
-# Sicherheitsanalyse — derm247 Frontend
+# Patientenakte-Tab mit Backend-Endpunkten
 
-## Gesamtbewertung: Gut, mit einigen Verbesserungspunkten
+## Übersicht
 
-Dein Frontend ist insgesamt solide aufgebaut. Die kritischsten Sicherheitsmassnahmen sind bereits vorhanden. Es gibt aber einige Punkte, die verbessert werden sollten.
+Neuer "Akte"-Tab als Standard-Ansicht beim Öffnen eines Patienten. Enthält klinische Zusammenfassung, Termine und Dokumente — mit vollständigen Backend-Endpunkten.
 
----
+## 1. Backend: Neue Tabellen und Endpunkte
 
-## Was bereits gut gelöst ist
+### Neue Datenbank-Tabellen
 
-| Bereich | Status |
-|---|---|
-| Token in sessionStorage (nicht localStorage) | Korrekt |
-| Automatischer Logout bei 401 | Korrekt |
-| Kein Passwort im Frontend gespeichert | Korrekt |
-| Rate-Limiting bei Login (429-Handling) | Korrekt |
-| 2FA-Flow sauber entkoppelt | Korrekt |
-| HTTPS-Erzwingung (Mixed-Content-Check) | Korrekt |
-| Keine API-Keys oder Secrets im Frontend-Code | Korrekt |
-| Session-Clearing bei Konto-Sperrung (403) | Korrekt |
-| Kein localStorage für Auth-Daten | Korrekt |
+```text
+appointments
+├── id (integer, PK)
+├── patient_id (FK → patients)
+├── scheduled_at (datetime)
+├── notes (text, nullable)
+├── created_at / updated_at
+└── company_id (FK, Mandantenfähigkeit)
 
----
-
-## Verbesserungspunkte (nach Priorität)
-
-### 1. Admin-Rolle nur clientseitig geprüft (MITTEL)
-
-In `App.tsx` wird die Admin-Prüfung rein im Frontend gemacht:
+patient_documents
+├── id (integer, PK)
+├── patient_id (FK → patients)
+├── file_path (string)
+├── original_name (string)
+├── notes (text, nullable)
+├── uploaded_by (FK → users)
+├── created_at / updated_at
+└── company_id (FK)
 ```
-if (user?.role !== "admin") return <Navigate to="/" replace />;
-```
-Das ist **keine echte Sicherheit** — es verhindert nur die UI-Anzeige. Ein technisch versierter Angreifer könnte das `auth_user`-Objekt im sessionStorage manipulieren und sich als Admin ausgeben. **Aber:** Solange dein Laravel-Backend die Rolle serverseitig bei jedem API-Call prüft (was es gemäss deiner Beschreibung tut), ist das Risiko gering. Die Frontend-Prüfung dient nur der UX.
 
-**Empfehlung:** Kein Code-Änderung nötig, solange das Backend jede Admin-Route serverseitig validiert.
+### Neue API-Endpunkte
 
-### 2. `dangerouslySetInnerHTML` mit i18n-Strings (NIEDRIG)
+| Methode | Pfad | Beschreibung |
+|---------|------|-------------|
+| GET | `/patients/{id}/appointments` | Termine eines Patienten |
+| POST | `/patients/{id}/appointments` | Termin erstellen |
+| PUT | `/appointments/{id}` | Termin bearbeiten |
+| DELETE | `/appointments/{id}` | Termin löschen |
+| GET | `/patients/{id}/documents` | Dokumente eines Patienten |
+| POST | `/patients/{id}/documents` | Dokument hochladen |
+| DELETE | `/documents/{id}` | Dokument löschen |
+| GET | `/documents/{id}/download` | Dokument herunterladen |
 
-An 3 Stellen wird `dangerouslySetInnerHTML` verwendet:
-- `UserManagement.tsx` — 2FA-Reset-Beschreibung
-- `Settings.tsx` — 2FA-Setup-Hinweis
+Diese Endpunkte werden in `routes/api.php` innerhalb der bestehenden `auth:sanctum`-Gruppe ergänzt. Die Mandantenfähigkeit folgt dem bestehenden Pattern (`$user->company_id`).
 
-Die Daten kommen aus **i18n-Übersetzungsdateien** (nicht von Benutzereingaben), daher ist das Risiko minimal. Trotzdem wäre es sauberer, React-Komponenten statt HTML-Strings zu verwenden.
+## 2. Frontend: Neue Types und API-Methoden
 
-**Empfehlung:** Übersetzungen mit `<Trans>`-Komponente von react-i18next umschreiben, um `dangerouslySetInnerHTML` komplett zu eliminieren.
+**`src/types/patient.ts`** — Neue Interfaces:
+- `Appointment { id, patient_id, scheduled_at, notes, created_at }`
+- `PatientDocument { id, patient_id, file_path, original_name, notes, uploaded_by, created_at }`
 
-### 3. `console.log` in Produktion (NIEDRIG)
+**`src/lib/api.ts`** — Neue Methoden:
+- `getAppointments(patientId)`, `createAppointment(patientId, data)`, `updateAppointment(id, data)`, `deleteAppointment(id)`
+- `getDocuments(patientId)`, `uploadDocument(patientId, file, notes?)`, `deleteDocument(id)`, `getDocumentDownloadUrl(id)`
 
-Es gibt ~26 `console.log`-Aufrufe im Code (PatientDetail, Calibrate, OpenCV-Loader, ImageAlign). Diese könnten technische Details wie 3D-Koordinaten oder Debug-Daten in der Browser-Konsole preisgeben.
+## 3. Frontend: Akte-Tab
 
-**Empfehlung:** Alle `console.log`-Aufrufe entfernen oder hinter ein `if (import.meta.env.DEV)` Guard setzen.
+**`src/pages/PatientDetail.tsx`**:
+- `activeTab` erweitern um `"akte"` als neuen Default-Wert
+- Neuer Tab "Akte" (ClipboardList Icon) als erster Tab
 
-### 4. Mock-Daten mit echten E-Mail-Adressen (NIEDRIG)
+**Inhalt des Akte-Tabs** (4 Karten):
 
-`mockData.ts` enthält E-Mail-Adressen wie `admin@derm247.ch`, `p.meier@derm247.ch`. Diese Datei wird zwar im Produktionsbetrieb nicht verwendet (da die echte API genutzt wird), aber der Code wird mit ausgeliefert und ist im Browser-DevTools sichtbar.
+1. **Patientenstammdaten** — Name, Geburtsdatum, Geschlecht, Versicherung, Kontakt, Notizen (aus vorhandenen Daten)
 
-**Empfehlung:** Mock-Daten komplett entfernen oder durch offensichtlich falsche Daten ersetzen (`test@example.com`).
+2. **Klinische Zusammenfassung** — Berechnet aus `patient.locations`:
+   - Anzahl aktive Spots nach Klassifikation (z.B. "3 Nävi, 1 Melanom-Verdacht")
+   - Hochrisiko-Spots hervorgehoben
+   - Letzter Befund mit Datum und Arzt
 
-### 5. Geschützte E-Mail hardcodiert (NIEDRIG)
+3. **Termine** — Liste mit Datum, Notiz; Formular zum Hinzufügen; überfällige Termine rot markiert
 
-In `UserManagement.tsx` steht `const PROTECTED_EMAIL = "info@techassist.ch"` im Klartext. Das ist keine direkte Sicherheitslücke, aber verrät interne Informationen.
+4. **Dokumente** — Upload-Bereich für Überweisungen/Vorbefunde; Liste mit Download-Link
 
-**Empfehlung:** Vom Backend als Flag liefern (`is_protected: true`) statt im Frontend zu hardcoden.
+## 4. Übersetzungen
 
----
+Alle 5 Locale-Dateien (`de`, `en`, `fr`, `it`, `es`) erhalten Keys für:
+- `akte`, `clinical_summary`, `appointments`, `next_appointment`, `overdue`, `documents`, `upload_document`, `referral`, `no_appointments`, `no_documents`, `high_risk_spots`, `last_finding`, `add_appointment`
 
-## Was NICHT im Frontend sichtbar ist (positiv)
+## Umsetzungsreihenfolge
 
-- Keine API-Keys, Secrets oder Passwörter im Code
-- Keine Datenbank-Verbindungsstrings
-- Keine Server-IP-Adressen (nur die Domain `api.derm247.ch`)
-- Keine Patientendaten im Code (nur Mock-Daten)
-- Keine hardcodierten Zugangsdaten
+1. Backend: Migration + Endpunkte auf dem Server erstellen (via SSH)
+2. Frontend: Types + API-Methoden ergänzen
+3. Frontend: Akte-Tab bauen mit den 4 Karten
+4. Übersetzungen in alle Sprachen
 
----
+## Technische Details
 
-## Zusammenfassung der empfohlenen Massnahmen
-
-| Massnahme | Aufwand | Priorität |
-|---|---|---|
-| `console.log` entfernen/guards | 15 Min | Mittel |
-| Mock-Daten bereinigen | 10 Min | Niedrig |
-| `dangerouslySetInnerHTML` durch `<Trans>` ersetzen | 30 Min | Niedrig |
-| `PROTECTED_EMAIL` vom Backend liefern | 15 Min | Niedrig |
-
-Alle diese Punkte sind kosmetischer Natur — es gibt **keine kritischen Sicherheitslücken** im Frontend. Die echte Sicherheit liegt korrekt auf deinem Laravel-Backend (Token-Validierung, Multi-Tenancy-Checks, Rate-Limiting).
+- Backend-Änderungen werden per SSH auf dem Ubuntu-Server durchgeführt (SQLite-Migration, `routes/api.php` editieren)
+- Dokument-Upload nutzt das bestehende Storage-Pattern (`Storage::disk('local')`)
+- Termine-Logik: `scheduled_at < now()` → überfällig (rot), sonst grün
+- Der Akte-Tab nutzt die bereits geladenen `fullPatient`-Daten für die klinische Zusammenfassung, plus separate Queries für Appointments und Documents
 
