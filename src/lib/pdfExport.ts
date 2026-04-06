@@ -410,38 +410,31 @@ export async function generatePatientPDF(
   }
 
   y += cardH + 4;
-  /* summary bar removed – keep layout clean */
-
   /* ═══ DOCTOR SUMMARY ═══════════════════════════════ */
   if (options.doctorSummary.trim()) {
-    y = checkPage(doc, y, 25, margin);
+    const summaryLines = doc.splitTextToSize(clean(options.doctorSummary), contentW - 8);
+    const textH = summaryLines.length * 3.8 + 6;
+    y = checkPage(doc, y, textH + 2, margin);
 
     doc.setFillColor(255, 251, 235);
     doc.setDrawColor(253, 230, 138);
-    drawRoundedRect(doc, margin, y, contentW, 6, 2, "FD");
+    drawRoundedRect(doc, margin, y, contentW, textH, 2, "FD");
 
     doc.setFont("Roboto", "bold");
-    doc.setFontSize(8);
+    doc.setFontSize(7);
     doc.setTextColor(146, 64, 14);
     doc.text(i18n.t('pdf.doctorSummaryTitle'), margin + 4, y + 4);
 
-    const summaryLines = doc.splitTextToSize(clean(options.doctorSummary), contentW - 10);
-    const textH = summaryLines.length * 4.2 + 4;
-
-    doc.setFillColor(255, 254, 249);
-    doc.setDrawColor(253, 230, 138);
-    drawRoundedRect(doc, margin, y + 6, contentW, textH, 2, "FD");
-
     doc.setFont("Roboto", "normal");
-    doc.setFontSize(9);
+    doc.setFontSize(8);
     doc.setTextColor(...C.textPrimary);
-    let ty = y + 10;
+    let ty = y + 8;
     for (const line of summaryLines) {
-      doc.text(line, margin + 5, ty);
-      ty += 4.2;
+      doc.text(line, margin + 4, ty);
+      ty += 3.8;
     }
 
-    y += 6 + textH + 6;
+    y += textH + 3;
   }
 
   /* ═══ OVERVIEW PHOTOS ══════════════════════════════ */
