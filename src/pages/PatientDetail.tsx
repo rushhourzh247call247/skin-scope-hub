@@ -1396,7 +1396,7 @@ const PatientDetail = () => {
                   locationId={selectedLocation.id}
                   patientId={patientId}
                   images={selectedLocation.images ?? []}
-                  locationName={selectedLocation.name || (selectedLocation.type === "region" ? "Region" : `Spot #${selectedLocation.id}`)}
+                  locationName={translateAnatomyName(selectedLocation.name) || (selectedLocation.type === "region" ? "Region" : `Spot #${selectedLocation.id}`)}
                   locationType={selectedLocation.type || "spot"}
                   patientName={patient.name}
                   patientBirthDate={patient.birth_date}
