@@ -158,7 +158,8 @@
       "overview": "ZONE",
       "photos": "FOTO",
       "timeline": "CRONOLOGIA",
-      "reports": "RAPPORTI"
+      "reports": "RAPPORTI",
+      "chart": "CARTELLA"
     },
     "notLoaded": "Il paziente non è stato caricato.",
     "backToListBtn": "Torna alla lista",
@@ -905,5 +906,28 @@
   "cls_keratosis": "Cheratosi",
   "cls_dermatofibroma": "Dermatofibroma",
   "cls_vascular": "Lesione vascolare",
-  "cls_other": "Altro"
+  "cls_other": "Altro",
+  "akte": {
+    "title": "Cartella clinica",
+    "masterData": "Dati anagrafici",
+    "clinicalSummary": "Riepilogo clinico",
+    "highRiskSpots": "Punti ad alto rischio",
+    "lastFindings": "Ultimi referti",
+    "appointments": "Appuntamenti",
+    "addAppointment": "Aggiungi appuntamento",
+    "appointmentNotesPlaceholder": "Nota per l'appuntamento…",
+    "appointmentCreated": "Appuntamento creato",
+    "appointmentDeleted": "Appuntamento eliminato",
+    "appointmentError": "Errore nella creazione",
+    "noAppointments": "Nessun appuntamento programmato",
+    "overdue": "Scaduto",
+    "documents": "Documenti",
+    "uploadDocument": "Carica documento",
+    "documentNotesOptional": "Nota (opzionale)",
+    "documentNotesPlaceholder": "Impegnativa, referto precedente…",
+    "documentUploaded": "Documento caricato",
+    "documentDeleted": "Documento eliminato",
+    "documentError": "Errore durante il caricamento",
+    "noDocuments": "Nessun documento disponibile"
+  }
 }

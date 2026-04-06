@@ -158,7 +158,8 @@
       "overview": "ZONES",
       "photos": "PHOTOS",
       "timeline": "CHRONOLOGIE",
-      "reports": "RAPPORTS"
+      "reports": "RAPPORTS",
+      "chart": "DOSSIER"
     },
     "notLoaded": "Le patient n'a pas pu être chargé.",
     "backToListBtn": "Retour à la liste",
@@ -905,5 +906,28 @@
   "cls_keratosis": "Kératose",
   "cls_dermatofibroma": "Dermatofibrome",
   "cls_vascular": "Lésion vasculaire",
-  "cls_other": "Autre"
+  "cls_other": "Autre",
+  "akte": {
+    "title": "Dossier patient",
+    "masterData": "Données de base",
+    "clinicalSummary": "Résumé clinique",
+    "highRiskSpots": "Points à haut risque",
+    "lastFindings": "Derniers résultats",
+    "appointments": "Rendez-vous",
+    "addAppointment": "Ajouter un rendez-vous",
+    "appointmentNotesPlaceholder": "Note pour le rendez-vous…",
+    "appointmentCreated": "Rendez-vous créé",
+    "appointmentDeleted": "Rendez-vous supprimé",
+    "appointmentError": "Erreur lors de la création",
+    "noAppointments": "Aucun rendez-vous prévu",
+    "overdue": "En retard",
+    "documents": "Documents",
+    "uploadDocument": "Télécharger un document",
+    "documentNotesOptional": "Note (optionnelle)",
+    "documentNotesPlaceholder": "Référence, rapport antérieur…",
+    "documentUploaded": "Document téléchargé",
+    "documentDeleted": "Document supprimé",
+    "documentError": "Erreur lors du téléchargement",
+    "noDocuments": "Aucun document disponible"
+  }
 }
