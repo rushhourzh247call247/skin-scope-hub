@@ -10,6 +10,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } f
 import { Shield, ShieldCheck, ShieldOff, Lock, KeyRound, Globe } from "lucide-react";
 import { toast } from "sonner";
 import { SUPPORTED_LANGUAGES } from "@/i18n";
+import { LanguageFlag } from "@/components/LanguageFlag";
 
 const Settings = () => {
   const { t, i18n } = useTranslation();
@@ -124,7 +125,7 @@ const Settings = () => {
                     : "border-border text-muted-foreground hover:border-primary/40 hover:text-foreground"
                 }`}
               >
-                <span className="text-lg">{lang.flag}</span>
+                <LanguageFlag code={lang.code} />
                 {lang.label}
               </button>
             ))}

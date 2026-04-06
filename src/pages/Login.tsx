@@ -10,6 +10,7 @@ import { Card, CardContent, CardHeader, CardDescription } from "@/components/ui/
 import { DermLogo } from "@/components/DermLogo";
 import { LogIn, Shield, Clock } from "lucide-react";
 import { SUPPORTED_LANGUAGES } from "@/i18n";
+import { LanguageFlag } from "@/components/LanguageFlag";
 
 const Login = () => {
   const { t, i18n } = useTranslation();
@@ -201,7 +202,7 @@ const Login = () => {
                 }`}
                 title={lang.label}
               >
-                <span>{lang.flag}</span>
+                <LanguageFlag code={lang.code} />
                 <span>{lang.code.toUpperCase()}</span>
               </button>
             ))}
