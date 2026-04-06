@@ -1203,7 +1203,7 @@ const PatientDetail = () => {
                                   className="h-2 w-2 rounded-full shrink-0"
                                   style={{ backgroundColor: isActive ? cls.color : `${cls.color}60` }}
                                 />
-                                {cls.label}
+                                {getClassificationLabel(key)}
                               </button>
                             );
                           })}
