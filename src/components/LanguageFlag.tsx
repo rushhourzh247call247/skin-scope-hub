@@ -1,24 +1,47 @@
 type LanguageCode = "de" | "en" | "fr" | "it" | "es";
 
-const FLAG_STYLES: Record<LanguageCode, string> = {
-  de: "linear-gradient(to bottom, hsl(0 0% 0%) 0 33.33%, hsl(8 82% 52%) 33.33% 66.66%, hsl(52 95% 58%) 66.66% 100%)",
-  en: "linear-gradient(to bottom, hsl(215 70% 30%) 0 33.33%, hsl(0 0% 100%) 33.33% 40%, hsl(0 72% 47%) 40% 60%, hsl(0 0% 100%) 60% 66.66%, hsl(215 70% 30%) 66.66% 100%)",
-  fr: "linear-gradient(to right, hsl(221 72% 42%) 0 33.33%, hsl(0 0% 100%) 33.33% 66.66%, hsl(0 72% 47%) 66.66% 100%)",
-  it: "linear-gradient(to right, hsl(142 63% 38%) 0 33.33%, hsl(0 0% 100%) 33.33% 66.66%, hsl(0 72% 47%) 66.66% 100%)",
-  es: "linear-gradient(to bottom, hsl(0 73% 45%) 0 25%, hsl(45 100% 58%) 25% 75%, hsl(0 73% 45%) 75% 100%)",
-};
-
 interface LanguageFlagProps {
   code: LanguageCode;
   className?: string;
 }
 
-export function LanguageFlag({ code, className = "" }: LanguageFlagProps) {
+const baseClass = "inline-block h-3 w-[18px] shrink-0 rounded-[2px] border border-border/70 shadow-sm overflow-hidden";
+
+function GradientFlag({ bg, className }: { bg: string; className: string }) {
+  return <span aria-hidden="true" className={className} style={{ background: bg }} />;
+}
+
+function UKFlag({ className }: { className: string }) {
   return (
-    <span
-      aria-hidden="true"
-      className={`inline-block h-3 w-[18px] shrink-0 rounded-[3px] border border-border/70 shadow-sm ${className}`.trim()}
-      style={{ background: FLAG_STYLES[code] }}
-    />
+    <span aria-hidden="true" className={className}>
+      <svg viewBox="0 0 60 30" className="h-full w-full" preserveAspectRatio="none">
+        <clipPath id="s"><path d="M0,0 v30 h60 v-30 z"/></clipPath>
+        <clipPath id="t"><path d="M30,15 h30 v15 z v15 h-30 z h-30 v-15 z v-15 h30 z"/></clipPath>
+        <g clipPath="url(#s)">
+          <path d="M0,0 v30 h60 v-30 z" fill="#012169"/>
+          <path d="M0,0 L60,30 M60,0 L0,30" stroke="#fff" strokeWidth="6"/>
+          <path d="M0,0 L60,30 M60,0 L0,30" clipPath="url(#t)" stroke="#C8102E" strokeWidth="4"/>
+          <path d="M30,0 v30 M0,15 h60" stroke="#fff" strokeWidth="10"/>
+          <path d="M30,0 v30 M0,15 h60" stroke="#C8102E" strokeWidth="6"/>
+        </g>
+      </svg>
+    </span>
   );
+}
+
+const GRADIENT_FLAGS: Record<Exclude<LanguageCode, "en">, string> = {
+  de: "linear-gradient(to bottom, #000 0 33.33%, #DD0000 33.33% 66.66%, #FFCC00 66.66% 100%)",
+  fr: "linear-gradient(to right, #002395 0 33.33%, #fff 33.33% 66.66%, #ED2939 66.66% 100%)",
+  it: "linear-gradient(to right, #009246 0 33.33%, #fff 33.33% 66.66%, #CE2B37 66.66% 100%)",
+  es: "linear-gradient(to bottom, #AA151B 0 25%, #F1BF00 25% 75%, #AA151B 75% 100%)",
+};
+
+export function LanguageFlag({ code, className = "" }: LanguageFlagProps) {
+  const cls = `${baseClass} ${className}`.trim();
+
+  if (code === "en") {
+    return <UKFlag className={cls} />;
+  }
+
+  return <GradientFlag bg={GRADIENT_FLAGS[code]} className={cls} />;
 }
