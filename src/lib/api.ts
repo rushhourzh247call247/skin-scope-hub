@@ -119,6 +119,19 @@ async function requestBlob(path: string, options?: RequestInit): Promise<Blob> {
   return res.blob();
 }
 
+function isApiNotFoundError(error: unknown) {
+  return error instanceof Error && error.message.includes('API Error: 404');
+}
+
+async function requestWithFallback<T>(primaryPath: string, fallbackPath: string, options?: RequestInit): Promise<T> {
+  try {
+    return await request<T>(primaryPath, options);
+  } catch (error) {
+    if (!isApiNotFoundError(error)) throw error;
+    return request<T>(fallbackPath, options);
+  }
+}
+
 export const api = {
   setToken,
 
@@ -328,13 +341,28 @@ export const api = {
 
   // Appointments
   getAppointments: (patientId: number) =>
-    request<Appointment[]>(`/patients/${patientId}/appointments`),
+    requestWithFallback<Appointment[]>(
+      `/patients/${patientId}/appointments`,
+      `/snapshots/patients/${patientId}/appointments`,
+    ),
   createAppointment: (patientId: number, data: { scheduled_at: string; notes?: string }) =>
-    request<Appointment>(`/patients/${patientId}/appointments`, { method: 'POST', body: JSON.stringify(data) }),
+    requestWithFallback<Appointment>(
+      `/patients/${patientId}/appointments`,
+      `/snapshots/patients/${patientId}/appointments`,
+      { method: 'POST', body: JSON.stringify(data) },
+    ),
   updateAppointment: (id: number, data: { scheduled_at?: string; notes?: string }) =>
-    request<Appointment>(`/appointments/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
+    requestWithFallback<Appointment>(
+      `/appointments/${id}`,
+      `/snapshots/appointments/${id}`,
+      { method: 'PUT', body: JSON.stringify(data) },
+    ),
   deleteAppointment: (id: number) =>
-    request<{ success: boolean }>(`/appointments/${id}`, { method: 'DELETE' }),
+    requestWithFallback<{ success: boolean }>(
+      `/appointments/${id}`,
+      `/snapshots/appointments/${id}`,
+      { method: 'DELETE' },
+    ),
 
   // Patient Documents
   getPatientDocuments: (patientId: number) =>
