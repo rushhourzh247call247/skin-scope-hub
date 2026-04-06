@@ -460,12 +460,16 @@ const PatientAkte = ({ patient, onNavigateToSpot }: PatientAkteProps) => {
                 </div>
                 <div className="flex items-center gap-1 shrink-0">
                   <button
-                    onClick={async () => {
-                      try {
-                        const blob = await api.downloadDocumentBlob(doc.id);
-                        const url = URL.createObjectURL(blob);
-                        window.open(url, "_blank", "noopener,noreferrer");
-                      } catch {
+                    onClick={() => {
+                      const baseUrl = api.getDocumentDownloadUrl(doc.id);
+                      const separator = baseUrl.includes("?") ? "&" : "?";
+                      const previewWindow = window.open(
+                        `${baseUrl}${separator}inline=1`,
+                        "_blank",
+                        "noopener,noreferrer"
+                      );
+
+                      if (!previewWindow) {
                         toast.error(t("akte.previewError", "Vorschau konnte nicht geladen werden"));
                       }
                     }}
