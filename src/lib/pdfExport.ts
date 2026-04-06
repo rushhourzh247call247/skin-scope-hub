@@ -970,118 +970,127 @@ export async function generatePatientPDF(
       y += bodyMapH + 3;
     }
 
-    /* ─── Risk Score Section ─── */
+    /* ─── Risk Score + ABCDE inline ─── */
     const scores = images.map(img => img.risk_score).filter((s): s is number => s != null);
-    if (options.showRiskScore && scores.length > 0) {
-      y = checkPage(doc, y, 16, margin);
+    const latestImg = images[images.length - 1];
+    const abcdeRows = latestImg ? getAbcdeLabel(latestImg) : [];
+    const hasRisk = options.showRiskScore && scores.length > 0;
+    const hasAbcde = options.showAbcde && abcdeRows.length > 0;
 
-      const latest = scores[scores.length - 1];
-      const latestImg = images[images.length - 1];
-      const first = scores[0];
-      const diff = latest - first;
+    if (hasRisk || hasAbcde) {
+      // Draw risk + ABCDE side by side when both present
+      const sectionH = hasAbcde ? Math.max(abcdeRows.length * 4.2 + 6, 14) : 12;
+      y = checkPage(doc, y, sectionH, margin);
 
-      const barX = margin + 3;
-      const barW = Math.min(contentW - 6, 70);
-      const barH = 3;
+      if (hasRisk) {
+        const latest = scores[scores.length - 1];
+        const first = scores[0];
+        const diff = latest - first;
 
-      doc.setFillColor(230, 230, 230);
-      drawRoundedRect(doc, barX, y, barW, barH, 1, "F");
+        const barX = margin + 2;
+        const barW = hasAbcde ? contentW * 0.35 : contentW - 4;
+        const barH = 2.5;
 
-      const fillW = Math.max(barW * (latest / 5), 4);
-      doc.setFillColor(...riskColor(latest));
-      drawRoundedRect(doc, barX, y, fillW, barH, 1, "F");
+        doc.setFillColor(230, 230, 230);
+        drawRoundedRect(doc, barX, y, barW, barH, 1, "F");
 
-      doc.setFont("Roboto", "bold");
-      doc.setFontSize(9);
-      doc.setTextColor(...riskColor(latest));
-      doc.text(`${latest}/5`, barX + barW + 3, y + 2.5);
+        const fillW = Math.max(barW * (latest / 5), 3);
+        doc.setFillColor(...riskColor(latest));
+        drawRoundedRect(doc, barX, y, fillW, barH, 1, "F");
 
-      doc.setFont("Roboto", "normal");
-      doc.setFontSize(8);
-      doc.setTextColor(...C.textSecondary);
-      doc.text(`${i18n.t('riskProgression.title').replace('📈 ', '')}: ${getRiskLabel(latestImg.risk_level)}`, barX + barW + 12, y + 2.5);
+        doc.setFont("Roboto", "bold");
+        doc.setFontSize(8);
+        doc.setTextColor(...riskColor(latest));
+        doc.text(`${latest}/5`, barX + barW + 2, y + 2);
 
-      y += 6;
+        doc.setFont("Roboto", "normal");
+        doc.setFontSize(7);
+        doc.setTextColor(...C.textSecondary);
+        const riskLabel = getRiskLabel(latestImg?.risk_level);
+        doc.text(riskLabel, barX + barW + 10, y + 2);
 
-      if (scores.length >= 2 && diff !== 0) {
-        doc.setFontSize(7.5);
-        if (diff > 0) {
-          doc.setTextColor(...C.riskHigh);
-          doc.text(clean(`${i18n.t('riskProgression.worsening')} (+${diff})`), barX, y);
-        } else {
-          doc.setTextColor(...C.riskLow);
-          doc.text(clean(`${i18n.t('riskProgression.improvement')} (${diff})`), barX, y);
+        if (scores.length >= 2 && diff !== 0) {
+          y += 5;
+          doc.setFontSize(6.5);
+          if (diff > 0) {
+            doc.setTextColor(...C.riskHigh);
+            doc.text(clean(`${i18n.t('riskProgression.worsening')} (+${diff})`), barX, y);
+          } else {
+            doc.setTextColor(...C.riskLow);
+            doc.text(clean(`${i18n.t('riskProgression.improvement')} (${diff})`), barX, y);
+          }
+        } else if (scores.length >= 2) {
+          y += 5;
+          doc.setFontSize(6.5);
+          doc.setTextColor(...C.textMuted);
+          doc.text(i18n.t('riskProgression.stable'), barX, y);
         }
-        y += 4;
-      } else if (scores.length >= 2) {
-        doc.setFontSize(7.5);
-        doc.setTextColor(...C.textMuted);
-        doc.text(i18n.t('riskProgression.stable'), barX, y);
-        y += 4;
+
+        if (!hasAbcde) y += 4;
+      }
+
+      if (hasAbcde) {
+        // Position ABCDE on the right half if risk is shown, or left if not
+        const abcdeX = hasRisk ? margin + contentW * 0.42 : margin + 2;
+        let abcdeY = hasRisk ? y - (scores.length >= 2 ? 5 : 0) : y;
+
+        doc.setFont("Roboto", "bold");
+        doc.setFontSize(6.5);
+        doc.setTextColor(...C.textSecondary);
+        doc.text("ABCDE", abcdeX, abcdeY);
+        abcdeY += 3.5;
+
+        for (const row of abcdeRows) {
+          doc.setFillColor(...C.abcdeKey);
+          doc.circle(abcdeX + 2, abcdeY + 0.3, 1.8, "F");
+          doc.setFont("Roboto", "bold");
+          doc.setFontSize(6);
+          doc.setTextColor(...C.white);
+          doc.text(row.key, abcdeX + 2, abcdeY + 1, { align: "center" });
+
+          doc.setFont("Roboto", "normal");
+          doc.setFontSize(7);
+          doc.setTextColor(...C.textSecondary);
+          doc.text(row.label, abcdeX + 6, abcdeY + 1);
+
+          doc.setFont("Roboto", "bold");
+          doc.setTextColor(...C.textPrimary);
+          doc.text(row.value, abcdeX + 22, abcdeY + 1);
+
+          abcdeY += 4;
+        }
+
+        y = Math.max(y, abcdeY) + 2;
       }
 
       doc.setTextColor(0, 0, 0);
-      y += 2;
-    }
-
-    /* ─── ABCDE Assessment ─── */
-    const latestImg = images[images.length - 1];
-    const abcdeRows = latestImg ? getAbcdeLabel(latestImg) : [];
-    if (options.showAbcde && abcdeRows.length > 0) {
-      y = checkPage(doc, y, abcdeRows.length * 5 + 8, margin);
-
-      doc.setFont("Roboto", "bold");
-      doc.setFontSize(7.5);
-      doc.setTextColor(...C.textSecondary);
-      doc.text(i18n.t('pdf.abcdeTitle'), margin + 3, y);
-      y += 4;
-
-      for (const row of abcdeRows) {
-        doc.setFillColor(...C.abcdeKey);
-        doc.circle(margin + 5.5, y + 0.5, 2.2, "F");
-        doc.setFont("Roboto", "bold");
-        doc.setFontSize(7);
-        doc.setTextColor(...C.white);
-        doc.text(row.key, margin + 5.5, y + 1.3, { align: "center" });
-
-        doc.setFont("Roboto", "normal");
-        doc.setFontSize(8);
-        doc.setTextColor(...C.textSecondary);
-        doc.text(row.label, margin + 10, y + 1.3);
-
-        doc.setFont("Roboto", "bold");
-        doc.setTextColor(...C.textPrimary);
-        doc.text(row.value, margin + 32, y + 1.3);
-
-        y += 5;
-      }
-      y += 2;
+      y += 1;
     }
 
     /* ─── Notes ─── */
     if (options.showNotes && latestImg?.note) {
-      y = checkPage(doc, y, 10, margin);
+      y = checkPage(doc, y, 8, margin);
 
       doc.setFont("Roboto", "bold");
-      doc.setFontSize(7.5);
+      doc.setFontSize(6.5);
       doc.setTextColor(...C.textSecondary);
-      doc.text(i18n.t('pdf.notesTitle'), margin + 3, y);
-      y += 4;
+      doc.text(i18n.t('pdf.notesTitle'), margin + 2, y);
+      y += 3.5;
 
       doc.setFont("Roboto", "normal");
-      doc.setFontSize(8);
+      doc.setFontSize(7.5);
       doc.setTextColor(...C.textPrimary);
-      const noteLines = doc.splitTextToSize(clean(latestImg.note), contentW - 8);
+      const noteLines = doc.splitTextToSize(clean(latestImg.note), contentW - 6);
       for (const nl of noteLines) {
-        doc.text(nl, margin + 3, y);
-        y += 3.8;
+        doc.text(nl, margin + 2, y);
+        y += 3.5;
       }
-      y += 3;
+      y += 2;
     }
 
     /* ─── Spot Separator ─── */
     if (si < spotLocations.length - 1) {
-      y += 2;
+      y += 1;
       doc.setDrawColor(...C.border);
       doc.setLineWidth(0.15);
       let dx = margin;
@@ -1090,7 +1099,7 @@ export async function generatePatientPDF(
         dx += 3;
       }
       doc.setLineWidth(0.2);
-      y += 6;
+      y += 4;
     }
   }
 
