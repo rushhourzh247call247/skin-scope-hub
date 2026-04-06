@@ -449,7 +449,7 @@ export async function generatePatientPDF(
       if (!refImage) continue;
 
       const pins = overviewPinsMap[ov.id] || [];
-      const ovName = ov.name || "Übersichtsaufnahme";
+      const ovName = ov.name || i18n.t('pdf.overviewPhoto');
 
       // Need ~100mm height for overview section
       y = checkPage(doc, y, 100, margin);
