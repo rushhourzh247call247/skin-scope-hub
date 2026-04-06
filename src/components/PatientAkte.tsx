@@ -466,7 +466,7 @@ const PatientAkte = ({ patient, onNavigateToSpot }: PatientAkteProps) => {
                         const blobUrl = URL.createObjectURL(blob);
                         window.open(blobUrl, "_blank");
                       } catch {
-                        toast({ title: t("common.error"), description: t("akte.downloadError", "Fehler beim Öffnen"), variant: "destructive" });
+                        toast.error(t("akte.downloadError", "Fehler beim Öffnen"));
                       }
                     }}
                     className="p-1 rounded hover:bg-primary/10 text-muted-foreground hover:text-primary transition-colors"
