@@ -811,95 +811,110 @@ export async function generatePatientPDF(
 
     y += spotHeaderH + 3;
     /* ─── Body Map Thumbnail + Images Grid ─── */
-    const bodyMapW = 28; // mm width for body map thumbnail
-    const bodyMapH = 48; // mm height
-    const bodyMapGap = 4;
+    const bodyMapW = 24; // mm width for body map thumbnail
+    const bodyMapH = 42; // mm height
+    const bodyMapGap = 3;
     const hasBodyMap = loc.x != null && loc.y != null;
     const bodyMapReserved = hasBodyMap ? bodyMapW + bodyMapGap : 0;
 
     if (options.showImages && images.length > 0) {
       const displayImages = images.slice(-4);
-      const imgSize = 38;
-      const imgGap = 5;
+      const imgW = 32; // fixed width per image
+      const imgMaxH = 42; // max height, will be adjusted by aspect ratio
+      const imgGap = 4;
       const imagesAreaRight = pageW - margin - bodyMapReserved;
-      let imgX = margin + 3;
+      let imgX = margin + 2;
 
-      const rowH = Math.max(imgSize + 12, hasBodyMap ? bodyMapH + 8 : 0);
-      y = checkPage(doc, y, rowH, margin);
-
-      const imagesStartY = y;
-
+      // Pre-load all images to determine aspect ratios
+      const imageData: { base64: string | null; aspect: number; img: LocationImage }[] = [];
       for (const img of displayImages) {
-        if (imgX + imgSize > imagesAreaRight) {
-          imgX = margin + 3;
-          y += imgSize + 10;
-          y = checkPage(doc, y, imgSize + 12, margin);
-        }
-
         const imgUrl = `https://api.derm247.ch/storage/${img.file_path}?v=${Date.now()}_${img.id}`;
         const cacheKey = `img_${img.id}`;
         if (imageCache[cacheKey] === undefined) {
           imageCache[cacheKey] = await loadImageAsBase64(imgUrl);
         }
         const base64 = imageCache[cacheKey];
+        let aspect = 3 / 4; // default portrait
+        if (base64) {
+          const tmpImg = await loadHTMLImage(base64);
+          if (tmpImg) aspect = tmpImg.naturalWidth / tmpImg.naturalHeight;
+        }
+        imageData.push({ base64, aspect, img });
+      }
 
-        // Shadow
-        doc.setFillColor(220, 220, 220);
-        drawRoundedRect(doc, imgX + 0.4, y + 0.4, imgSize, imgSize, 2, "F");
+      // Calculate actual heights based on aspect ratios
+      const actualHeights = imageData.map(d => Math.min(imgW / d.aspect, imgMaxH));
+      const maxRowH = Math.max(...actualHeights);
+      const rowH = Math.max(maxRowH + 8, hasBodyMap ? bodyMapH + 4 : 0);
+      y = checkPage(doc, y, rowH, margin);
+
+      const imagesStartY = y;
+
+      for (const { base64, aspect, img } of imageData) {
+        let drawW = imgW;
+        let drawH = Math.min(drawW / aspect, imgMaxH);
+        if (drawH === imgMaxH) drawW = drawH * aspect;
+
+        if (imgX + drawW > imagesAreaRight) {
+          imgX = margin + 2;
+          y += maxRowH + 8;
+          y = checkPage(doc, y, drawH + 8, margin);
+        }
+
+        // Center vertically in row
+        const yOffset = (maxRowH - drawH) / 2;
 
         if (base64) {
           try {
             const imageFormat = base64.startsWith("data:image/png") ? "PNG" : "JPEG";
             doc.setDrawColor(...C.border);
-            doc.setLineWidth(0.3);
-            drawRoundedRect(doc, imgX, y, imgSize, imgSize, 2, "S");
-            doc.addImage(base64, imageFormat, imgX + 0.5, y + 0.5, imgSize - 1, imgSize - 1);
+            doc.setLineWidth(0.25);
+            drawRoundedRect(doc, imgX, y + yOffset, drawW, drawH, 1.5, "S");
+            doc.addImage(base64, imageFormat, imgX + 0.3, y + yOffset + 0.3, drawW - 0.6, drawH - 0.6);
             const originalUrl = `https://api.derm247.ch/storage/${img.file_path}`;
-            doc.link(imgX, y, imgSize, imgSize, { url: originalUrl });
+            doc.link(imgX, y + yOffset, drawW, drawH, { url: originalUrl });
           } catch {
             doc.setFillColor(...C.cardBg);
-            drawRoundedRect(doc, imgX, y, imgSize, imgSize, 2, "F");
-            doc.setFontSize(7);
+            drawRoundedRect(doc, imgX, y + yOffset, drawW, drawH, 1.5, "F");
+            doc.setFontSize(6.5);
             doc.setTextColor(...C.textMuted);
-            doc.text(i18n.t('pdf.imageNotAvailable'), imgX + imgSize / 2, y + imgSize / 2, { align: "center" });
+            doc.text(i18n.t('pdf.imageNotAvailable'), imgX + drawW / 2, y + yOffset + drawH / 2, { align: "center" });
           }
         } else {
           doc.setFillColor(...C.cardBg);
           doc.setDrawColor(...C.border);
-          drawRoundedRect(doc, imgX, y, imgSize, imgSize, 2, "FD");
-          doc.setFontSize(7);
+          drawRoundedRect(doc, imgX, y + yOffset, drawW, drawH, 1.5, "FD");
+          doc.setFontSize(6.5);
           doc.setTextColor(...C.textMuted);
-          doc.text(i18n.t('pdf.imageNotAvailable'), imgX + imgSize / 2, y + imgSize / 2, { align: "center" });
+          doc.text(i18n.t('pdf.imageNotAvailable'), imgX + drawW / 2, y + yOffset + drawH / 2, { align: "center" });
         }
 
         // Date label
-        doc.setFontSize(6.5);
+        doc.setFontSize(6);
         doc.setTextColor(...C.textSecondary);
         doc.setFont("Roboto", "normal");
-        const imgDate = img.created_at
-          ? formatDate(img.created_at, "dd.MM.yy")
-          : "-";
-        doc.text(imgDate, imgX + imgSize / 2, y + imgSize + 3.5, { align: "center" });
+        const imgDate = img.created_at ? formatDate(img.created_at, "dd.MM.yy") : "-";
+        doc.text(imgDate, imgX + drawW / 2, y + yOffset + drawH + 3, { align: "center" });
 
         // Risk score badge
         if (img.risk_score != null) {
           const sc = img.risk_score;
-          const badgeR = 3.8;
-          const badgeCx = imgX + imgSize - 2.5;
-          const badgeCy = y + 2.5;
+          const badgeR = 3;
+          const badgeCx = imgX + drawW - 2;
+          const badgeCy = y + yOffset + 2;
           doc.setFillColor(...riskColor(sc));
           doc.circle(badgeCx, badgeCy, badgeR, "F");
           doc.setDrawColor(...C.white);
-          doc.setLineWidth(0.5);
+          doc.setLineWidth(0.4);
           doc.circle(badgeCx, badgeCy, badgeR, "S");
           doc.setLineWidth(0.2);
           doc.setFont("Roboto", "bold");
-          doc.setFontSize(7.5);
+          doc.setFontSize(7);
           doc.setTextColor(...C.white);
-          doc.text(`${sc}`, badgeCx, badgeCy + 1, { align: "center" });
+          doc.text(`${sc}`, badgeCx, badgeCy + 0.8, { align: "center" });
         }
 
-        imgX += imgSize + imgGap;
+        imgX += drawW + imgGap;
       }
 
       // Draw body map thumbnail on the right
@@ -918,22 +933,19 @@ export async function generatePatientPDF(
           gender: patient.gender === "female" ? "female" : "male",
         });
         if (bodyMapBase64) {
-          // Subtle background card
           doc.setFillColor(...C.cardBg);
           doc.setDrawColor(...C.border);
           drawRoundedRect(doc, bmX, bmY, bodyMapW, bodyMapH, 2, "FD");
-
           try {
-            doc.addImage(bodyMapBase64, "PNG", bmX + 1, bmY + 1, bodyMapW - 2, bodyMapH - 2);
+            doc.addImage(bodyMapBase64, "PNG", bmX + 0.5, bmY + 0.5, bodyMapW - 1, bodyMapH - 1);
           } catch {}
         }
       }
 
-      y += imgSize + 7;
+      y += maxRowH + 6;
     } else if (hasBodyMap) {
-      // No images but still show body map
       y = checkPage(doc, y, bodyMapH + 4, margin);
-      const bmX = margin + 3;
+      const bmX = margin + 2;
       const bmY = y;
       const locView = loc.view || "front";
       const accentColor = loc.classification && loc.classification !== "unclassified"
@@ -951,13 +963,11 @@ export async function generatePatientPDF(
         doc.setDrawColor(...C.border);
         drawRoundedRect(doc, bmX, bmY, bodyMapW, bodyMapH, 2, "FD");
         try {
-          doc.addImage(bodyMapBase64, "PNG", bmX + 1, bmY + 1, bodyMapW - 2, bodyMapH - 2);
+          doc.addImage(bodyMapBase64, "PNG", bmX + 0.5, bmY + 0.5, bodyMapW - 1, bodyMapH - 1);
         } catch {}
       }
 
-      y += bodyMapH + 4;
-    }
-
+      y += bodyMapH + 3;
     /* ─── Risk Score Section ─── */
     const scores = images.map(img => img.risk_score).filter((s): s is number => s != null);
     if (options.showRiskScore && scores.length > 0) {
