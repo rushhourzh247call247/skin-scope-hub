@@ -824,7 +824,23 @@ const PatientDetail = () => {
         {/* Center + Right: Content */}
         <div className="flex-1 overflow-y-auto p-3 lg:p-6">
           <AnimatePresence mode="wait">
-            {activeTab === "uebersicht" ? (
+            {activeTab === "akte" ? (
+              <motion.div
+                key="akte"
+                initial={{ opacity: 0, y: 8 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -8 }}
+                transition={{ duration: 0.15 }}
+              >
+                <PatientAkte
+                  patient={patient}
+                  onNavigateToSpot={(locationId) => {
+                    setSelectedLocationId(locationId);
+                    setActiveTab("spots");
+                  }}
+                />
+              </motion.div>
+            ) : activeTab === "uebersicht" ? (
               <motion.div
                 key="uebersicht"
                 initial={{ opacity: 0, y: 8 }}
