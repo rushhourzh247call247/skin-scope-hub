@@ -158,7 +158,8 @@
       "overview": "ZONAS",
       "photos": "FOTOS",
       "timeline": "CRONOLOGÍA",
-      "reports": "INFORMES"
+      "reports": "INFORMES",
+      "chart": "EXPEDIENTE"
     },
     "notLoaded": "No se pudo cargar el paciente.",
     "backToListBtn": "Volver a la lista",
@@ -905,5 +906,28 @@
   "cls_keratosis": "Queratosis",
   "cls_dermatofibroma": "Dermatofibroma",
   "cls_vascular": "Lesión vascular",
-  "cls_other": "Otro"
+  "cls_other": "Otro",
+  "akte": {
+    "title": "Expediente del paciente",
+    "masterData": "Datos maestros",
+    "clinicalSummary": "Resumen clínico",
+    "highRiskSpots": "Puntos de alto riesgo",
+    "lastFindings": "Últimos hallazgos",
+    "appointments": "Citas",
+    "addAppointment": "Añadir cita",
+    "appointmentNotesPlaceholder": "Nota para la cita…",
+    "appointmentCreated": "Cita creada",
+    "appointmentDeleted": "Cita eliminada",
+    "appointmentError": "Error al crear la cita",
+    "noAppointments": "No hay citas programadas",
+    "overdue": "Vencida",
+    "documents": "Documentos",
+    "uploadDocument": "Subir documento",
+    "documentNotesOptional": "Nota (opcional)",
+    "documentNotesPlaceholder": "Derivación, informe previo…",
+    "documentUploaded": "Documento subido",
+    "documentDeleted": "Documento eliminado",
+    "documentError": "Error al subir",
+    "noDocuments": "No hay documentos disponibles"
+  }
 }

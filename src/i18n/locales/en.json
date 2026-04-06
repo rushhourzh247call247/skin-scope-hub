@@ -158,7 +158,8 @@
       "overview": "ZONES",
       "photos": "PHOTOS",
       "timeline": "TIMELINE",
-      "reports": "REPORTS"
+      "reports": "REPORTS",
+      "chart": "CHART"
     },
     "notLoaded": "Patient could not be loaded.",
     "backToListBtn": "Back to list",
@@ -905,5 +906,28 @@
   "cls_keratosis": "Keratosis",
   "cls_dermatofibroma": "Dermatofibroma",
   "cls_vascular": "Vascular lesion",
-  "cls_other": "Other"
+  "cls_other": "Other",
+  "akte": {
+    "title": "Patient Chart",
+    "masterData": "Master Data",
+    "clinicalSummary": "Clinical Summary",
+    "highRiskSpots": "High Risk Spots",
+    "lastFindings": "Recent Findings",
+    "appointments": "Appointments",
+    "addAppointment": "Add Appointment",
+    "appointmentNotesPlaceholder": "Note for appointment…",
+    "appointmentCreated": "Appointment created",
+    "appointmentDeleted": "Appointment deleted",
+    "appointmentError": "Error creating appointment",
+    "noAppointments": "No appointments scheduled",
+    "overdue": "Overdue",
+    "documents": "Documents",
+    "uploadDocument": "Upload Document",
+    "documentNotesOptional": "Note (optional)",
+    "documentNotesPlaceholder": "Referral, prior report…",
+    "documentUploaded": "Document uploaded",
+    "documentDeleted": "Document deleted",
+    "documentError": "Error uploading",
+    "noDocuments": "No documents available"
+  }
 }

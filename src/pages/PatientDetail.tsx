@@ -11,7 +11,8 @@ import { getClassificationLabel } from "@/lib/classificationTranslation";
 import { useState, useRef, useEffect } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import type { LesionClassification as LesionClassificationType } from "@/types/patient";
-import { ArrowLeft, MapPin, Plus, Calendar, ImageIcon, User, Hash, Activity, Mail, Phone, Pencil, Trash2, Save, X, Square, GitCompareArrows, Move, Camera, Tag, QrCode, Undo2, AlertTriangle, FileDown, Loader2, Eye, ChevronDown, Upload } from "lucide-react";
+import { ArrowLeft, MapPin, Plus, Calendar, ImageIcon, User, Hash, Activity, Mail, Phone, Pencil, Trash2, Save, X, Square, GitCompareArrows, Move, Camera, Tag, QrCode, Undo2, AlertTriangle, FileDown, Loader2, Eye, ChevronDown, Upload, ClipboardList } from "lucide-react";
+import PatientAkte from "@/components/PatientAkte";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { Slider } from "@/components/ui/slider";
 import { Button } from "@/components/ui/button";
@@ -71,7 +72,7 @@ const PatientDetail = () => {
     nz?: number;
   } | null>(null);
   const [locationName, setLocationName] = useState("");
-  const [activeTab, setActiveTab] = useState<"spots" | "timeline" | "fotos" | "uebersicht" | "berichte">("spots");
+  const [activeTab, setActiveTab] = useState<"akte" | "spots" | "timeline" | "fotos" | "uebersicht" | "berichte">("akte");
   const [newFindingText, setNewFindingText] = useState("");
   const [regionWidth, setRegionWidth] = useState(40);
   const [regionHeight, setRegionHeight] = useState(30);
@@ -399,6 +400,7 @@ const PatientDetail = () => {
           <div className="ml-auto flex items-center gap-1.5 shrink-0">
             <div className="flex items-center gap-1 rounded-lg bg-muted p-0.5 lg:p-1">
               {[
+                { key: "akte" as const, icon: ClipboardList, label: t('patientDetail.tabs.chart') },
                 { key: "spots" as const, icon: MapPin, label: t('patientDetail.tabs.spots') },
                 { key: "uebersicht" as const, icon: Eye, label: t('patientDetail.tabs.overview') },
                 { key: "fotos" as const, icon: Camera, label: t('patientDetail.tabs.photos') },
@@ -822,7 +824,23 @@ const PatientDetail = () => {
         {/* Center + Right: Content */}
         <div className="flex-1 overflow-y-auto p-3 lg:p-6">
           <AnimatePresence mode="wait">
-            {activeTab === "uebersicht" ? (
+            {activeTab === "akte" ? (
+              <motion.div
+                key="akte"
+                initial={{ opacity: 0, y: 8 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -8 }}
+                transition={{ duration: 0.15 }}
+              >
+                <PatientAkte
+                  patient={patient}
+                  onNavigateToSpot={(locationId) => {
+                    setSelectedLocationId(locationId);
+                    setActiveTab("spots");
+                  }}
+                />
+              </motion.div>
+            ) : activeTab === "uebersicht" ? (
               <motion.div
                 key="uebersicht"
                 initial={{ opacity: 0, y: 8 }}

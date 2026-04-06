@@ -1,4 +1,4 @@
-import type { LesionClassification } from '@/types/patient';
+import type { LesionClassification, Appointment, PatientDocument } from '@/types/patient';
 
 const DEFAULT_API_BASE_URL = 'https://api.derm247.ch/api';
 
@@ -325,4 +325,28 @@ export const api = {
   // Admin: Get patients filtered by company
   getPatientsByCompany: (companyId: number) =>
     request<any[]>(`/patients?company_id=${companyId}`),
+
+  // Appointments
+  getAppointments: (patientId: number) =>
+    request<Appointment[]>(`/patients/${patientId}/appointments`),
+  createAppointment: (patientId: number, data: { scheduled_at: string; notes?: string }) =>
+    request<Appointment>(`/patients/${patientId}/appointments`, { method: 'POST', body: JSON.stringify(data) }),
+  updateAppointment: (id: number, data: { scheduled_at?: string; notes?: string }) =>
+    request<Appointment>(`/appointments/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
+  deleteAppointment: (id: number) =>
+    request<{ success: boolean }>(`/appointments/${id}`, { method: 'DELETE' }),
+
+  // Patient Documents
+  getPatientDocuments: (patientId: number) =>
+    request<PatientDocument[]>(`/patients/${patientId}/documents`),
+  uploadPatientDocument: (patientId: number, file: File, notes?: string) => {
+    const formData = new FormData();
+    formData.append('document', file);
+    if (notes) formData.append('notes', notes);
+    return request<PatientDocument>(`/patients/${patientId}/documents`, { method: 'POST', body: formData });
+  },
+  deletePatientDocument: (id: number) =>
+    request<{ success: boolean }>(`/documents/${id}`, { method: 'DELETE' }),
+  getDocumentDownloadUrl: (id: number) =>
+    `${getApiBaseUrl()}/documents/${id}/download?token=${authToken}`,
 };

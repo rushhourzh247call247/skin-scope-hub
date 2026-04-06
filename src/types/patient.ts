@@ -114,6 +114,26 @@ export interface PdfExportOptions {
   doctorSummary: string;
 }
 
+export interface Appointment {
+  id: number;
+  patient_id: number;
+  scheduled_at: string;
+  notes?: string;
+  created_at?: string;
+  updated_at?: string;
+}
+
+export interface PatientDocument {
+  id: number;
+  patient_id: number;
+  file_path: string;
+  original_name: string;
+  notes?: string;
+  uploaded_by?: number;
+  created_at?: string;
+  updated_at?: string;
+}
+
 export interface PdfReport {
   id: string;
   patientId: number;

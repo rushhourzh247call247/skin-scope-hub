@@ -158,7 +158,8 @@
       "overview": "ZONEN",
       "photos": "FOTOS",
       "timeline": "TIMELINE",
-      "reports": "BERICHTE"
+      "reports": "BERICHTE",
+      "chart": "AKTE"
     },
     "notLoaded": "Patient konnte nicht geladen werden.",
     "backToListBtn": "Zurück zur Liste",
@@ -905,5 +906,28 @@
   "cls_keratosis": "Keratose",
   "cls_dermatofibroma": "Dermatofibrom",
   "cls_vascular": "Vaskuläre Läsion",
-  "cls_other": "Andere"
+  "cls_other": "Andere",
+  "akte": {
+    "title": "Patientenakte",
+    "masterData": "Stammdaten",
+    "clinicalSummary": "Klinische Zusammenfassung",
+    "highRiskSpots": "Hochrisiko-Spots",
+    "lastFindings": "Letzte Befunde",
+    "appointments": "Termine",
+    "addAppointment": "Termin hinzufügen",
+    "appointmentNotesPlaceholder": "Anmerkung zum Termin…",
+    "appointmentCreated": "Termin erstellt",
+    "appointmentDeleted": "Termin gelöscht",
+    "appointmentError": "Fehler beim Erstellen des Termins",
+    "noAppointments": "Keine Termine geplant",
+    "overdue": "Überfällig",
+    "documents": "Dokumente",
+    "uploadDocument": "Dokument hochladen",
+    "documentNotesOptional": "Anmerkung (optional)",
+    "documentNotesPlaceholder": "Überweisung, Vorbefund…",
+    "documentUploaded": "Dokument hochgeladen",
+    "documentDeleted": "Dokument gelöscht",
+    "documentError": "Fehler beim Hochladen",
+    "noDocuments": "Keine Dokumente vorhanden"
+  }
 }
