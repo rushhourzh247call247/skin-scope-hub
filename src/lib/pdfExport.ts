@@ -757,41 +757,36 @@ export async function generatePatientPDF(
       images = [images[images.length - 1]];
     }
 
-    const estimatedH = 18 + (options.showImages && images.length > 0 ? 50 : 0) +
-      (options.showRiskScore ? 12 : 0) + (options.showAbcde ? 20 : 0) + (options.showNotes ? 8 : 0);
-    y = checkPage(doc, y, Math.min(estimatedH, 80), margin);
+    const estimatedH = 14 + (options.showImages && images.length > 0 ? 45 : 0) +
+      (options.showRiskScore ? 10 : 0) + (options.showAbcde ? 16 : 0) + (options.showNotes ? 8 : 0);
+    y = checkPage(doc, y, Math.min(estimatedH, 70), margin);
 
     /* ─── Spot Header ─── */
+    const spotHeaderH = 10;
     doc.setFillColor(...C.headerBg);
-    drawRoundedRect(doc, margin, y, contentW, 14, 2, "F");
+    drawRoundedRect(doc, margin, y, contentW, spotHeaderH, 2, "F");
 
     // Spot number circle
     doc.setFillColor(...C.headerAccent);
-    doc.circle(margin + 6, y + 5, 3.2, "F");
+    doc.circle(margin + 5.5, y + spotHeaderH / 2, 2.8, "F");
     doc.setFont("Roboto", "bold");
-    doc.setFontSize(8);
+    doc.setFontSize(7.5);
     doc.setTextColor(...C.white);
-    doc.text(`${si + 1}`, margin + 6, y + 6, { align: "center" });
+    doc.text(`${si + 1}`, margin + 5.5, y + spotHeaderH / 2 + 0.8, { align: "center" });
 
     // Spot name
     doc.setFont("Roboto", "bold");
-    doc.setFontSize(10);
+    doc.setFontSize(9);
     doc.setTextColor(...C.white);
-    doc.text(spotName, margin + 12, y + 6);
+    doc.text(spotName, margin + 11, y + spotHeaderH / 2 + 0.8);
 
-    // Anatomical zone badge
+    // Zone name inline after spot name
     if (zoneName && zoneName !== "–") {
       doc.setFont("Roboto", "normal");
       doc.setFontSize(7);
-      const zoneText = zoneName;
-      const zW = doc.getTextWidth(zoneText) + 5;
-
-      // Position zone badge below spot name
-      doc.setFillColor(255, 255, 255);
-      doc.setFillColor(40, 55, 75);
-      drawRoundedRect(doc, margin + 12, y + 8, zW, 4.5, 1, "F");
-      doc.setTextColor(200, 220, 240);
-      doc.text(zoneText, margin + 14.5, y + 11);
+      const nameW = doc.getTextWidth(spotName);
+      doc.setTextColor(160, 180, 200);
+      doc.text(`  ·  ${zoneName}`, margin + 11 + nameW, y + spotHeaderH / 2 + 0.8);
     }
 
     // Classification badge (top right)
@@ -800,22 +795,21 @@ export async function generatePatientPDF(
         ? LESION_CLASSIFICATIONS[loc.classification]?.color ?? "#64748b"
         : "#64748b";
       const badgeText = classification;
-      const bw = doc.getTextWidth(badgeText) + 5;
-      const bx = pageW - margin - bw - 3;
+      doc.setFont("Roboto", "normal");
+      doc.setFontSize(6.5);
+      const bw = doc.getTextWidth(badgeText) + 4;
+      const bx = pageW - margin - bw - 2;
 
       const cr = parseInt(classColor.slice(1, 3), 16);
       const cg = parseInt(classColor.slice(3, 5), 16);
       const cb = parseInt(classColor.slice(5, 7), 16);
       doc.setFillColor(cr, cg, cb);
-      drawRoundedRect(doc, bx, y + 2, bw, 5.5, 1.2, "F");
-      doc.setFont("Roboto", "normal");
-      doc.setFontSize(7);
+      drawRoundedRect(doc, bx, y + (spotHeaderH - 4.5) / 2, bw, 4.5, 1, "F");
       doc.setTextColor(...C.white);
-      doc.text(badgeText, bx + 2.5, y + 5.8);
+      doc.text(badgeText, bx + 2, y + spotHeaderH / 2 + 0.6);
     }
 
-    y += 17;
-
+    y += spotHeaderH + 3;
     /* ─── Body Map Thumbnail + Images Grid ─── */
     const bodyMapW = 28; // mm width for body map thumbnail
     const bodyMapH = 48; // mm height
