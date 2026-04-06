@@ -200,7 +200,7 @@ async function compositeOverviewWithPins(
     ctx.fillText(`${i + 1}`, lx, ly + 1);
 
     // Spot name label next to circle
-    const label = spot?.name || pin.label || `Spot ${i + 1}`;
+    const label = translateAnatomyName(spot?.name) || spot?.name || pin.label || `Spot ${i + 1}`;
     const labelFontSize = Math.max(w * 0.012, 9);
     ctx.font = `bold ${labelFontSize}px sans-serif`;
     const labelW = ctx.measureText(label).width;
@@ -701,7 +701,7 @@ export async function generatePatientPDF(
         for (let pi = 0; pi < pins.length; pi++) {
           const pin = pins[pi];
           const spot = spotLocations.find(s => s.id === pin.linked_location_id);
-          const spotName = spot?.name || pin.label || `Spot ${pi + 1}`;
+          const spotName = translateAnatomyName(spot?.name) || spot?.name || pin.label || `Spot ${pi + 1}`;
           const cls = spot?.classification;
           const clsLabel = cls && cls !== "unclassified" ? getClassificationLabel(cls) : null;
 
@@ -740,7 +740,7 @@ export async function generatePatientPDF(
   /* ═══ SPOT SECTIONS ════════════════════════════════ */
   for (let si = 0; si < spotLocations.length; si++) {
     const loc = spotLocations[si];
-    const spotName = loc.name || `Spot #${loc.id}`;
+    const spotName = translateAnatomyName(loc.name) || loc.name || `Spot #${loc.id}`;
     const classification = loc.classification
       ? getClassificationLabel(loc.classification)
       : null;

@@ -1135,7 +1135,7 @@ const PatientDetail = () => {
                     </div>
                     <div>
                       <h2 className="text-lg font-semibold text-foreground flex items-center gap-2">
-                        {selectedLocation.name || (selectedLocation.type === "region" ? "Region" : `Spot #${selectedLocation.id}`)}
+                        {translateAnatomyName(selectedLocation.name) || (selectedLocation.type === "region" ? "Region" : `Spot #${selectedLocation.id}`)}
                         {selectedLocation.type === "region" && (
                           <Badge variant="outline" className="text-[10px] text-amber-600 border-amber-300">Region</Badge>
                         )}
@@ -1387,7 +1387,7 @@ const PatientDetail = () => {
                 {(selectedLocation.images?.length ?? 0) > 0 && (
                   <RiskProgression
                     images={selectedLocation.images ?? []}
-                    locationName={selectedLocation.name || `Spot #${selectedLocation.id}`}
+                    locationName={translateAnatomyName(selectedLocation.name) || `Spot #${selectedLocation.id}`}
                   />
                 )}
 
@@ -1396,7 +1396,7 @@ const PatientDetail = () => {
                   locationId={selectedLocation.id}
                   patientId={patientId}
                   images={selectedLocation.images ?? []}
-                  locationName={selectedLocation.name || (selectedLocation.type === "region" ? "Region" : `Spot #${selectedLocation.id}`)}
+                  locationName={translateAnatomyName(selectedLocation.name) || (selectedLocation.type === "region" ? "Region" : `Spot #${selectedLocation.id}`)}
                   locationType={selectedLocation.type || "spot"}
                   patientName={patient.name}
                   patientBirthDate={patient.birth_date}
