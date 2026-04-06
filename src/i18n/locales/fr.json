@@ -896,5 +896,14 @@
     "rightFoot": "Pied droit",
     "leftHeel": "Talon gauche",
     "rightHeel": "Talon droit"
-  }
+  },
+  "cls_unclassified": "Non classifié",
+  "cls_naevus": "Naevus (grain de beauté)",
+  "cls_melanoma_suspect": "Suspicion de mélanome",
+  "cls_bcc": "Carcinome basocellulaire",
+  "cls_scc": "Carcinome épidermoïde",
+  "cls_keratosis": "Kératose",
+  "cls_dermatofibroma": "Dermatofibrome",
+  "cls_vascular": "Lésion vasculaire",
+  "cls_other": "Autre"
 }

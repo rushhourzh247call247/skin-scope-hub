@@ -896,5 +896,14 @@
     "rightFoot": "Rechter Fuß",
     "leftHeel": "Linke Ferse",
     "rightHeel": "Rechte Ferse"
-  }
+  },
+  "cls_unclassified": "Nicht klassifiziert",
+  "cls_naevus": "Nävus (Muttermal)",
+  "cls_melanoma_suspect": "Melanom-Verdacht",
+  "cls_bcc": "Basalzellkarzinom",
+  "cls_scc": "Plattenepithelkarzinom",
+  "cls_keratosis": "Keratose",
+  "cls_dermatofibroma": "Dermatofibrom",
+  "cls_vascular": "Vaskuläre Läsion",
+  "cls_other": "Andere"
 }

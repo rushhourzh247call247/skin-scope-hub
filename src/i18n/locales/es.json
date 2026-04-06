@@ -896,5 +896,14 @@
     "rightFoot": "Pie derecho",
     "leftHeel": "Talón izquierdo",
     "rightHeel": "Talón derecho"
-  }
+  },
+  "cls_unclassified": "Sin clasificar",
+  "cls_naevus": "Nevus (lunar)",
+  "cls_melanoma_suspect": "Sospecha de melanoma",
+  "cls_bcc": "Carcinoma basocelular",
+  "cls_scc": "Carcinoma epidermoide",
+  "cls_keratosis": "Queratosis",
+  "cls_dermatofibroma": "Dermatofibroma",
+  "cls_vascular": "Lesión vascular",
+  "cls_other": "Otro"
 }
