@@ -7,6 +7,7 @@ import { translateAnatomyName } from "@/lib/anatomyTranslation";
 
 import type { FullPatient, LesionClassification } from "@/types/patient";
 import { LESION_CLASSIFICATIONS } from "@/types/patient";
+import { getClassificationLabel } from "@/lib/classificationTranslation";
 import { useState, useRef, useEffect } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import type { LesionClassification as LesionClassificationType } from "@/types/patient";
@@ -1173,7 +1174,7 @@ const PatientDetail = () => {
                         <div className="flex items-center gap-2">
                           <span className="flex items-center gap-1.5 text-[11px] font-medium text-foreground/80">
                             <span className="h-2 w-2 rounded-full shrink-0" style={{ backgroundColor: currentInfo?.color || 'hsl(var(--muted-foreground))' }} />
-                            {currentInfo?.label || t('patientDetail.notClassified')}
+                            {getClassificationLabel(currentCls)}
                           </span>
                           <ChevronDown className="h-3.5 w-3.5 text-muted-foreground transition-transform duration-200 [[data-state=open]>&]:rotate-180" />
                         </div>
@@ -1202,7 +1203,7 @@ const PatientDetail = () => {
                                   className="h-2 w-2 rounded-full shrink-0"
                                   style={{ backgroundColor: isActive ? cls.color : `${cls.color}60` }}
                                 />
-                                {cls.label}
+                                {getClassificationLabel(key)}
                               </button>
                             );
                           })}

@@ -10,6 +10,7 @@ import { api } from "@/lib/api";
 import { getAnatomicalName } from "@/lib/anatomyLookup";
 import { translateAnatomyName } from "@/lib/anatomyTranslation";
 import { renderBodyMap3DThumbnail } from "@/lib/bodyMapRenderer";
+import { getClassificationLabel } from "@/lib/classificationTranslation";
 
 /* ─── Helpers ─────────────────────────────────────────── */
 
@@ -448,7 +449,7 @@ export async function generatePatientPDF(
       if (!refImage) continue;
 
       const pins = overviewPinsMap[ov.id] || [];
-      const ovName = ov.name || "Übersichtsaufnahme";
+      const ovName = ov.name || i18n.t('pdf.overviewPhoto');
 
       // Need ~100mm height for overview section
       y = checkPage(doc, y, 100, margin);
@@ -702,7 +703,7 @@ export async function generatePatientPDF(
           const spot = spotLocations.find(s => s.id === pin.linked_location_id);
           const spotName = spot?.name || pin.label || `Spot ${pi + 1}`;
           const cls = spot?.classification;
-          const clsLabel = cls && cls !== "unclassified" ? LESION_CLASSIFICATIONS[cls]?.label : null;
+          const clsLabel = cls && cls !== "unclassified" ? getClassificationLabel(cls) : null;
 
           // Number circle
           const cx = margin + 7;
@@ -741,7 +742,7 @@ export async function generatePatientPDF(
     const loc = spotLocations[si];
     const spotName = loc.name || `Spot #${loc.id}`;
     const classification = loc.classification
-      ? LESION_CLASSIFICATIONS[loc.classification]?.label ?? loc.classification
+      ? getClassificationLabel(loc.classification)
       : null;
     const zoneName = getZoneName(loc);
 

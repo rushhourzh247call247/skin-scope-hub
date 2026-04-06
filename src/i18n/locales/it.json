@@ -896,5 +896,14 @@
     "rightFoot": "Piede destro",
     "leftHeel": "Tallone sinistro",
     "rightHeel": "Tallone destro"
-  }
+  },
+  "cls_unclassified": "Non classificato",
+  "cls_naevus": "Nevo (neo)",
+  "cls_melanoma_suspect": "Sospetto melanoma",
+  "cls_bcc": "Carcinoma basocellulare",
+  "cls_scc": "Carcinoma squamocellulare",
+  "cls_keratosis": "Cheratosi",
+  "cls_dermatofibroma": "Dermatofibroma",
+  "cls_vascular": "Lesione vascolare",
+  "cls_other": "Altro"
 }

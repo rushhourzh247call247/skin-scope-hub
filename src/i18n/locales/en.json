@@ -896,5 +896,14 @@
     "rightFoot": "Right Foot",
     "leftHeel": "Left Heel",
     "rightHeel": "Right Heel"
-  }
+  },
+  "cls_unclassified": "Not classified",
+  "cls_naevus": "Naevus (Mole)",
+  "cls_melanoma_suspect": "Melanoma suspect",
+  "cls_bcc": "Basal cell carcinoma",
+  "cls_scc": "Squamous cell carcinoma",
+  "cls_keratosis": "Keratosis",
+  "cls_dermatofibroma": "Dermatofibroma",
+  "cls_vascular": "Vascular lesion",
+  "cls_other": "Other"
 }
