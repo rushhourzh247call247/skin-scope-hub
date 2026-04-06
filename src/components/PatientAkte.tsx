@@ -465,10 +465,18 @@ const PatientAkte = ({ patient, onNavigateToSpot }: PatientAkteProps) => {
                       window.open(url, "_blank");
                     }}
                     className="p-1 rounded hover:bg-primary/10 text-muted-foreground hover:text-primary transition-colors"
+                    title={t("akte.preview", "Vorschau")}
+                  >
+                    <Eye className="h-3.5 w-3.5" />
+                  </button>
+                  <a
+                    href={api.getDocumentDownloadUrl(doc.id)}
+                    download
+                    className="p-1 rounded hover:bg-primary/10 text-muted-foreground hover:text-primary transition-colors"
                     title={t("common.download")}
                   >
                     <Download className="h-3.5 w-3.5" />
-                  </button>
+                  </a>
                   <button
                     onClick={() => deleteDocumentMutation.mutate(doc.id)}
                     className="p-1 rounded opacity-0 group-hover:opacity-100 transition-opacity hover:bg-destructive/10 text-muted-foreground hover:text-destructive"
