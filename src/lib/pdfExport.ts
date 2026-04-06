@@ -968,6 +968,8 @@ export async function generatePatientPDF(
       }
 
       y += bodyMapH + 3;
+    }
+
     /* ─── Risk Score Section ─── */
     const scores = images.map(img => img.risk_score).filter((s): s is number => s != null);
     if (options.showRiskScore && scores.length > 0) {
