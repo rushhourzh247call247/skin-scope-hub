@@ -338,78 +338,78 @@ export async function generatePatientPDF(
   }
 
   /* ═══ HEADER ═══════════════════════════════════════ */
-  const headerH = 32;
+  const headerH = 28;
   doc.setFillColor(...C.headerBg);
   doc.rect(0, 0, pageW, headerH, "F");
 
   doc.setFillColor(...C.headerAccent);
-  doc.rect(0, headerH, pageW, 1.2, "F");
+  doc.rect(0, headerH, pageW, 0.8, "F");
 
   doc.setFont("Roboto", "bold");
-  doc.setFontSize(20);
+  doc.setFontSize(18);
   doc.setTextColor(...C.white);
-  doc.text("DERM", margin, 14);
+  doc.text("DERM", margin, 12);
   doc.setTextColor(...C.headerAccent);
-  doc.text("247", margin + doc.getTextWidth("DERM"), 14);
+  doc.text("247", margin + doc.getTextWidth("DERM"), 12);
 
   doc.setFont("Roboto", "normal");
-  doc.setFontSize(8);
+  doc.setFontSize(7);
   doc.setTextColor(180, 200, 220);
-  doc.text(i18n.t('pdf.reportTitle'), margin, 20);
+  doc.text(i18n.t('pdf.reportTitle'), margin, 17.5);
 
   doc.setTextColor(...C.white);
-  doc.setFontSize(8);
+  doc.setFontSize(7.5);
   const dateStr = formatDate(new Date(), "dd. MMMM yyyy, HH:mm");
-  doc.text(dateStr, pageW - margin, 12, { align: "right" });
+  doc.text(dateStr, pageW - margin, 10, { align: "right" });
 
   const resolvedDoctor = resolveDoctorName(doctorName);
   if (resolvedDoctor) {
-    doc.setFontSize(8);
+    doc.setFontSize(7);
     doc.setTextColor(180, 200, 220);
-    doc.text(`${i18n.t('pdf.doctor')}: ${resolvedDoctor}`, pageW - margin, 18, { align: "right" });
+    doc.text(`${i18n.t('pdf.doctor')}: ${resolvedDoctor}`, pageW - margin, 15.5, { align: "right" });
   }
 
-  doc.setFontSize(7);
+  doc.setFontSize(6.5);
   const typeLabel = options.reportType === "lastVisit" ? i18n.t('pdf.lastVisit') : i18n.t('pdf.fullHistory');
-  const badgeW = doc.getTextWidth(typeLabel) + 6;
+  const badgeW = doc.getTextWidth(typeLabel) + 5;
   doc.setFillColor(...C.headerAccent);
-  drawRoundedRect(doc, pageW - margin - badgeW, 22, badgeW, 5, 1, "F");
+  drawRoundedRect(doc, pageW - margin - badgeW, 19, badgeW, 4.5, 1, "F");
   doc.setTextColor(...C.white);
-  doc.text(typeLabel, pageW - margin - badgeW + 3, 25.5);
+  doc.text(typeLabel, pageW - margin - badgeW + 2.5, 22);
 
-  y = headerH + 6;
+  y = headerH + 4;
 
   /* ═══ PATIENT INFO CARD ════════════════════════════ */
-  doc.setFillColor(...C.cardBg);
-  doc.setDrawColor(...C.border);
-  drawRoundedRect(doc, margin, y, contentW, 22, 2, "FD");
-
-  doc.setFont("Roboto", "bold");
-  doc.setFontSize(14);
-  doc.setTextColor(...C.textPrimary);
-  doc.text(patient.name, margin + 5, y + 8);
-
-  doc.setFont("Roboto", "normal");
-  doc.setFontSize(9);
-  doc.setTextColor(...C.textSecondary);
-
+  // Calculate dynamic height based on content
   const birthDate = patient.birth_date
     ? formatDate(patient.birth_date, "dd.MM.yyyy")
     : "–";
-
   const infoLine1: string[] = [`${i18n.t('pdf.birthDate')}: ${birthDate}`];
   if (patient.insurance_number) infoLine1.push(`${i18n.t('pdf.insuranceNumber')}: ${patient.insurance_number}`);
-  doc.text(infoLine1.join("   |   "), margin + 5, y + 14);
-
   const infoLine2: string[] = [];
   if (patient.email) infoLine2.push(patient.email);
   if (patient.phone) infoLine2.push(patient.phone);
+  const cardH = infoLine2.length > 0 ? 18 : 14;
+
+  doc.setFillColor(...C.cardBg);
+  doc.setDrawColor(...C.border);
+  drawRoundedRect(doc, margin, y, contentW, cardH, 2, "FD");
+
+  doc.setFont("Roboto", "bold");
+  doc.setFontSize(12);
+  doc.setTextColor(...C.textPrimary);
+  doc.text(patient.name, margin + 4, y + 6.5);
+
+  doc.setFont("Roboto", "normal");
+  doc.setFontSize(8);
+  doc.setTextColor(...C.textSecondary);
+  doc.text(infoLine1.join("   |   "), margin + 4, y + 11.5);
+
   if (infoLine2.length > 0) {
-    doc.text(infoLine2.join("   |   "), margin + 5, y + 19);
+    doc.text(infoLine2.join("   |   "), margin + 4, y + 16);
   }
 
-  y += 28;
-
+  y += cardH + 4;
   /* summary bar removed – keep layout clean */
 
   /* ═══ DOCTOR SUMMARY ═══════════════════════════════ */
