@@ -703,7 +703,7 @@ export async function generatePatientPDF(
           const spot = spotLocations.find(s => s.id === pin.linked_location_id);
           const spotName = spot?.name || pin.label || `Spot ${pi + 1}`;
           const cls = spot?.classification;
-          const clsLabel = cls && cls !== "unclassified" ? LESION_CLASSIFICATIONS[cls]?.label : null;
+          const clsLabel = cls && cls !== "unclassified" ? getClassificationLabel(cls) : null;
 
           // Number circle
           const cx = margin + 7;
