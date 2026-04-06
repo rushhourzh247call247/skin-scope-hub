@@ -945,7 +945,7 @@ export async function generatePatientPDF(
       y += maxRowH + 6;
     } else if (hasBodyMap) {
       y = checkPage(doc, y, bodyMapH + 4, margin);
-      const bmX = margin + 2;
+      const bmX = pageW - margin - bodyMapW;
       const bmY = y;
       const locView = loc.view || "front";
       const accentColor = loc.classification && loc.classification !== "unclassified"
