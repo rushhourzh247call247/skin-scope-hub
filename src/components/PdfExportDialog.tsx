@@ -242,7 +242,7 @@ export default function PdfExportDialog({ open, onOpenChange, patient, doctorNam
 
         {step === "preview" && (
           <div className="space-y-4">
-            <div className="overflow-hidden rounded-lg border bg-muted/30" style={{ height: "52vh" }}>
+            <div className="rounded-lg border bg-muted/30 md:h-[52vh] md:overflow-hidden">
               {previewUrl ? (
                 <PdfPreviewPages pdfUrl={previewUrl} />
               ) : (
