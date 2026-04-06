@@ -1135,7 +1135,7 @@ const PatientDetail = () => {
                     </div>
                     <div>
                       <h2 className="text-lg font-semibold text-foreground flex items-center gap-2">
-                        {selectedLocation.name || (selectedLocation.type === "region" ? "Region" : `Spot #${selectedLocation.id}`)}
+                        {translateAnatomyName(selectedLocation.name) || (selectedLocation.type === "region" ? "Region" : `Spot #${selectedLocation.id}`)}
                         {selectedLocation.type === "region" && (
                           <Badge variant="outline" className="text-[10px] text-amber-600 border-amber-300">Region</Badge>
                         )}
