@@ -72,7 +72,7 @@ const PatientDetail = () => {
     nz?: number;
   } | null>(null);
   const [locationName, setLocationName] = useState("");
-  const [activeTab, setActiveTab] = useState<"spots" | "timeline" | "fotos" | "uebersicht" | "berichte">("spots");
+  const [activeTab, setActiveTab] = useState<"akte" | "spots" | "timeline" | "fotos" | "uebersicht" | "berichte">("akte");
   const [newFindingText, setNewFindingText] = useState("");
   const [regionWidth, setRegionWidth] = useState(40);
   const [regionHeight, setRegionHeight] = useState(30);
