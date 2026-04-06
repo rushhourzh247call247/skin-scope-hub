@@ -1387,7 +1387,7 @@ const PatientDetail = () => {
                 {(selectedLocation.images?.length ?? 0) > 0 && (
                   <RiskProgression
                     images={selectedLocation.images ?? []}
-                    locationName={selectedLocation.name || `Spot #${selectedLocation.id}`}
+                    locationName={translateAnatomyName(selectedLocation.name) || `Spot #${selectedLocation.id}`}
                   />
                 )}
 
