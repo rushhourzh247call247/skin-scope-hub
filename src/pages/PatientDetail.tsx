@@ -400,6 +400,7 @@ const PatientDetail = () => {
           <div className="ml-auto flex items-center gap-1.5 shrink-0">
             <div className="flex items-center gap-1 rounded-lg bg-muted p-0.5 lg:p-1">
               {[
+                { key: "akte" as const, icon: ClipboardList, label: t('patientDetail.tabs.chart') },
                 { key: "spots" as const, icon: MapPin, label: t('patientDetail.tabs.spots') },
                 { key: "uebersicht" as const, icon: Eye, label: t('patientDetail.tabs.overview') },
                 { key: "fotos" as const, icon: Camera, label: t('patientDetail.tabs.photos') },
