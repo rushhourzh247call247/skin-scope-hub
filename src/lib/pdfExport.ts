@@ -200,7 +200,7 @@ async function compositeOverviewWithPins(
     ctx.fillText(`${i + 1}`, lx, ly + 1);
 
     // Spot name label next to circle
-    const label = spot?.name || pin.label || `Spot ${i + 1}`;
+    const label = translateAnatomyName(spot?.name) || spot?.name || pin.label || `Spot ${i + 1}`;
     const labelFontSize = Math.max(w * 0.012, 9);
     ctx.font = `bold ${labelFontSize}px sans-serif`;
     const labelW = ctx.measureText(label).width;
