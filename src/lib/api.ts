@@ -389,5 +389,5 @@ export const api = {
   getDocumentDownloadUrl: (id: number) =>
     `${getApiBaseUrl()}/documents/${id}/download?token=${authToken}`,
   downloadDocumentBlob: (id: number) =>
-    requestBlob(`/documents/${id}/download`),
+    requestBlob(`/documents/${id}/download${authToken ? `?token=${authToken}` : ''}`),
 };
