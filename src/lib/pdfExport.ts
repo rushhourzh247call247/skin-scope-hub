@@ -10,6 +10,7 @@ import { api } from "@/lib/api";
 import { getAnatomicalName } from "@/lib/anatomyLookup";
 import { translateAnatomyName } from "@/lib/anatomyTranslation";
 import { renderBodyMap3DThumbnail } from "@/lib/bodyMapRenderer";
+import { getClassificationLabel } from "@/lib/classificationTranslation";
 
 /* ─── Helpers ─────────────────────────────────────────── */
 
