@@ -125,7 +125,7 @@ const Settings = () => {
                     : "border-border text-muted-foreground hover:border-primary/40 hover:text-foreground"
                 }`}
               >
-                <span className="text-lg">{lang.flag}</span>
+                <LanguageFlag code={lang.code} />
                 {lang.label}
               </button>
             ))}

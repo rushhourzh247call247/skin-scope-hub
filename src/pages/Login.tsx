@@ -202,7 +202,7 @@ const Login = () => {
                 }`}
                 title={lang.label}
               >
-                <span>{lang.flag}</span>
+                <LanguageFlag code={lang.code} />
                 <span>{lang.code.toUpperCase()}</span>
               </button>
             ))}
