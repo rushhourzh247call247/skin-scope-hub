@@ -461,8 +461,8 @@ const PatientAkte = ({ patient, onNavigateToSpot }: PatientAkteProps) => {
                 <div className="flex items-center gap-1 shrink-0">
                   <button
                     onClick={() => {
-                      const url = api.getDocumentDownloadUrl(doc.id);
-                      window.open(url, "_blank");
+                      const url = `${api.getDocumentDownloadUrl(doc.id)}&inline=1`;
+                      window.open(url, "_blank", "noopener,noreferrer");
                     }}
                     className="p-1 rounded hover:bg-primary/10 text-muted-foreground hover:text-primary transition-colors"
                     title={t("akte.preview", "Vorschau")}
