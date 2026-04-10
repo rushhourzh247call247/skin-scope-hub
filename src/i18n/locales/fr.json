@@ -154,13 +154,25 @@
     "backToList": "Retour",
     "patient": "Patient",
     "tabs": {
-      "spots": "POINTS",
-      "overview": "ZONES",
-      "photos": "PHOTOS",
-      "timeline": "CHRONOLOGIE",
-      "reports": "RAPPORTS",
-      "chart": "DOSSIER"
+      "spots": "Points",
+      "overview": "Zones",
+      "photos": "Photos",
+      "timeline": "Chronologie",
+      "reports": "Rapports",
+      "chart": "Dossier"
     },
+    "bottomNav": {
+      "chart": "Dossier",
+      "spots": "Points",
+      "photos": "Photos",
+      "reports": "Rapports"
+    },
+    "sidebarTab": {
+      "spots": "Points",
+      "zones": "Zones"
+    },
+    "tapToExpand": "Toucher pour ouvrir",
+    "moreActions": "Plus",
     "notLoaded": "Le patient n'a pas pu être chargé.",
     "backToListBtn": "Retour à la liste",
     "overviewPhotos": "Zones",
