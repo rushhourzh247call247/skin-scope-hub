@@ -878,7 +878,7 @@ const PatientDetail = () => {
       <input ref={zoneFileRef} type="file" accept="image/*" className="hidden" onChange={handleZoneSidebarUpload} />
 
         {/* Center + Right: Content */}
-        <div className="flex-1 overflow-y-auto p-3 lg:p-6">
+        <div className="flex-1 overflow-y-auto p-3 lg:p-6 pb-20 lg:pb-6">
           <AnimatePresence mode="wait">
             {activeTab === "akte" ? (
               <motion.div

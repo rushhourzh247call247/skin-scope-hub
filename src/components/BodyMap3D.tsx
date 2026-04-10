@@ -1151,15 +1151,16 @@ const BodyMap3D: React.FC<BodyMap3DProps> = (props) => {
           {gender === "female" ? `♀ ${i18n.t('common.female')}` : `♂ ${i18n.t('common.male')}`}
         </div>
 
-        {/* Region buttons */}
+        {/* Region buttons - collapsed into scrollable strip, only show 3 main + expandable */}
         <div className="absolute right-1.5 top-1/2 flex -translate-y-1/2 flex-col gap-0.5 max-h-[calc(100%-1rem)] overflow-y-auto scrollbar-none">
-          {(Object.entries(CAMERA_PRESETS) as [Region, CameraPreset][]).map(([key, p]) => {
+          {(["full", "head", "torso", "back"] as Region[]).map((key) => {
+            const p = CAMERA_PRESETS[key];
             const Icon = p.icon;
             return (
               <button
                 key={key}
                 onClick={() => setActiveRegion(key)}
-                title={p.label}
+                title={i18n.t(p.label)}
                 className={cn(
                   "flex h-6 w-6 shrink-0 items-center justify-center rounded transition-all",
                   activeRegion === key
@@ -1171,6 +1172,34 @@ const BodyMap3D: React.FC<BodyMap3DProps> = (props) => {
               </button>
             );
           })}
+          {/* More regions dropdown */}
+          <details className="relative">
+            <summary className="flex h-6 w-6 shrink-0 items-center justify-center rounded border border-border/50 bg-card/80 text-muted-foreground hover:bg-card hover:text-foreground cursor-pointer list-none transition-all">
+              <ChevronDown className="h-3 w-3" />
+            </summary>
+            <div className="absolute right-7 top-0 flex flex-col gap-0.5 rounded-lg border bg-card p-1 shadow-lg z-10 min-w-[100px]">
+              {(Object.entries(CAMERA_PRESETS) as [Region, CameraPreset][])
+                .filter(([key]) => !["full", "head", "torso", "back"].includes(key))
+                .map(([key, p]) => {
+                  const Icon = p.icon;
+                  return (
+                    <button
+                      key={key}
+                      onClick={() => { setActiveRegion(key); }}
+                      className={cn(
+                        "flex items-center gap-2 rounded px-2 py-1 text-[10px] font-medium transition-all whitespace-nowrap",
+                        activeRegion === key
+                          ? "bg-primary text-primary-foreground"
+                          : "text-muted-foreground hover:bg-muted hover:text-foreground",
+                      )}
+                    >
+                      <Icon className="h-3 w-3" />
+                      {i18n.t(p.label)}
+                    </button>
+                  );
+                })}
+            </div>
+          </details>
         </div>
 
         {/* Bottom controls */}
