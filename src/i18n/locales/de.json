@@ -63,6 +63,8 @@
     "download": "Herunterladen",
     "upload": "Hochladen",
     "retry": "Erneut versuchen",
+    "collapse": "Zuklappen",
+    "expand": "Aufklappen",
     "creating": "Wird erstellt…",
     "saving": "Wird gespeichert…",
     "sameDay": "Gleicher Tag",
