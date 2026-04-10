@@ -121,6 +121,7 @@ const OverviewPhoto = ({ overviewLocation, spotLocations, patientId, onNavigateT
       api.uploadImage(locationId, file),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["full-patient", patientId] });
+      queryClient.invalidateQueries({ queryKey: ["trashed-locations", patientId] });
       setSpotUploading(false);
       toast.success(t('overviewPhoto.spotPhotoUploaded'));
     },
