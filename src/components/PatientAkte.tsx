@@ -3,7 +3,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { api } from "@/lib/api";
 import { translateAnatomyName } from "@/lib/anatomyTranslation";
 import { getClassificationLabel } from "@/lib/classificationTranslation";
-import type { FullPatient, LesionClassification, Appointment, PatientDocument } from "@/types/patient";
+import type { FullPatient, LesionClassification, Appointment, PatientDocument, Consultation } from "@/types/patient";
 import { LESION_CLASSIFICATIONS } from "@/types/patient";
 import { formatDate } from "@/lib/dateUtils";
 import { useState, useRef } from "react";
