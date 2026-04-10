@@ -244,6 +244,7 @@ const PatientDetail = () => {
     queryKey: ["trashed-locations", patientId],
     queryFn: () => api.getTrashedLocations(patientId),
     enabled: !!patientId,
+    refetchInterval: qrDialogOpen ? 5000 : false,
   });
 
   const softDeleteMutation = useMutation({
@@ -281,6 +282,10 @@ const PatientDetail = () => {
   const locations = (patient?.locations ?? []).filter((l: any) => !l.deleted_at);
   const spotLocations = locations.filter(l => l.type !== "overview");
   const overviewLocations = locations.filter(l => l.type === "overview");
+  const linkedSpotLocations = [
+    ...spotLocations,
+    ...trashedLocations.filter((loc: any) => loc.type !== "overview" && !spotLocations.some(spot => spot.id === loc.id)),
+  ];
   const selectedLocation = locations.find((l) => l.id === selectedLocationId);
   const totalImages = locations.reduce((sum, l) => sum + (l.images?.length ?? 0), 0);
 
@@ -971,7 +976,7 @@ const PatientDetail = () => {
                             <div key={loc.id} id={`zone-${loc.id}`}>
                             <OverviewPhoto
                               overviewLocation={loc}
-                              spotLocations={spotLocations}
+                              spotLocations={linkedSpotLocations}
                               patientId={patientId}
                               onNavigateToSpot={(spotId) => {
                                 setSelectedLocationId(spotId);
