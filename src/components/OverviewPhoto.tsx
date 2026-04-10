@@ -122,11 +122,32 @@ const OverviewPhoto = ({ overviewLocation, spotLocations, patientId, onNavigateT
 
   const handleImageClick = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
     if (!pinMode) return;
-    const rect = e.currentTarget.getBoundingClientRect();
+    // Account for the transform scale — use the inner container's natural size
+    const el = containerRef.current;
+    if (!el) return;
+    const rect = el.getBoundingClientRect();
     const x_pct = ((e.clientX - rect.left) / rect.width) * 100;
     const y_pct = ((e.clientY - rect.top) / rect.height) * 100;
     setPendingPin({ x_pct, y_pct });
   }, [pinMode]);
+
+  // Mouse wheel zoom
+  const handleWheel = useCallback((e: WheelEvent) => {
+    if (e.ctrlKey || e.metaKey) {
+      e.preventDefault();
+      setZoomLevel(z => {
+        const delta = e.deltaY > 0 ? -0.15 : 0.15;
+        return Math.min(Math.max(z + delta, 0.5), 4);
+      });
+    }
+  }, []);
+
+  useEffect(() => {
+    const scrollContainer = containerRef.current?.parentElement;
+    if (!scrollContainer) return;
+    scrollContainer.addEventListener("wheel", handleWheel, { passive: false });
+    return () => scrollContainer.removeEventListener("wheel", handleWheel);
+  }, [handleWheel]);
 
   const handleLinkSpot = (spotId: number) => {
     if (!pendingPin) return;
@@ -289,8 +310,8 @@ const OverviewPhoto = ({ overviewLocation, spotLocations, patientId, onNavigateT
           size="sm"
           variant="outline"
           className="h-7 w-7 p-0"
-          onClick={() => setZoomLevel(z => Math.min(z + 0.25, 3))}
-          title="Hineinzoomen"
+          onClick={() => setZoomLevel(z => Math.min(z + 0.25, 4))}
+          title={t('overviewPhoto.zoomIn', 'Hineinzoomen')}
         >
           <ZoomIn className="h-3.5 w-3.5" />
         </Button>
@@ -299,7 +320,7 @@ const OverviewPhoto = ({ overviewLocation, spotLocations, patientId, onNavigateT
           variant="outline"
           className="h-7 w-7 p-0"
           onClick={() => setZoomLevel(z => Math.max(z - 0.25, 0.5))}
-          title="Herauszoomen"
+          title={t('overviewPhoto.zoomOut', 'Herauszoomen')}
         >
           <ZoomOut className="h-3.5 w-3.5" />
         </Button>
@@ -313,6 +334,9 @@ const OverviewPhoto = ({ overviewLocation, spotLocations, patientId, onNavigateT
             {Math.round(zoomLevel * 100)}% – Reset
           </Button>
         )}
+        <span className="text-[10px] text-muted-foreground ml-1">
+          {t('overviewPhoto.zoomHint', 'Ctrl + Mausrad zum Zoomen')}
+        </span>
       </div>
 
       <div className="max-h-[60vh] overflow-auto rounded-lg border bg-muted">
@@ -323,8 +347,9 @@ const OverviewPhoto = ({ overviewLocation, spotLocations, patientId, onNavigateT
             pinMode && "cursor-crosshair ring-2 ring-primary/30 ring-inset"
           )}
           style={{
-            width: `${zoomLevel * 100}%`,
-            minWidth: '100%',
+            transform: `scale(${zoomLevel})`,
+            transformOrigin: 'top left',
+            width: '100%',
           }}
           onClick={handleImageClick}
         >
