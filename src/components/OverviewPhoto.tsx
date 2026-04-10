@@ -571,11 +571,11 @@ const OverviewPhoto = ({ overviewLocation, spotLocations, patientId, onNavigateT
                     )}
 
                     {/* Actions */}
-                    <div className="flex gap-1.5 mt-2 pt-2 border-t">
+                    <div className="flex flex-wrap gap-1.5 mt-2 pt-2 border-t">
                       <Button
                         size="sm"
                         variant="outline"
-                        className="flex-1 text-xs h-8 gap-1"
+                        className="text-xs h-8 gap-1 min-w-0 flex-shrink-0"
                         disabled={spotUploading}
                         onClick={() => {
                           const inp = document.createElement('input');
@@ -607,7 +607,7 @@ const OverviewPhoto = ({ overviewLocation, spotLocations, patientId, onNavigateT
                       <Button
                         size="sm"
                         variant="default"
-                        className="flex-1 text-xs h-8 gap-1"
+                        className="text-xs h-8 gap-1 ml-auto"
                         onClick={() => { setOpenPinId(null); onNavigateToSpot(pin.linked_location_id); }}
                       >
                         <Eye className="h-3 w-3" />
