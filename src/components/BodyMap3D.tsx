@@ -1270,53 +1270,6 @@ const BodyMap3D: React.FC<BodyMap3DProps> = (props) => {
           {gender === "female" ? `♀ ${i18n.t('common.female')}` : `♂ ${i18n.t('common.male')}`}
         </div>
 
-        {/* Region selector - collapsible to not cover the body */}
-        <div className="absolute right-1.5 top-1/2 -translate-y-1/2 group/regions">
-          <div className="flex flex-col items-end">
-            {/* Toggle button - always visible */}
-            <button
-              onClick={() => setShowRegions(prev => !prev)}
-              className="flex h-7 w-7 items-center justify-center rounded-md border border-border/50 bg-card/90 backdrop-blur-sm shadow-md text-muted-foreground hover:text-foreground transition-all"
-              title="Regionen"
-            >
-              <MapPin className="h-3.5 w-3.5" />
-            </button>
-            {/* Region list */}
-            {showRegions && (
-              <div className="mt-1 flex flex-col gap-px rounded-lg border border-border/50 bg-card/95 backdrop-blur-sm shadow-lg overflow-hidden">
-                {([
-                  ["full", "Ganzkörper"],
-                  ["head", "Kopf"],
-                  ["torso", "Rumpf"],
-                  ["back", "Rücken"],
-                  ["left_arm", "L. Arm"],
-                  ["right_arm", "R. Arm"],
-                  ["hands", "Hände"],
-                  ["legs", "Beine"],
-                  ["feet", "Füße"],
-                ] as [Region, string][]).map(([key, label]) => {
-                  const p = CAMERA_PRESETS[key];
-                  const Icon = p.icon;
-                  return (
-                    <button
-                      key={key}
-                      onClick={() => { setActiveRegion(key); setShowRegions(false); }}
-                      className={cn(
-                        "flex items-center gap-1.5 px-2 py-1 text-[10px] font-medium transition-all whitespace-nowrap",
-                        activeRegion === key
-                          ? "bg-primary text-primary-foreground"
-                          : "text-muted-foreground hover:bg-muted hover:text-foreground",
-                      )}
-                    >
-                      <Icon className="h-3 w-3 shrink-0" />
-                      {label}
-                    </button>
-                  );
-                })}
-              </div>
-            )}
-          </div>
-        </div>
 
         {/* Bottom controls */}
         <div className="absolute bottom-2 left-2 flex items-center gap-1.5">
