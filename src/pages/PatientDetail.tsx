@@ -72,7 +72,7 @@ const PatientDetail = () => {
     nz?: number;
   } | null>(null);
   const [locationName, setLocationName] = useState("");
-  const [activeTab, setActiveTab] = useState<"akte" | "spots" | "timeline" | "fotos" | "uebersicht" | "berichte">("akte");
+  const [activeTab, setActiveTab] = useState<"akte" | "spots" | "fotos" | "uebersicht" | "berichte">("akte");
   const [sidebarTab, setSidebarTab] = useState<"spots" | "zones">("spots");
   const [newFindingText, setNewFindingText] = useState("");
   const [regionWidth, setRegionWidth] = useState(40);
@@ -441,7 +441,6 @@ const PatientDetail = () => {
                 { key: "spots" as const, icon: MapPin, label: t('patientDetail.tabs.spots') },
                 { key: "uebersicht" as const, icon: Eye, label: t('patientDetail.tabs.overview') },
                 { key: "fotos" as const, icon: Camera, label: t('patientDetail.tabs.photos') },
-                { key: "timeline" as const, icon: Activity, label: t('patientDetail.tabs.timeline') },
                 { key: "berichte" as const, icon: FileDown, label: t('patientDetail.tabs.reports') },
               ].map(tab => (
                 <button
@@ -1160,88 +1159,6 @@ const PatientDetail = () => {
                     })}
                   </div>
                 )}
-              </motion.div>
-            ) : activeTab === "timeline" ? (
-              <motion.div
-                key="timeline"
-                initial={{ opacity: 0, y: 8 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -8 }}
-                transition={{ duration: 0.15 }}
-                className="space-y-2"
-              >
-                <h2 className="text-lg font-semibold text-foreground mb-4">Chronologischer Verlauf</h2>
-                {(() => {
-                  // Collect all events from all locations
-                  const events: { date: string; type: "image" | "finding" | "location"; label: string; detail?: string; locationName: string; locationId: number; imagePath?: string; imageUrl?: string; userName?: string }[] = [];
-                  locations.forEach((loc) => {
-                    const locName = translateAnatomyName(loc.name) || `Spot #${loc.id}`;
-                    // Location creation
-                    events.push({ date: loc.created_at ?? "", type: "location", label: t('patientDetail.spotCreatedEvent'), detail: locName, locationName: locName, locationId: loc.id });
-                    // Images
-                    (loc.images ?? []).forEach((img) => {
-                      events.push({ date: img.created_at ?? "", type: "image", label: t('patientDetail.imageUploadedEvent'), locationName: locName, locationId: loc.id, imagePath: img.image_path, imageUrl: img.image_url });
-                    });
-                    // Findings
-                    (loc.findings ?? []).forEach((f: any) => {
-                      events.push({ date: f.created_at ?? "", type: "finding", label: t('patientDetail.findingEvent'), detail: f.description, locationName: locName, locationId: loc.id, userName: f.user_name });
-                    });
-                  });
-                  events.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
-
-                  if (events.length === 0) {
-                    return (
-                      <div className="flex flex-col items-center justify-center py-16 text-muted-foreground">
-                        <Activity className="h-10 w-10 mb-3" />
-                        <p className="text-sm">{t('patientDetail.noEntriesYet')}</p>
-                      </div>
-                    );
-                  }
-
-                  return (
-                    <div className="relative border-l-2 border-muted ml-4 space-y-4">
-                      {events.map((ev, i) => (
-                        <div key={i} className="relative pl-6">
-                          <div className={cn(
-                            "absolute -left-[9px] top-1.5 h-4 w-4 rounded-full border-2 border-background",
-                            ev.type === "image" ? "bg-blue-500" : ev.type === "finding" ? "bg-amber-500" : "bg-primary"
-                          )} />
-                          <div className="rounded-lg border bg-card p-3 space-y-1.5">
-                            <div className="flex items-center justify-between">
-                              <div className="flex items-center gap-2 text-xs">
-                                {ev.type === "image" && <ImageIcon className="h-3.5 w-3.5 text-blue-500" />}
-                                {ev.type === "finding" && <Activity className="h-3.5 w-3.5 text-amber-500" />}
-                                {ev.type === "location" && <MapPin className="h-3.5 w-3.5 text-primary" />}
-                                <span className="font-medium text-foreground">{ev.label}</span>
-                                <Badge variant="outline" className="text-[10px] px-1.5 py-0">{ev.locationName}</Badge>
-                              </div>
-                              <span className="text-[10px] text-muted-foreground tabular-nums flex items-center gap-1">
-                                <Calendar className="h-3 w-3" />
-                                {ev.date ? formatDate(ev.date, "dd.MM.yyyy HH:mm") : "–"}
-                              </span>
-                            </div>
-                            {ev.userName && <p className="text-xs text-muted-foreground italic">{t('patientDetail.by')} {ev.userName}</p>}
-                            {ev.detail && <p className="text-sm text-muted-foreground">{ev.detail}</p>}
-                            {ev.imagePath && (
-                              <img
-                                src={ev.imageUrl || api.getImageUrl(ev.imagePath)}
-                                alt="Aufnahme"
-                                className="h-24 w-20 rounded object-cover border mt-1"
-                                loading="lazy"
-                              />
-                            )}
-                            <button
-                              onClick={() => { setActiveTab("spots"); setSelectedLocationId(ev.locationId); }}
-                              className="text-[10px] text-primary hover:underline"
-                            >
-                              {t('patientDetail.toSpot')}
-                            </button>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  );
-                })()}
               </motion.div>
             ) : activeTab === "berichte" ? (
               <motion.div
