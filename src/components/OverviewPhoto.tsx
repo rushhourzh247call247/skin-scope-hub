@@ -510,14 +510,14 @@ const OverviewPhoto = ({ overviewLocation, spotLocations, patientId, onNavigateT
 
               {/* Leader line connecting crosshair to label */}
               <div
-                className="absolute z-[9] pointer-events-none"
+                className="absolute z-[9] pointer-events-none transition-opacity"
                 style={{
                   left: `${pin.x_pct}%`,
                   top: `${pin.y_pct}%`,
                   width: `${Math.abs(labelOffsetX)}px`,
                   height: `${Math.abs(labelOffsetY)}px`,
                   transform: `translate(${labelOffsetX > 0 ? '0' : `${labelOffsetX}px`}, ${labelOffsetY > 0 ? '0' : `${labelOffsetY}px`})`,
-                  borderLeft: labelOffsetX > 0 ? 'none' : 'none',
+                  opacity: Math.max(0, 1 - (zoomLevel - 1) * 0.5),
                 }}
               >
                 <svg width="100%" height="100%" className="overflow-visible">
