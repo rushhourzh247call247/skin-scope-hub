@@ -810,7 +810,7 @@ export async function generatePatientPDF(
     doc.setFont("Roboto", "bold");
     doc.setFontSize(7.5);
     doc.setTextColor(...C.white);
-    doc.text(`${si + 1}`, margin + 5.5, y + spotHeaderH / 2 + 0.8, { align: "center" });
+    doc.text(`${originalIndex + 1}`, margin + 5.5, y + spotHeaderH / 2 + 0.8, { align: "center" });
 
     // Spot name
     doc.setFont("Roboto", "bold");
