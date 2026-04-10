@@ -558,11 +558,12 @@ const OverviewPhoto = ({ overviewLocation, spotLocations, patientId, onNavigateT
                 <Popover open={openPinId === pin.id} onOpenChange={(open) => { if (!open) setOpenPinId(null); }}>
                   <PopoverTrigger asChild>
                     <button
-                      className="absolute z-10 transition-transform hover:scale-110 cursor-pointer"
+                      className="absolute z-10 transition-all hover:scale-110 hover:!opacity-100 cursor-pointer"
                       style={{
                         left: `${pin.x_pct}%`,
                         top: `${pin.y_pct}%`,
                         transform: `translate(calc(-50% + ${labelOffsetX}px), calc(-50% + ${labelOffsetY}px))`,
+                        opacity: Math.max(0.15, 1 - (zoomLevel - 1) * 0.5),
                       }}
                       onClick={(e) => { e.stopPropagation(); setOpenPinId(openPinId === pin.id ? null : pin.id); }}
                       onMouseEnter={() => setHoveredPin(pin.id)}
