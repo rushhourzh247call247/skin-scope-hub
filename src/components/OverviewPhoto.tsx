@@ -310,8 +310,8 @@ const OverviewPhoto = ({ overviewLocation, spotLocations, patientId, onNavigateT
           size="sm"
           variant="outline"
           className="h-7 w-7 p-0"
-          onClick={() => setZoomLevel(z => Math.min(z + 0.25, 3))}
-          title="Hineinzoomen"
+          onClick={() => setZoomLevel(z => Math.min(z + 0.25, 4))}
+          title={t('overviewPhoto.zoomIn', 'Hineinzoomen')}
         >
           <ZoomIn className="h-3.5 w-3.5" />
         </Button>
@@ -320,7 +320,7 @@ const OverviewPhoto = ({ overviewLocation, spotLocations, patientId, onNavigateT
           variant="outline"
           className="h-7 w-7 p-0"
           onClick={() => setZoomLevel(z => Math.max(z - 0.25, 0.5))}
-          title="Herauszoomen"
+          title={t('overviewPhoto.zoomOut', 'Herauszoomen')}
         >
           <ZoomOut className="h-3.5 w-3.5" />
         </Button>
@@ -334,6 +334,9 @@ const OverviewPhoto = ({ overviewLocation, spotLocations, patientId, onNavigateT
             {Math.round(zoomLevel * 100)}% – Reset
           </Button>
         )}
+        <span className="text-[10px] text-muted-foreground ml-1">
+          {t('overviewPhoto.zoomHint', 'Ctrl + Mausrad zum Zoomen')}
+        </span>
       </div>
 
       <div className="max-h-[60vh] overflow-auto rounded-lg border bg-muted">
@@ -344,8 +347,9 @@ const OverviewPhoto = ({ overviewLocation, spotLocations, patientId, onNavigateT
             pinMode && "cursor-crosshair ring-2 ring-primary/30 ring-inset"
           )}
           style={{
-            width: `${zoomLevel * 100}%`,
-            minWidth: '100%',
+            transform: `scale(${zoomLevel})`,
+            transformOrigin: 'top left',
+            width: '100%',
           }}
           onClick={handleImageClick}
         >
