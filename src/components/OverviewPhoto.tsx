@@ -537,7 +537,11 @@ const OverviewPhoto = ({ overviewLocation, spotLocations, patientId, onNavigateT
                                   src={api.resolveImageSrc(img)}
                                   alt={`${spot.name} #${idx + 1}`}
                                   className="h-14 w-14 rounded-lg object-cover border cursor-pointer hover:ring-2 hover:ring-primary transition-all"
-                                  onClick={() => setZoomedImageSrc(api.resolveImageSrc(img))}
+                                  onClick={() => {
+                                    const sortedImages = [...spot.images].sort((a, b) => new Date(a.created_at ?? 0).getTime() - new Date(b.created_at ?? 0).getTime());
+                                    const gallery = sortedImages.map(i => api.resolveImageSrc(i));
+                                    openLightbox(api.resolveImageSrc(img), gallery);
+                                  }}
                                 />
                                 <p className="text-[9px] text-muted-foreground mt-0.5">
                                   {img.created_at ? formatDate(img.created_at, 'dd.MM.yy') : `#${idx + 1}`}
