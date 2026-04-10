@@ -833,7 +833,7 @@ const PatientDetail = () => {
                                 />
                                 {img.created_at && (
                                   <span className="absolute bottom-0 left-0 right-0 bg-black/60 text-[8px] text-white text-center py-0.5 truncate">
-                                    {formatDate(img.created_at)}
+                                    {formatDate(img.created_at, 'dd.MM.yyyy')}
                                   </span>
                                 )}
                               </div>
@@ -842,7 +842,7 @@ const PatientDetail = () => {
                           {loc.classification && (
                             <p className="mt-1.5 text-[10px]">
                               <span className="font-medium">{t('patientDetail.classification')}:</span>{" "}
-                              {getClassificationLabel(loc.classification, t)}
+                              {getClassificationLabel(loc.classification)}
                             </p>
                           )}
                         </div>
