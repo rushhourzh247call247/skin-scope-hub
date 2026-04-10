@@ -471,10 +471,11 @@ const OverviewPhoto = ({ overviewLocation, spotLocations, patientId, onNavigateT
                   title={t('overviewPhoto.clickToRemovePin')}
                 >
                   <span
-                    className="flex items-center justify-center rounded-full text-[10px] font-bold text-white shadow-md border border-white/50"
-                    style={{ width: 20, height: 20, backgroundColor: color }}
+                    className="flex items-center gap-1 rounded-full text-[9px] font-bold text-white shadow-md border border-white/50 px-2 py-0.5"
+                    style={{ backgroundColor: "#ef4444" }}
                   >
                     <Trash2 className="h-3 w-3 text-white" />
+                    <span className="truncate max-w-[60px]">{spot?.name || pin.label || "Spot"}</span>
                   </span>
                 </button>
               ) : (
