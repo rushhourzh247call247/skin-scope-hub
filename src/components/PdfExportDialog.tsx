@@ -125,10 +125,13 @@ export default function PdfExportDialog({ open, onOpenChange, patient, doctorNam
       } else {
         toast.error(t('pdfExport.downloadedNotSaved'));
       }
+
+      // Close dialog after save & download
       setTimeout(() => {
         URL.revokeObjectURL(blobUrl);
         URL.revokeObjectURL(downloadUrl);
       }, 3000);
+      handleClose(false);
     } catch {
       toast.error(t('pdfExport.createError'));
     } finally {
