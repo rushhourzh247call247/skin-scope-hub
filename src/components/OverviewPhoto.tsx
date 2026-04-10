@@ -45,6 +45,7 @@ const OverviewPhoto = ({ overviewLocation, spotLocations, patientId, onNavigateT
   const queryClient = useQueryClient();
   const fileRef = useRef<HTMLInputElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
+  const spotFileRef = useRef<HTMLInputElement>(null);
   const [uploading, setUploading] = useState(false);
   const [pinMode, setPinMode] = useState(false);
   const [pendingPin, setPendingPin] = useState<{ x_pct: number; y_pct: number } | null>(null);
@@ -52,6 +53,8 @@ const OverviewPhoto = ({ overviewLocation, spotLocations, patientId, onNavigateT
   const [editMode, setEditMode] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState<number | null>(null);
   const [hoveredPin, setHoveredPin] = useState<number | null>(null);
+  const [openPinId, setOpenPinId] = useState<number | null>(null);
+  const [spotUploading, setSpotUploading] = useState(false);
 
   const [isRenaming, setIsRenaming] = useState(false);
   const [renameValue, setRenameValue] = useState("");
