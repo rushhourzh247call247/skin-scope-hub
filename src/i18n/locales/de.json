@@ -951,6 +951,15 @@
     "documentUploaded": "Dokument hochgeladen",
     "documentDeleted": "Dokument gelöscht",
     "documentError": "Fehler beim Hochladen",
-    "noDocuments": "Keine Dokumente vorhanden"
+    "noDocuments": "Keine Dokumente vorhanden",
+    "consultations": "Konsultationen",
+    "addConsultation": "Neue Konsultation",
+    "consultationPlaceholder": "Anamnese, Befund, Therapie, Verlauf…",
+    "consultationCreated": "Konsultation gespeichert",
+    "consultationUpdated": "Konsultation aktualisiert",
+    "consultationDeleted": "Konsultation gelöscht",
+    "consultationError": "Fehler beim Speichern",
+    "noConsultations": "Noch keine Konsultationen dokumentiert",
+    "editConsultation": "Bearbeiten"
   }
 }
