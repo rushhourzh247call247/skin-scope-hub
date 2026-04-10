@@ -738,8 +738,24 @@ export async function generatePatientPDF(
   }
 
   /* ═══ SPOT SECTIONS ════════════════════════════════ */
-  for (let si = 0; si < spotLocations.length; si++) {
-    const loc = spotLocations[si];
+  // Sort spots: zone-linked first (grouped by zone, ordered by pin index), then unlinked
+  const sortedSpots = [...spotLocations].sort((a, b) => {
+    let aZoneIdx = Infinity, aPinIdx = Infinity;
+    let bZoneIdx = Infinity, bPinIdx = Infinity;
+    for (let oi = 0; oi < overviewLocations.length; oi++) {
+      const pins = overviewPinsMap[overviewLocations[oi].id] || [];
+      const aiP = pins.findIndex(p => p.linked_location_id === a.id);
+      if (aiP >= 0) { aZoneIdx = oi; aPinIdx = aiP; }
+      const biP = pins.findIndex(p => p.linked_location_id === b.id);
+      if (biP >= 0) { bZoneIdx = oi; bPinIdx = biP; }
+    }
+    if (aZoneIdx !== bZoneIdx) return aZoneIdx - bZoneIdx;
+    return aPinIdx - bPinIdx;
+  });
+
+  for (let si = 0; si < sortedSpots.length; si++) {
+    const loc = sortedSpots[si];
+    const originalIndex = spotLocations.indexOf(loc);
     const spotName = translateAnatomyName(loc.name) || loc.name || `Spot #${loc.id}`;
     const classification = loc.classification
       ? getClassificationLabel(loc.classification)
