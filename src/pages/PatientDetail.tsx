@@ -458,15 +458,6 @@ const PatientDetail = () => {
                 </button>
               ))}
             </div>
-            <Button
-              variant="outline"
-              size="icon"
-              onClick={() => setPdfDialogOpen(true)}
-              className="h-8 w-8"
-              title="PDF Export"
-            >
-              <FileDown className="h-3.5 w-3.5" />
-            </Button>
           </div>
         </div>
 
