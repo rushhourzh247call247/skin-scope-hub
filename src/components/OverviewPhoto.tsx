@@ -80,6 +80,18 @@ const OverviewPhoto = ({ overviewLocation, spotLocations, patientId, onNavigateT
 
   const closeLightbox = useCallback(() => setZoomedGallery([]), []);
 
+  // Keyboard navigation for lightbox
+  useEffect(() => {
+    if (zoomedGallery.length === 0) return;
+    const handler = (e: KeyboardEvent) => {
+      if (e.key === "ArrowLeft") setZoomedIndex(i => (i - 1 + zoomedGallery.length) % zoomedGallery.length);
+      else if (e.key === "ArrowRight") setZoomedIndex(i => (i + 1) % zoomedGallery.length);
+      else if (e.key === "Escape") closeLightbox();
+    };
+    window.addEventListener("keydown", handler);
+    return () => window.removeEventListener("keydown", handler);
+  }, [zoomedGallery, closeLightbox]);
+
   const { data: pins = [] } = useQuery({
     queryKey: ["overview-pins", overviewLocation.id],
     queryFn: () => api.getOverviewPins(overviewLocation.id),
