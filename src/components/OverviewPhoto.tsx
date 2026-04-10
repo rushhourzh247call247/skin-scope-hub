@@ -437,85 +437,148 @@ const OverviewPhoto = ({ overviewLocation, spotLocations, patientId, onNavigateT
                 </svg>
               </div>
 
-              <button
-                className={cn(
-                  "absolute z-10 transition-transform hover:scale-110",
-                  editMode ? "cursor-move" : "cursor-pointer"
-                )}
-                style={{
-                  left: `${pin.x_pct}%`,
-                  top: `${pin.y_pct}%`,
-                  transform: `translate(calc(-50% + ${labelOffsetX}px), calc(-50% + ${labelOffsetY}px))`,
-                }}
-                onClick={(e) => {
-                  e.stopPropagation();
-                  if (editMode) {
-                    setDeleteTarget(pin.id);
-                  } else {
-                    onNavigateToSpot(pin.linked_location_id);
-                  }
-                }}
-                onMouseEnter={() => setHoveredPin(pin.id)}
-                onMouseLeave={() => setHoveredPin(null)}
-                title={editMode ? t('overviewPhoto.clickToRemovePin') : `→ ${spot?.name || pin.label || `Spot #${pin.linked_location_id}`}`}
-              >
-                <span
-                  className="flex items-center justify-center rounded-full text-[10px] font-bold text-white shadow-md border border-white/50"
-                  style={{ width: 20, height: 20, backgroundColor: color }}
-                >
-                  {editMode ? <Trash2 className="h-3 w-3 text-white" /> : i + 1}
-                </span>
-              </button>
-
-              {hoveredPin === pin.id && !editMode && (
-                <div
-                  className="absolute z-20 pointer-events-none"
+              {editMode ? (
+                <button
+                  className="absolute z-10 transition-transform hover:scale-110 cursor-pointer"
                   style={{
                     left: `${pin.x_pct}%`,
                     top: `${pin.y_pct}%`,
-                    transform: `translate(-50%, ${pin.y_pct > 70 ? 'calc(-100% - 32px)' : '8px'})`,
+                    transform: `translate(calc(-50% + ${labelOffsetX}px), calc(-50% + ${labelOffsetY}px))`,
                   }}
+                  onClick={(e) => { e.stopPropagation(); setDeleteTarget(pin.id); }}
+                  title={t('overviewPhoto.clickToRemovePin')}
                 >
-                  <div className="bg-card rounded-lg border shadow-xl p-2 min-w-[140px]">
-                    <div className="flex items-center gap-2">
-                      {previewUrl ? (
-                        <img
-                          src={previewUrl}
-                          alt=""
-                          className="h-10 w-10 rounded-full object-cover border shrink-0"
-                        />
-                      ) : (
-                        <div className="h-10 w-10 rounded-full bg-muted flex items-center justify-center shrink-0">
-                          <ImageIcon className="h-4 w-4 text-muted-foreground" />
-                        </div>
-                      )}
-                      <div className="min-w-0">
-                        <p className="text-xs font-medium text-foreground truncate">
+                  <span
+                    className="flex items-center justify-center rounded-full text-[10px] font-bold text-white shadow-md border border-white/50"
+                    style={{ width: 20, height: 20, backgroundColor: color }}
+                  >
+                    <Trash2 className="h-3 w-3 text-white" />
+                  </span>
+                </button>
+              ) : (
+                <Popover open={openPinId === pin.id} onOpenChange={(open) => { if (!open) setOpenPinId(null); }}>
+                  <PopoverTrigger asChild>
+                    <button
+                      className="absolute z-10 transition-transform hover:scale-110 cursor-pointer"
+                      style={{
+                        left: `${pin.x_pct}%`,
+                        top: `${pin.y_pct}%`,
+                        transform: `translate(calc(-50% + ${labelOffsetX}px), calc(-50% + ${labelOffsetY}px))`,
+                      }}
+                      onClick={(e) => { e.stopPropagation(); setOpenPinId(openPinId === pin.id ? null : pin.id); }}
+                      onMouseEnter={() => setHoveredPin(pin.id)}
+                      onMouseLeave={() => setHoveredPin(null)}
+                      title={`→ ${spot?.name || pin.label || `Spot #${pin.linked_location_id}`}`}
+                    >
+                      <span
+                        className="flex items-center justify-center rounded-full text-[10px] font-bold text-white shadow-md border border-white/50"
+                        style={{ width: 20, height: 20, backgroundColor: color }}
+                      >
+                        {i + 1}
+                      </span>
+                    </button>
+                  </PopoverTrigger>
+                  <PopoverContent
+                    side={pin.y_pct > 60 ? "top" : "bottom"}
+                    align="center"
+                    className="w-72 p-3 z-50"
+                    onClick={(e) => e.stopPropagation()}
+                  >
+                    {/* Spot header */}
+                    <div className="flex items-center justify-between mb-2">
+                      <div className="flex items-center gap-2 min-w-0">
+                        <span
+                          className="flex items-center justify-center rounded-full text-[10px] font-bold text-white shrink-0"
+                          style={{ width: 20, height: 20, backgroundColor: color }}
+                        >
+                          {i + 1}
+                        </span>
+                        <p className="text-sm font-medium text-foreground truncate">
                           {spot?.name || pin.label || `Spot #${pin.linked_location_id}`}
                         </p>
-                        {spot && (
-                          <p className="text-[10px] text-muted-foreground">
-                            {spot.images?.length ?? 0} {t('common.images')}
-                          </p>
-                        )}
-                        {(() => {
-                          const cls = (spot as any)?.classification as LesionClassification | undefined;
-                          if (!cls || cls === "unclassified") return null;
-                          const info = LESION_CLASSIFICATIONS[cls];
-                          return (
-                            <span
-                              className="text-[9px] font-bold px-1 rounded mt-0.5 inline-block"
-                              style={{ backgroundColor: `${info.color}20`, color: info.color }}
-                            >
-                              {info.shortLabel}
-                            </span>
-                          );
-                        })()}
                       </div>
+                      {(() => {
+                        const cls = (spot as any)?.classification as LesionClassification | undefined;
+                        if (!cls || cls === "unclassified") return null;
+                        const info = LESION_CLASSIFICATIONS[cls];
+                        return (
+                          <span
+                            className="text-[9px] font-bold px-1.5 py-0.5 rounded shrink-0"
+                            style={{ backgroundColor: `${info.color}20`, color: info.color }}
+                          >
+                            {info.shortLabel}
+                          </span>
+                        );
+                      })()}
                     </div>
-                    <p className="text-[10px] text-primary mt-1.5 text-center">{t('overviewPhoto.clickToViewSpot')}</p>
-                  </div>
-                </div>
+
+                    {/* Photo timeline */}
+                    {spot?.images?.length ? (
+                      <div className="space-y-1.5">
+                        <p className="text-[10px] text-muted-foreground font-medium">
+                          {spot.images.length} {t('common.images')} — {t('overviewPhoto.photoTimeline')}
+                        </p>
+                        <div className="flex gap-1.5 overflow-x-auto pb-1 -mx-1 px-1">
+                          {[...spot.images]
+                            .sort((a, b) => new Date(a.created_at ?? 0).getTime() - new Date(b.created_at ?? 0).getTime())
+                            .map((img, idx) => (
+                              <div key={img.id} className="shrink-0 text-center">
+                                <img
+                                  src={api.resolveImageSrc(img)}
+                                  alt={`${spot.name} #${idx + 1}`}
+                                  className="h-14 w-14 rounded-lg object-cover border cursor-pointer hover:ring-2 hover:ring-primary transition-all"
+                                  onClick={() => setZoomedImageSrc(api.resolveImageSrc(img))}
+                                />
+                                <p className="text-[9px] text-muted-foreground mt-0.5">
+                                  {img.created_at ? formatDate(img.created_at) : `#${idx + 1}`}
+                                </p>
+                              </div>
+                            ))}
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="flex flex-col items-center py-3 text-muted-foreground">
+                        <ImageIcon className="h-6 w-6 mb-1" />
+                        <p className="text-xs">{t('overviewPhoto.noSpotPhotos')}</p>
+                      </div>
+                    )}
+
+                    {/* Actions */}
+                    <div className="flex gap-1.5 mt-2 pt-2 border-t">
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        className="flex-1 text-xs h-8 gap-1"
+                        disabled={spotUploading}
+                        onClick={() => {
+                          // Create a unique file input per spot
+                          const inp = document.createElement('input');
+                          inp.type = 'file';
+                          inp.accept = 'image/*';
+                          inp.onchange = (ev) => {
+                            const file = (ev.target as HTMLInputElement).files?.[0];
+                            if (!file) return;
+                            setSpotUploading(true);
+                            spotUploadMutation.mutate({ locationId: pin.linked_location_id, file });
+                          };
+                          inp.click();
+                        }}
+                      >
+                        {spotUploading ? <Loader2 className="h-3 w-3 animate-spin" /> : <Upload className="h-3 w-3" />}
+                        {t('overviewPhoto.uploadSpotPhoto')}
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="default"
+                        className="flex-1 text-xs h-8 gap-1"
+                        onClick={() => { setOpenPinId(null); onNavigateToSpot(pin.linked_location_id); }}
+                      >
+                        <Eye className="h-3 w-3" />
+                        {t('overviewPhoto.openSpot')}
+                      </Button>
+                    </div>
+                  </PopoverContent>
+                </Popover>
               )}
             </div>
           );
