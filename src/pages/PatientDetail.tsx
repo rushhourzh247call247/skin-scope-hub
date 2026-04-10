@@ -785,32 +785,74 @@ const PatientDetail = () => {
             </button>
             {showTrash && trashedLocations.length > 0 && (
               <div className="mt-2 space-y-1">
-                {trashedLocations.map((loc) => (
-                  <div
-                    key={loc.id}
-                    className="flex items-center gap-2 rounded-md border border-dashed border-border/50 bg-muted/30 px-2.5 py-1.5 text-xs text-muted-foreground"
-                  >
-                    <Trash2 className="h-3 w-3 shrink-0 opacity-50" />
-                    <div className="min-w-0 flex-1">
-                      <p className="truncate font-medium">{translateAnatomyName(loc.name) || "Spot"}</p>
-                      <p className="text-[10px]">{loc.images?.length ?? 0} {t('common.images')}</p>
+                {trashedLocations.map((loc) => {
+                  const isExpanded = expandedTrashId === loc.id;
+                  const images = loc.images ?? [];
+                  return (
+                    <div key={loc.id} className="rounded-md border border-dashed border-border/50 bg-muted/30 text-xs text-muted-foreground">
+                      <div className="flex items-center gap-2 px-2.5 py-1.5">
+                        <button
+                          onClick={() => setExpandedTrashId(isExpanded ? null : loc.id)}
+                          className="shrink-0 p-0.5 rounded hover:bg-accent transition-colors"
+                          title={isExpanded ? t('common.collapse') : t('common.expand')}
+                        >
+                          <ChevronDown className={cn("h-3 w-3 transition-transform", isExpanded && "rotate-180")} />
+                        </button>
+                        <button
+                          onClick={() => setExpandedTrashId(isExpanded ? null : loc.id)}
+                          className="min-w-0 flex-1 text-left"
+                        >
+                          <p className="truncate font-medium">{translateAnatomyName(loc.name) || "Spot"}</p>
+                          <p className="text-[10px]">{images.length} {t('common.images')}</p>
+                        </button>
+                        <button
+                          onClick={() => restoreMutation.mutate(loc.id)}
+                          className="shrink-0 p-1 rounded hover:bg-primary/10 text-muted-foreground hover:text-primary transition-colors"
+                          title={t('patientDetail.restoreFromTrash')}
+                        >
+                          <Undo2 className="h-3.5 w-3.5" />
+                        </button>
+                        <button
+                          onClick={() => setPermanentDeleteId(loc.id)}
+                          className="shrink-0 p-1 rounded hover:bg-destructive/10 text-muted-foreground hover:text-destructive transition-colors"
+                          title={t('patientDetail.permanentlyDelete')}
+                        >
+                          <X className="h-3.5 w-3.5" />
+                        </button>
+                      </div>
+                      {isExpanded && images.length > 0 && (
+                        <div className="px-2.5 pb-2 pt-1 border-t border-border/30">
+                          <div className="grid grid-cols-3 gap-1.5">
+                            {images.map((img: any, idx: number) => (
+                              <div key={img.id ?? idx} className="relative aspect-square overflow-hidden rounded bg-muted">
+                                <img
+                                  src={api.resolveImageSrc(img)}
+                                  alt={`${translateAnatomyName(loc.name)} ${idx + 1}`}
+                                  className="h-full w-full object-cover"
+                                  loading="lazy"
+                                />
+                                {img.created_at && (
+                                  <span className="absolute bottom-0 left-0 right-0 bg-black/60 text-[8px] text-white text-center py-0.5 truncate">
+                                    {formatDate(img.created_at)}
+                                  </span>
+                                )}
+                              </div>
+                            ))}
+                          </div>
+                          {loc.classification && (
+                            <p className="mt-1.5 text-[10px]">
+                              <span className="font-medium">{t('patientDetail.classification')}:</span>{" "}
+                              {getClassificationLabel(loc.classification, t)}
+                            </p>
+                          )}
+                        </div>
+                      )}
+                      {isExpanded && images.length === 0 && (
+                        <p className="px-2.5 pb-2 pt-1 text-[10px] italic border-t border-border/30">{t('patientDetail.noImages')}</p>
+                      )}
                     </div>
-                    <button
-                      onClick={() => restoreMutation.mutate(loc.id)}
-                      className="shrink-0 p-1 rounded hover:bg-primary/10 text-muted-foreground hover:text-primary transition-colors"
-                      title={t('patientDetail.restoreFromTrash')}
-                    >
-                      <Undo2 className="h-3.5 w-3.5" />
-                    </button>
-                    <button
-                      onClick={() => setPermanentDeleteId(loc.id)}
-                      className="shrink-0 p-1 rounded hover:bg-destructive/10 text-muted-foreground hover:text-destructive transition-colors"
-                      title={t('patientDetail.permanentlyDelete')}
-                    >
-                      <X className="h-3.5 w-3.5" />
-                    </button>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             )}
             {showTrash && trashedLocations.length === 0 && (
