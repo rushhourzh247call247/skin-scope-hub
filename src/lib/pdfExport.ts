@@ -1084,18 +1084,9 @@ export async function generatePatientPDF(
       y += 2;
     }
 
-    /* ─── Spot Separator ─── */
-    if (si < spotLocations.length - 1) {
-      y += 1;
-      doc.setDrawColor(...C.border);
-      doc.setLineWidth(0.15);
-      let dx = margin;
-      while (dx < pageW - margin) {
-        doc.line(dx, y, Math.min(dx + 1.5, pageW - margin), y);
-        dx += 3;
-      }
-      doc.setLineWidth(0.2);
-      y += 4;
+    /* ─── Spot Separator (simple spacing, no dashed lines) ─── */
+    if (si < sortedSpots.length - 1) {
+      y += 5;
     }
   }
 
