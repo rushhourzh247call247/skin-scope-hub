@@ -33,6 +33,20 @@ interface Marker {
   classificationColor?: string;
 }
 
+interface ZoneOverlay {
+  id: number;
+  name?: string;
+  x3d?: number;
+  y3d?: number;
+  z3d?: number;
+  nx?: number;
+  ny?: number;
+  nz?: number;
+  view?: "front" | "back";
+  x?: number;
+  y?: number;
+}
+
 type Gender = "female" | "male";
 type MarkType = "spot" | "region" | "zone";
 
