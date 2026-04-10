@@ -490,13 +490,13 @@ const OverviewPhoto = ({ overviewLocation, spotLocations, patientId, onNavigateT
                       onClick={(e) => { e.stopPropagation(); setOpenPinId(openPinId === pin.id ? null : pin.id); }}
                       onMouseEnter={() => setHoveredPin(pin.id)}
                       onMouseLeave={() => setHoveredPin(null)}
-                      title={`→ ${spot?.name || pin.label || `Spot #${pin.linked_location_id}`}`}
+                      title={spot?.name || pin.label || `Spot #${pin.linked_location_id}`}
                     >
                       <span
-                        className="flex items-center justify-center rounded-full text-[10px] font-bold text-white shadow-md border border-white/50"
-                        style={{ width: 20, height: 20, backgroundColor: color }}
+                        className="flex items-center gap-1 rounded-full text-[9px] font-bold text-white shadow-md border border-white/50 px-2 py-0.5 whitespace-nowrap max-w-[100px]"
+                        style={{ backgroundColor: color }}
                       >
-                        {i + 1}
+                        <span className="truncate">{spot?.name || pin.label || "Spot"}</span>
                       </span>
                     </button>
                   </PopoverTrigger>
