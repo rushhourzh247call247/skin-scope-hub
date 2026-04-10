@@ -492,11 +492,12 @@ const OverviewPhoto = ({ overviewLocation, spotLocations, patientId, onNavigateT
             <div key={pin.id}>
               {/* Tiny crosshair at the exact lesion point – minimal occlusion */}
               <div
-                className="absolute z-10 pointer-events-none"
+                className="absolute z-10 pointer-events-none transition-opacity"
                 style={{
                   left: `${pin.x_pct}%`,
                   top: `${pin.y_pct}%`,
                   transform: "translate(-50%, -50%)",
+                  opacity: Math.max(0, 1 - (zoomLevel - 1) * 0.5),
                 }}
               >
                 <svg width="14" height="14" viewBox="0 0 14 14">
@@ -509,14 +510,14 @@ const OverviewPhoto = ({ overviewLocation, spotLocations, patientId, onNavigateT
 
               {/* Leader line connecting crosshair to label */}
               <div
-                className="absolute z-[9] pointer-events-none"
+                className="absolute z-[9] pointer-events-none transition-opacity"
                 style={{
                   left: `${pin.x_pct}%`,
                   top: `${pin.y_pct}%`,
                   width: `${Math.abs(labelOffsetX)}px`,
                   height: `${Math.abs(labelOffsetY)}px`,
                   transform: `translate(${labelOffsetX > 0 ? '0' : `${labelOffsetX}px`}, ${labelOffsetY > 0 ? '0' : `${labelOffsetY}px`})`,
-                  borderLeft: labelOffsetX > 0 ? 'none' : 'none',
+                  opacity: Math.max(0, 1 - (zoomLevel - 1) * 0.5),
                 }}
               >
                 <svg width="100%" height="100%" className="overflow-visible">
@@ -535,11 +536,12 @@ const OverviewPhoto = ({ overviewLocation, spotLocations, patientId, onNavigateT
 
               {editMode ? (
                 <button
-                  className="absolute z-10 transition-transform hover:scale-110 cursor-pointer"
+                  className="absolute z-10 transition-all hover:scale-110 cursor-pointer"
                   style={{
                     left: `${pin.x_pct}%`,
                     top: `${pin.y_pct}%`,
                     transform: `translate(calc(-50% + ${labelOffsetX}px), calc(-50% + ${labelOffsetY}px))`,
+                    opacity: Math.max(0.15, 1 - (zoomLevel - 1) * 0.5),
                   }}
                   onClick={(e) => { e.stopPropagation(); setDeleteTarget(pin.id); }}
                   title={t('overviewPhoto.clickToRemovePin')}
@@ -556,11 +558,12 @@ const OverviewPhoto = ({ overviewLocation, spotLocations, patientId, onNavigateT
                 <Popover open={openPinId === pin.id} onOpenChange={(open) => { if (!open) setOpenPinId(null); }}>
                   <PopoverTrigger asChild>
                     <button
-                      className="absolute z-10 transition-transform hover:scale-110 cursor-pointer"
+                      className="absolute z-10 transition-all hover:scale-110 hover:!opacity-100 cursor-pointer"
                       style={{
                         left: `${pin.x_pct}%`,
                         top: `${pin.y_pct}%`,
                         transform: `translate(calc(-50% + ${labelOffsetX}px), calc(-50% + ${labelOffsetY}px))`,
+                        opacity: Math.max(0.15, 1 - (zoomLevel - 1) * 0.5),
                       }}
                       onClick={(e) => { e.stopPropagation(); setOpenPinId(openPinId === pin.id ? null : pin.id); }}
                       onMouseEnter={() => setHoveredPin(pin.id)}
