@@ -73,6 +73,8 @@ interface BodyMap3DProps {
   onFilterChange?: (filter: LesionClassification[]) => void;
   previewMarker?: PreviewMarker | null;
   isPlacementMode?: boolean;
+  zoneOverlays?: ZoneOverlay[];
+  selectedZoneId?: number | null;
   onPreviewMove?: (
     x: number,
     y: number,
