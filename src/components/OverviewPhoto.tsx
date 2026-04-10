@@ -177,13 +177,29 @@ const OverviewPhoto = ({ overviewLocation, spotLocations, patientId, onNavigateT
     setPendingPin({ x_pct, y_pct });
   }, [pinMode]);
 
-  // Mouse wheel zoom (no modifier needed)
+  // Mouse wheel zoom toward cursor position
   const handleWheel = useCallback((e: WheelEvent) => {
     e.preventDefault();
-    setZoomLevel(z => {
+    const container = containerRef.current?.parentElement;
+    if (!container) return;
+
+    const rect = container.getBoundingClientRect();
+    // Cursor position relative to container center
+    const cx = e.clientX - rect.left - rect.width / 2;
+    const cy = e.clientY - rect.top - rect.height / 2;
+
+    setZoomLevel(prevZoom => {
       const delta = e.deltaY > 0 ? -0.15 : 0.15;
-      const newZoom = Math.min(Math.max(z + delta, 1), 5);
-      if (newZoom <= 1) setPanOffset({ x: 0, y: 0 });
+      const newZoom = Math.min(Math.max(prevZoom + delta, 1), 5);
+      if (newZoom <= 1) {
+        setPanOffset({ x: 0, y: 0 });
+      } else {
+        const scale = newZoom / prevZoom;
+        setPanOffset(prev => ({
+          x: cx - scale * (cx - prev.x),
+          y: cy - scale * (cy - prev.y),
+        }));
+      }
       return newZoom;
     });
   }, []);
