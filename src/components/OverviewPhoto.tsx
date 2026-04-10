@@ -551,7 +551,6 @@ const OverviewPhoto = ({ overviewLocation, spotLocations, patientId, onNavigateT
                         className="flex-1 text-xs h-8 gap-1"
                         disabled={spotUploading}
                         onClick={() => {
-                          // Create a unique file input per spot
                           const inp = document.createElement('input');
                           inp.type = 'file';
                           inp.accept = 'image/*';
@@ -567,6 +566,17 @@ const OverviewPhoto = ({ overviewLocation, spotLocations, patientId, onNavigateT
                         {spotUploading ? <Loader2 className="h-3 w-3 animate-spin" /> : <Upload className="h-3 w-3" />}
                         {t('overviewPhoto.uploadSpotPhoto')}
                       </Button>
+                      {onQrUpload && (
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          className="text-xs h-8 px-2"
+                          onClick={() => { setOpenPinId(null); onQrUpload(pin.linked_location_id); }}
+                          title="QR Upload"
+                        >
+                          <QrCode className="h-3.5 w-3.5" />
+                        </Button>
+                      )}
                       <Button
                         size="sm"
                         variant="default"
