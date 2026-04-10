@@ -404,9 +404,9 @@ const PatientDetail = () => {
             </div>
           </div>
 
-          {/* Mode tabs + PDF - push right */}
-          <div className="ml-auto flex items-center gap-1.5 shrink-0">
-            <div className="flex items-center gap-1 rounded-lg bg-muted p-0.5 lg:p-1">
+          {/* Mode tabs - hidden on mobile (bottom nav instead), shown on desktop with labels */}
+          <div className="ml-auto hidden lg:flex items-center gap-1.5 shrink-0">
+            <div className="flex items-center gap-1 rounded-lg bg-muted p-1">
               {[
                 { key: "akte" as const, icon: ClipboardList, label: t('patientDetail.tabs.chart') },
                 { key: "spots" as const, icon: MapPin, label: t('patientDetail.tabs.spots') },
@@ -419,14 +419,14 @@ const PatientDetail = () => {
                   key={tab.key}
                   onClick={() => setActiveTab(tab.key)}
                   className={cn(
-                    "flex items-center gap-1 rounded-md px-2 py-1 lg:px-3 lg:py-1.5 text-[10px] lg:text-xs font-medium transition-all",
+                    "flex items-center gap-1.5 rounded-md px-3 py-1.5 text-xs font-medium transition-all",
                     activeTab === tab.key
                       ? "bg-primary text-primary-foreground shadow-sm"
                       : "text-muted-foreground hover:text-foreground"
                   )}
                 >
-                  <tab.icon className="h-3 w-3 lg:h-3.5 lg:w-3.5" />
-                  <span className="hidden sm:inline">{tab.label}</span>
+                  <tab.icon className="h-3.5 w-3.5" />
+                  <span>{tab.label}</span>
                 </button>
               ))}
             </div>
@@ -434,7 +434,7 @@ const PatientDetail = () => {
               variant="outline"
               size="icon"
               onClick={() => setPdfDialogOpen(true)}
-              className="h-7 w-7 lg:h-8 lg:w-8"
+              className="h-8 w-8"
               title="PDF Export"
             >
               <FileDown className="h-3.5 w-3.5" />
