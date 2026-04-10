@@ -214,6 +214,8 @@
     "moveToTrash": "In Papierkorb verschieben",
     "restoreFromTrash": "Wiederherstellen",
     "permanentlyDelete": "Endgültig löschen",
+    "restoredSuccess": "Hautstelle wiederhergestellt",
+    "restoredRenamed": "Wiederhergestellt als «{{name}}» (Name war bereits vergeben)",
     "photoUpload": "Foto-Upload",
     "imageCount": "{{count}} Bilder",
     "imageSingle": "{{count}} Bild",
