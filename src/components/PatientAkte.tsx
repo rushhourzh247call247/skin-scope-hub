@@ -34,6 +34,10 @@ const PatientAkte = ({ patient, onNavigateToSpot }: PatientAkteProps) => {
   const [appointmentDate, setAppointmentDate] = useState("");
   const [appointmentNotes, setAppointmentNotes] = useState("");
   const [documentNotes, setDocumentNotes] = useState("");
+  const [showConsultationForm, setShowConsultationForm] = useState(false);
+  const [consultationText, setConsultationText] = useState("");
+  const [editingConsultationId, setEditingConsultationId] = useState<number | null>(null);
+  const [editingConsultationText, setEditingConsultationText] = useState("");
 
   // Queries
   const { data: appointments = [], isLoading: appointmentsLoading } = useQuery({
