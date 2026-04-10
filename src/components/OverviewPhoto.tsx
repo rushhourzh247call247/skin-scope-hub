@@ -404,15 +404,69 @@ const OverviewPhoto = ({ overviewLocation, spotLocations, patientId, onNavigateT
           />
 
 
-        {pins.map((pin: OverviewPin, i: number) => {
+        {/* Compute non-overlapping label offsets */}
+        {(() => {
+          // Pre-calculate all label positions with collision avoidance
+          const LABEL_DIST = 40; // base distance from pin
+          const LABEL_H = 22;   // approx label height
+          const LABEL_W = 70;   // approx label width
+
+          // First pass: assign initial offsets based on position
+          const offsets = pins.map((pin: OverviewPin) => {
+            const baseX = pin.x_pct > 50 ? -LABEL_DIST : LABEL_DIST;
+            const baseY = pin.y_pct > 30 ? -LABEL_DIST : LABEL_DIST;
+            return { pinId: pin.id, x: baseX, y: baseY, px: pin.x_pct, py: pin.y_pct };
+          });
+
+          // Second pass: spread overlapping labels by rotating offset direction
+          const angles = [
+            { x: 1, y: -1 },   // top-right
+            { x: -1, y: -1 },  // top-left
+            { x: 1, y: 1 },    // bottom-right
+            { x: -1, y: 1 },   // bottom-left
+            { x: 0, y: -1.4 }, // straight up
+            { x: 0, y: 1.4 },  // straight down
+            { x: 1.4, y: 0 },  // straight right
+            { x: -1.4, y: 0 }, // straight left
+          ];
+
+          for (let i = 0; i < offsets.length; i++) {
+            for (let j = i + 1; j < offsets.length; j++) {
+              const a = offsets[i], b = offsets[j];
+              // Check if label endpoints overlap (in % space, rough)
+              const endAx = a.px + a.x * 0.8;
+              const endAy = a.py + a.y * 0.8;
+              const endBx = b.px + b.x * 0.8;
+              const endBy = b.py + b.y * 0.8;
+              const dist = Math.hypot(endAx - endBx, endAy - endBy);
+              if (dist < 8) {
+                // Try different angle for the second pin
+                for (const ang of angles) {
+                  const newX = ang.x * LABEL_DIST;
+                  const newY = ang.y * LABEL_DIST;
+                  const newEndX = b.px + newX * 0.8;
+                  const newEndY = b.py + newY * 0.8;
+                  const newDist = Math.hypot(endAx - newEndX, endAy - newEndY);
+                  if (newDist >= 8) {
+                    b.x = newX;
+                    b.y = newY;
+                    break;
+                  }
+                }
+              }
+            }
+          }
+
+          const offsetMap = new Map(offsets.map(o => [o.pinId, { x: o.x, y: o.y }]));
+
+          return pins.map((pin: OverviewPin, i: number) => {
           const color = getSpotColor(pin);
           const spot = getLinkedSpot(pin);
           const previewUrl = getSpotPreviewImage(pin);
 
-          // Smart label offset: leader line direction depends on pin position
-          // Label goes away from nearest edge to avoid clipping
-          const labelOffsetX = pin.x_pct > 50 ? -30 : 30;  // px offset for label
-          const labelOffsetY = pin.y_pct > 30 ? -28 : 28;   // label above if pin is lower, below if pin is at top
+          const labelOffset = offsetMap.get(pin.id) || { x: 30, y: -28 };
+          const labelOffsetX = labelOffset.x;
+          const labelOffsetY = labelOffset.y;
 
           return (
             <div key={pin.id}>
