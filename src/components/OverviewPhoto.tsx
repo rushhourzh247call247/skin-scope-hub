@@ -497,7 +497,7 @@ const OverviewPhoto = ({ overviewLocation, spotLocations, patientId, onNavigateT
                   left: `${pin.x_pct}%`,
                   top: `${pin.y_pct}%`,
                   transform: "translate(-50%, -50%)",
-                  opacity: Math.max(0, 1 - (zoomLevel - 1) * 0.5),
+                  opacity: Math.max(0, 1 - (zoomLevel - 1) * 0.3),
                 }}
               >
                 <svg width="14" height="14" viewBox="0 0 14 14">
@@ -517,7 +517,7 @@ const OverviewPhoto = ({ overviewLocation, spotLocations, patientId, onNavigateT
                   width: `${Math.abs(labelOffsetX)}px`,
                   height: `${Math.abs(labelOffsetY)}px`,
                   transform: `translate(${labelOffsetX > 0 ? '0' : `${labelOffsetX}px`}, ${labelOffsetY > 0 ? '0' : `${labelOffsetY}px`})`,
-                  opacity: Math.max(0, 1 - (zoomLevel - 1) * 0.5),
+                  opacity: Math.max(0, 1 - (zoomLevel - 1) * 0.3),
                 }}
               >
                 <svg width="100%" height="100%" className="overflow-visible">
@@ -541,7 +541,7 @@ const OverviewPhoto = ({ overviewLocation, spotLocations, patientId, onNavigateT
                     left: `${pin.x_pct}%`,
                     top: `${pin.y_pct}%`,
                     transform: `translate(calc(-50% + ${labelOffsetX}px), calc(-50% + ${labelOffsetY}px))`,
-                    opacity: Math.max(0.15, 1 - (zoomLevel - 1) * 0.5),
+                    opacity: Math.max(0.15, 1 - (zoomLevel - 1) * 0.3),
                   }}
                   onClick={(e) => { e.stopPropagation(); setDeleteTarget(pin.id); }}
                   title={t('overviewPhoto.clickToRemovePin')}
@@ -563,7 +563,7 @@ const OverviewPhoto = ({ overviewLocation, spotLocations, patientId, onNavigateT
                         left: `${pin.x_pct}%`,
                         top: `${pin.y_pct}%`,
                         transform: `translate(calc(-50% + ${labelOffsetX}px), calc(-50% + ${labelOffsetY}px))`,
-                        opacity: Math.max(0.15, 1 - (zoomLevel - 1) * 0.5),
+                        opacity: Math.max(0.15, 1 - (zoomLevel - 1) * 0.3),
                       }}
                       onClick={(e) => { e.stopPropagation(); setOpenPinId(openPinId === pin.id ? null : pin.id); }}
                       onMouseEnter={() => setHoveredPin(pin.id)}
