@@ -681,13 +681,20 @@ const PatientDetail = () => {
               </div>
             )}
 
-          {/* Spots List - collapsible on mobile when map is collapsed */}
-          <div className={cn("mt-3 lg:mt-4 space-y-1", !mobileMapExpanded && "lg:block")}>
-            <div className="flex items-center justify-between mb-2">
-              <h3 className="text-xs font-semibold text-foreground uppercase tracking-wider">{t('patientDetail.tabs.spots')}</h3>
-              <span className="text-[10px] text-muted-foreground">{spotLocations.filter(l => l.type !== "region").length} {t('common.spots')}</span>
-            </div>
+          {/* Spots List - shown when spots tab active */}
+          {sidebarTab === "spots" && (
+            <div className="space-y-1">
             {spotLocations.filter(l => l.type !== "region").filter(l => {
+              if (classificationFilter.length === 0) return true;
+              const cls = ((l as any).classification as LesionClassificationType) || "unclassified";
+              return classificationFilter.includes(cls);
+            }).length === 0 ? (
+              <div className="flex flex-col items-center justify-center py-6 text-muted-foreground">
+                <MapPin className="h-8 w-8 mb-2 text-muted-foreground/50" />
+                <p className="text-xs font-medium">{t('patientDetail.selectBodyPart')}</p>
+                <p className="text-[10px] mt-1 text-center">{t('patientDetail.clickBodyMapInstruction')}</p>
+              </div>
+            ) : spotLocations.filter(l => l.type !== "region").filter(l => {
               if (classificationFilter.length === 0) return true;
               const cls = ((l as any).classification as LesionClassificationType) || "unclassified";
               return classificationFilter.includes(cls);
@@ -774,6 +781,8 @@ const PatientDetail = () => {
                 </button>
               </div>
             ))}
+            </div>
+          )}
           </div>
 
           {/* Trash Bin */}
