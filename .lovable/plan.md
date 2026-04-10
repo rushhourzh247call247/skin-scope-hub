@@ -1,95 +1,51 @@
 
 
-# Patientenakte-Tab mit Backend-Endpunkten
+## UX-Redesign: Patientendetail vereinfachen
 
-## Übersicht
+### Probleme (aus dem Screenshot)
 
-Neuer "Akte"-Tab als Standard-Ansicht beim Öffnen eines Patienten. Enthält klinische Zusammenfassung, Termine und Dokumente — mit vollständigen Backend-Endpunkten.
+1. **Header-Tabs**: 7 kleine Icons ohne Labels auf Mobile — Ärzte erkennen nicht, was was ist
+2. **Informationsüberflutung**: Body Map + Zonen + Spots + Papierkorb alle untereinander gestapelt — kein klarer Fokus
+3. **Rechte Icon-Leiste** auf der 3D-Map: ~10 Icons ohne Erklärung — wirkt wie ein CAD-Programm
+4. **Kein geführter Workflow**: Arzt weiß nicht, wo er anfangen soll
 
-## 1. Backend: Neue Tabellen und Endpunkte
+### Vorschlag: 3 Säulen der Vereinfachung
 
-### Neue Datenbank-Tabellen
+#### 1. Header-Tabs → Bottom-Navigation (Mobile) + klare Labels (Desktop)
+- Auf Mobile: Feste Bottom-Tab-Bar mit **4 Haupttabs** + Labels: `Akte | Spots | Fotos | Berichte`
+- "Zonen" und "Timeline" werden Unterseiten (Zonen → in Fotos integriert, Timeline → in Akte)
+- Auf Desktop: Tabs bleiben oben, aber mit sichtbarem Text statt nur Icons
 
-```text
-appointments
-├── id (integer, PK)
-├── patient_id (FK → patients)
-├── scheduled_at (datetime)
-├── notes (text, nullable)
-├── created_at / updated_at
-└── company_id (FK, Mandantenfähigkeit)
+#### 2. Sidebar: Body Map + Spotliste klar trennen
+- Body Map standardmäßig **eingeklappt** auf Mobile (nur Mini-Vorschau mit "Antippen zum Öffnen")
+- Spotliste bekommt einen **klaren leeren Zustand** mit großem "Erste Stelle markieren"-Button
+- Zonen-Liste und Spots-Liste in **eigene Tabs** innerhalb der Sidebar (nicht beide sichtbar)
+- Papierkorb → hinter "⋯ Mehr"-Menü verstecken statt permanent sichtbar
 
-patient_documents
-├── id (integer, PK)
-├── patient_id (FK → patients)
-├── file_path (string)
-├── original_name (string)
-├── notes (text, nullable)
-├── uploaded_by (FK → users)
-├── created_at / updated_at
-└── company_id (FK)
-```
+#### 3. 3D-Map Toolbar vereinfachen
+- Die rechte Icon-Leiste auf **3 Hauptaktionen** reduzieren: `Spot setzen | Zone setzen | Filter`
+- Restliche Funktionen (Klassifikationsfilter, Download etc.) in ein Menü auslagern
+- Klare Texthinweise statt nur Icons: "Tippen Sie auf den Körper um eine Stelle zu markieren"
 
-### Neue API-Endpunkte
+### Technische Umsetzung
 
-| Methode | Pfad | Beschreibung |
-|---------|------|-------------|
-| GET | `/patients/{id}/appointments` | Termine eines Patienten |
-| POST | `/patients/{id}/appointments` | Termin erstellen |
-| PUT | `/appointments/{id}` | Termin bearbeiten |
-| DELETE | `/appointments/{id}` | Termin löschen |
-| GET | `/patients/{id}/documents` | Dokumente eines Patienten |
-| POST | `/patients/{id}/documents` | Dokument hochladen |
-| DELETE | `/documents/{id}` | Dokument löschen |
-| GET | `/documents/{id}/download` | Dokument herunterladen |
+**Datei: `src/pages/PatientDetail.tsx`**
+- Mobile Bottom-Navigation als fixierte Leiste am unteren Bildschirmrand (nur bei `< lg`)
+- Header-Tabs auf Mobile ausblenden, auf Desktop mit Labels anzeigen
+- Sidebar-Tabs: `useState<"spots"|"zonen">` für Sidebar-Inhalt unterhalb der Map
+- Body Map auf Mobile: Standardmäßig `mobileMapExpanded = false`, mit Thumbnail-Vorschau
+- Papierkorb: Hinter Collapsible mit weniger Prominenz
 
-Diese Endpunkte werden in `routes/api.php` innerhalb der bestehenden `auth:sanctum`-Gruppe ergänzt. Die Mandantenfähigkeit folgt dem bestehenden Pattern (`$user->company_id`).
+**Datei: `src/components/BodyMap3D.tsx`**
+- Rechte Toolbar: Icons gruppieren, sekundäre Aktionen in Dropdown-Menü
+- Tooltip-Text auf allen Buttons hinzufügen
 
-## 2. Frontend: Neue Types und API-Methoden
+**Dateien: `src/i18n/locales/de.json`, `en.json`**
+- Neue Keys für Bottom-Nav-Labels und vereinfachte Hinweistexte
 
-**`src/types/patient.ts`** — Neue Interfaces:
-- `Appointment { id, patient_id, scheduled_at, notes, created_at }`
-- `PatientDocument { id, patient_id, file_path, original_name, notes, uploaded_by, created_at }`
-
-**`src/lib/api.ts`** — Neue Methoden:
-- `getAppointments(patientId)`, `createAppointment(patientId, data)`, `updateAppointment(id, data)`, `deleteAppointment(id)`
-- `getDocuments(patientId)`, `uploadDocument(patientId, file, notes?)`, `deleteDocument(id)`, `getDocumentDownloadUrl(id)`
-
-## 3. Frontend: Akte-Tab
-
-**`src/pages/PatientDetail.tsx`**:
-- `activeTab` erweitern um `"akte"` als neuen Default-Wert
-- Neuer Tab "Akte" (ClipboardList Icon) als erster Tab
-
-**Inhalt des Akte-Tabs** (4 Karten):
-
-1. **Patientenstammdaten** — Name, Geburtsdatum, Geschlecht, Versicherung, Kontakt, Notizen (aus vorhandenen Daten)
-
-2. **Klinische Zusammenfassung** — Berechnet aus `patient.locations`:
-   - Anzahl aktive Spots nach Klassifikation (z.B. "3 Nävi, 1 Melanom-Verdacht")
-   - Hochrisiko-Spots hervorgehoben
-   - Letzter Befund mit Datum und Arzt
-
-3. **Termine** — Liste mit Datum, Notiz; Formular zum Hinzufügen; überfällige Termine rot markiert
-
-4. **Dokumente** — Upload-Bereich für Überweisungen/Vorbefunde; Liste mit Download-Link
-
-## 4. Übersetzungen
-
-Alle 5 Locale-Dateien (`de`, `en`, `fr`, `it`, `es`) erhalten Keys für:
-- `akte`, `clinical_summary`, `appointments`, `next_appointment`, `overdue`, `documents`, `upload_document`, `referral`, `no_appointments`, `no_documents`, `high_risk_spots`, `last_finding`, `add_appointment`
-
-## Umsetzungsreihenfolge
-
-1. Backend: Migration + Endpunkte auf dem Server erstellen (via SSH)
-2. Frontend: Types + API-Methoden ergänzen
-3. Frontend: Akte-Tab bauen mit den 4 Karten
-4. Übersetzungen in alle Sprachen
-
-## Technische Details
-
-- Backend-Änderungen werden per SSH auf dem Ubuntu-Server durchgeführt (SQLite-Migration, `routes/api.php` editieren)
-- Dokument-Upload nutzt das bestehende Storage-Pattern (`Storage::disk('local')`)
-- Termine-Logik: `scheduled_at < now()` → überfällig (rot), sonst grün
-- Der Akte-Tab nutzt die bereits geladenen `fullPatient`-Daten für die klinische Zusammenfassung, plus separate Queries für Appointments und Documents
+### Ergebnis
+- Arzt sieht beim Öffnen: **Patientenakte** (klare Übersicht)
+- Will er Spots bearbeiten: **1 Tap auf "Spots"** → Body Map + Spotliste
+- Will er Fotos sehen: **1 Tap auf "Fotos"** → Galerie + Zonen
+- Kein Rätselraten bei Icons, kein Scrollen durch irrelevante Bereiche
 
