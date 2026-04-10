@@ -172,15 +172,13 @@ async function compositeOverviewWithPins(
     const lx = px + labelOffsetX;
     const ly = py + labelOffsetY;
 
-    // Dashed leader line
-    ctx.setLineDash([Math.max(w * 0.004, 3), Math.max(w * 0.003, 2)]);
+    // Solid leader line (no dashes)
     ctx.strokeStyle = `rgba(${r},${g},${b},0.6)`;
     ctx.lineWidth = Math.max(w * 0.0015, 1);
     ctx.beginPath();
     ctx.moveTo(px, py);
     ctx.lineTo(lx, ly);
     ctx.stroke();
-    ctx.setLineDash([]);
 
     // Numbered circle at offset
     const circR = Math.max(w * 0.015, 10);
