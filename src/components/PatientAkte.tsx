@@ -440,6 +440,115 @@ const PatientAkte = ({ patient, onNavigateToSpot }: PatientAkteProps) => {
         )}
       </div>
 
+      {/* Consultations */}
+      <div className="rounded-lg border bg-card p-4 space-y-3">
+        <div className="flex items-center justify-between">
+          <h3 className="text-xs font-semibold text-foreground uppercase tracking-wider flex items-center gap-2">
+            <Stethoscope className="h-3.5 w-3.5 text-primary" />
+            {t("akte.consultations")}
+          </h3>
+          <Button
+            variant="outline"
+            size="sm"
+            className="h-7 text-xs gap-1"
+            onClick={() => setShowConsultationForm(!showConsultationForm)}
+          >
+            <Plus className="h-3 w-3" />
+            {t("akte.addConsultation")}
+          </Button>
+        </div>
+
+        {showConsultationForm && (
+          <div className="rounded-lg border bg-muted/30 p-3 space-y-2">
+            <Textarea
+              value={consultationText}
+              onChange={(e) => setConsultationText(e.target.value)}
+              placeholder={t("akte.consultationPlaceholder")}
+              rows={4}
+              className="text-xs"
+            />
+            <div className="flex gap-1.5">
+              <Button
+                size="sm"
+                className="h-7 text-xs"
+                disabled={!consultationText.trim() || createConsultationMutation.isPending}
+                onClick={() => createConsultationMutation.mutate(consultationText.trim())}
+              >
+                <Save className="h-3 w-3 mr-1" />
+                {t("common.save")}
+              </Button>
+              <Button size="sm" variant="ghost" className="h-7 text-xs" onClick={() => { setShowConsultationForm(false); setConsultationText(""); }}>
+                <X className="h-3 w-3 mr-1" />
+                {t("common.cancel")}
+              </Button>
+            </div>
+          </div>
+        )}
+
+        {consultationsLoading ? (
+          <p className="text-xs text-muted-foreground">{t("common.loading")}</p>
+        ) : consultations.length === 0 ? (
+          <p className="text-xs text-muted-foreground italic">{t("akte.noConsultations")}</p>
+        ) : (
+          <div className="space-y-2">
+            {[...consultations]
+              .sort((a, b) => new Date(b.created_at ?? 0).getTime() - new Date(a.created_at ?? 0).getTime())
+              .map((c) => (
+                <div key={c.id} className="rounded-md border border-border bg-muted/30 p-3 group">
+                  {editingConsultationId === c.id ? (
+                    <div className="space-y-2">
+                      <Textarea
+                        value={editingConsultationText}
+                        onChange={(e) => setEditingConsultationText(e.target.value)}
+                        rows={4}
+                        className="text-xs"
+                      />
+                      <div className="flex gap-1.5">
+                        <Button
+                          size="sm"
+                          className="h-6 text-[10px]"
+                          disabled={!editingConsultationText.trim() || updateConsultationMutation.isPending}
+                          onClick={() => updateConsultationMutation.mutate({ id: c.id, notes: editingConsultationText.trim() })}
+                        >
+                          <Save className="h-3 w-3 mr-1" />
+                          {t("common.save")}
+                        </Button>
+                        <Button size="sm" variant="ghost" className="h-6 text-[10px]" onClick={() => setEditingConsultationId(null)}>
+                          {t("common.cancel")}
+                        </Button>
+                      </div>
+                    </div>
+                  ) : (
+                    <>
+                      <p className="text-xs text-foreground whitespace-pre-wrap">{c.notes}</p>
+                      <div className="flex items-center justify-between mt-2">
+                        <div className="flex items-center gap-2 text-[10px] text-muted-foreground">
+                          {c.user_name && <span className="font-medium">{c.user_name}</span>}
+                          {c.created_at && <span className="tabular-nums">{formatDate(c.created_at, "dd.MM.yyyy HH:mm")}</span>}
+                        </div>
+                        <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                          <button
+                            onClick={() => { setEditingConsultationId(c.id); setEditingConsultationText(c.notes); }}
+                            className="p-1 rounded hover:bg-primary/10 text-muted-foreground hover:text-primary transition-colors"
+                          >
+                            <Pencil className="h-3 w-3" />
+                          </button>
+                          <button
+                            onClick={() => deleteConsultationMutation.mutate(c.id)}
+                            className="p-1 rounded hover:bg-destructive/10 text-muted-foreground hover:text-destructive transition-colors"
+                          >
+                            <Trash2 className="h-3 w-3" />
+                          </button>
+                        </div>
+                      </div>
+                    </>
+                  )}
+                </div>
+              ))}
+          </div>
+        )}
+      </div>
+
       {/* Documents */}
       <div className="rounded-lg border bg-card p-4 space-y-3">
         <div className="flex items-center justify-between">
