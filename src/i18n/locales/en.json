@@ -214,6 +214,8 @@
     "moveToTrash": "Move to trash",
     "restoreFromTrash": "Restore",
     "permanentlyDelete": "Permanently delete",
+    "restoredSuccess": "Spot restored",
+    "restoredRenamed": "Restored as \"{{name}}\" (name was already taken)",
     "photoUpload": "Photo upload",
     "imageCount": "{{count}} images",
     "imageSingle": "{{count}} image",
