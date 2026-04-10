@@ -73,8 +73,18 @@ const AbcdeForm = ({ imageId, patientId, initialData }: AbcdeFormProps) => {
     },
   ];
 
+  const toBoolStr = (v: any): string => {
+    if (v == null) return "";
+    if (typeof v === "boolean") return String(v);
+    if (typeof v === "number") return v ? "true" : "false";
+    const s = String(v).toLowerCase();
+    if (s === "true" || s === "1") return "true";
+    if (s === "false" || s === "0") return "false";
+    return "";
+  };
+
   const [values, setValues] = useState<Record<string, string>>(() => ({
-    abc_asymmetry: initialData?.abc_asymmetry != null ? String(initialData.abc_asymmetry) : "",
+    abc_asymmetry: toBoolStr(initialData?.abc_asymmetry),
     abc_border: initialData?.abc_border ?? "",
     abc_color: initialData?.abc_color ?? "",
     abc_diameter: initialData?.abc_diameter ?? "",
@@ -84,7 +94,7 @@ const AbcdeForm = ({ imageId, patientId, initialData }: AbcdeFormProps) => {
   useEffect(() => {
     if (initialData) {
       setValues({
-        abc_asymmetry: initialData.abc_asymmetry != null ? String(initialData.abc_asymmetry) : "",
+        abc_asymmetry: toBoolStr(initialData.abc_asymmetry),
         abc_border: initialData.abc_border ?? "",
         abc_color: initialData.abc_color ?? "",
         abc_diameter: initialData.abc_diameter ?? "",
