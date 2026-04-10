@@ -257,9 +257,15 @@ const PatientDetail = () => {
 
   const restoreMutation = useMutation({
     mutationFn: (locationId: number) => api.restoreLocation(locationId),
-    onSuccess: () => {
+    onSuccess: (data: any) => {
       queryClient.invalidateQueries({ queryKey: ["full-patient", patientId] });
       queryClient.invalidateQueries({ queryKey: ["trashed-locations", patientId] });
+      setExpandedTrashId(null);
+      if (data?.renamed) {
+        toast.success(t('patientDetail.restoredRenamed', { name: data.new_name }));
+      } else {
+        toast.success(t('patientDetail.restoredSuccess'));
+      }
     },
   });
 
