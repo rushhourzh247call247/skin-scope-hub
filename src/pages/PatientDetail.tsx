@@ -286,6 +286,30 @@ const PatientDetail = () => {
     ...spotLocations,
     ...trashedLocations.filter((loc: any) => loc.type !== "overview" && !spotLocations.some(spot => spot.id === loc.id)),
   ];
+
+  // Query all overview pins to know which spots belong to which zones
+  const { data: allZonePins = [] } = useQuery({
+    queryKey: ["all-zone-pins", patientId, overviewLocations.map(z => z.id).join(",")],
+    queryFn: async () => {
+      const results: { zoneId: number; zoneName: string; pins: any[] }[] = [];
+      for (const zone of overviewLocations) {
+        const pins = await api.getOverviewPins(zone.id);
+        results.push({ zoneId: zone.id, zoneName: zone.name || `Zone ${overviewLocations.indexOf(zone) + 1}`, pins });
+      }
+      return results;
+    },
+    enabled: overviewLocations.length > 0,
+  });
+
+  // Build a map: spotId → zoneName for grouping
+  const spotToZone = new Map<number, string>();
+  for (const zp of allZonePins) {
+    for (const pin of zp.pins) {
+      if (!spotToZone.has(pin.linked_location_id)) {
+        spotToZone.set(pin.linked_location_id, zp.zoneName);
+      }
+    }
+  }
   const selectedLocation = locations.find((l) => l.id === selectedLocationId);
   const totalImages = locations.reduce((sum, l) => sum + (l.images?.length ?? 0), 0);
 
