@@ -751,6 +751,32 @@ export async function generatePatientPDF(
     );
     if (options.reportType === "lastVisit" && images.length > 0) {
       images = [images[images.length - 1]];
+    } else if (images.length > 4) {
+      // Show oldest + last 3 to avoid cluttering the page
+      const oldest = images[0];
+      const lastThree = images.slice(-3);
+      images = [oldest, ...lastThree];
+    }
+
+    // Check if this spot is linked from any overview zone (to skip body map)
+    const isLinkedToZone = overviewLocations.some(ov => {
+      const pins = overviewPinsMap[ov.id] || [];
+      return pins.some(p => p.linked_location_id === loc.id);
+    });
+    // Find zone reference info for linked spots
+    let zoneRef: { zoneName: string; pinIndex: number } | null = null;
+    if (isLinkedToZone) {
+      for (const ov of overviewLocations) {
+        const pins = overviewPinsMap[ov.id] || [];
+        const pinIdx = pins.findIndex(p => p.linked_location_id === loc.id);
+        if (pinIdx >= 0) {
+          zoneRef = {
+            zoneName: translateAnatomyName(ov.name) || ov.name || i18n.t('pdf.overviewPhoto'),
+            pinIndex: pinIdx + 1,
+          };
+          break;
+        }
+      }
     }
 
     const estimatedH = 14 + (options.showImages && images.length > 0 ? 45 : 0) +
