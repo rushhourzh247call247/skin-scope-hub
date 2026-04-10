@@ -33,6 +33,20 @@ interface Marker {
   classificationColor?: string;
 }
 
+interface ZoneOverlay {
+  id: number;
+  name?: string;
+  x3d?: number;
+  y3d?: number;
+  z3d?: number;
+  nx?: number;
+  ny?: number;
+  nz?: number;
+  view?: "front" | "back";
+  x?: number;
+  y?: number;
+}
+
 type Gender = "female" | "male";
 type MarkType = "spot" | "region" | "zone";
 
@@ -59,6 +73,8 @@ interface BodyMap3DProps {
   onFilterChange?: (filter: LesionClassification[]) => void;
   previewMarker?: PreviewMarker | null;
   isPlacementMode?: boolean;
+  zoneOverlays?: ZoneOverlay[];
+  selectedZoneId?: number | null;
   onPreviewMove?: (
     x: number,
     y: number,
@@ -475,7 +491,88 @@ const RegionMarker = React.forwardRef<THREE.Group, RegionMarkerProps>(function R
   );
 });
 
-/* ─── Convert 2D coords to 3D (approximate, used as raycast origin direction) ─── */
+/* ─── Zone Overlay (halbtransparent rectangle, shown when zone is selected) ─── */
+const ZoneOverlayMarker = React.forwardRef<THREE.Group, { position: [number, number, number]; name?: string; isSelected: boolean }>(
+  function ZoneOverlayMarker({ position, name, isSelected }, forwardedRef) {
+    const groupRef = useRef<THREE.Group>(null);
+
+    // Zone rectangle size — covers a generous area
+    const w3d = 0.25;
+    const h3d = 0.20;
+
+    const shape = useMemo(() => {
+      const s = new THREE.Shape();
+      const hw = w3d / 2;
+      const hh = h3d / 2;
+      s.moveTo(-hw, -hh);
+      s.lineTo(hw, -hh);
+      s.lineTo(hw, hh);
+      s.lineTo(-hw, hh);
+      s.lineTo(-hw, -hh);
+      return s;
+    }, []);
+
+    useFrame(() => {
+      if (!groupRef.current) return;
+      // Gentle pulse when selected
+      const scale = 1 + Math.sin(Date.now() * 0.003) * 0.02;
+      groupRef.current.scale.setScalar(scale);
+    });
+
+    const color = "#3b82f6"; // blue
+
+    return (
+      <group ref={forwardedRef} position={position}>
+        <group ref={groupRef}>
+          {/* Filled rectangle */}
+          <mesh>
+            <shapeGeometry args={[shape]} />
+            <meshBasicMaterial color={color} transparent opacity={0.15} side={THREE.DoubleSide} depthTest={false} />
+          </mesh>
+
+          {/* Border */}
+          <line>
+            <bufferGeometry>
+              <bufferAttribute
+                attach="attributes-position"
+                count={5}
+                array={new Float32Array([
+                  -w3d/2, -h3d/2, 0,
+                  w3d/2, -h3d/2, 0,
+                  w3d/2, h3d/2, 0,
+                  -w3d/2, h3d/2, 0,
+                  -w3d/2, -h3d/2, 0,
+                ])}
+                itemSize={3}
+              />
+            </bufferGeometry>
+            <lineBasicMaterial color={color} transparent opacity={0.5} linewidth={1} depthTest={false} />
+          </line>
+
+          {/* Corner dots */}
+          {[[-w3d/2, -h3d/2], [w3d/2, -h3d/2], [w3d/2, h3d/2], [-w3d/2, h3d/2]].map(([cx, cy], i) => (
+            <mesh key={i} position={[cx, cy, 0]}>
+              <circleGeometry args={[0.008, 12]} />
+              <meshBasicMaterial color={color} transparent opacity={0.6} side={THREE.DoubleSide} depthTest={false} />
+            </mesh>
+          ))}
+        </group>
+
+        {/* Label */}
+        {name && (
+          <Html position={[0, h3d / 2 + 0.04, 0]} center style={{ pointerEvents: "none" }}>
+            <div className="rounded bg-blue-500/90 px-2 py-0.5 text-[8px] font-semibold text-white shadow whitespace-nowrap flex items-center gap-1">
+              <Camera className="h-2.5 w-2.5" />
+              {name}
+            </div>
+          </Html>
+        )}
+      </group>
+    );
+  }
+);
+
+
 function coords2Dto3D(x: number, y: number, view?: "front" | "back"): [number, number, number] {
   const x3d = (x / 200) * 2 - 1;
   const y3d = 2.0 - (y / 500) * 3.5;
@@ -866,7 +963,7 @@ function LoadingFallback() {
 }
 
 /* ─── Scene ─── */
-function Scene({ markers, selectedLocationId, onMapClick, onMarkerClick, classificationFilter, previewMarker, isPlacementMode, onPreviewMove, preset, gender, markMode, markType, resetKey }: BodyMap3DProps & { preset: CameraPreset; gender: Gender; markMode: boolean; markType: MarkType; resetKey: number }) {
+function Scene({ markers, selectedLocationId, onMapClick, onMarkerClick, classificationFilter, previewMarker, isPlacementMode, onPreviewMove, preset, gender, markMode, markType, resetKey, zoneOverlays, selectedZoneId }: BodyMap3DProps & { preset: CameraPreset; gender: Gender; markMode: boolean; markType: MarkType; resetKey: number }) {
   const [isDraggingSpot, setIsDraggingSpot] = useState(false);
   const [hoverInfo, setHoverInfo] = useState<{ point: THREE.Vector3; y3d: number; x3d: number; z3d: number; zone: string } | null>(null);
 
@@ -992,7 +1089,28 @@ function Scene({ markers, selectedLocationId, onMapClick, onMarkerClick, classif
         );
       })}
 
-      {/* Draggable preview marker for spot placement */}
+      {/* Zone overlays — only show the selected zone */}
+      {(zoneOverlays ?? []).filter(z => z.id === selectedZoneId).map((z) => {
+        const has3d = z.x3d != null && z.y3d != null && z.z3d != null;
+        const has2d = z.x != null && z.y != null;
+        if (!has3d && !has2d) return null;
+        return (
+          <SurfaceProjectedGroup
+            key={`zone-overlay-${z.id}`}
+            approxPosition={has2d ? coords2Dto3D(z.x!, z.y!, z.view) : [z.x3d!, z.y3d!, z.z3d!]}
+            view={z.view}
+            storedPosition={has3d ? [z.x3d!, z.y3d!, z.z3d!] : undefined}
+            storedNormal={z.nx != null && z.ny != null && z.nz != null && (z.nx !== 0 || z.ny !== 0 || z.nz !== 0) ? [z.nx, z.ny, z.nz] : undefined}
+          >
+            <ZoneOverlayMarker
+              position={[0, 0, 0]}
+              name={translateAnatomyName(z.name)}
+              isSelected={true}
+            />
+          </SurfaceProjectedGroup>
+        );
+      })}
+
       {previewMarker && previewMarker.type === "spot" && (
         <DraggableSpotPreview
           initialPosition={coords2Dto3D(previewMarker.x, previewMarker.y, previewMarker.view)}
