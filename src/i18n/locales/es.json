@@ -154,13 +154,25 @@
     "backToList": "Volver",
     "patient": "Paciente",
     "tabs": {
-      "spots": "PUNTOS",
-      "overview": "ZONAS",
-      "photos": "FOTOS",
-      "timeline": "CRONOLOGÍA",
-      "reports": "INFORMES",
-      "chart": "EXPEDIENTE"
+      "spots": "Puntos",
+      "overview": "Zonas",
+      "photos": "Fotos",
+      "timeline": "Cronología",
+      "reports": "Informes",
+      "chart": "Expediente"
     },
+    "bottomNav": {
+      "chart": "Expediente",
+      "spots": "Puntos",
+      "photos": "Fotos",
+      "reports": "Informes"
+    },
+    "sidebarTab": {
+      "spots": "Puntos",
+      "zones": "Zonas"
+    },
+    "tapToExpand": "Toca para abrir",
+    "moreActions": "Más",
     "notLoaded": "No se pudo cargar el paciente.",
     "backToListBtn": "Volver a la lista",
     "overviewPhotos": "Zonas",
