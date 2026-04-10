@@ -73,6 +73,7 @@ const PatientDetail = () => {
   } | null>(null);
   const [locationName, setLocationName] = useState("");
   const [activeTab, setActiveTab] = useState<"akte" | "spots" | "timeline" | "fotos" | "uebersicht" | "berichte">("akte");
+  const [sidebarTab, setSidebarTab] = useState<"spots" | "zones">("spots");
   const [newFindingText, setNewFindingText] = useState("");
   const [regionWidth, setRegionWidth] = useState(40);
   const [regionHeight, setRegionHeight] = useState(30);
