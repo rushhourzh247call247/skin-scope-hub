@@ -50,7 +50,11 @@ const PatientAkte = ({ patient, onNavigateToSpot }: PatientAkteProps) => {
     queryFn: () => api.getPatientDocuments(patient.id),
   });
 
-  // Mutations
+  const { data: consultations = [], isLoading: consultationsLoading } = useQuery({
+    queryKey: ["consultations", patient.id],
+    queryFn: () => api.getConsultations(patient.id),
+  });
+
   const createAppointmentMutation = useMutation({
     mutationFn: (data: { scheduled_at: string; notes?: string }) =>
       api.createAppointment(patient.id, data),
