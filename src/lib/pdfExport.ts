@@ -172,15 +172,13 @@ async function compositeOverviewWithPins(
     const lx = px + labelOffsetX;
     const ly = py + labelOffsetY;
 
-    // Dashed leader line
-    ctx.setLineDash([Math.max(w * 0.004, 3), Math.max(w * 0.003, 2)]);
+    // Solid leader line (no dashes)
     ctx.strokeStyle = `rgba(${r},${g},${b},0.6)`;
     ctx.lineWidth = Math.max(w * 0.0015, 1);
     ctx.beginPath();
     ctx.moveTo(px, py);
     ctx.lineTo(lx, ly);
     ctx.stroke();
-    ctx.setLineDash([]);
 
     // Numbered circle at offset
     const circR = Math.max(w * 0.015, 10);
@@ -738,8 +736,24 @@ export async function generatePatientPDF(
   }
 
   /* ═══ SPOT SECTIONS ════════════════════════════════ */
-  for (let si = 0; si < spotLocations.length; si++) {
-    const loc = spotLocations[si];
+  // Sort spots: zone-linked first (grouped by zone, ordered by pin index), then unlinked
+  const sortedSpots = [...spotLocations].sort((a, b) => {
+    let aZoneIdx = Infinity, aPinIdx = Infinity;
+    let bZoneIdx = Infinity, bPinIdx = Infinity;
+    for (let oi = 0; oi < overviewLocations.length; oi++) {
+      const pins = overviewPinsMap[overviewLocations[oi].id] || [];
+      const aiP = pins.findIndex(p => p.linked_location_id === a.id);
+      if (aiP >= 0) { aZoneIdx = oi; aPinIdx = aiP; }
+      const biP = pins.findIndex(p => p.linked_location_id === b.id);
+      if (biP >= 0) { bZoneIdx = oi; bPinIdx = biP; }
+    }
+    if (aZoneIdx !== bZoneIdx) return aZoneIdx - bZoneIdx;
+    return aPinIdx - bPinIdx;
+  });
+
+  for (let si = 0; si < sortedSpots.length; si++) {
+    const loc = sortedSpots[si];
+    const originalIndex = spotLocations.indexOf(loc);
     const spotName = translateAnatomyName(loc.name) || loc.name || `Spot #${loc.id}`;
     const classification = loc.classification
       ? getClassificationLabel(loc.classification)
@@ -794,7 +808,7 @@ export async function generatePatientPDF(
     doc.setFont("Roboto", "bold");
     doc.setFontSize(7.5);
     doc.setTextColor(...C.white);
-    doc.text(`${si + 1}`, margin + 5.5, y + spotHeaderH / 2 + 0.8, { align: "center" });
+    doc.text(`${originalIndex + 1}`, margin + 5.5, y + spotHeaderH / 2 + 0.8, { align: "center" });
 
     // Spot name
     doc.setFont("Roboto", "bold");
@@ -1068,18 +1082,9 @@ export async function generatePatientPDF(
       y += 2;
     }
 
-    /* ─── Spot Separator ─── */
-    if (si < spotLocations.length - 1) {
-      y += 1;
-      doc.setDrawColor(...C.border);
-      doc.setLineWidth(0.15);
-      let dx = margin;
-      while (dx < pageW - margin) {
-        doc.line(dx, y, Math.min(dx + 1.5, pageW - margin), y);
-        dx += 3;
-      }
-      doc.setLineWidth(0.2);
-      y += 4;
+    /* ─── Spot Separator (simple spacing, no dashed lines) ─── */
+    if (si < sortedSpots.length - 1) {
+      y += 5;
     }
   }
 
