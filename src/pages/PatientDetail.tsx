@@ -489,15 +489,20 @@ const PatientDetail = () => {
           "w-full lg:w-auto",
           mapClickDialog ? "lg:w-[480px]" : "lg:w-[360px]"
         )}>
-          {/* Mobile toggle for map */}
+          {/* Mobile toggle for map - collapsed by default with mini preview */}
           <button
-            className="lg:hidden flex items-center justify-between w-full py-1 text-xs font-semibold text-foreground"
+            className="lg:hidden flex items-center justify-between w-full py-2 px-1 text-xs font-semibold text-foreground rounded-md hover:bg-muted/50 transition-colors"
             onClick={() => setMobileMapExpanded(!mobileMapExpanded)}
           >
             <span className="flex items-center gap-1.5">
               <MapPin className="h-3.5 w-3.5 text-primary" /> Body Map
+              <span className="text-[10px] text-muted-foreground font-normal">
+                ({spotLocations.length} {t('common.spots')})
+              </span>
             </span>
-            <span className="text-muted-foreground">{mobileMapExpanded ? "▲" : "▼"}</span>
+            <span className={cn("text-muted-foreground transition-transform", mobileMapExpanded && "rotate-180")}>
+              <ChevronDown className="h-4 w-4" />
+            </span>
           </button>
 
           <div className={cn(
@@ -613,18 +618,35 @@ const PatientDetail = () => {
             </div>
           )}
 
-          {/* Overview Photos in Sidebar */}
-            <div className={cn("mt-3 lg:mt-4", !mobileMapExpanded && "lg:block")}>
-              <div className="flex items-center justify-between mb-2">
-                <h3 className="text-xs font-semibold text-foreground uppercase tracking-wider flex items-center gap-1.5">
-                   <Camera className="h-3 w-3" />
-                   {t('patientDetail.overviewPhotos')}
-                </h3>
-                <span className="text-[10px] text-muted-foreground">{overviewLocations.length}</span>
-              </div>
-              {overviewLocations.length > 0 && (
-              <div className="space-y-1 mb-4">
-                {overviewLocations.map((loc) => {
+          {/* Sidebar tabs for Zones / Spots */}
+          <div className={cn("mt-3 lg:mt-4", !mobileMapExpanded && "lg:block")}>
+            <div className="flex items-center gap-1 rounded-lg bg-muted p-0.5 mb-3">
+              <button
+                onClick={() => setSidebarTab("spots")}
+                className={cn(
+                  "flex-1 flex items-center justify-center gap-1.5 rounded-md px-2 py-1.5 text-[11px] font-medium transition-all",
+                  sidebarTab === "spots" ? "bg-background text-foreground shadow-sm" : "text-muted-foreground hover:text-foreground"
+                )}
+              >
+                <MapPin className="h-3 w-3" />
+                {t('patientDetail.sidebarTab.spots')} ({spotLocations.filter(l => l.type !== "region").length})
+              </button>
+              <button
+                onClick={() => setSidebarTab("zones")}
+                className={cn(
+                  "flex-1 flex items-center justify-center gap-1.5 rounded-md px-2 py-1.5 text-[11px] font-medium transition-all",
+                  sidebarTab === "zones" ? "bg-background text-foreground shadow-sm" : "text-muted-foreground hover:text-foreground"
+                )}
+              >
+                <Camera className="h-3 w-3" />
+                {t('patientDetail.sidebarTab.zones')} ({overviewLocations.length})
+              </button>
+            </div>
+
+            {/* Zones list - shown when zones tab active */}
+            {sidebarTab === "zones" && (
+              <div className="space-y-1 mb-3">
+                {overviewLocations.length > 0 ? overviewLocations.map((loc) => {
                   const firstImg = loc.images?.[0];
                   const imgCount = loc.images?.length ?? 0;
                   return (
@@ -637,11 +659,7 @@ const PatientDetail = () => {
                         onClick={() => { setSelectedLocationId(loc.id); setActiveTab("uebersicht"); }}
                       >
                         {firstImg ? (
-                          <img
-                            src={api.resolveImageSrc(firstImg)}
-                            alt={loc.name}
-                            className="h-6 w-6 rounded object-cover shrink-0"
-                          />
+                          <img src={api.resolveImageSrc(firstImg)} alt={loc.name} className="h-6 w-6 rounded object-cover shrink-0" />
                         ) : (
                           <div className="h-6 w-6 rounded bg-muted flex items-center justify-center shrink-0">
                             <Camera className="h-3 w-3 text-muted-foreground" />
@@ -651,38 +669,17 @@ const PatientDetail = () => {
                         <span className="text-[10px] text-muted-foreground shrink-0">{imgCount} {imgCount === 1 ? t('common.image') : t('common.images')}</span>
                       </button>
                       <div className="flex items-center gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity shrink-0">
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            setZoneUploadTargetId(loc.id);
-                            setTimeout(() => zoneFileRef.current?.click(), 0);
-                          }}
-                          className="h-5 w-5 rounded flex items-center justify-center hover:bg-muted-foreground/10 text-muted-foreground hover:text-foreground"
-                          title={t('imageGallery.uploadImage')}
-                        >
-                          <Upload className="h-3 w-3" />
-                        </button>
-                        <button
-                          onClick={(e) => { e.stopPropagation(); setQrLocationId(loc.id); setQrDialogOpen(true); }}
-                          className="h-5 w-5 rounded flex items-center justify-center hover:bg-muted-foreground/10 text-muted-foreground hover:text-foreground"
-                          title={t('patientDetail.uploadFromPhone')}
-                        >
-                          <QrCode className="h-3 w-3" />
-                        </button>
-                        <button
-                          onClick={(e) => { e.stopPropagation(); setDeleteConfirmId(loc.id); }}
-                          className="h-5 w-5 rounded flex items-center justify-center hover:bg-destructive/10 text-muted-foreground hover:text-destructive"
-                          title={t('common.delete')}
-                        >
-                          <Trash2 className="h-3 w-3" />
-                        </button>
+                        <button onClick={(e) => { e.stopPropagation(); setZoneUploadTargetId(loc.id); setTimeout(() => zoneFileRef.current?.click(), 0); }} className="h-5 w-5 rounded flex items-center justify-center hover:bg-muted-foreground/10 text-muted-foreground hover:text-foreground" title={t('imageGallery.uploadImage')}><Upload className="h-3 w-3" /></button>
+                        <button onClick={(e) => { e.stopPropagation(); setQrLocationId(loc.id); setQrDialogOpen(true); }} className="h-5 w-5 rounded flex items-center justify-center hover:bg-muted-foreground/10 text-muted-foreground hover:text-foreground" title={t('patientDetail.uploadFromPhone')}><QrCode className="h-3 w-3" /></button>
+                        <button onClick={(e) => { e.stopPropagation(); setDeleteConfirmId(loc.id); }} className="h-5 w-5 rounded flex items-center justify-center hover:bg-destructive/10 text-muted-foreground hover:text-destructive" title={t('common.delete')}><Trash2 className="h-3 w-3" /></button>
                       </div>
                     </div>
                   );
-                })}
+                }) : (
+                  <p className="text-[11px] text-muted-foreground text-center py-4">{t('overviewPhoto.noZonesYet')}</p>
+                )}
               </div>
-              )}
-            </div>
+            )}
 
           {/* Spots List - collapsible on mobile when map is collapsed */}
           <div className={cn("mt-3 lg:mt-4 space-y-1", !mobileMapExpanded && "lg:block")}>
