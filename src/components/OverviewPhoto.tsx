@@ -4,7 +4,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { api } from "@/lib/api";
 import type { Location, OverviewPin, LocationImage, LesionClassification } from "@/types/patient";
 import { LESION_CLASSIFICATIONS } from "@/types/patient";
-import { Upload, Plus, X, Trash2, MapPin, Eye, Pencil, ImageIcon, Camera, QrCode, Save, GitCompareArrows, Layers, Calendar, ZoomIn, ZoomOut, RotateCcw, Wand2, Move, RotateCw, ChevronDown, Loader2 } from "lucide-react";
+import { Upload, Plus, X, Trash2, MapPin, Eye, Pencil, ImageIcon, Camera, QrCode, Save, GitCompareArrows, Layers, Calendar, ZoomIn, ZoomOut, RotateCcw, Wand2, Move, RotateCw, ChevronDown, ChevronLeft, ChevronRight, Loader2 } from "lucide-react";
 import { Slider } from "@/components/ui/slider";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -69,7 +69,28 @@ const OverviewPhoto = ({ overviewLocation, spotLocations, patientId, onNavigateT
   const [isAutoAligning, setIsAutoAligning] = useState(false);
   const [compareIndexA, setCompareIndexA] = useState(0);
   const [compareIndexB, setCompareIndexB] = useState(1);
-  const [zoomedImageSrc, setZoomedImageSrc] = useState<string | null>(null);
+  const [zoomedGallery, setZoomedGallery] = useState<string[]>([]);
+  const [zoomedIndex, setZoomedIndex] = useState(0);
+
+  const openLightbox = useCallback((src: string, gallery?: string[]) => {
+    const g = gallery ?? [src];
+    setZoomedGallery(g);
+    setZoomedIndex(Math.max(0, g.indexOf(src)));
+  }, []);
+
+  const closeLightbox = useCallback(() => setZoomedGallery([]), []);
+
+  // Keyboard navigation for lightbox
+  useEffect(() => {
+    if (zoomedGallery.length === 0) return;
+    const handler = (e: KeyboardEvent) => {
+      if (e.key === "ArrowLeft") setZoomedIndex(i => (i - 1 + zoomedGallery.length) % zoomedGallery.length);
+      else if (e.key === "ArrowRight") setZoomedIndex(i => (i + 1) % zoomedGallery.length);
+      else if (e.key === "Escape") closeLightbox();
+    };
+    window.addEventListener("keydown", handler);
+    return () => window.removeEventListener("keydown", handler);
+  }, [zoomedGallery, closeLightbox]);
 
   const { data: pins = [] } = useQuery({
     queryKey: ["overview-pins", overviewLocation.id],
@@ -528,7 +549,11 @@ const OverviewPhoto = ({ overviewLocation, spotLocations, patientId, onNavigateT
                                   src={api.resolveImageSrc(img)}
                                   alt={`${spot.name} #${idx + 1}`}
                                   className="h-14 w-14 rounded-lg object-cover border cursor-pointer hover:ring-2 hover:ring-primary transition-all"
-                                  onClick={() => setZoomedImageSrc(api.resolveImageSrc(img))}
+                                  onClick={() => {
+                                    const sortedImages = [...spot.images].sort((a, b) => new Date(a.created_at ?? 0).getTime() - new Date(b.created_at ?? 0).getTime());
+                                    const gallery = sortedImages.map(i => api.resolveImageSrc(i));
+                                    openLightbox(api.resolveImageSrc(img), gallery);
+                                  }}
                                 />
                                 <p className="text-[9px] text-muted-foreground mt-0.5">
                                   {img.created_at ? formatDate(img.created_at, 'dd.MM.yy') : `#${idx + 1}`}
@@ -827,7 +852,7 @@ const OverviewPhoto = ({ overviewLocation, spotLocations, patientId, onNavigateT
                       <div key={img.id} className="space-y-2">
                         <div
                           className="relative overflow-hidden rounded-lg border aspect-square bg-muted cursor-pointer"
-                          onClick={() => setZoomedImageSrc(api.resolveImageSrc(img))}
+                          onClick={() => openLightbox(api.resolveImageSrc(img), [imgA, imgB].map(i => api.resolveImageSrc(i)))}
                         >
                           <img src={api.resolveImageSrc(img)} alt={`Vergleich ${i + 1}`} className="h-full w-full object-contain" />
                           <div className={cn(
@@ -840,7 +865,7 @@ const OverviewPhoto = ({ overviewLocation, spotLocations, patientId, onNavigateT
                             variant="ghost"
                             size="icon"
                             className="absolute top-2 right-2 h-6 w-6 bg-background/50 backdrop-blur-sm"
-                            onClick={(e) => { e.stopPropagation(); setZoomedImageSrc(api.resolveImageSrc(img)); }}
+                            onClick={(e) => { e.stopPropagation(); openLightbox(api.resolveImageSrc(img), [imgA, imgB].map(i => api.resolveImageSrc(i))); }}
                           >
                             <ZoomIn className="h-3 w-3" />
                           </Button>
@@ -895,7 +920,7 @@ const OverviewPhoto = ({ overviewLocation, spotLocations, patientId, onNavigateT
                 <div className="space-y-4">
                   <div
                     className="relative overflow-hidden rounded-lg border aspect-square bg-muted cursor-pointer"
-                    onClick={() => setZoomedImageSrc(api.resolveImageSrc(imgA))}
+                    onClick={() => openLightbox(api.resolveImageSrc(imgA), [imgA, imgB].map(i => api.resolveImageSrc(i)))}
                   >
                     <img src={api.resolveImageSrc(imgA)} alt="Referenz" className="absolute inset-0 h-full w-full object-contain" />
                     <img
@@ -1011,18 +1036,55 @@ const OverviewPhoto = ({ overviewLocation, spotLocations, patientId, onNavigateT
         })()}
       </AnimatePresence>
 
-      {/* Fullscreen zoom dialog */}
-      {zoomedImageSrc && (
+      {/* Fullscreen zoom dialog with gallery navigation */}
+      {zoomedGallery.length > 0 && (
         <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm cursor-pointer"
-          onClick={() => setZoomedImageSrc(null)}
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm"
+          onClick={closeLightbox}
         >
-          <img src={zoomedImageSrc} alt="Vergrössert" className="max-h-[90vh] max-w-[90vw] object-contain rounded-lg" />
+          {/* Previous button */}
+          {zoomedGallery.length > 1 && (
+            <Button
+              variant="ghost"
+              size="icon"
+              className="absolute left-4 top-1/2 -translate-y-1/2 text-white hover:bg-white/20 h-10 w-10 z-10"
+              onClick={(e) => { e.stopPropagation(); setZoomedIndex((zoomedIndex - 1 + zoomedGallery.length) % zoomedGallery.length); }}
+            >
+              <ChevronLeft className="h-6 w-6" />
+            </Button>
+          )}
+
+          <img
+            src={zoomedGallery[zoomedIndex]}
+            alt="Vergrössert"
+            className="max-h-[90vh] max-w-[80vw] object-contain rounded-lg"
+            onClick={(e) => e.stopPropagation()}
+          />
+
+          {/* Next button */}
+          {zoomedGallery.length > 1 && (
+            <Button
+              variant="ghost"
+              size="icon"
+              className="absolute right-14 top-1/2 -translate-y-1/2 text-white hover:bg-white/20 h-10 w-10 z-10"
+              onClick={(e) => { e.stopPropagation(); setZoomedIndex((zoomedIndex + 1) % zoomedGallery.length); }}
+            >
+              <ChevronRight className="h-6 w-6" />
+            </Button>
+          )}
+
+          {/* Counter */}
+          {zoomedGallery.length > 1 && (
+            <div className="absolute bottom-6 left-1/2 -translate-x-1/2 text-white/80 text-sm bg-black/50 px-3 py-1 rounded-full">
+              {zoomedIndex + 1} / {zoomedGallery.length}
+            </div>
+          )}
+
           <Button
             variant="ghost"
             size="icon"
             className="absolute top-4 right-4 text-white hover:bg-white/20"
-            onClick={() => setZoomedImageSrc(null)}
+            onClick={closeLightbox}
           >
             <X className="h-5 w-5" />
           </Button>
