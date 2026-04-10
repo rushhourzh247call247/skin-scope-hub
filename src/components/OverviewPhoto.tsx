@@ -530,7 +530,7 @@ const OverviewPhoto = ({ overviewLocation, spotLocations, patientId, onNavigateT
                                   onClick={() => setZoomedImageSrc(api.resolveImageSrc(img))}
                                 />
                                 <p className="text-[9px] text-muted-foreground mt-0.5">
-                                  {img.created_at ? formatDate(img.created_at) : `#${idx + 1}`}
+                                  {img.created_at ? formatDate(img.created_at, 'dd.MM.yy') : `#${idx + 1}`}
                                 </p>
                               </div>
                             ))}
