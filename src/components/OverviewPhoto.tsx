@@ -675,7 +675,8 @@ const OverviewPhoto = ({ overviewLocation, spotLocations, patientId, onNavigateT
               )}
             </div>
           );
-        })}
+        });
+        })()}
 
         {pendingPin && (
           <Popover open={true} onOpenChange={(open) => { if (!open) setPendingPin(null); }}>
