@@ -116,11 +116,29 @@ const OverviewPhoto = ({ overviewLocation, spotLocations, patientId, onNavigateT
     onError: () => setUploading(false),
   });
 
+  const spotUploadMutation = useMutation({
+    mutationFn: ({ locationId, file }: { locationId: number; file: File }) =>
+      api.uploadImage(locationId, file),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["full-patient", patientId] });
+      setSpotUploading(false);
+      toast.success(t('overviewPhoto.spotPhotoUploaded'));
+    },
+    onError: () => setSpotUploading(false),
+  });
+
   const handleUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
     setUploading(true);
     uploadMutation.mutate(file);
+  };
+
+  const handleSpotUpload = (locationId: number) => (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setSpotUploading(true);
+    spotUploadMutation.mutate({ locationId, file });
   };
 
   const handleImageClick = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
