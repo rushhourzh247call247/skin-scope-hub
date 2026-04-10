@@ -509,8 +509,6 @@ const OverviewPhoto = ({ overviewLocation, spotLocations, patientId, onNavigateT
                     className="w-64 p-3 z-50"
                     onClick={(e) => e.stopPropagation()}
                   >
-                    onClick={(e) => e.stopPropagation()}
-                  >
                     {/* Spot header */}
                     <div className="flex items-center justify-between mb-2">
                       <div className="flex items-center gap-2 min-w-0">
