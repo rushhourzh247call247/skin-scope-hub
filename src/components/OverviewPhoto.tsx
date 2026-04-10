@@ -371,53 +371,50 @@ const OverviewPhoto = ({ overviewLocation, spotLocations, patientId, onNavigateT
       )}
 
       {/* Zoom controls */}
-      <div className="flex items-center gap-1.5 mb-1">
-        <Button
-          size="sm"
-          variant="outline"
-          className="h-7 w-7 p-0"
-          onClick={() => setZoomLevel(z => Math.min(z + 0.25, 4))}
-          title={t('overviewPhoto.zoomIn', 'Hineinzoomen')}
-        >
-          <ZoomIn className="h-3.5 w-3.5" />
-        </Button>
-        <Button
-          size="sm"
-          variant="outline"
-          className="h-7 w-7 p-0"
-          onClick={() => setZoomLevel(z => Math.max(z - 0.25, 0.5))}
-          title={t('overviewPhoto.zoomOut', 'Herauszoomen')}
-        >
-          <ZoomOut className="h-3.5 w-3.5" />
-        </Button>
-        {zoomLevel !== 1 && (
+      {zoomLevel !== 1 && (
+        <div className="flex items-center gap-1.5 mb-1">
           <Button
             size="sm"
             variant="ghost"
             className="h-7 px-2 text-xs"
-            onClick={() => setZoomLevel(1)}
+            onClick={() => { setZoomLevel(1); setPanOffset({ x: 0, y: 0 }); }}
           >
+            <RotateCcw className="h-3 w-3 mr-1" />
             {Math.round(zoomLevel * 100)}% – Reset
           </Button>
-        )}
-        <span className="text-[10px] text-muted-foreground ml-1">
-          {t('overviewPhoto.zoomHint', 'Ctrl + Mausrad zum Zoomen')}
-        </span>
-      </div>
+          <span className="text-[10px] text-muted-foreground">
+            Rechte Maustaste gedrückt halten zum Verschieben
+          </span>
+        </div>
+      )}
+      {zoomLevel === 1 && (
+        <p className="text-[10px] text-muted-foreground mb-1">
+          Mausrad zum Zoomen · Rechte Maustaste zum Verschieben
+        </p>
+      )}
 
-      <div className="max-h-[60vh] overflow-auto rounded-lg border bg-muted">
+      <div
+        className="max-h-[60vh] overflow-hidden rounded-lg border bg-muted"
+        onContextMenu={(e) => e.preventDefault()}
+      >
         <div
           ref={containerRef}
           className={cn(
             "relative",
-            pinMode && "cursor-crosshair ring-2 ring-primary/30 ring-inset"
+            pinMode && "cursor-crosshair ring-2 ring-primary/30 ring-inset",
+            isPanning && "cursor-grabbing",
+            !isPanning && zoomLevel > 1 && !pinMode && "cursor-grab"
           )}
           style={{
-            transform: `scale(${zoomLevel})`,
-            transformOrigin: 'top left',
+            transform: `translate(${panOffset.x}px, ${panOffset.y}px) scale(${zoomLevel})`,
+            transformOrigin: 'center center',
             width: '100%',
           }}
           onClick={handleImageClick}
+          onMouseDown={handlePanStart}
+          onMouseMove={handlePanMove}
+          onMouseUp={handlePanEnd}
+          onMouseLeave={handlePanEnd}
         >
           <img
             src={api.resolveImageSrc(referenceImage)}
