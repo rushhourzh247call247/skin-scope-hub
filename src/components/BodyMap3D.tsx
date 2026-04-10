@@ -1089,7 +1089,28 @@ function Scene({ markers, selectedLocationId, onMapClick, onMarkerClick, classif
         );
       })}
 
-      {/* Draggable preview marker for spot placement */}
+      {/* Zone overlays — only show the selected zone */}
+      {(zoneOverlays ?? []).filter(z => z.id === selectedZoneId).map((z) => {
+        const has3d = z.x3d != null && z.y3d != null && z.z3d != null;
+        const has2d = z.x != null && z.y != null;
+        if (!has3d && !has2d) return null;
+        return (
+          <SurfaceProjectedGroup
+            key={`zone-overlay-${z.id}`}
+            approxPosition={has2d ? coords2Dto3D(z.x!, z.y!, z.view) : [z.x3d!, z.y3d!, z.z3d!]}
+            view={z.view}
+            storedPosition={has3d ? [z.x3d!, z.y3d!, z.z3d!] : undefined}
+            storedNormal={z.nx != null && z.ny != null && z.nz != null && (z.nx !== 0 || z.ny !== 0 || z.nz !== 0) ? [z.nx, z.ny, z.nz] : undefined}
+          >
+            <ZoneOverlayMarker
+              position={[0, 0, 0]}
+              name={translateAnatomyName(z.name)}
+              isSelected={true}
+            />
+          </SurfaceProjectedGroup>
+        );
+      })}
+
       {previewMarker && previewMarker.type === "spot" && (
         <DraggableSpotPreview
           initialPosition={coords2Dto3D(previewMarker.x, previewMarker.y, previewMarker.view)}
