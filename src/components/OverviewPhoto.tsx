@@ -513,10 +513,10 @@ const OverviewPhoto = ({ overviewLocation, spotLocations, patientId, onNavigateT
                           className="flex items-center justify-center rounded-full text-[10px] font-bold text-white shrink-0"
                           style={{ width: 20, height: 20, backgroundColor: color }}
                         >
-                          {i + 1}
+                          <MapPin className="h-3 w-3" />
                         </span>
                         <p className="text-sm font-medium text-foreground truncate">
-                          {spot?.name || pin.label || `Spot #${pin.linked_location_id}`}
+                          {spot?.name || pin.label || "Spot"}
                         </p>
                       </div>
                       {(() => {
