@@ -122,11 +122,32 @@ const OverviewPhoto = ({ overviewLocation, spotLocations, patientId, onNavigateT
 
   const handleImageClick = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
     if (!pinMode) return;
-    const rect = e.currentTarget.getBoundingClientRect();
+    // Account for the transform scale — use the inner container's natural size
+    const el = containerRef.current;
+    if (!el) return;
+    const rect = el.getBoundingClientRect();
     const x_pct = ((e.clientX - rect.left) / rect.width) * 100;
     const y_pct = ((e.clientY - rect.top) / rect.height) * 100;
     setPendingPin({ x_pct, y_pct });
   }, [pinMode]);
+
+  // Mouse wheel zoom
+  const handleWheel = useCallback((e: WheelEvent) => {
+    if (e.ctrlKey || e.metaKey) {
+      e.preventDefault();
+      setZoomLevel(z => {
+        const delta = e.deltaY > 0 ? -0.15 : 0.15;
+        return Math.min(Math.max(z + delta, 0.5), 4);
+      });
+    }
+  }, []);
+
+  useEffect(() => {
+    const scrollContainer = containerRef.current?.parentElement;
+    if (!scrollContainer) return;
+    scrollContainer.addEventListener("wheel", handleWheel, { passive: false });
+    return () => scrollContainer.removeEventListener("wheel", handleWheel);
+  }, [handleWheel]);
 
   const handleLinkSpot = (spotId: number) => {
     if (!pendingPin) return;
