@@ -177,15 +177,35 @@ const OverviewPhoto = ({ overviewLocation, spotLocations, patientId, onNavigateT
     setPendingPin({ x_pct, y_pct });
   }, [pinMode]);
 
-  // Mouse wheel zoom
+  // Mouse wheel zoom (no modifier needed)
   const handleWheel = useCallback((e: WheelEvent) => {
-    if (e.ctrlKey || e.metaKey) {
+    e.preventDefault();
+    setZoomLevel(z => {
+      const delta = e.deltaY > 0 ? -0.15 : 0.15;
+      const newZoom = Math.min(Math.max(z + delta, 1), 5);
+      if (newZoom <= 1) setPanOffset({ x: 0, y: 0 });
+      return newZoom;
+    });
+  }, []);
+
+  // Right-click / middle-click drag to pan
+  const handlePanStart = useCallback((e: React.MouseEvent) => {
+    if (e.button === 2 || e.button === 1) { // right or middle click
       e.preventDefault();
-      setZoomLevel(z => {
-        const delta = e.deltaY > 0 ? -0.15 : 0.15;
-        return Math.min(Math.max(z + delta, 0.5), 4);
-      });
+      setIsPanning(true);
+      panStart.current = { x: e.clientX, y: e.clientY, ox: panOffset.x, oy: panOffset.y };
     }
+  }, [panOffset]);
+
+  const handlePanMove = useCallback((e: React.MouseEvent) => {
+    if (!isPanning) return;
+    const dx = e.clientX - panStart.current.x;
+    const dy = e.clientY - panStart.current.y;
+    setPanOffset({ x: panStart.current.ox + dx, y: panStart.current.oy + dy });
+  }, [isPanning]);
+
+  const handlePanEnd = useCallback(() => {
+    setIsPanning(false);
   }, []);
 
   useEffect(() => {
