@@ -95,6 +95,36 @@ const PatientAkte = ({ patient, onNavigateToSpot }: PatientAkteProps) => {
     },
   });
 
+  const createConsultationMutation = useMutation({
+    mutationFn: (notes: string) => api.createConsultation(patient.id, notes),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["consultations", patient.id] });
+      setShowConsultationForm(false);
+      setConsultationText("");
+      toast.success(t("akte.consultationCreated"));
+    },
+    onError: () => toast.error(t("akte.consultationError")),
+  });
+
+  const updateConsultationMutation = useMutation({
+    mutationFn: ({ id, notes }: { id: number; notes: string }) => api.updateConsultation(id, notes),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["consultations", patient.id] });
+      setEditingConsultationId(null);
+      setEditingConsultationText("");
+      toast.success(t("akte.consultationUpdated"));
+    },
+    onError: () => toast.error(t("akte.consultationError")),
+  });
+
+  const deleteConsultationMutation = useMutation({
+    mutationFn: (id: number) => api.deleteConsultation(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["consultations", patient.id] });
+      toast.success(t("akte.consultationDeleted"));
+    },
+  });
+
   // Derived data
   const locations = (patient.locations ?? []).filter((l: any) => !l.deleted_at);
   const spotLocations = locations.filter((l) => l.type !== "overview");
