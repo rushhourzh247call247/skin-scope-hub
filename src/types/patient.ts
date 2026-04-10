@@ -134,6 +134,15 @@ export interface PatientDocument {
   updated_at?: string;
 }
 
+export interface Consultation {
+  id: number;
+  patient_id: number;
+  notes: string;
+  user_name?: string;
+  created_at?: string;
+  updated_at?: string;
+}
+
 export interface PdfReport {
   id: string;
   patientId: number;

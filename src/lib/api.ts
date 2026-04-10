@@ -1,4 +1,4 @@
-import type { LesionClassification, Appointment, PatientDocument } from '@/types/patient';
+import type { LesionClassification, Appointment, PatientDocument, Consultation } from '@/types/patient';
 
 const DEFAULT_API_BASE_URL = 'https://api.derm247.ch/api';
 
@@ -390,4 +390,29 @@ export const api = {
     `${getApiBaseUrl()}/documents/${id}/download?token=${authToken}`,
   downloadDocumentBlob: (id: number) =>
     requestBlob(`/documents/${id}/download${authToken ? `?token=${authToken}` : ''}`),
+
+  // Consultations
+  getConsultations: (patientId: number) =>
+    requestWithFallback<Consultation[]>(
+      `/patients/${patientId}/consultations`,
+      `/snapshots/patients/${patientId}/consultations`,
+    ),
+  createConsultation: (patientId: number, notes: string) =>
+    requestWithFallback<Consultation>(
+      `/patients/${patientId}/consultations`,
+      `/snapshots/patients/${patientId}/consultations`,
+      { method: 'POST', body: JSON.stringify({ notes }) },
+    ),
+  updateConsultation: (id: number, notes: string) =>
+    requestWithFallback<Consultation>(
+      `/consultations/${id}`,
+      `/snapshots/consultations/${id}`,
+      { method: 'PUT', body: JSON.stringify({ notes }) },
+    ),
+  deleteConsultation: (id: number) =>
+    requestWithFallback<{ success: boolean }>(
+      `/consultations/${id}`,
+      `/snapshots/consultations/${id}`,
+      { method: 'DELETE' },
+    ),
 };
