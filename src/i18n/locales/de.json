@@ -224,6 +224,7 @@
     "uploadFromPhone": "Foto vom Handy hochladen",
     "deleteConfirm": "Löschen",
     "moveToTrash": "In Papierkorb verschieben",
+    "fromZone": "Zone: {{zone}}",
     "restoreFromTrash": "Wiederherstellen",
     "permanentlyDelete": "Endgültig löschen",
     "restoredSuccess": "Hautstelle wiederhergestellt",

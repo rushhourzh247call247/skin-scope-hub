@@ -286,6 +286,30 @@ const PatientDetail = () => {
     ...spotLocations,
     ...trashedLocations.filter((loc: any) => loc.type !== "overview" && !spotLocations.some(spot => spot.id === loc.id)),
   ];
+
+  // Query all overview pins to know which spots belong to which zones
+  const { data: allZonePins = [] } = useQuery({
+    queryKey: ["all-zone-pins", patientId, overviewLocations.map(z => z.id).join(",")],
+    queryFn: async () => {
+      const results: { zoneId: number; zoneName: string; pins: any[] }[] = [];
+      for (const zone of overviewLocations) {
+        const pins = await api.getOverviewPins(zone.id);
+        results.push({ zoneId: zone.id, zoneName: zone.name || `Zone ${overviewLocations.indexOf(zone) + 1}`, pins });
+      }
+      return results;
+    },
+    enabled: overviewLocations.length > 0,
+  });
+
+  // Build a map: spotId → zoneName for grouping
+  const spotToZone = new Map<number, string>();
+  for (const zp of allZonePins) {
+    for (const pin of zp.pins) {
+      if (!spotToZone.has(pin.linked_location_id)) {
+        spotToZone.set(pin.linked_location_id, zp.zoneName);
+      }
+    }
+  }
   const selectedLocation = locations.find((l) => l.id === selectedLocationId);
   const totalImages = locations.reduce((sum, l) => sum + (l.images?.length ?? 0), 0);
 
@@ -687,23 +711,25 @@ const PatientDetail = () => {
             )}
 
           {/* Spots List - shown when spots tab active */}
-          {sidebarTab === "spots" && (
-            <div className="space-y-1">
-            {spotLocations.filter(l => l.type !== "region").filter(l => {
+          {sidebarTab === "spots" && (() => {
+            const visibleSpots = spotLocations.filter(l => l.type !== "region").filter(l => {
               if (classificationFilter.length === 0) return true;
               const cls = ((l as any).classification as LesionClassificationType) || "unclassified";
               return classificationFilter.includes(cls);
-            }).length === 0 ? (
-              <div className="flex flex-col items-center justify-center py-6 text-muted-foreground">
-                <MapPin className="h-8 w-8 mb-2 text-muted-foreground/50" />
-                <p className="text-xs font-medium">{t('patientDetail.selectBodyPart')}</p>
-                <p className="text-[10px] mt-1 text-center">{t('patientDetail.clickBodyMapInstruction')}</p>
-              </div>
-            ) : spotLocations.filter(l => l.type !== "region").filter(l => {
-              if (classificationFilter.length === 0) return true;
-              const cls = ((l as any).classification as LesionClassificationType) || "unclassified";
-              return classificationFilter.includes(cls);
-            }).map((loc, i) => (
+            });
+
+            // Separate spots: those without a zone link vs grouped by zone
+            const freeSpots = visibleSpots.filter(l => !spotToZone.has(l.id));
+            const zoneGroups = new Map<string, typeof visibleSpots>();
+            for (const s of visibleSpots) {
+              const zn = spotToZone.get(s.id);
+              if (zn) {
+                if (!zoneGroups.has(zn)) zoneGroups.set(zn, []);
+                zoneGroups.get(zn)!.push(s);
+              }
+            }
+
+            const renderSpotItem = (loc: typeof visibleSpots[0], i: number) => (
               <div
                 key={loc.id}
                 className={cn(
@@ -785,9 +811,46 @@ const PatientDetail = () => {
                   <Trash2 className="h-3.5 w-3.5" />
                 </button>
               </div>
-            ))}
-            </div>
-          )}
+            );
+
+            let globalIndex = 0;
+
+            return (
+              <div className="space-y-1">
+                {visibleSpots.length === 0 ? (
+                  <div className="flex flex-col items-center justify-center py-6 text-muted-foreground">
+                    <MapPin className="h-8 w-8 mb-2 text-muted-foreground/50" />
+                    <p className="text-xs font-medium">{t('patientDetail.selectBodyPart')}</p>
+                    <p className="text-[10px] mt-1 text-center">{t('patientDetail.clickBodyMapInstruction')}</p>
+                  </div>
+                ) : (
+                  <>
+                    {/* Free spots (not linked to any zone) */}
+                    {freeSpots.map((loc) => {
+                      const idx = globalIndex++;
+                      return renderSpotItem(loc, idx);
+                    })}
+
+                    {/* Zone-grouped spots */}
+                    {Array.from(zoneGroups.entries()).map(([zoneName, spots]) => (
+                      <div key={zoneName} className="mt-2">
+                        <div className="flex items-center gap-1.5 px-2 py-1 mb-1">
+                          <Camera className="h-3 w-3 text-muted-foreground" />
+                          <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
+                            {t('patientDetail.fromZone', { zone: translateAnatomyName(zoneName) })}
+                          </span>
+                        </div>
+                        {spots.map((loc) => {
+                          const idx = globalIndex++;
+                          return renderSpotItem(loc, idx);
+                        })}
+                      </div>
+                    ))}
+                  </>
+                )}
+              </div>
+            );
+          })()}
           </div>
 
           {/* Trash Bin */}

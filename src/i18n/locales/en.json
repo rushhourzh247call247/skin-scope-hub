@@ -224,6 +224,7 @@
     "uploadFromPhone": "Upload photo from phone",
     "deleteConfirm": "Delete",
     "moveToTrash": "Move to trash",
+    "fromZone": "Zone: {{zone}}",
     "restoreFromTrash": "Restore",
     "permanentlyDelete": "Permanently delete",
     "restoredSuccess": "Spot restored",

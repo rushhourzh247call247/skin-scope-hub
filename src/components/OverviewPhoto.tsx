@@ -471,10 +471,11 @@ const OverviewPhoto = ({ overviewLocation, spotLocations, patientId, onNavigateT
                   title={t('overviewPhoto.clickToRemovePin')}
                 >
                   <span
-                    className="flex items-center justify-center rounded-full text-[10px] font-bold text-white shadow-md border border-white/50"
-                    style={{ width: 20, height: 20, backgroundColor: color }}
+                    className="flex items-center gap-1 rounded-full text-[9px] font-bold text-white shadow-md border border-white/50 px-2 py-0.5"
+                    style={{ backgroundColor: "#ef4444" }}
                   >
                     <Trash2 className="h-3 w-3 text-white" />
+                    <span className="truncate max-w-[60px]">{spot?.name || pin.label || "Spot"}</span>
                   </span>
                 </button>
               ) : (
@@ -490,13 +491,13 @@ const OverviewPhoto = ({ overviewLocation, spotLocations, patientId, onNavigateT
                       onClick={(e) => { e.stopPropagation(); setOpenPinId(openPinId === pin.id ? null : pin.id); }}
                       onMouseEnter={() => setHoveredPin(pin.id)}
                       onMouseLeave={() => setHoveredPin(null)}
-                      title={`→ ${spot?.name || pin.label || `Spot #${pin.linked_location_id}`}`}
+                      title={spot?.name || pin.label || `Spot #${pin.linked_location_id}`}
                     >
                       <span
-                        className="flex items-center justify-center rounded-full text-[10px] font-bold text-white shadow-md border border-white/50"
-                        style={{ width: 20, height: 20, backgroundColor: color }}
+                        className="flex items-center gap-1 rounded-full text-[9px] font-bold text-white shadow-md border border-white/50 px-2 py-0.5 whitespace-nowrap max-w-[100px]"
+                        style={{ backgroundColor: color }}
                       >
-                        {i + 1}
+                        <span className="truncate">{spot?.name || pin.label || "Spot"}</span>
                       </span>
                     </button>
                   </PopoverTrigger>
@@ -513,10 +514,10 @@ const OverviewPhoto = ({ overviewLocation, spotLocations, patientId, onNavigateT
                           className="flex items-center justify-center rounded-full text-[10px] font-bold text-white shrink-0"
                           style={{ width: 20, height: 20, backgroundColor: color }}
                         >
-                          {i + 1}
+                          <MapPin className="h-3 w-3" />
                         </span>
                         <p className="text-sm font-medium text-foreground truncate">
-                          {spot?.name || pin.label || `Spot #${pin.linked_location_id}`}
+                          {spot?.name || pin.label || "Spot"}
                         </p>
                       </div>
                       {(() => {
