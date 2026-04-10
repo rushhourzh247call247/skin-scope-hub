@@ -12,7 +12,6 @@ import {
   Plus, Trash2, FileText, Upload, Download, AlertTriangle,
   Clock, ClipboardList, X, Save, FileUp, Eye, Pencil, Stethoscope
 } from "lucide-react";
-} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
