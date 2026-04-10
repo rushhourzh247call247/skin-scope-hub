@@ -156,13 +156,25 @@
     "backToList": "Back",
     "patient": "Patient",
     "tabs": {
-      "spots": "SPOTS",
-      "overview": "ZONES",
-      "photos": "PHOTOS",
-      "timeline": "TIMELINE",
-      "reports": "REPORTS",
-      "chart": "CHART"
+      "spots": "Spots",
+      "overview": "Zones",
+      "photos": "Photos",
+      "timeline": "Timeline",
+      "reports": "Reports",
+      "chart": "Chart"
     },
+    "bottomNav": {
+      "chart": "Chart",
+      "spots": "Spots",
+      "photos": "Photos",
+      "reports": "Reports"
+    },
+    "sidebarTab": {
+      "spots": "Spots",
+      "zones": "Zones"
+    },
+    "tapToExpand": "Tap to expand",
+    "moreActions": "More",
     "notLoaded": "Patient could not be loaded.",
     "backToListBtn": "Back to list",
     "overviewPhotos": "Zones",
