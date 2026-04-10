@@ -502,9 +502,13 @@ const OverviewPhoto = ({ overviewLocation, spotLocations, patientId, onNavigateT
                     </button>
                   </PopoverTrigger>
                   <PopoverContent
-                    side={pin.y_pct > 60 ? "top" : "bottom"}
-                    align="center"
-                    className="w-72 p-3 z-50"
+                    side={pin.x_pct > 50 ? "left" : "right"}
+                    align={pin.y_pct > 50 ? "end" : "start"}
+                    sideOffset={12}
+                    collisionPadding={8}
+                    className="w-64 p-3 z-50"
+                    onClick={(e) => e.stopPropagation()}
+                  >
                     onClick={(e) => e.stopPropagation()}
                   >
                     {/* Spot header */}
