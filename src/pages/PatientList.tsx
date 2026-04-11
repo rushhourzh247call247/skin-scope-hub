@@ -161,6 +161,9 @@ const PatientList = () => {
                         </div>
                         <div className="flex items-center gap-2">
                           <span className="text-sm font-medium text-foreground">{patient.name}</span>
+                          {(patient as any).is_test_patient && (
+                            <Badge variant="outline" className="text-[10px] px-1.5 py-0 border-primary/30 text-primary">Test</Badge>
+                          )}
                           {(patient as any).deactivated_at && (
                             <Badge variant="secondary" className="text-[10px] px-1.5 py-0">{t("common.deactivated")}</Badge>
                           )}
@@ -187,7 +190,7 @@ const PatientList = () => {
                           >
                             <Power className="h-3 w-3" /> {t("common.activate")}
                           </Button>
-                        ) : (
+                        ) : !(patient as any).is_test_patient ? (
                           <Button
                             size="sm"
                             variant="ghost"
@@ -196,8 +199,8 @@ const PatientList = () => {
                           >
                             <PowerOff className="h-3 w-3" /> {t("common.deactivate")}
                           </Button>
-                        )}
-                        {isAdmin && (
+                        ) : null}
+                        {isAdmin && !(patient as any).is_test_patient && (
                           <Button
                             size="sm"
                             variant="ghost"
