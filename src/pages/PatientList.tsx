@@ -152,7 +152,7 @@ const PatientList = () => {
                     onClick={() => !(patient as any).deactivated_at && navigate(`/patient/${patient.id}`)}
                   >
                     <td className="px-4 py-3">
-                      <span className="font-mono text-xs text-muted-foreground">#{patient.id}</span>
+                      <span className="font-mono text-xs text-muted-foreground">#{(patient as any).patient_number || patient.id}</span>
                     </td>
                     <td className="px-4 py-3">
                       <div className="flex items-center gap-3">
@@ -174,7 +174,7 @@ const PatientList = () => {
                       {patient.birth_date ? formatDate(patient.birth_date, "dd. MMM yyyy") : "\u2013"}
                     </td>
                     <td className="px-4 py-3 text-sm text-muted-foreground">
-                      {(patient as any).last_doctor || <span className="text-muted-foreground/50">{"\u2013"}</span>}
+                      {(patient as any).last_doctor || (patient as any).created_by_name || <span className="text-muted-foreground/50">{"\u2013"}</span>}
                     </td>
                     <td className="px-4 py-3 tabular-nums text-sm text-muted-foreground">
                       {patient.created_at ? formatDate(patient.created_at, "dd.MM.yyyy") : "\u2013"}
