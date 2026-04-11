@@ -152,7 +152,7 @@ const PatientList = () => {
                     onClick={() => !(patient as any).deactivated_at && navigate(`/patient/${patient.id}`)}
                   >
                     <td className="px-4 py-3">
-                      <span className="font-mono text-xs text-muted-foreground">#{patient.id}</span>
+                      <span className="font-mono text-xs text-muted-foreground">#{(patient as any).patient_number || patient.id}</span>
                     </td>
                     <td className="px-4 py-3">
                       <div className="flex items-center gap-3">
