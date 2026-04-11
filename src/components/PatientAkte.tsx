@@ -38,6 +38,8 @@ const PatientAkte = ({ patient, onNavigateToSpot }: PatientAkteProps) => {
   const [consultationText, setConsultationText] = useState("");
   const [editingConsultationId, setEditingConsultationId] = useState<number | null>(null);
   const [editingConsultationText, setEditingConsultationText] = useState("");
+  const [editingPatientNumber, setEditingPatientNumber] = useState(false);
+  const [patientNumberValue, setPatientNumberValue] = useState(patient.patient_number || "");
 
   // Queries
   const { data: appointments = [], isLoading: appointmentsLoading } = useQuery({
@@ -200,6 +202,41 @@ const PatientAkte = ({ patient, onNavigateToSpot }: PatientAkteProps) => {
               <p className="font-medium text-foreground">{patient.insurance_number}</p>
             </div>
           )}
+          <div>
+            <span className="text-xs text-muted-foreground">{t("newPatient.patientNumber")}</span>
+            {editingPatientNumber ? (
+              <div className="flex items-center gap-1 mt-0.5">
+                <Input
+                  value={patientNumberValue}
+                  onChange={(e) => setPatientNumberValue(e.target.value)}
+                  className="h-7 text-sm w-28"
+                  autoFocus
+                />
+                <Button
+                  size="icon"
+                  variant="ghost"
+                  className="h-6 w-6"
+                  onClick={() => {
+                    api.updatePatientNumber(patient.id, patientNumberValue).then(() => {
+                      queryClient.invalidateQueries({ queryKey: ["patient", patient.id] });
+                      toast.success(t("common.save"));
+                      setEditingPatientNumber(false);
+                    }).catch(() => toast.error(t("common.error")));
+                  }}
+                >
+                  <Save className="h-3 w-3" />
+                </Button>
+                <Button size="icon" variant="ghost" className="h-6 w-6" onClick={() => { setEditingPatientNumber(false); setPatientNumberValue(patient.patient_number || ""); }}>
+                  <X className="h-3 w-3" />
+                </Button>
+              </div>
+            ) : (
+              <p className="font-medium text-foreground flex items-center gap-1 cursor-pointer group" onClick={() => setEditingPatientNumber(true)}>
+                {patient.patient_number || "–"}
+                <Pencil className="h-3 w-3 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity" />
+              </p>
+            )}
+          </div>
           {patient.email && (
             <div className="flex items-center gap-1.5">
               <Mail className="h-3 w-3 text-muted-foreground shrink-0" />
