@@ -218,7 +218,7 @@ const PatientAkte = ({ patient, onNavigateToSpot }: PatientAkteProps) => {
                   className="h-6 w-6"
                   onClick={() => {
                     api.updatePatientNumber(patient.id, patientNumberValue).then(() => {
-                      queryClient.invalidateQueries({ queryKey: ["patient", patient.id] });
+                      queryClient.invalidateQueries({ queryKey: ["full-patient", patient.id] });
                       toast.success(t("common.save"));
                       setEditingPatientNumber(false);
                     }).catch(() => toast.error(t("common.error")));
