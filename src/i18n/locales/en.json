@@ -953,6 +953,7 @@
     "documentUploaded": "Document uploaded",
     "documentDeleted": "Document deleted",
     "documentError": "Error uploading",
-    "noDocuments": "No documents available"
+    "noDocuments": "No documents available",
+    "confirmPatientNumberChange": "Really change patient no. from '{{old}}' to '{{new}}'?"
   }
 }
