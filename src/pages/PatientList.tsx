@@ -187,7 +187,7 @@ const PatientList = () => {
                           >
                             <Power className="h-3 w-3" /> {t("common.activate")}
                           </Button>
-                        ) : (
+                        ) : !(patient as any).is_test_patient ? (
                           <Button
                             size="sm"
                             variant="ghost"
@@ -196,8 +196,8 @@ const PatientList = () => {
                           >
                             <PowerOff className="h-3 w-3" /> {t("common.deactivate")}
                           </Button>
-                        )}
-                        {isAdmin && (
+                        ) : null}
+                        {isAdmin && !(patient as any).is_test_patient && (
                           <Button
                             size="sm"
                             variant="ghost"
