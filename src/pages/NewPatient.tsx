@@ -22,11 +22,12 @@ const NewPatient = () => {
   const [gender, setGender] = useState<Gender>("female");
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
+  const [patientNumber, setPatientNumber] = useState("");
   const [insuranceNumber, setInsuranceNumber] = useState("");
   const [notes, setNotes] = useState("");
 
   const createMutation = useMutation({
-    mutationFn: (data: { name: string; birth_date: string; gender?: string; email?: string; phone?: string; insurance_number?: string; notes?: string }) =>
+    mutationFn: (data: { name: string; birth_date: string; gender?: string; email?: string; phone?: string; insurance_number?: string; patient_number?: string; notes?: string }) =>
       api.createPatient(data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["patients"] });
@@ -44,6 +45,7 @@ const NewPatient = () => {
       gender,
       email: email.trim() || undefined,
       phone: phone.trim() || undefined,
+      patient_number: patientNumber.trim() || undefined,
       insurance_number: insuranceNumber.trim() || undefined,
       notes: notes.trim() || undefined,
     });
@@ -101,9 +103,15 @@ const NewPatient = () => {
               </div>
             </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="insurance">{t("newPatient.insuranceNumber")}</Label>
-              <Input id="insurance" placeholder={t("newPatient.insurancePlaceholder")} value={insuranceNumber} onChange={(e) => setInsuranceNumber(e.target.value)} />
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="patientNumber">{t("newPatient.patientNumber")}</Label>
+                <Input id="patientNumber" placeholder={t("newPatient.patientNumberPlaceholder")} value={patientNumber} onChange={(e) => setPatientNumber(e.target.value)} />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="insurance">{t("newPatient.insuranceNumber")}</Label>
+                <Input id="insurance" placeholder={t("newPatient.insurancePlaceholder")} value={insuranceNumber} onChange={(e) => setInsuranceNumber(e.target.value)} />
+              </div>
             </div>
 
             <div className="space-y-2">

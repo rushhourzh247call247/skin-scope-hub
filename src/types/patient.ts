@@ -25,6 +25,7 @@ export const LESION_CLASSIFICATIONS: Record<LesionClassification, { label: strin
 
 export interface Patient {
   id: number;
+  patient_number?: string;
   name: string;
   birth_date: string;
   gender: Gender;

@@ -146,6 +146,8 @@
     "namePlaceholder": "John Doe",
     "emailPlaceholder": "patient@mail.com",
     "phonePlaceholder": "+1 234 567 890",
+    "patientNumber": "Patient No.",
+    "patientNumberPlaceholder": "e.g. P-001 (optional, auto-generated)",
     "insuranceNumber": "Insurance Number",
     "insurancePlaceholder": "INS-12345678",
     "notesPlaceholder": "Allergies, pre-existing conditions, special notes…",
