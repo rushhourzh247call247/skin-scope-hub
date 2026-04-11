@@ -44,6 +44,7 @@ const PatientAkte = ({ patient, onNavigateToSpot }: PatientAkteProps) => {
   const [editingConsultationText, setEditingConsultationText] = useState("");
   const [editingPatientNumber, setEditingPatientNumber] = useState(false);
   const [patientNumberValue, setPatientNumberValue] = useState(patient.patient_number || "");
+  const [showPatientNumberConfirm, setShowPatientNumberConfirm] = useState(false);
 
   // Queries
   const { data: appointments = [], isLoading: appointmentsLoading } = useQuery({
