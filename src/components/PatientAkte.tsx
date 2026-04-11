@@ -223,7 +223,8 @@ const PatientAkte = ({ patient, onNavigateToSpot }: PatientAkteProps) => {
                   className="h-6 w-6"
                   onClick={() => {
                     if (patientNumberValue !== (patient.patient_number || "") && patient.patient_number) {
-                      if (!window.confirm(t("akte.confirmPatientNumberChange", { old: patient.patient_number, new: patientNumberValue }))) return;
+                      setShowPatientNumberConfirm(true);
+                      return;
                     }
                     api.updatePatientNumber(patient.id, patientNumberValue).then(() => {
                       queryClient.invalidateQueries({ queryKey: ["full-patient", patient.id] });
