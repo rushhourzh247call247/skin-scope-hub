@@ -152,7 +152,8 @@
     "insurancePlaceholder": "756.1234.5678.97",
     "notesPlaceholder": "Allergien, Vorerkrankungen, besondere Hinweise…",
     "submit": "Patient anlegen",
-    "createError": "Fehler beim Erstellen des Patienten."
+    "createError": "Fehler beim Erstellen des Patienten.",
+    "duplicateNumber": "Diese Patienten-Nr. ist bereits vergeben."
   },
   "patientDetail": {
     "backToList": "Zurück",
@@ -963,6 +964,7 @@
     "consultationError": "Fehler beim Speichern",
     "noConsultations": "Noch keine Konsultationen dokumentiert",
     "editConsultation": "Bearbeiten",
-    "confirmPatientNumberChange": "Patienten-Nr. wirklich von «{{old}}» auf «{{new}}» ändern?"
+    "confirmPatientNumberChange": "Patienten-Nr. wirklich von «{{old}}» auf «{{new}}» ändern?",
+    "duplicateNumber": "Diese Patienten-Nr. ist bereits vergeben."
   }
 }

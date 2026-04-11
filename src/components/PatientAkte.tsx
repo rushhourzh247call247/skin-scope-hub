@@ -230,7 +230,14 @@ const PatientAkte = ({ patient, onNavigateToSpot }: PatientAkteProps) => {
                       queryClient.invalidateQueries({ queryKey: ["full-patient", patient.id] });
                       toast.success(t("common.save"));
                       setEditingPatientNumber(false);
-                    }).catch(() => toast.error(t("common.error")));
+                    }).catch((err: any) => {
+                      const msg = err?.message || "";
+                      if (err?.status === 422 && msg.toLowerCase().includes("patient_number")) {
+                        toast.error(t("akte.duplicateNumber"));
+                      } else {
+                        toast.error(t("common.error"));
+                      }
+                    });
                   }}
                 >
                   <Save className="h-3 w-3" />
@@ -719,7 +726,14 @@ const PatientAkte = ({ patient, onNavigateToSpot }: PatientAkteProps) => {
                 queryClient.invalidateQueries({ queryKey: ["full-patient", patient.id] });
                 toast.success(t("common.save"));
                 setEditingPatientNumber(false);
-              }).catch(() => toast.error(t("common.error")));
+              }).catch((err: any) => {
+                const msg = err?.message || "";
+                if (err?.status === 422 && msg.toLowerCase().includes("patient_number")) {
+                  toast.error(t("akte.duplicateNumber"));
+                } else {
+                  toast.error(t("common.error"));
+                }
+              });
             }}>
               {t("common.save")}
             </AlertDialogAction>

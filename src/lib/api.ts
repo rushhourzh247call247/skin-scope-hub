@@ -76,7 +76,9 @@ async function request<T>(path: string, options?: RequestInit): Promise<T> {
       throw new Error('Sitzung abgelaufen');
     }
     const errorBody = await res.text().catch(() => '');
-    throw new Error(`API Error: ${res.status} ${res.statusText} ${errorBody}`);
+    const err = new Error(errorBody || `API Error: ${res.status} ${res.statusText}`);
+    (err as any).status = res.status;
+    throw err;
   }
 
   return res.json();

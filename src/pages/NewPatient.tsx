@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
@@ -33,6 +34,14 @@ const NewPatient = () => {
       queryClient.invalidateQueries({ queryKey: ["patients"] });
       queryClient.invalidateQueries({ queryKey: ["dashboard-stats"] });
       navigate("/patients");
+    },
+    onError: (err: any) => {
+      const msg = err?.message || "";
+      if (err?.status === 422 && msg.toLowerCase().includes("patient_number")) {
+        toast.error(t("newPatient.duplicateNumber"));
+      } else {
+        toast.error(t("newPatient.createError"));
+      }
     },
   });
 
