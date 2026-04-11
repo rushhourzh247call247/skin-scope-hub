@@ -84,7 +84,10 @@ async function loadImageAsBase64(url: string): Promise<string | null> {
     });
   const loadViaFetch = async (): Promise<string | null> => {
     try {
-      const res = await fetch(url, { method: "GET", mode: "cors" });
+      const headers: Record<string, string> = { Accept: 'image/*' };
+      const token = sessionStorage.getItem('auth_token');
+      if (token) headers['Authorization'] = `Bearer ${token}`;
+      const res = await fetch(url, { method: "GET", mode: "cors", headers });
       if (!res.ok) return null;
       const blob = await res.blob();
       return await new Promise((resolve) => {
