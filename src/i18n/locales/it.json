@@ -148,7 +148,8 @@
     "insurancePlaceholder": "ASS-12345678",
     "notesPlaceholder": "Allergie, patologie pregresse, note particolari…",
     "submit": "Crea paziente",
-    "createError": "Errore nella creazione del paziente."
+    "createError": "Errore nella creazione del paziente.",
+    "duplicateNumber": "Questo numero paziente è già in uso."
   },
   "patientDetail": {
     "backToList": "Indietro",

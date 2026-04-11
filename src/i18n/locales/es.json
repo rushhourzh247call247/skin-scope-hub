@@ -148,7 +148,8 @@
     "insurancePlaceholder": "SEG-12345678",
     "notesPlaceholder": "Alergias, antecedentes, notas especiales…",
     "submit": "Crear paciente",
-    "createError": "Error al crear el paciente."
+    "createError": "Error al crear el paciente.",
+    "duplicateNumber": "Este número de paciente ya está en uso."
   },
   "patientDetail": {
     "backToList": "Volver",
