@@ -323,20 +323,54 @@ export const api = {
   updateOverviewPin: (pinId: number, data: { x_pct: number; y_pct: number; label?: string }) =>
     request<any>(`/overview-pins/${pinId}`, { method: 'PUT', body: JSON.stringify(data) }),
 
-  // Helper to get full image URL from a path or image object
+  // Helper to get full image URL from a path (now via authenticated API endpoint)
   getImageUrl: (pathOrUrl: string) => {
     if (!pathOrUrl) return '';
     if (pathOrUrl.startsWith('http://') || pathOrUrl.startsWith('https://')) return pathOrUrl;
-    return `${getStorageBaseUrl()}/storage/${pathOrUrl}`;
+    // Extract filename from path like "images/abc123.png" → "abc123.png"
+    const filename = pathOrUrl.split('/').pop() || pathOrUrl;
+    return `${getApiBaseUrl()}/image/${encodeURIComponent(filename)}`;
   },
 
-  // Resolve the best URL from a LocationImage object
+  // Resolve the best URL from a LocationImage object (now via authenticated API endpoint)
   resolveImageSrc: (img: { image_url?: string; file_path?: string; image_path?: string }) => {
-    if (img.image_url) return img.image_url;
     const path = img.file_path || img.image_path || '';
-    if (!path) return '';
-    if (path.startsWith('http://') || path.startsWith('https://')) return path;
-    return `${getStorageBaseUrl()}/storage/${path}`;
+    if (!path) {
+      // Fallback to image_url if no path
+      if (img.image_url) return img.image_url;
+      return '';
+    }
+    if (path.startsWith('http://') || path.startsWith('https://')) {
+      // If it's a full URL pointing to /storage/, rewrite to API
+      const storageMatch = path.match(/\/storage\/(?:images\/)?([^?]+)/);
+      if (storageMatch) {
+        return `${getApiBaseUrl()}/image/${encodeURIComponent(storageMatch[1])}`;
+      }
+      return path;
+    }
+    const filename = path.split('/').pop() || path;
+    return `${getApiBaseUrl()}/image/${encodeURIComponent(filename)}`;
+  },
+
+  // Fetch image as blob with auth header (for img tags that need auth)
+  fetchImageBlob: async (pathOrUrl: string): Promise<string> => {
+    if (!pathOrUrl) return '';
+    let url = pathOrUrl;
+    if (!url.startsWith('http')) {
+      const filename = url.split('/').pop() || url;
+      url = `${getApiBaseUrl()}/image/${encodeURIComponent(filename)}`;
+    } else {
+      const storageMatch = url.match(/\/storage\/(?:images\/)?([^?]+)/);
+      if (storageMatch) {
+        url = `${getApiBaseUrl()}/image/${encodeURIComponent(storageMatch[1])}`;
+      }
+    }
+    const headers: Record<string, string> = { Accept: 'image/*' };
+    if (authToken) headers.Authorization = `Bearer ${authToken}`;
+    const res = await fetch(url, { headers });
+    if (!res.ok) return '';
+    const blob = await res.blob();
+    return URL.createObjectURL(blob);
   },
 
   // Admin: Get patients filtered by company

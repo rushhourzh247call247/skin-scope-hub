@@ -84,7 +84,10 @@ async function loadImageAsBase64(url: string): Promise<string | null> {
     });
   const loadViaFetch = async (): Promise<string | null> => {
     try {
-      const res = await fetch(url, { method: "GET", mode: "cors" });
+      const headers: Record<string, string> = { Accept: 'image/*' };
+      const token = sessionStorage.getItem('auth_token');
+      if (token) headers['Authorization'] = `Bearer ${token}`;
+      const res = await fetch(url, { method: "GET", mode: "cors", headers });
       if (!res.ok) return null;
       const blob = await res.blob();
       return await new Promise((resolve) => {
@@ -865,7 +868,8 @@ export async function generatePatientPDF(
       // Pre-load all images to determine aspect ratios
       const imageData: { base64: string | null; aspect: number; img: LocationImage }[] = [];
       for (const img of displayImages) {
-        const imgUrl = `https://api.derm247.ch/storage/${img.file_path}?v=${Date.now()}_${img.id}`;
+        const filename = (img.file_path || '').split('/').pop() || '';
+        const imgUrl = `https://api.derm247.ch/api/image/${encodeURIComponent(filename)}?v=${Date.now()}_${img.id}`;
         const cacheKey = `img_${img.id}`;
         if (imageCache[cacheKey] === undefined) {
           imageCache[cacheKey] = await loadImageAsBase64(imgUrl);
@@ -908,7 +912,8 @@ export async function generatePatientPDF(
             doc.setLineWidth(0.25);
             drawRoundedRect(doc, imgX, y + yOffset, drawW, drawH, 1.5, "S");
             doc.addImage(base64, imageFormat, imgX + 0.3, y + yOffset + 0.3, drawW - 0.6, drawH - 0.6);
-            const originalUrl = `https://api.derm247.ch/storage/${img.file_path}`;
+            const linkFilename = (img.file_path || '').split('/').pop() || '';
+            const originalUrl = `https://api.derm247.ch/api/image/${encodeURIComponent(linkFilename)}`;
             doc.link(imgX, y + yOffset, drawW, drawH, { url: originalUrl });
           } catch {
             doc.setFillColor(...C.cardBg);
