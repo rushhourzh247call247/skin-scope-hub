@@ -152,7 +152,8 @@
     "insurancePlaceholder": "INS-12345678",
     "notesPlaceholder": "Allergies, pre-existing conditions, special notes…",
     "submit": "Create Patient",
-    "createError": "Error creating patient."
+    "createError": "Error creating patient.",
+    "duplicateNumber": "This patient number is already taken."
   },
   "patientDetail": {
     "backToList": "Back",
@@ -954,6 +955,7 @@
     "documentDeleted": "Document deleted",
     "documentError": "Error uploading",
     "noDocuments": "No documents available",
-    "confirmPatientNumberChange": "Really change patient no. from '{{old}}' to '{{new}}'?"
+    "confirmPatientNumberChange": "Really change patient no. from '{{old}}' to '{{new}}'?",
+    "duplicateNumber": "This patient number is already taken."
   }
 }
