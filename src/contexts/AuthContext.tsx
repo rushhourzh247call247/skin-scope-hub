@@ -1,5 +1,7 @@
-import { createContext, useContext, useState, useCallback, useEffect, type ReactNode } from "react";
+import { createContext, useContext, useState, useCallback, useEffect, useRef, type ReactNode } from "react";
 import { api } from "@/lib/api";
+
+const INACTIVITY_TIMEOUT_MS = 30 * 60 * 1000; // 30 minutes
 
 interface User {
   id: number;
@@ -7,7 +9,7 @@ interface User {
   email: string;
   company_id?: number;
   role?: string;
-  [key: string]: any;
+  two_factor_enabled?: boolean;
 }
 
 interface AuthContextType {
@@ -26,6 +28,47 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [token, setToken] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const inactivityTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const performLogout = useCallback(() => {
+    setUser(null);
+    setToken(null);
+    api.setToken(null);
+    sessionStorage.removeItem("auth_token");
+    sessionStorage.removeItem("auth_user");
+    if (inactivityTimer.current) clearTimeout(inactivityTimer.current);
+  }, []);
+
+  const resetInactivityTimer = useCallback(() => {
+    if (inactivityTimer.current) clearTimeout(inactivityTimer.current);
+    if (!sessionStorage.getItem("auth_token")) return;
+    inactivityTimer.current = setTimeout(() => {
+      performLogout();
+      window.location.href = "/login";
+    }, INACTIVITY_TIMEOUT_MS);
+  }, [performLogout]);
+
+  // Listen for user activity
+  useEffect(() => {
+    if (!token) return;
+
+    const events = ["mousedown", "keydown", "scroll", "touchstart", "mousemove"];
+    let lastReset = 0;
+    const throttledReset = () => {
+      const now = Date.now();
+      if (now - lastReset < 30_000) return; // throttle to every 30s
+      lastReset = now;
+      resetInactivityTimer();
+    };
+
+    events.forEach((e) => window.addEventListener(e, throttledReset, { passive: true }));
+    resetInactivityTimer();
+
+    return () => {
+      events.forEach((e) => window.removeEventListener(e, throttledReset));
+      if (inactivityTimer.current) clearTimeout(inactivityTimer.current);
+    };
+  }, [token, resetInactivityTimer]);
 
   useEffect(() => {
     const savedToken = sessionStorage.getItem("auth_token");
@@ -48,20 +91,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const login = useCallback(async (email: string, password: string) => {
     const res = await api.login({ email, password });
-    // Don't auto-set session — caller decides (2FA check)
     return res;
   }, []);
 
-  const logout = useCallback(() => {
-    setUser(null);
-    setToken(null);
-    api.setToken(null);
-    sessionStorage.removeItem("auth_token");
-    sessionStorage.removeItem("auth_user");
-  }, []);
-
   return (
-    <AuthContext.Provider value={{ user, token, isAuthenticated: !!token, isLoading, login, setSession, logout }}>
+    <AuthContext.Provider value={{ user, token, isAuthenticated: !!token, isLoading, login, setSession, logout: performLogout }}>
       {children}
     </AuthContext.Provider>
   );

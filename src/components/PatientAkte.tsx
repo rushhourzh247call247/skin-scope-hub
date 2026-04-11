@@ -19,6 +19,10 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
+import {
+  AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
+  AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 interface PatientAkteProps {
   patient: FullPatient;
@@ -40,6 +44,7 @@ const PatientAkte = ({ patient, onNavigateToSpot }: PatientAkteProps) => {
   const [editingConsultationText, setEditingConsultationText] = useState("");
   const [editingPatientNumber, setEditingPatientNumber] = useState(false);
   const [patientNumberValue, setPatientNumberValue] = useState(patient.patient_number || "");
+  const [showPatientNumberConfirm, setShowPatientNumberConfirm] = useState(false);
 
   // Queries
   const { data: appointments = [], isLoading: appointmentsLoading } = useQuery({
@@ -218,7 +223,8 @@ const PatientAkte = ({ patient, onNavigateToSpot }: PatientAkteProps) => {
                   className="h-6 w-6"
                   onClick={() => {
                     if (patientNumberValue !== (patient.patient_number || "") && patient.patient_number) {
-                      if (!window.confirm(t("akte.confirmPatientNumberChange", { old: patient.patient_number, new: patientNumberValue }))) return;
+                      setShowPatientNumberConfirm(true);
+                      return;
                     }
                     api.updatePatientNumber(patient.id, patientNumberValue).then(() => {
                       queryClient.invalidateQueries({ queryKey: ["full-patient", patient.id] });
@@ -696,6 +702,30 @@ const PatientAkte = ({ patient, onNavigateToSpot }: PatientAkteProps) => {
           </div>
         )}
       </div>
+
+      {/* Confirm Patient Number Change */}
+      <AlertDialog open={showPatientNumberConfirm} onOpenChange={setShowPatientNumberConfirm}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>{t("akte.confirmPatientNumberTitle", "Patienten-Nr. ändern?")}</AlertDialogTitle>
+            <AlertDialogDescription>
+              {t("akte.confirmPatientNumberChange", { old: patient.patient_number, new: patientNumberValue })}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>{t("common.cancel")}</AlertDialogCancel>
+            <AlertDialogAction onClick={() => {
+              api.updatePatientNumber(patient.id, patientNumberValue).then(() => {
+                queryClient.invalidateQueries({ queryKey: ["full-patient", patient.id] });
+                toast.success(t("common.save"));
+                setEditingPatientNumber(false);
+              }).catch(() => toast.error(t("common.error")));
+            }}>
+              {t("common.save")}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };

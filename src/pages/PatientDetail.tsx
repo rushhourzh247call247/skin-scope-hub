@@ -13,6 +13,8 @@ import { useAuth } from "@/contexts/AuthContext";
 import type { LesionClassification as LesionClassificationType } from "@/types/patient";
 import { ArrowLeft, MapPin, Plus, Calendar, ImageIcon, User, Hash, Activity, Mail, Phone, Pencil, Trash2, Save, X, Square, GitCompareArrows, Move, Camera, Tag, QrCode, Undo2, AlertTriangle, FileDown, Loader2, Eye, ChevronDown, Upload, ClipboardList } from "lucide-react";
 import PatientAkte from "@/components/PatientAkte";
+import PatientHeader from "@/components/patient-detail/PatientHeader";
+import MobileBottomNav from "@/components/patient-detail/MobileBottomNav";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { Slider } from "@/components/ui/slider";
 import { Button } from "@/components/ui/button";
@@ -410,95 +412,13 @@ const PatientDetail = () => {
 
   return (
     <div className="flex flex-col h-full">
-      {/* Patient Header Bar */}
-      <div className="border-b bg-card px-3 py-2 lg:px-4 lg:py-3">
-        {/* Top row: back + name + tabs */}
-        <div className="flex items-center gap-2 lg:gap-4">
-          <Button variant="ghost" size="sm" onClick={() => navigate("/patients")} className="gap-1 shrink-0 h-8 px-2 lg:gap-1.5 lg:h-9 lg:px-3">
-            <ArrowLeft className="h-4 w-4" /> <span className="hidden sm:inline">{t('patientDetail.backToList')}</span>
-          </Button>
-
-          <div className="h-6 w-px bg-border hidden sm:block" />
-
-          <div className="flex items-center gap-2 lg:gap-3 min-w-0">
-            <div className="flex h-8 w-8 lg:h-10 lg:w-10 items-center justify-center rounded-full bg-primary/10 text-xs lg:text-sm font-semibold text-primary shrink-0">
-              {patient.name.split(" ").map((n) => n[0]).join("").slice(0, 2).toUpperCase()}
-            </div>
-            <div className="min-w-0">
-              <div className="flex items-center gap-1.5">
-                <h1 className="text-sm font-semibold text-foreground truncate">{patient.name}</h1>
-                <Badge variant="outline" className="text-[10px] px-1.5 py-0 shrink-0">{t('common.active')}</Badge>
-              </div>
-              <p className="text-xs text-muted-foreground hidden sm:block">{t('patientDetail.patient')}</p>
-            </div>
-          </div>
-
-          {/* Mode tabs - hidden on mobile (bottom nav instead), shown on desktop with labels */}
-          <div className="ml-auto hidden lg:flex items-center gap-1.5 shrink-0">
-            <div className="flex items-center gap-1 rounded-lg bg-muted p-1">
-              {[
-                { key: "akte" as const, icon: ClipboardList, label: t('patientDetail.tabs.chart') },
-                { key: "spots" as const, icon: MapPin, label: t('patientDetail.tabs.spots') },
-                { key: "uebersicht" as const, icon: Eye, label: t('patientDetail.tabs.overview') },
-                { key: "fotos" as const, icon: Camera, label: t('patientDetail.tabs.photos') },
-                { key: "berichte" as const, icon: FileDown, label: t('patientDetail.tabs.reports') },
-              ].map(tab => (
-                <button
-                  key={tab.key}
-                  onClick={() => setActiveTab(tab.key)}
-                  className={cn(
-                    "flex items-center gap-1.5 rounded-md px-3 py-1.5 text-xs font-medium transition-all",
-                    activeTab === tab.key
-                      ? "bg-primary text-primary-foreground shadow-sm"
-                      : "text-muted-foreground hover:text-foreground"
-                  )}
-                >
-                  <tab.icon className="h-3.5 w-3.5" />
-                  <span>{tab.label}</span>
-                </button>
-              ))}
-            </div>
-          </div>
-        </div>
-
-        {/* Patient details row - hidden on mobile, shown on desktop */}
-        <div className="hidden lg:flex items-center gap-6 text-xs mt-2 pl-[52px]">
-          <div>
-            <span className="text-muted-foreground">{t('common.id')}</span>
-            <p className="font-mono font-medium text-foreground">{patient.id}</p>
-          </div>
-          <div>
-            <span className="text-muted-foreground">{t('common.gender')}</span>
-            <p className="font-medium text-foreground">{patient.gender === "female" ? t('common.female') : t('common.male')}</p>
-          </div>
-          <div>
-            <span className="text-muted-foreground">{t('common.birthDate')}</span>
-            <p className="font-medium text-foreground tabular-nums">
-              {patient.birth_date ? formatDate(patient.birth_date, "dd.MM.yyyy") : "–"}
-            </p>
-          </div>
-          {patient.email && (
-            <div className="flex items-center gap-1">
-              <Mail className="h-3 w-3 text-muted-foreground" />
-              <p className="font-medium text-foreground">{patient.email}</p>
-            </div>
-          )}
-          {patient.phone && (
-            <div className="flex items-center gap-1">
-              <Phone className="h-3 w-3 text-muted-foreground" />
-              <p className="font-medium text-foreground">{patient.phone}</p>
-            </div>
-          )}
-          <div>
-            <span className="text-muted-foreground">{t('common.spots')}</span>
-            <p className="font-medium text-foreground">{locations.length}</p>
-          </div>
-          <div>
-            <span className="text-muted-foreground">{t('patientDetail.recordings')}</span>
-            <p className="font-medium text-foreground">{totalImages}</p>
-          </div>
-        </div>
-      </div>
+      <PatientHeader
+        patient={patient}
+        activeTab={activeTab}
+        setActiveTab={setActiveTab}
+        locationCount={locations.length}
+        totalImages={totalImages}
+      />
 
       {/* Main Content */}
       <div className="flex-1 flex flex-col lg:flex-row overflow-hidden">
@@ -1591,31 +1511,7 @@ const PatientDetail = () => {
         doctorName={user?.name}
       />
 
-      {/* Mobile Bottom Navigation - fixed at bottom, only on small screens */}
-      <div className="fixed bottom-0 left-0 right-0 z-50 border-t bg-card/95 backdrop-blur-sm lg:hidden safe-area-bottom">
-        <div className="flex items-center justify-around py-1.5">
-          {[
-            { key: "akte" as const, icon: ClipboardList, label: t('patientDetail.bottomNav.chart') },
-            { key: "spots" as const, icon: MapPin, label: t('patientDetail.bottomNav.spots') },
-            { key: "fotos" as const, icon: Camera, label: t('patientDetail.bottomNav.photos') },
-            { key: "berichte" as const, icon: FileDown, label: t('patientDetail.bottomNav.reports') },
-          ].map(tab => (
-            <button
-              key={tab.key}
-              onClick={() => setActiveTab(tab.key)}
-              className={cn(
-                "flex flex-col items-center gap-0.5 px-3 py-1 rounded-lg transition-all min-w-[60px]",
-                activeTab === tab.key
-                  ? "text-primary"
-                  : "text-muted-foreground"
-              )}
-            >
-              <tab.icon className={cn("h-5 w-5", activeTab === tab.key && "text-primary")} />
-              <span className={cn("text-[10px] font-medium", activeTab === tab.key && "font-semibold")}>{tab.label}</span>
-            </button>
-          ))}
-        </div>
-      </div>
+      <MobileBottomNav activeTab={activeTab} setActiveTab={setActiveTab} />
     </div>
   );
 };
