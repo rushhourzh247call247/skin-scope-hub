@@ -323,33 +323,47 @@ export const api = {
   updateOverviewPin: (pinId: number, data: { x_pct: number; y_pct: number; label?: string }) =>
     request<any>(`/overview-pins/${pinId}`, { method: 'PUT', body: JSON.stringify(data) }),
 
-  // Helper to get full image URL from a path (now via authenticated API endpoint)
+  // Helper to get full image URL from a path (via authenticated API endpoint with token)
   getImageUrl: (pathOrUrl: string) => {
     if (!pathOrUrl) return '';
-    if (pathOrUrl.startsWith('http://') || pathOrUrl.startsWith('https://')) return pathOrUrl;
-    // Extract filename from path like "images/abc123.png" → "abc123.png"
+    if (pathOrUrl.startsWith('http://') || pathOrUrl.startsWith('https://')) {
+      const storageMatch = pathOrUrl.match(/\/storage\/(?:images\/)?([^?]+)/);
+      if (storageMatch) {
+        const url = `${getApiBaseUrl()}/image/${encodeURIComponent(storageMatch[1])}`;
+        return authToken ? `${url}?token=${encodeURIComponent(authToken)}` : url;
+      }
+      return pathOrUrl;
+    }
     const filename = pathOrUrl.split('/').pop() || pathOrUrl;
-    return `${getApiBaseUrl()}/image/${encodeURIComponent(filename)}`;
+    const url = `${getApiBaseUrl()}/image/${encodeURIComponent(filename)}`;
+    return authToken ? `${url}?token=${encodeURIComponent(authToken)}` : url;
   },
 
-  // Resolve the best URL from a LocationImage object (now via authenticated API endpoint)
+  // Resolve the best URL from a LocationImage object (via authenticated API endpoint with token)
   resolveImageSrc: (img: { image_url?: string; file_path?: string; image_path?: string }) => {
     const path = img.file_path || img.image_path || '';
     if (!path) {
-      // Fallback to image_url if no path
-      if (img.image_url) return img.image_url;
+      if (img.image_url) {
+        const storageMatch = img.image_url.match(/\/storage\/(?:images\/)?([^?]+)/);
+        if (storageMatch) {
+          const url = `${getApiBaseUrl()}/image/${encodeURIComponent(storageMatch[1])}`;
+          return authToken ? `${url}?token=${encodeURIComponent(authToken)}` : url;
+        }
+        return img.image_url;
+      }
       return '';
     }
     if (path.startsWith('http://') || path.startsWith('https://')) {
-      // If it's a full URL pointing to /storage/, rewrite to API
       const storageMatch = path.match(/\/storage\/(?:images\/)?([^?]+)/);
       if (storageMatch) {
-        return `${getApiBaseUrl()}/image/${encodeURIComponent(storageMatch[1])}`;
+        const url = `${getApiBaseUrl()}/image/${encodeURIComponent(storageMatch[1])}`;
+        return authToken ? `${url}?token=${encodeURIComponent(authToken)}` : url;
       }
       return path;
     }
     const filename = path.split('/').pop() || path;
-    return `${getApiBaseUrl()}/image/${encodeURIComponent(filename)}`;
+    const url = `${getApiBaseUrl()}/image/${encodeURIComponent(filename)}`;
+    return authToken ? `${url}?token=${encodeURIComponent(authToken)}` : url;
   },
 
   // Fetch image as blob with auth header (for img tags that need auth)
