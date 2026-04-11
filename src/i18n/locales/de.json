@@ -146,6 +146,8 @@
     "namePlaceholder": "Max Mustermann",
     "emailPlaceholder": "patient@mail.ch",
     "phonePlaceholder": "+41 79 123 45 67",
+    "patientNumber": "Patienten-Nr.",
+    "patientNumberPlaceholder": "z.B. P-001 (optional, wird automatisch vergeben)",
     "insuranceNumber": "Versicherungsnummer",
     "insurancePlaceholder": "756.1234.5678.97",
     "notesPlaceholder": "Allergien, Vorerkrankungen, besondere Hinweise…",
