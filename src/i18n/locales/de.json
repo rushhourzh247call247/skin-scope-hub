@@ -962,6 +962,7 @@
     "consultationDeleted": "Konsultation gelöscht",
     "consultationError": "Fehler beim Speichern",
     "noConsultations": "Noch keine Konsultationen dokumentiert",
-    "editConsultation": "Bearbeiten"
+    "editConsultation": "Bearbeiten",
+    "confirmPatientNumberChange": "Patienten-Nr. wirklich von «{{old}}» auf «{{new}}» ändern?"
   }
 }
