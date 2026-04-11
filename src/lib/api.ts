@@ -178,6 +178,8 @@ export const api = {
   getPatients: () => request<any[]>('/patients'),
   createPatient: (data: { name: string; birth_date: string; gender?: string; email?: string; phone?: string; insurance_number?: string; patient_number?: string; notes?: string }) =>
     request<any>('/patients', { method: 'POST', body: JSON.stringify(data) }),
+  updatePatientNumber: (id: number, patient_number: string) =>
+    request<any>(`/patients/${id}/patient-number`, { method: 'PUT', body: JSON.stringify({ patient_number }) }),
   deactivatePatient: (id: number) =>
     request<{ success: boolean }>(`/patients/${id}/deactivate`, { method: 'PUT' }),
   activatePatient: (id: number) =>
