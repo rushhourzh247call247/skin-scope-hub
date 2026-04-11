@@ -174,7 +174,7 @@ const PatientList = () => {
                       {patient.birth_date ? formatDate(patient.birth_date, "dd. MMM yyyy") : "\u2013"}
                     </td>
                     <td className="px-4 py-3 text-sm text-muted-foreground">
-                      {(patient as any).last_doctor || (patient as any).created_by_name || <span className="text-muted-foreground/50">{"\u2013"}</span>}
+                      {(patient as any).last_doctor || (!(patient as any).is_test_patient && (patient as any).created_by_name) || <span className="text-muted-foreground/50">{"\u2013"}</span>}
                     </td>
                     <td className="px-4 py-3 tabular-nums text-sm text-muted-foreground">
                       {patient.created_at ? formatDate(patient.created_at, "dd.MM.yyyy") : "\u2013"}
