@@ -1,4 +1,4 @@
-import { Users, UserPlus, LogOut, Building2, UserCog, LayoutDashboard, Settings, Database, FileText } from "lucide-react";
+import { Users, UserPlus, LogOut, Building2, UserCog, LayoutDashboard, Settings, Database, FileText, ScrollText } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
 import { useLocation } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
@@ -29,6 +29,7 @@ export function AppSidebar() {
     { title: t("nav.users"), url: "/users", icon: UserCog },
     { title: t("nav.snapshots"), url: "/snapshots", icon: Database },
     { title: t("nav.systemDocs"), url: "/system-docs", icon: FileText },
+    { title: "Verträge", url: "/contracts", icon: ScrollText },
   ];
 
   const isActive = (path: string) => location.pathname === path;
