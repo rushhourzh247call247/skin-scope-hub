@@ -220,7 +220,7 @@ export function renderContractPages(doc: jsPDF, vars: ContractVars, startOnNewPa
     const sectionLines: { text: string; style: string; size: number; color: [number, number, number] }[] = [];
 
     if (section.title) {
-      if (section.title === "Derm247 – Softwarelizenzvertrag") {
+      if (section.title === "DERM247 – Softwarelizenzvertrag") {
         sectionLines.push({ text: section.title, style: "normal", size: 9, color: [100, 100, 100] });
       } else {
         sectionLines.push({ text: section.title, style: "bold", size: 11, color: [30, 30, 30] });

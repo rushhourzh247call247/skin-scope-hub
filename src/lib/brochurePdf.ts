@@ -119,7 +119,7 @@ function drawPage1(doc: jsPDF) {
   y += 4;
 
   // ── Warum Derm247 ──
-  y = sectionTitle(doc, y, "Warum Derm247?");
+  y = sectionTitle(doc, y, "Warum DERM247?");
   const reasons = [
     "Schweizer Hosting (Infomaniak) – keine Daten im Ausland",
     "QR-basierter Foto-Upload direkt vom Smartphone",
