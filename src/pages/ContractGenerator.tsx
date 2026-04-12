@@ -33,7 +33,9 @@ export default function ContractGenerator() {
   const [vertragsnummer, setVertragsnummer] = useState(() => generateContractNumber());
   const [vertragsbeginn, setVertragsbeginn] = useState(() => new Date().toISOString().slice(0, 10));
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const [previewType, setPreviewType] = useState<"contract" | "brochure">("contract");
   const [selectedCompanyId, setSelectedCompanyId] = useState("");
+  const [pdfLanguage, setPdfLanguage] = useState("de");
   const [mwst, setMwst] = useState(false);
 
   const { data: companies = [] } = useQuery({
