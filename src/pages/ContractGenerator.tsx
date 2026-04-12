@@ -218,6 +218,20 @@ export default function ContractGenerator() {
                 {pkg.price} / Monat ({pkg.desc})
               </p>
             )}
+            {pkg && pkg.id !== "single" && (
+              <div className="mt-3 space-y-2">
+                <Label htmlFor="anzahlAerzte">Anzahl Ärzte (konkret)</Label>
+                <Input
+                  id="anzahlAerzte"
+                  type="number"
+                  min={pkg.minDocs}
+                  max={pkg.maxDocs < 999 ? pkg.maxDocs : undefined}
+                  value={anzahlAerzte}
+                  onChange={(e) => handleAnzahlChange(e.target.value)}
+                  className="max-w-[120px]"
+                />
+              </div>
+            )}
           </div>
 
           <div className="flex items-center gap-2">
