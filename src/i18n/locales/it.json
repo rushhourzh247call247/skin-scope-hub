@@ -74,7 +74,9 @@
     "years_other": "{{count}} anni",
     "notAvailable": "Non disponibile",
     "preview": "Anteprima",
-    "reset": "Reimposta"
+    "reset": "Reimposta",
+    "collapse": "Comprimi",
+    "expand": "Espandi"
   },
   "login": {
     "subtitle": "Accedi per continuare",
@@ -149,7 +151,9 @@
     "notesPlaceholder": "Allergie, patologie pregresse, note particolari…",
     "submit": "Crea paziente",
     "createError": "Errore nella creazione del paziente.",
-    "duplicateNumber": "Questo numero paziente è già in uso."
+    "duplicateNumber": "Questo numero paziente è già in uso.",
+    "patientNumber": "N. paziente",
+    "patientNumberPlaceholder": "es. P-001 (facoltativo, assegnato automaticamente)"
   },
   "patientDetail": {
     "backToList": "Indietro",
@@ -251,7 +255,11 @@
     "stPost": "St. post",
     "recording": "Registrazione",
     "spotCreated": "Spot \"{{name}}\" creato e collegato",
-    "spotCreateError": "Errore durante la creazione dello spot"
+    "spotCreateError": "Errore durante la creazione dello spot",
+    "noImages": "Nessuna immagine disponibile",
+    "fromZone": "Zona: {{zone}}",
+    "restoredSuccess": "Lesione cutanea ripristinata",
+    "restoredRenamed": "Ripristinata come «{{name}}» (il nome era già in uso)"
   },
   "settings": {
     "title": "Impostazioni",
@@ -793,7 +801,23 @@
     "valid": "Valido",
     "autoStartLabel": "Avvio auto",
     "providerVal": "Infomaniak (Svizzera)",
-    "productVal": "VPS (Server Privato Virtuale)"
+    "productVal": "VPS (Server Privato Virtuale)",
+    "debugMode": "Modalità debug",
+    "debugModeVal": "Disattivata (APP_DEBUG=false)",
+    "errorResponses": "Risposte di errore",
+    "errorResponsesVal": "Solo JSON, nessuna traccia dello stack",
+    "storageAccess": "Accesso storage",
+    "storageAccessVal": "/storage/ bloccato (403), solo tramite /api/image/",
+    "imageAuth": "Autenticazione immagini",
+    "imageAuthVal": "Token Bearer o parametro ?token=",
+    "concurrentLogin": "Login simultaneo",
+    "concurrentLoginVal": "Sessione singola (la sessione precedente viene invalidata)",
+    "configCache": "Cache configurazione",
+    "configCacheVal": "Cache di route e configurazione attiva",
+    "artisanServe": "artisan serve",
+    "artisanServeVal": "Disattivato (solo PHP-FPM tramite Nginx)",
+    "stagingEnv": "Ambiente di staging",
+    "stagingEnvVal": "Anteprima Lovable per test prima del deployment"
   },
   "pdfPreviewPages": {
     "rendering": "Rendering dell'anteprima...",
@@ -946,6 +970,17 @@
     "documentUploaded": "Documento caricato",
     "documentDeleted": "Documento eliminato",
     "documentError": "Errore durante il caricamento",
-    "noDocuments": "Nessun documento disponibile"
+    "noDocuments": "Nessun documento disponibile",
+    "consultations": "Consultazioni",
+    "addConsultation": "Nuova consultazione",
+    "consultationPlaceholder": "Anamnesi, referti, terapia, decorso…",
+    "consultationCreated": "Consultazione salvata",
+    "consultationUpdated": "Consultazione aggiornata",
+    "consultationDeleted": "Consultazione eliminata",
+    "consultationError": "Errore durante il salvataggio",
+    "noConsultations": "Nessuna consultazione documentata",
+    "editConsultation": "Modifica",
+    "confirmPatientNumberChange": "Cambiare davvero il n. paziente da «{{old}}» a «{{new}}»?",
+    "duplicateNumber": "Questo numero di paziente è già in uso."
   }
 }

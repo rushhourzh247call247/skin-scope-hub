@@ -74,7 +74,9 @@
     "years_other": "{{count}} ans",
     "notAvailable": "Non disponible",
     "preview": "Aperçu",
-    "reset": "Réinitialiser"
+    "reset": "Réinitialiser",
+    "collapse": "Réduire",
+    "expand": "Développer"
   },
   "login": {
     "subtitle": "Connectez-vous pour continuer",
@@ -149,7 +151,9 @@
     "notesPlaceholder": "Allergies, antécédents, remarques particulières…",
     "submit": "Créer le patient",
     "createError": "Erreur lors de la création du patient.",
-    "duplicateNumber": "Ce numéro de patient est déjà utilisé."
+    "duplicateNumber": "Ce numéro de patient est déjà utilisé.",
+    "patientNumber": "N° patient",
+    "patientNumberPlaceholder": "p.ex. P-001 (facultatif, attribué automatiquement)"
   },
   "patientDetail": {
     "backToList": "Retour",
@@ -251,7 +255,11 @@
     "stPost": "St. post",
     "recording": "Enregistrement",
     "spotCreated": "Spot \"{{name}}\" créé et lié",
-    "spotCreateError": "Erreur lors de la création du spot"
+    "spotCreateError": "Erreur lors de la création du spot",
+    "noImages": "Aucune image disponible",
+    "fromZone": "Zone : {{zone}}",
+    "restoredSuccess": "Lésion cutanée restaurée",
+    "restoredRenamed": "Restaurée sous «{{name}}» (le nom était déjà pris)"
   },
   "settings": {
     "title": "Paramètres",
@@ -793,7 +801,23 @@
     "valid": "Valide",
     "autoStartLabel": "Démarrage auto",
     "providerVal": "Infomaniak (Suisse)",
-    "productVal": "VPS (Serveur Privé Virtuel)"
+    "productVal": "VPS (Serveur Privé Virtuel)",
+    "debugMode": "Mode débogage",
+    "debugModeVal": "Désactivé (APP_DEBUG=false)",
+    "errorResponses": "Réponses d'erreur",
+    "errorResponsesVal": "JSON uniquement, pas de traces de pile",
+    "storageAccess": "Accès stockage",
+    "storageAccessVal": "/storage/ bloqué (403), uniquement via /api/image/",
+    "imageAuth": "Authentification des images",
+    "imageAuthVal": "Token Bearer ou paramètre ?token=",
+    "concurrentLogin": "Connexion simultanée",
+    "concurrentLoginVal": "Session unique (la session précédente est invalidée)",
+    "configCache": "Cache de configuration",
+    "configCacheVal": "Cache de routes et de configuration actif",
+    "artisanServe": "artisan serve",
+    "artisanServeVal": "Désactivé (PHP-FPM via Nginx uniquement)",
+    "stagingEnv": "Environnement de staging",
+    "stagingEnvVal": "Aperçu Lovable pour tests avant déploiement"
   },
   "pdfPreviewPages": {
     "rendering": "Rendu de l'aperçu...",
@@ -946,6 +970,17 @@
     "documentUploaded": "Document téléchargé",
     "documentDeleted": "Document supprimé",
     "documentError": "Erreur lors du téléchargement",
-    "noDocuments": "Aucun document disponible"
+    "noDocuments": "Aucun document disponible",
+    "consultations": "Consultations",
+    "addConsultation": "Nouvelle consultation",
+    "consultationPlaceholder": "Anamnèse, résultats, thérapie, évolution…",
+    "consultationCreated": "Consultation enregistrée",
+    "consultationUpdated": "Consultation mise à jour",
+    "consultationDeleted": "Consultation supprimée",
+    "consultationError": "Erreur lors de l'enregistrement",
+    "noConsultations": "Aucune consultation documentée",
+    "editConsultation": "Modifier",
+    "confirmPatientNumberChange": "Voulez-vous vraiment changer le n° patient de «{{old}}» en «{{new}}» ?",
+    "duplicateNumber": "Ce numéro de patient est déjà utilisé."
   }
 }
