@@ -197,20 +197,26 @@ const SECTION_GAP = 4;
 const LEFT_MARGIN = 17;
 const TEXT_WIDTH = 175;
 
-export function buildContractPdf(vars: ContractVars): jsPDF {
+/**
+ * Render contract sections onto an existing jsPDF doc.
+ * Returns the page numbers used (for footer rendering).
+ */
+export function renderContractPages(doc: jsPDF, vars: ContractVars, startOnNewPage = true): { firstPage: number; lastPage: number } {
   const sections = buildContractSections(vars);
-  const doc = new jsPDF({ unit: "mm", format: "a4" });
+
+  if (startOnNewPage) {
+    doc.addPage();
+  }
+  const firstPage = doc.getNumberOfPages();
 
   drawHeader(doc, vars.vertragsnummer);
 
-  let y = PAGE_TOP + 4; // extra space after header on first page
+  let y = PAGE_TOP + 4;
 
   for (const section of sections) {
-    // Pre-calculate section height to check if it fits
     const sectionLines: { text: string; style: string; size: number; color: [number, number, number] }[] = [];
 
     if (section.title) {
-      // "Derm247 – Softwarelizenzvertrag" subtitle
       if (section.title === "Derm247 – Softwarelizenzvertrag") {
         sectionLines.push({ text: section.title, style: "normal", size: 9, color: [100, 100, 100] });
       } else {
@@ -241,16 +247,16 @@ export function buildContractPdf(vars: ContractVars): jsPDF {
 
     const sectionHeight = sectionLines.length * LINE_HEIGHT + SECTION_GAP;
 
-    // If section doesn't fit on current page, start a new page
     if (y + sectionHeight > PAGE_BOTTOM && y > PAGE_TOP + 10) {
       doc.addPage();
+      drawHeader(doc, vars.vertragsnummer);
       y = PAGE_TOP;
     }
 
-    // Render lines
     for (const ln of sectionLines) {
       if (y > PAGE_BOTTOM) {
         doc.addPage();
+        drawHeader(doc, vars.vertragsnummer);
         y = PAGE_TOP;
       }
       doc.setFont("helvetica", ln.style as any);
@@ -263,12 +269,20 @@ export function buildContractPdf(vars: ContractVars): jsPDF {
     y += SECTION_GAP;
   }
 
-  // Draw footers on all pages
-  const pageCount = doc.getNumberOfPages();
-  for (let i = 1; i <= pageCount; i++) {
-    doc.setPage(i);
-    drawFooter(doc, vars.vertragsnummer, i, pageCount);
+  const lastPage = doc.getNumberOfPages();
+
+  // Draw contract footers on contract pages only
+  const contractPageCount = lastPage - firstPage + 1;
+  for (let i = 0; i < contractPageCount; i++) {
+    doc.setPage(firstPage + i);
+    drawFooter(doc, vars.vertragsnummer, i + 1, contractPageCount);
   }
 
+  return { firstPage, lastPage };
+}
+
+export function buildContractPdf(vars: ContractVars): jsPDF {
+  const doc = new jsPDF({ unit: "mm", format: "a4" });
+  renderContractPages(doc, vars, false);
   return doc;
 }
