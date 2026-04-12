@@ -1,7 +1,8 @@
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { FileText, Download, Eye, Hash, Save, Building2, BookOpen, FileStack } from "lucide-react";
+import { FileText, Eye, Hash, Save, Building2, FileStack, Globe } from "lucide-react";
+import { SUPPORTED_LANGUAGES } from "@/i18n";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -32,7 +33,9 @@ export default function ContractGenerator() {
   const [vertragsnummer, setVertragsnummer] = useState(() => generateContractNumber());
   const [vertragsbeginn, setVertragsbeginn] = useState(() => new Date().toISOString().slice(0, 10));
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const [previewType, setPreviewType] = useState<"contract" | "brochure">("contract");
   const [selectedCompanyId, setSelectedCompanyId] = useState("");
+  const [pdfLanguage, setPdfLanguage] = useState("de");
   const [mwst, setMwst] = useState(false);
 
   const { data: companies = [] } = useQuery({
@@ -94,24 +97,24 @@ export default function ContractGenerator() {
     mwst,
   });
 
-  const handlePreview = () => {
+  const handlePreviewContract = () => {
     const doc = buildContractPdf(getVars());
     const blob = doc.output("blob");
     if (previewUrl) URL.revokeObjectURL(previewUrl);
     setPreviewUrl(URL.createObjectURL(blob));
+    setPreviewType("contract");
   };
 
-  const generateAndDownload = () => {
-    if (!kundeName || !selectedPaket) {
-      toast.error("Bitte Kundenname und Paket ausfüllen.");
-      return;
-    }
-    const vars = getVars();
-    const doc = buildContractPdf(vars);
-    const filename = `Vertrag_${kundeName.replace(/\s+/g, "_")}_${vars.vertragsnummer}.pdf`;
-    doc.save(filename);
-    toast.success("Vertrag wurde als PDF heruntergeladen.");
+  const handlePreviewBrochure = () => {
+    const doc = buildBrochurePdf();
+    const blob = doc.output("blob");
+    if (previewUrl) URL.revokeObjectURL(previewUrl);
+    setPreviewUrl(URL.createObjectURL(blob));
+    setPreviewType("brochure");
   };
+
+
+
 
   const handleSaveToDb = () => {
     if (!kundeName || !selectedPaket || !pkg) {
@@ -268,7 +271,33 @@ export default function ContractGenerator() {
             </Select>
           </div>
 
+          <div className="space-y-2">
+            <Label className="flex items-center gap-1.5">
+              <Globe className="h-3.5 w-3.5" /> PDF-Sprache
+            </Label>
+            <Select value={pdfLanguage} onValueChange={setPdfLanguage}>
+              <SelectTrigger className="max-w-[200px]">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {SUPPORTED_LANGUAGES.map((lang) => (
+                  <SelectItem key={lang.code} value={lang.code}>
+                    {lang.flag} {lang.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
           <div className="flex flex-wrap gap-3 pt-2">
+            <Button variant="outline" onClick={handlePreviewContract}>
+              <Eye className="mr-2 h-4 w-4" />
+              Vorschau Vertrag
+            </Button>
+            <Button variant="outline" onClick={handlePreviewBrochure}>
+              <Eye className="mr-2 h-4 w-4" />
+              Vorschau Broschüre
+            </Button>
             <Button onClick={() => {
               if (!kundeName || !selectedPaket) {
                 toast.error("Bitte Kundenname und Paket ausfüllen.");
@@ -282,15 +311,7 @@ export default function ContractGenerator() {
               toast.success("Angebot + Vertrag wurde als PDF heruntergeladen.");
             }}>
               <FileStack className="mr-2 h-4 w-4" />
-              Angebot + Vertrag PDF
-            </Button>
-            <Button variant="outline" onClick={handlePreview}>
-              <Eye className="mr-2 h-4 w-4" />
-              Vorschau (Vertrag)
-            </Button>
-            <Button variant="outline" onClick={generateAndDownload}>
-              <Download className="mr-2 h-4 w-4" />
-              Nur Vertrag PDF
+              Speichern & Herunterladen
             </Button>
             <Button
               variant="secondary"
@@ -300,17 +321,6 @@ export default function ContractGenerator() {
               <Save className="mr-2 h-4 w-4" />
               {saveMutation.isPending ? "Speichert…" : "In DB speichern"}
             </Button>
-            <Button
-              variant="outline"
-              onClick={() => {
-                const doc = buildBrochurePdf();
-                doc.save("Derm247_Produktuebersicht.pdf");
-                toast.success("Broschüre wurde heruntergeladen.");
-              }}
-            >
-              <BookOpen className="mr-2 h-4 w-4" />
-              Nur Broschüre PDF
-            </Button>
           </div>
         </CardContent>
       </Card>
@@ -318,7 +328,9 @@ export default function ContractGenerator() {
       {previewUrl && (
         <Card>
           <CardHeader>
-            <CardTitle className="text-lg">PDF-Vorschau</CardTitle>
+            <CardTitle className="text-lg">
+              {previewType === "contract" ? "Vertrag – Vorschau" : "Broschüre – Vorschau"}
+            </CardTitle>
           </CardHeader>
           <CardContent>
             <div className="min-h-[600px]">
