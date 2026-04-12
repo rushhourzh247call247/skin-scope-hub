@@ -1,9 +1,11 @@
+import { useState, useEffect, useCallback } from "react";
 import { Users, UserPlus, LogOut, Building2, UserCog, LayoutDashboard, Settings, Database, FileText, ScrollText, TicketCheck } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
 import { useLocation } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { DermLogo } from "@/components/DermLogo";
 import { useTranslation } from "react-i18next";
+import { api } from "@/lib/api";
 import {
   Sidebar, SidebarContent, SidebarGroup, SidebarGroupContent, SidebarGroupLabel,
   SidebarMenu, SidebarMenuButton, SidebarMenuItem, SidebarFooter, useSidebar,
@@ -16,6 +18,21 @@ export function AppSidebar() {
   const location = useLocation();
   const { user, logout } = useAuth();
   const isAdmin = user?.role === "admin";
+  const [unreadTickets, setUnreadTickets] = useState(0);
+
+  const fetchUnread = useCallback(async () => {
+    try {
+      const tickets = await api.getTickets();
+      const count = tickets.reduce((sum: number, t: any) => sum + (t.unread_count ?? 0), 0);
+      setUnreadTickets(count);
+    } catch {}
+  }, []);
+
+  useEffect(() => {
+    fetchUnread();
+    const interval = setInterval(fetchUnread, 60_000);
+    return () => clearInterval(interval);
+  }, [fetchUnread]);
 
   const mainNav = [
     { title: t("nav.dashboard"), url: "/", icon: LayoutDashboard },
