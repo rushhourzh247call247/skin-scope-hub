@@ -263,17 +263,17 @@ export default function ContractGenerator() {
           </div>
 
           <div className="space-y-2">
-            <Label>Firma zuordnen (für DB-Speicherung)</Label>
-            <Select value={selectedCompanyId} onValueChange={setSelectedCompanyId}>
-              <SelectTrigger>
-                <SelectValue placeholder="Firma wählen…" />
+            <Label className="flex items-center gap-1.5">
+              <Globe className="h-3.5 w-3.5" /> PDF-Sprache
+            </Label>
+            <Select value={pdfLanguage} onValueChange={setPdfLanguage}>
+              <SelectTrigger className="max-w-[200px]">
+                <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                {activeCompanies.map((c: any) => (
-                  <SelectItem key={c.id} value={String(c.id)}>
-                    <span className="flex items-center gap-2">
-                      <Building2 className="h-3.5 w-3.5" /> {c.name}
-                    </span>
+                {SUPPORTED_LANGUAGES.map((lang) => (
+                  <SelectItem key={lang.code} value={lang.code}>
+                    {lang.flag} {lang.label}
                   </SelectItem>
                 ))}
               </SelectContent>
@@ -281,6 +281,14 @@ export default function ContractGenerator() {
           </div>
 
           <div className="flex flex-wrap gap-3 pt-2">
+            <Button variant="outline" onClick={handlePreviewContract}>
+              <Eye className="mr-2 h-4 w-4" />
+              Vorschau Vertrag
+            </Button>
+            <Button variant="outline" onClick={handlePreviewBrochure}>
+              <Eye className="mr-2 h-4 w-4" />
+              Vorschau Broschüre
+            </Button>
             <Button onClick={() => {
               if (!kundeName || !selectedPaket) {
                 toast.error("Bitte Kundenname und Paket ausfüllen.");
@@ -294,15 +302,7 @@ export default function ContractGenerator() {
               toast.success("Angebot + Vertrag wurde als PDF heruntergeladen.");
             }}>
               <FileStack className="mr-2 h-4 w-4" />
-              Angebot + Vertrag PDF
-            </Button>
-            <Button variant="outline" onClick={handlePreview}>
-              <Eye className="mr-2 h-4 w-4" />
-              Vorschau (Vertrag)
-            </Button>
-            <Button variant="outline" onClick={generateAndDownload}>
-              <Download className="mr-2 h-4 w-4" />
-              Nur Vertrag PDF
+              Speichern & Herunterladen
             </Button>
             <Button
               variant="secondary"
@@ -312,17 +312,6 @@ export default function ContractGenerator() {
               <Save className="mr-2 h-4 w-4" />
               {saveMutation.isPending ? "Speichert…" : "In DB speichern"}
             </Button>
-            <Button
-              variant="outline"
-              onClick={() => {
-                const doc = buildBrochurePdf();
-                doc.save("Derm247_Produktuebersicht.pdf");
-                toast.success("Broschüre wurde heruntergeladen.");
-              }}
-            >
-              <BookOpen className="mr-2 h-4 w-4" />
-              Nur Broschüre PDF
-            </Button>
           </div>
         </CardContent>
       </Card>
@@ -330,7 +319,9 @@ export default function ContractGenerator() {
       {previewUrl && (
         <Card>
           <CardHeader>
-            <CardTitle className="text-lg">PDF-Vorschau</CardTitle>
+            <CardTitle className="text-lg">
+              {previewType === "contract" ? "Vertrag – Vorschau" : "Broschüre – Vorschau"}
+            </CardTitle>
           </CardHeader>
           <CardContent>
             <div className="min-h-[600px]">
