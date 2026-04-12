@@ -6,6 +6,11 @@ const BRAND_DARK: [number, number, number] = [20, 130, 115];
 const DARK: [number, number, number] = [30, 30, 30];
 const GRAY: [number, number, number] = [100, 100, 100];
 const WHITE: [number, number, number] = [255, 255, 255];
+const LIGHT_TINT: [number, number, number] = [220, 245, 240];
+
+function setColor(doc: jsPDF, color: [number, number, number]) {
+  doc.setTextColor(color[0], color[1], color[2]);
+}
 
 const LEFT = 17;
 const RIGHT_LIMIT = 193;
