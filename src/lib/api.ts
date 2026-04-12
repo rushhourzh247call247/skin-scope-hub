@@ -467,4 +467,37 @@ export const api = {
       `/snapshots/consultations/${id}`,
       { method: 'DELETE' },
     ),
+
+  // Contracts
+  getContracts: (companyId: number) =>
+    request<any[]>(`/companies/${companyId}/contracts`),
+  createContract: (companyId: number, data: {
+    contract_number: string;
+    package_name: string;
+    package_id: string;
+    licenses: number;
+    monthly_price: number;
+    start_date: string;
+    end_date: string;
+    notice_period_days?: number;
+    customer_name: string;
+    customer_address?: string;
+    notes?: string;
+  }) =>
+    request<any>(`/companies/${companyId}/contracts`, { method: 'POST', body: JSON.stringify(data) }),
+  updateContract: (contractId: number, data: Record<string, any>) =>
+    request<any>(`/contracts/${contractId}`, { method: 'PUT', body: JSON.stringify(data) }),
+  terminateContract: (contractId: number, terminated_by: 'client' | 'provider') =>
+    request<any>(`/contracts/${contractId}/terminate`, { method: 'POST', body: JSON.stringify({ terminated_by }) }),
+  cancelTermination: (contractId: number) =>
+    request<any>(`/contracts/${contractId}/cancel-termination`, { method: 'POST' }),
+  uploadSignedContract: (contractId: number, file: File) => {
+    const formData = new FormData();
+    formData.append('signed_pdf', file);
+    return request<any>(`/contracts/${contractId}/upload-signed`, { method: 'POST', body: formData });
+  },
+  downloadSignedContract: (contractId: number) =>
+    requestBlob(`/contracts/${contractId}/download-signed`),
+  deleteContract: (contractId: number) =>
+    request<{ success: boolean }>(`/contracts/${contractId}`, { method: 'DELETE' }),
 };
