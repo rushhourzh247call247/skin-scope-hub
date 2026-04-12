@@ -13,6 +13,9 @@ export interface Ticket {
   created_at: string;
   updated_at: string;
   closed_at?: string;
+  last_message?: string;
+  last_message_at?: string;
+  unread_count?: number;
   messages: TicketMessage[];
 }
 
@@ -24,4 +27,5 @@ export interface TicketMessage {
   is_admin: boolean;
   message: string;
   created_at: string;
+  read_at?: string | null;
 }
