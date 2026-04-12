@@ -134,7 +134,7 @@ const PatientList = () => {
                 </th>
                 <th className="hidden lg:table-cell px-4 py-3">{t("patients.lastDoctor")}</th>
                 <th className="hidden lg:table-cell px-4 py-3">{t("common.created")}</th>
-                <th className="hidden sm:table-cell px-4 py-3 text-right">{t("common.action")}</th>
+                <th className="px-2 py-3 sm:px-4 text-right">{t("common.action")}</th>
               </tr>
             </thead>
             <tbody>
