@@ -81,7 +81,7 @@ const PatientList = () => {
         (p as any).email || "",
         (p as any).phone || "",
         (p as any).insurance_number || "",
-        (p as any).notes || "",
+        
         (p as any).last_doctor || "",
         (p as any).created_by_name || "",
       ];
