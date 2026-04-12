@@ -1,4 +1,4 @@
-import { Users, UserPlus, LogOut, Building2, UserCog, LayoutDashboard, Settings, Database, FileText, ScrollText } from "lucide-react";
+import { Users, UserPlus, LogOut, Building2, UserCog, LayoutDashboard, Settings, Database, FileText, ScrollText, TicketCheck } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
 import { useLocation } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
@@ -21,6 +21,7 @@ export function AppSidebar() {
     { title: t("nav.dashboard"), url: "/", icon: LayoutDashboard },
     { title: t("nav.patients"), url: "/patients", icon: Users },
     { title: t("nav.newPatient"), url: "/new-patient", icon: UserPlus },
+    { title: t("nav.tickets"), url: "/tickets", icon: TicketCheck },
     { title: t("nav.settings"), url: "/settings", icon: Settings },
   ];
 

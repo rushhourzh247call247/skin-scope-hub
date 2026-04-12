@@ -20,6 +20,7 @@ import Snapshots from "./pages/Snapshots";
 import Calibrate from "./pages/Calibrate";
 import SystemDocs from "./pages/SystemDocs";
 import ContractGenerator from "./pages/ContractGenerator";
+import Tickets from "./pages/Tickets";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -63,6 +64,7 @@ const App = () => (
             <Route path="/settings" element={<ProtectedPage><Settings /></ProtectedPage>} />
             <Route path="/system-docs" element={<ProtectedPage><AdminRoute><SystemDocs /></AdminRoute></ProtectedPage>} />
             <Route path="/contracts" element={<ProtectedPage><AdminRoute><ContractGenerator /></AdminRoute></ProtectedPage>} />
+            <Route path="/tickets" element={<ProtectedPage><Tickets /></ProtectedPage>} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>
