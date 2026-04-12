@@ -334,6 +334,18 @@ export default function ContractGenerator() {
               />
             </div>
             <div className="space-y-2">
+              <Label htmlFor="vertragsbeginn">Vertragsbeginn</Label>
+              <Input
+                id="vertragsbeginn"
+                type="date"
+                value={vertragsbeginn}
+                onChange={(e) => setVertragsbeginn(e.target.value)}
+              />
+            </div>
+          </div>
+
+          <div className="grid gap-4 sm:grid-cols-2">
+            <div className="space-y-2">
               <Label htmlFor="anzahlAerzte">Anzahl Ärzte</Label>
               <Input
                 id="anzahlAerzte"
