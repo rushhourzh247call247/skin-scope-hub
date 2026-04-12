@@ -95,6 +95,7 @@ export default function ContractGenerator() {
       ? new Date(vertragsbeginn).toLocaleDateString("de-CH")
       : new Date().toLocaleDateString("de-CH"),
     mwst,
+    lang: pdfLanguage as any,
   });
 
   const handlePreviewContract = () => {
@@ -106,7 +107,7 @@ export default function ContractGenerator() {
   };
 
   const handlePreviewBrochure = () => {
-    const doc = buildBrochurePdf();
+    const doc = buildBrochurePdf(pdfLanguage as any);
     const blob = doc.output("blob");
     if (previewUrl) URL.revokeObjectURL(previewUrl);
     setPreviewUrl(URL.createObjectURL(blob));

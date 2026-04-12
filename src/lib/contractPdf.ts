@@ -1,4 +1,5 @@
 import jsPDF from "jspdf";
+import { getPdfTexts, type PdfLang } from "./pdfTranslations";
 
 export const PRICE_PER_DOCTOR = 80;
 
@@ -9,7 +10,6 @@ export const PACKAGES = [
   { id: "unlimited", label: "Unbegrenzt", price: "1'200.–", priceNum: 1200, desc: "unbegrenzt, Festpreis", minDocs: 1, maxDocs: 999, perDoctor: false },
 ];
 
-/** Calculate actual monthly price based on package and doctor count */
 export function calcPrice(pkgId: string, doctors: number): { total: number; display: string } {
   const pkg = PACKAGES.find(p => p.id === pkgId);
   if (!pkg) return { total: 0, display: "–" };
@@ -20,7 +20,6 @@ export function calcPrice(pkgId: string, doctors: number): { total: number; disp
   return { total: pkg.priceNum, display: pkg.price };
 }
 
-/** Suggest the best package for a given doctor count */
 export function suggestPackage(count: number): string {
   if (count <= 4) return "individual";
   if (count === 5) return "pack5";
@@ -46,120 +45,109 @@ export interface ContractVars {
   datum: string;
   vertragsbeginn: string;
   mwst?: boolean;
+  lang?: PdfLang;
 }
 
-/**
- * Build contract text as structured sections for proper page-break handling.
- * Each section is { title?: string, lines: string[] }.
- */
 function buildContractSections(vars: ContractVars): { title?: string; lines: string[] }[] {
-  const mwstHinweis = vars.mwst ? " (exkl. MwSt.)" : "";
+  const lang = vars.lang || "de";
+  const t = getPdfTexts(lang);
+  const mwstHinweis = vars.mwst ? t.exclVat : "";
 
   return [
     {
-      title: "DERM247 – Softwarelizenzvertrag",
-      lines: ["LIZENZVERTRAG", "", `Vertragsnummer: ${vars.vertragsnummer}`],
+      title: t.contractTitle,
+      lines: [t.contractLabel, "", `${t.contractNumberLabel}: ${vars.vertragsnummer}`],
     },
     {
       lines: [
-        "zwischen",
+        t.between,
         "",
         "TechAssist",
         "Dällikerstrasse 48",
         "8105 Regensdorf",
         "E-Mail: info@techassist.ch",
-        "(nachfolgend «Lizenzgeberin»)",
+        t.licensor,
         "",
-        "und",
+        lang === "de" ? "und" : t.between === "entre" ? "et" : t.between === "tra" ? "e" : "and",
         "",
         vars.kundeName,
         vars.kundeAdresse,
-        "(nachfolgend «Lizenznehmer»)",
+        t.licensee,
       ],
     },
     {
-      title: "1. Vertragsgegenstand",
+      title: t.section1Title,
+      lines: [t.section1Text],
+    },
+    {
+      title: t.section2Title,
       lines: [
-        "Die Lizenzgeberin gewährt dem Lizenznehmer das nicht-exklusive, nicht übertragbare Recht zur Nutzung der Software «DERM247» gemäss den Bedingungen dieses Vertrags.",
+        `${t.packageLabel}: ${vars.paket}`,
+        ...(vars.paket === "Einzellizenz" ? [] : [`${t.doctorCountLabel}: ${vars.anzahlAerzte}`]),
+        `${t.monthlyFeeLabel}: CHF ${vars.preis} / ${lang === "de" ? "Monat" : lang === "fr" ? "mois" : lang === "it" ? "mese" : lang === "es" ? "mes" : "month"}${mwstHinweis}`,
       ],
     },
     {
-      title: "2. Lizenzumfang",
+      title: t.section3Title,
       lines: [
-        `Paket: ${vars.paket}`,
-        ...(vars.paket === "Einzellizenz" ? [] : [`Anzahl Ärzte: ${vars.anzahlAerzte}`]),
-        `Monatliche Lizenzgebühr: CHF ${vars.preis} / Monat${mwstHinweis}`,
+        t.section3Text1(vars.vertragsbeginn),
+        "",
+        t.section3Text2,
       ],
     },
     {
-      title: "3. Laufzeit und Paketänderungen",
+      title: t.section4Title,
       lines: [
-        `Der Vertrag beginnt am ${vars.vertragsbeginn}. Die Mindestlaufzeit beträgt 12 Monate. Die Kündigungsfrist beträgt 60 Tage zum Vertragsende. Erfolgt keine fristgerechte Kündigung, verlängert sich der Vertrag automatisch um jeweils 12 Monate.`,
+        t.section4Text,
         "",
-        "Ein Upgrade auf ein höheres Paket oder zusätzliche Lizenzen ist jederzeit möglich. Die neue Gebühr gilt ab dem Folgemonat. Ein Downgrade ist unter Einhaltung der laufenden Vertragsdauer möglich und wird frühestens zum Ende der aktuellen Laufzeit wirksam.",
+        t.bankDetails,
+        t.iban,
+        t.recipient,
       ],
     },
     {
-      title: "4. Zahlungsbedingungen",
+      title: t.section5Title,
       lines: [
-        "Die Lizenzgebühr wird monatlich im Voraus in Rechnung gestellt und ist innert 30 Tagen nach Rechnungsdatum zahlbar. Bei Zahlungsverzug behält sich die Lizenzgeberin das Recht vor, den Zugang zur Software zu sperren.",
+        t.section5Text1,
         "",
-        "Bankverbindung:",
-        "IBAN: CH66 0070 0110 0057 8304 8",
-        "Empfänger: Rached Mtiraoui (TechAssist)",
+        t.section5Text2,
+        "",
+        t.section5Text3,
       ],
     },
     {
-      title: "5. Datenschutz und Datensicherheit",
+      title: t.section6Title,
       lines: [
-        "Die Lizenzgeberin verpflichtet sich, alle im Zusammenhang mit der Nutzung der Software anfallenden Daten gemäss dem Schweizerischen Datenschutzgesetz (DSG) und der DSGVO zu behandeln.",
+        t.section6Text1,
         "",
-        "Die Daten werden ausschliesslich auf Servern in der Schweiz (Infomaniak) gespeichert. Es werden tägliche Backups sowie regelmässige Snapshots durchgeführt. Die Daten werden nicht an Drittanbieter weitergegeben und nicht ausserhalb der Schweiz verarbeitet. Die Übertragung erfolgt vollständig verschlüsselt.",
+        t.section6NoLiability,
+        ...t.section6Bullets.map(b => `  •  ${b}`),
         "",
-        "Die Nutzung beinhaltet eine angemessene Datenspeicherung im üblichen Rahmen. Bei aussergewöhnlich hohem Speicherbedarf kann eine individuelle Vereinbarung getroffen werden.",
+        t.section6Support,
       ],
     },
     {
-      title: "6. Gewährleistung, Haftung und Support",
-      lines: [
-        "Die Lizenzgeberin betreibt die Software nach bestem Wissen und mit aktuellen Sicherheitsstandards. Eine Haftung besteht nur bei grober Fahrlässigkeit oder Vorsatz.",
-        "",
-        "Keine Haftung besteht insbesondere für:",
-        "  •  Fehlbedienung durch den Kunden",
-        "  •  Ausfälle durch höhere Gewalt",
-        "  •  externe Angriffe trotz Schutzmassnahmen",
-        "  •  indirekte Schäden oder Folgeschäden",
-        "",
-        "Support erfolgt ausschliesslich per E-Mail an info@techassist.ch. Ein Anspruch auf telefonischen oder Live-Support besteht nicht.",
-      ],
+      title: t.section7Title,
+      lines: [t.section7Text],
     },
     {
-      title: "7. Geheimhaltung",
-      lines: [
-        "Beide Parteien verpflichten sich, vertrauliche Informationen der jeweils anderen Partei geheim zu halten und nicht an Dritte weiterzugeben.",
-      ],
+      title: t.section8Title,
+      lines: [t.section8Text],
     },
     {
-      title: "8. Schlussbestimmungen",
-      lines: [
-        "Es gilt Schweizer Recht. Gerichtsstand ist Zürich. Dieser Vertrag wurde in zwei Exemplaren ausgefertigt und von beiden Parteien unterzeichnet.",
-      ],
-    },
-    {
-      // Signature block – must NEVER be split across pages
       lines: [
         "",
         "",
-        "Ort, Datum: ________________________          Ort, Datum: ________________________",
+        `${t.placeDateLabel}: ________________________          ${t.placeDateLabel}: ________________________`,
         "",
         "",
-        "Lizenzgeberin:                                 Lizenznehmer:",
+        `${t.licensorLabel}:                                 ${t.licenseeLabel}:`,
         "",
         "Rached Mtiraoui (TechAssist)                   " + vars.kundeName,
         "",
         "",
-        "________________________                       ________________________",
-        "Unterschrift                                   Unterschrift",
+        `________________________                       ________________________`,
+        `${t.signatureLabel}                                   ${t.signatureLabel}`,
       ],
     },
   ];
@@ -193,11 +181,12 @@ function drawHeader(doc: jsPDF, vertragsnummer: string) {
   doc.text(vertragsnummer, 195, 13, { align: "right" });
 }
 
-function drawFooter(doc: jsPDF, vertragsnummer: string, pageNum: number, totalPages: number) {
+function drawFooter(doc: jsPDF, vars: ContractVars, pageNum: number, totalPages: number) {
+  const t = getPdfTexts(vars.lang || "de");
   doc.setFontSize(7);
   doc.setTextColor(150, 150, 150);
   doc.text(
-    `DERM247 – Lizenzvertrag | ${vertragsnummer} | Seite ${pageNum} von ${totalPages}`,
+    `${t.contractFooter} | ${vars.vertragsnummer} | ${t.pageOf(pageNum, totalPages)}`,
     17,
     290,
   );
@@ -213,10 +202,6 @@ const SECTION_GAP = 4;
 const LEFT_MARGIN = 17;
 const TEXT_WIDTH = 175;
 
-/**
- * Render contract sections onto an existing jsPDF doc.
- * Returns the page numbers used (for footer rendering).
- */
 export function renderContractPages(doc: jsPDF, vars: ContractVars, startOnNewPage = true): { firstPage: number; lastPage: number } {
   const sections = buildContractSections(vars);
 
@@ -233,7 +218,8 @@ export function renderContractPages(doc: jsPDF, vars: ContractVars, startOnNewPa
     const sectionLines: { text: string; style: string; size: number; color: [number, number, number] }[] = [];
 
     if (section.title) {
-      if (section.title === "DERM247 – Softwarelizenzvertrag") {
+      const t = getPdfTexts(vars.lang || "de");
+      if (section.title === t.contractTitle) {
         sectionLines.push({ text: section.title, style: "normal", size: 9, color: [100, 100, 100] });
       } else {
         sectionLines.push({ text: section.title, style: "bold", size: 11, color: [30, 30, 30] });
@@ -242,19 +228,20 @@ export function renderContractPages(doc: jsPDF, vars: ContractVars, startOnNewPa
 
     for (const rawLine of section.lines) {
       const wrapped = doc.splitTextToSize(rawLine || " ", TEXT_WIDTH) as string[];
+      const t = getPdfTexts(vars.lang || "de");
       for (const w of wrapped) {
         let style = "normal";
         let size = 10;
         let color: [number, number, number] = [30, 30, 30];
 
-        if (w === "LIZENZVERTRAG") {
+        if (w === t.contractLabel) {
           style = "bold";
           size = 16;
-        } else if (w.startsWith("Vertragsnummer:")) {
+        } else if (w.startsWith(`${t.contractNumberLabel}:`)) {
           style = "bold";
           size = 9;
           color = [100, 100, 100];
-        } else if (w === "zwischen" || w === "und") {
+        } else if (w === t.between || w === "und" || w === "et" || w === "e" || w === "and" || w === "y") {
           style = "italic";
         }
         sectionLines.push({ text: w, style, size, color });
@@ -264,7 +251,6 @@ export function renderContractPages(doc: jsPDF, vars: ContractVars, startOnNewPa
     const sectionHeight = sectionLines.length * LINE_HEIGHT + SECTION_GAP;
     const remainingSpace = PAGE_BOTTOM - y;
 
-    // If section doesn't fit OR less than 25mm (~5 lines) remaining, start new page
     if ((y + sectionHeight > PAGE_BOTTOM || remainingSpace < 25) && y > PAGE_TOP + 10) {
       doc.addPage();
       drawHeader(doc, vars.vertragsnummer);
@@ -289,11 +275,10 @@ export function renderContractPages(doc: jsPDF, vars: ContractVars, startOnNewPa
 
   const lastPage = doc.getNumberOfPages();
 
-  // Draw contract footers on contract pages only
   const contractPageCount = lastPage - firstPage + 1;
   for (let i = 0; i < contractPageCount; i++) {
     doc.setPage(firstPage + i);
-    drawFooter(doc, vars.vertragsnummer, i + 1, contractPageCount);
+    drawFooter(doc, vars, i + 1, contractPageCount);
   }
 
   return { firstPage, lastPage };
