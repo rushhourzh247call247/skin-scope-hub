@@ -43,7 +43,7 @@ function drawHeader(doc: jsPDF) {
   doc.text("Schweizer Hosting  •  DSG konform  •  Für medizinische Praxen entwickelt", LEFT + 14, 28);
 }
 
-function drawFooter(doc: jsPDF, extra?: string) {
+function drawFooter(doc: jsPDF, pageNum: number, totalPages: number) {
   const y = 282;
   doc.setDrawColor(200, 200, 200);
   doc.setLineWidth(0.2);
@@ -55,8 +55,7 @@ function drawFooter(doc: jsPDF, extra?: string) {
     "Derm247 | TechAssist | info@techassist.ch | derm247.ch",
     LEFT, y + 5,
   );
-  const rightText = extra || `Stand: ${new Date().toLocaleDateString("de-CH")}`;
-  doc.text(rightText, RIGHT, y + 5, { align: "right" });
+  doc.text(`Seite ${pageNum} von ${totalPages}`, RIGHT, y + 5, { align: "right" });
 }
 
 // ── Bullet helpers ─────────────────────────────────────────────
@@ -91,7 +90,7 @@ function sectionTitle(doc: jsPDF, y: number, title: string): number {
 
 function drawPage1(doc: jsPDF) {
   drawHeader(doc);
-  let y = 44;
+  let y = 48; // extra breathing room for premium feel
 
   // ── Nutzen (Benefits) ──
   y = sectionTitle(doc, y, "Ihr Nutzen");
@@ -187,7 +186,7 @@ function drawPage1(doc: jsPDF) {
 
   // ── Kleingedrucktes (footer area) ──
   doc.setFillColor(...LIGHT_BG);
-  doc.roundedRect(LEFT, y, W, 18, 2, 2, "F");
+  doc.roundedRect(LEFT, y, W, 22, 2, 2, "F");
   doc.setFont("helvetica", "normal");
   doc.setFontSize(7.5);
   color(doc, GRAY);
@@ -198,6 +197,11 @@ function drawPage1(doc: jsPDF) {
   doc.text(fine[0], LEFT + 4, y + 7);
   doc.text(fine[1], LEFT + 4, y + 12);
 
+  // Unverbindlichkeits-Hinweis
+  doc.setFontSize(7);
+  doc.setFont("helvetica", "italic");
+  color(doc, GRAY);
+  doc.text("Unverbindliches Angebot – Änderungen vorbehalten", LEFT + 4, y + 17);
   drawFooter(doc, "Seite 1");
 }
 
@@ -256,7 +260,8 @@ function drawPage2(doc: jsPDF) {
   doc.setFont("helvetica", "normal");
   doc.setFontSize(9);
   doc.text("Gerne erstellen wir Ihnen ein individuelles Angebot oder einen Testaccount.", LEFT + 8, y + 17);
-  doc.text("E-Mail: info@techassist.ch  |  Web: derm247.ch", LEFT + 8, y + 23);
+  doc.text("Testzugang auf Anfrage verfügbar.", LEFT + 8, y + 23);
+  doc.text("E-Mail: info@techassist.ch  |  Web: derm247.ch", LEFT + 8, y + 29);
 
   drawFooter(doc, "Seite 2");
 }
