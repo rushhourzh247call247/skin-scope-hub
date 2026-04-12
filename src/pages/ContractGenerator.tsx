@@ -20,6 +20,7 @@ import PdfPreviewPages from "@/components/PdfPreviewPages";
 import { api } from "@/lib/api";
 import { PACKAGES, suggestPackage, generateContractNumber, buildContractPdf, type ContractVars } from "@/lib/contractPdf";
 import { buildBrochurePdf } from "@/lib/brochurePdf";
+import { buildCombinedPdf } from "@/lib/combinedPdf";
 
 export default function ContractGenerator() {
   const { t } = useTranslation();
