@@ -80,7 +80,7 @@ Monatliche Lizenzgebühr: CHF ${vars.preis} / Monat (exkl. MwSt.)
 
 3. Vertragsbeginn und Laufzeit
 
-Der Vertrag beginnt am ${vars.datum}. Die Mindestlaufzeit beträgt 12 Monate. Die Kündigungsfrist beträgt 60 Tage zum Vertragsende. Erfolgt keine fristgerechte Kündigung, verlängert sich der Vertrag automatisch um jeweils 12 Monate.
+Der Vertrag beginnt am ${vars.vertragsbeginn}. Die Mindestlaufzeit beträgt 12 Monate. Die Kündigungsfrist beträgt 60 Tage zum Vertragsende. Erfolgt keine fristgerechte Kündigung, verlängert sich der Vertrag automatisch um jeweils 12 Monate.
 
 
 4. Paketänderungen (Upgrade / Downgrade)
@@ -156,7 +156,7 @@ Unterschrift                                   Unterschrift
 
 function drawLogo(doc: jsPDF, x: number, y: number) {
   // Blue rounded rectangle
-  doc.setFillColor(37, 99, 235);
+  doc.setFillColor(...BRAND_RGB);
   doc.roundedRect(x, y, 8, 8, 1.5, 1.5, "F");
   doc.setTextColor(255, 255, 255);
   doc.setFontSize(12);
@@ -175,7 +175,7 @@ function buildPdf(vars: ContractVars): jsPDF {
   const doc = new jsPDF({ unit: "mm", format: "a4" });
 
   // Header bar
-  doc.setFillColor(37, 99, 235);
+  doc.setFillColor(...BRAND_RGB);
   doc.rect(0, 0, 210, 20, "F");
 
   // Logo in header
@@ -253,6 +253,8 @@ export default function ContractGenerator() {
   const [selectedPaket, setSelectedPaket] = useState("");
   const [anzahlAerzte, setAnzahlAerzte] = useState("1");
   const [vertragsnummer, setVertragsnummer] = useState(() => generateContractNumber());
+  const [vertragsbeginn, setVertragsbeginn] = useState(() => new Date().toISOString().slice(0, 10));
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
 
   const pkg = PACKAGES.find((p) => p.id === selectedPaket);
@@ -265,6 +267,9 @@ export default function ContractGenerator() {
     preis: pkg?.price || "–",
     anzahlAerzte: anzahlAerzte || "–",
     datum: new Date().toLocaleDateString("de-CH"),
+    vertragsbeginn: vertragsbeginn
+      ? new Date(vertragsbeginn).toLocaleDateString("de-CH")
+      : new Date().toLocaleDateString("de-CH"),
   });
 
   const handlePreview = () => {
