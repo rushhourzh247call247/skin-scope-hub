@@ -134,7 +134,7 @@ const PatientList = () => {
                 </th>
                 <th className="hidden lg:table-cell px-4 py-3">{t("patients.lastDoctor")}</th>
                 <th className="hidden lg:table-cell px-4 py-3">{t("common.created")}</th>
-                <th className="hidden sm:table-cell px-4 py-3 text-right">{t("common.action")}</th>
+                <th className="px-2 py-3 sm:px-4 text-right">{t("common.action")}</th>
               </tr>
             </thead>
             <tbody>
@@ -185,7 +185,7 @@ const PatientList = () => {
                     <td className="hidden lg:table-cell px-4 py-3 tabular-nums text-sm text-muted-foreground">
                       {(patient as any).is_test_patient ? "\u2013" : (patient.created_at ? formatDate(patient.created_at, "dd.MM.yyyy") : "\u2013")}
                     </td>
-                    <td className="hidden sm:table-cell px-4 py-3 text-right">
+                    <td className="px-2 py-3 sm:px-4 text-right">
                       <div className="flex justify-end gap-1">
                         {(patient as any).deactivated_at ? (
                           <Button
@@ -194,16 +194,16 @@ const PatientList = () => {
                             className="h-7 gap-1 text-xs"
                             onClick={(e) => { e.stopPropagation(); activateMutation.mutate(patient.id); }}
                           >
-                            <Power className="h-3 w-3" /> {t("common.activate")}
+                            <Power className="h-3 w-3" /> <span className="hidden sm:inline">{t("common.activate")}</span>
                           </Button>
                         ) : !(patient as any).is_test_patient ? (
                           <Button
                             size="sm"
                             variant="ghost"
-                            className="h-7 gap-1 text-xs text-muted-foreground hover:text-destructive"
+                            className="h-7 sm:gap-1 text-xs text-muted-foreground hover:text-destructive"
                             onClick={(e) => { e.stopPropagation(); deactivateMutation.mutate(patient.id); }}
                           >
-                            <PowerOff className="h-3 w-3" /> {t("common.deactivate")}
+                            <PowerOff className="h-3 w-3" /> <span className="hidden sm:inline">{t("common.deactivate")}</span>
                           </Button>
                         ) : null}
                         {isAdmin && !(patient as any).is_test_patient && (
