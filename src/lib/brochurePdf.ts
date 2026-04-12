@@ -268,12 +268,22 @@ function drawPage2(doc: jsPDF) {
 
 // ── Public API ─────────────────────────────────────────────────
 
+/** Draw brochure-style footers on given page range */
+export function drawBrochureFooters(doc: jsPDF, fromPage: number, toPage: number, totalPages: number) {
+  for (let i = fromPage; i <= toPage; i++) {
+    doc.setPage(i);
+    drawFooter(doc, i, totalPages);
+  }
+}
+
 /** Standalone 2-page brochure */
 export function buildBrochurePdf(): jsPDF {
   const doc = new jsPDF({ unit: "mm", format: "a4" });
   drawPage1(doc);
   doc.addPage();
   drawPage2(doc);
+  // Draw footers with standalone page count
+  drawBrochureFooters(doc, 1, 2, 2);
   return doc;
 }
 
@@ -283,4 +293,5 @@ export function appendBrochurePages(doc: jsPDF) {
   drawPage1(doc);
   doc.addPage();
   drawPage2(doc);
+}
 }
