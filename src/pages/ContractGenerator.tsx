@@ -78,19 +78,14 @@ Anzahl Ärzte: ${vars.anzahlAerzte}
 Monatliche Lizenzgebühr: CHF ${vars.preis} / Monat (exkl. MwSt.)
 
 
-3. Vertragsbeginn und Laufzeit
+3. Laufzeit und Paketänderungen
 
 Der Vertrag beginnt am ${vars.vertragsbeginn}. Die Mindestlaufzeit beträgt 12 Monate. Die Kündigungsfrist beträgt 60 Tage zum Vertragsende. Erfolgt keine fristgerechte Kündigung, verlängert sich der Vertrag automatisch um jeweils 12 Monate.
 
-
-4. Paketänderungen (Upgrade / Downgrade)
-
-Ein Upgrade auf ein höheres Paket oder zusätzliche Lizenzen ist jederzeit möglich. Die neue Gebühr gilt ab dem Folgemonat.
-
-Ein Downgrade auf ein kleineres Paket oder weniger Lizenzen ist unter Einhaltung der laufenden Vertragsdauer möglich. Die Änderung wird frühestens zum Ende der aktuellen Vertragslaufzeit wirksam.
+Ein Upgrade auf ein höheres Paket oder zusätzliche Lizenzen ist jederzeit möglich. Die neue Gebühr gilt ab dem Folgemonat. Ein Downgrade ist unter Einhaltung der laufenden Vertragsdauer möglich und wird frühestens zum Ende der aktuellen Laufzeit wirksam.
 
 
-5. Zahlungsbedingungen
+4. Zahlungsbedingungen
 
 Die Lizenzgebühr wird monatlich im Voraus in Rechnung gestellt und ist innert 30 Tagen nach Rechnungsdatum zahlbar. Bei Zahlungsverzug behält sich die Lizenzgeberin das Recht vor, den Zugang zur Software zu sperren.
 
@@ -99,14 +94,16 @@ IBAN: CH66 0070 0110 0057 8304 8
 Empfänger: Rached Mtiraoui (TechAssist)
 
 
-6. Datenschutz und Datensicherheit
+5. Datenschutz und Datensicherheit
 
 Die Lizenzgeberin verpflichtet sich, alle im Zusammenhang mit der Nutzung der Software anfallenden Daten gemäss dem Schweizerischen Datenschutzgesetz (DSG) und der DSGVO zu behandeln.
 
 Die Daten werden ausschliesslich auf Servern in der Schweiz (Infomaniak) gespeichert. Es werden tägliche Backups sowie regelmässige Snapshots durchgeführt. Die Daten werden nicht an Drittanbieter weitergegeben und nicht ausserhalb der Schweiz verarbeitet. Die Übertragung erfolgt verschlüsselt (TLS 1.2 / 1.3).
 
+Die Nutzung beinhaltet eine angemessene Datenspeicherung im üblichen Rahmen. Bei aussergewöhnlich hohem Speicherbedarf kann eine individuelle Vereinbarung getroffen werden.
 
-7. Gewährleistung und Haftung
+
+6. Gewährleistung, Haftung und Support
 
 Die Lizenzgeberin betreibt die Software nach bestem Wissen und mit aktuellen Sicherheitsstandards. Eine Haftung besteht nur bei grober Fahrlässigkeit oder Vorsatz.
 
@@ -116,27 +113,17 @@ Keine Haftung besteht insbesondere für:
 – externe Angriffe trotz Schutzmassnahmen
 – indirekte Schäden oder Folgeschäden
 
-
-8. Support
-
 Support erfolgt ausschliesslich per E-Mail an info@techassist.ch. Ein Anspruch auf telefonischen oder Live-Support besteht nicht.
 
 
-9. Speicherung
-
-Die Nutzung beinhaltet eine angemessene Datenspeicherung im üblichen Rahmen. Bei aussergewöhnlich hohem Speicherbedarf kann eine individuelle Vereinbarung getroffen werden.
-
-
-10. Geheimhaltung
+7. Geheimhaltung
 
 Beide Parteien verpflichten sich, vertrauliche Informationen der jeweils anderen Partei geheim zu halten und nicht an Dritte weiterzugeben.
 
 
-11. Schlussbestimmungen
+8. Schlussbestimmungen
 
-Es gilt Schweizer Recht. Gerichtsstand ist Zürich.
-
-Dieser Vertrag wurde in zwei Exemplaren ausgefertigt und von beiden Parteien unterzeichnet.
+Es gilt Schweizer Recht. Gerichtsstand ist Zürich. Dieser Vertrag wurde in zwei Exemplaren ausgefertigt und von beiden Parteien unterzeichnet.
 
 
 
