@@ -1,30 +1,31 @@
 import jsPDF from "jspdf";
 import { PACKAGES } from "./contractPdf";
 
-const BRAND_RGB: [number, number, number] = [28, 175, 154];
+const BRAND: [number, number, number] = [28, 175, 154];
 const BRAND_DARK: [number, number, number] = [20, 130, 115];
 const DARK: [number, number, number] = [30, 30, 30];
 const GRAY: [number, number, number] = [100, 100, 100];
 const WHITE: [number, number, number] = [255, 255, 255];
-const LIGHT_TINT: [number, number, number] = [220, 245, 240];
-
-function setColor(doc: jsPDF, color: [number, number, number]) {
-  doc.setTextColor(color[0], color[1], color[2]);
-}
+const LIGHT_BG: [number, number, number] = [245, 247, 249];
 
 const LEFT = 17;
-const RIGHT_LIMIT = 193;
-const CONTENT_WIDTH = RIGHT_LIMIT - LEFT;
+const RIGHT = 193;
+const W = RIGHT - LEFT;
 
-function drawBrochureHeader(doc: jsPDF) {
-  // Full-width brand bar
-  doc.setFillColor(...BRAND_RGB);
+function color(doc: jsPDF, c: [number, number, number]) {
+  doc.setTextColor(c[0], c[1], c[2]);
+}
+
+// ── Shared chrome ──────────────────────────────────────────────
+
+function drawHeader(doc: jsPDF) {
+  doc.setFillColor(...BRAND);
   doc.rect(0, 0, 210, 36, "F");
 
   // Logo square
   doc.setFillColor(...WHITE);
   doc.roundedRect(LEFT, 8, 10, 10, 2, 2, "F");
-  doc.setTextColor(...BRAND_RGB);
+  doc.setTextColor(...BRAND);
   doc.setFontSize(14);
   doc.setFont("helvetica", "bold");
   doc.text("D", LEFT + 3, 15.5);
@@ -32,191 +33,201 @@ function drawBrochureHeader(doc: jsPDF) {
   // Title
   doc.setTextColor(...WHITE);
   doc.setFontSize(22);
-  doc.setFont("helvetica", "bold");
   doc.text("DERM247", LEFT + 14, 15.5);
 
   doc.setFontSize(10);
   doc.setFont("helvetica", "normal");
-  doc.text("Softwarelösung für die Dermatologie", LEFT + 14, 22);
+  doc.text("Digitale Hautdokumentation für moderne Praxen", LEFT + 14, 22);
 
   doc.setFontSize(8);
   doc.text("Produkt- & Preisübersicht", LEFT + 14, 28);
 }
 
-function drawBrochureFooter(doc: jsPDF) {
+function drawFooter(doc: jsPDF, extra?: string) {
   const y = 282;
   doc.setDrawColor(200, 200, 200);
   doc.setLineWidth(0.2);
-  doc.line(LEFT, y, RIGHT_LIMIT, y);
+  doc.line(LEFT, y, RIGHT, y);
 
   doc.setFontSize(7);
   doc.setTextColor(...GRAY);
-  doc.text("Derm247 – TechAssist | Dällikerstrasse 48, 8105 Regensdorf | info@techassist.ch", LEFT, y + 5);
-  doc.text(`Stand: ${new Date().toLocaleDateString("de-CH")}`, RIGHT_LIMIT, y + 5, { align: "right" });
+  doc.text(
+    "Derm247 – TechAssist | Dällikerstrasse 48, 8105 Regensdorf | info@techassist.ch",
+    LEFT, y + 5,
+  );
+  const rightText = extra || `Stand: ${new Date().toLocaleDateString("de-CH")}`;
+  doc.text(rightText, RIGHT, y + 5, { align: "right" });
 }
 
-/** Features included in all packages */
-const BASE_FEATURES = [
-  "Patientenverwaltung mit Suchfunktion",
-  "Interaktive 3D-Körperkarte (Body-Map)",
-  "Mobiler Foto-Upload via QR-Code",
-  "ABCDE-Bewertung für Hautläsionen",
-  "Zeitlicher Bildvergleich (Overlay-Slider)",
-  "PDF-Berichte für Patienten & Zuweiser",
-  "Schweizer Hosting (Infomaniak)",
-  "Tägliche Backups & Snapshots",
-  "Verschlüsselte Datenübertragung (TLS 1.2/1.3)",
-  "E-Mail-Support",
-];
+// ── Bullet helpers ─────────────────────────────────────────────
 
-/** Extra features per package tier */
-const TIER_FEATURES: Record<string, string[]> = {
-  single: [],
-  small: ["Mehrbenutzerverwaltung", "Gemeinsame Patientendaten"],
-  medium: ["Mehrbenutzerverwaltung", "Gemeinsame Patientendaten", "Prioritäts-Support"],
-  unlimited: ["Mehrbenutzerverwaltung", "Gemeinsame Patientendaten", "Prioritäts-Support", "Individuelle Anpassungen auf Anfrage"],
-};
-
-export function buildBrochurePdf(): jsPDF {
-  const doc = new jsPDF({ unit: "mm", format: "a4" });
-
-  // ─── PAGE 1: Header + Intro + Package overview ───
-  drawBrochureHeader(doc);
-
-  let y = 46;
-
-  // Intro text
+function bulletCircle(doc: jsPDF, x: number, y: number, text: string) {
+  doc.setFillColor(...BRAND);
+  doc.circle(x + 2, y - 1.2, 1.5, "F");
   doc.setFont("helvetica", "normal");
-  doc.setFontSize(10);
-  doc.setTextColor(...DARK);
-  const intro =
-    "Derm247 ist eine spezialisierte Softwarelösung für dermatologische Praxen in der Schweiz. " +
-    "Sie ermöglicht die digitale Erfassung, Dokumentation und Nachverfolgung von Hautveränderungen – " +
-    "sicher, effizient und DSGVO-konform.";
-  const introLines = doc.splitTextToSize(intro, CONTENT_WIDTH) as string[];
-  for (const line of introLines) {
-    doc.text(line, LEFT, y);
-    y += 5;
+  doc.setFontSize(9.5);
+  color(doc, DARK);
+  doc.text(text, x + 7, y);
+}
+
+function bulletDash(doc: jsPDF, x: number, y: number, text: string, textColor = DARK) {
+  doc.setFont("helvetica", "normal");
+  doc.setFontSize(9);
+  color(doc, textColor);
+  doc.text("–  " + text, x, y);
+}
+
+// ── Section heading ────────────────────────────────────────────
+
+function sectionTitle(doc: jsPDF, y: number, title: string): number {
+  doc.setFont("helvetica", "bold");
+  doc.setFontSize(13);
+  color(doc, BRAND);
+  doc.text(title, LEFT, y);
+  return y + 7;
+}
+
+// ── PAGE 1 ─────────────────────────────────────────────────────
+
+function drawPage1(doc: jsPDF) {
+  drawHeader(doc);
+  let y = 44;
+
+  // ── Nutzen (Benefits) ──
+  y = sectionTitle(doc, y, "Ihr Nutzen");
+  const benefits = [
+    "Schnellere Diagnosen durch digitale Verlaufsdokumentation",
+    "Klare Verlaufskontrolle mit Bildvergleich",
+    "Weniger administrativer Aufwand",
+    "Sichere Speicherung ausschliesslich in der Schweiz",
+  ];
+  for (const b of benefits) {
+    bulletCircle(doc, LEFT, y, b);
+    y += 6.5;
+  }
+  y += 4;
+
+  // ── Zielgruppe ──
+  y = sectionTitle(doc, y, "Für wen?");
+  const audiences = ["Dermatologen", "Hausärzte mit Hautsprechstunde", "Gemeinschaftspraxen", "Kliniken"];
+  for (const a of audiences) {
+    bulletDash(doc, LEFT + 2, y, a);
+    y += 5.5;
+  }
+  y += 4;
+
+  // ── Warum Derm247 ──
+  y = sectionTitle(doc, y, "Warum Derm247?");
+  const reasons = [
+    "Schweizer Hosting (Infomaniak) – keine Daten im Ausland",
+    "QR-basierter Foto-Upload direkt vom Smartphone",
+    "Interaktive 3D-Body-Map zur Lokalisierung",
+    "Zeitlicher Bildvergleich mit Overlay-Slider",
+    "PDF-Berichte für Patienten & Zuweiser",
+  ];
+  for (const r of reasons) {
+    bulletCircle(doc, LEFT, y, r);
+    y += 6.5;
   }
   y += 6;
 
-  // ─── Package cards ───
-  doc.setFont("helvetica", "bold");
-  doc.setFontSize(14);
-  doc.setTextColor(...BRAND_RGB);
-  doc.text("Unsere Pakete", LEFT, y);
-  y += 8;
-
-  const cardWidth = (CONTENT_WIDTH - 6) / 2; // 2 columns with 6mm gap
-  const cardPadding = 5;
+  // ── Preise (compact cards) ──
+  y = sectionTitle(doc, y, "Pakete & Preise");
+  const cardW = (W - 6) / 2;
 
   for (let i = 0; i < PACKAGES.length; i++) {
     const pkg = PACKAGES[i];
     const col = i % 2;
     const row = Math.floor(i / 2);
-    const cx = LEFT + col * (cardWidth + 6);
-    const cy = y + row * 62;
+    const cx = LEFT + col * (cardW + 6);
+    const cy = y + row * 42;
+    const isPopular = pkg.id === "small";
 
-    // Card background
-    const isHighlighted = pkg.id === "small"; // highlight popular package
-    if (isHighlighted) {
-      doc.setFillColor(...BRAND_RGB);
+    // Card bg
+    if (isPopular) {
+      doc.setFillColor(...BRAND);
     } else {
-      doc.setFillColor(245, 247, 249);
+      doc.setFillColor(...LIGHT_BG);
     }
-    doc.roundedRect(cx, cy, cardWidth, 56, 3, 3, "F");
+    doc.roundedRect(cx, cy, cardW, 37, 3, 3, "F");
 
     // Popular badge
-    if (isHighlighted) {
+    if (isPopular) {
       doc.setFontSize(7);
       doc.setTextColor(...WHITE);
       doc.setFont("helvetica", "bold");
-      doc.text("BELIEBT", cx + cardWidth - cardPadding - 1, cy + 6, { align: "right" });
+      doc.text("BELIEBT", cx + cardW - 6, cy + 6, { align: "right" });
     }
 
-    // Package name
+    // Name
     doc.setFont("helvetica", "bold");
-    doc.setFontSize(12);
-    setColor(doc, isHighlighted ? WHITE : DARK);
-    doc.text(pkg.label, cx + cardPadding, cy + 12);
+    doc.setFontSize(11);
+    color(doc, isPopular ? WHITE : DARK);
+    doc.text(pkg.label, cx + 5, cy + 11);
 
-    // Description
+    // Desc
     doc.setFont("helvetica", "normal");
-    doc.setFontSize(9);
-    setColor(doc, isHighlighted ? LIGHT_TINT : GRAY);
-    doc.text(pkg.desc, cx + cardPadding, cy + 19);
+    doc.setFontSize(8.5);
+    color(doc, isPopular ? [220, 245, 240] : GRAY);
+    doc.text(pkg.desc, cx + 5, cy + 17);
 
     // Price
     doc.setFont("helvetica", "bold");
-    doc.setFontSize(18);
-    setColor(doc, isHighlighted ? WHITE : BRAND_RGB);
-    doc.text(`CHF ${pkg.price}`, cx + cardPadding, cy + 32);
+    doc.setFontSize(16);
+    color(doc, isPopular ? WHITE : BRAND);
+    doc.text(`CHF ${pkg.price}`, cx + 5, cy + 28);
 
     doc.setFont("helvetica", "normal");
     doc.setFontSize(8);
-    setColor(doc, isHighlighted ? LIGHT_TINT : GRAY);
-    doc.text("pro Monat", cx + cardPadding, cy + 38);
-
-    // Extra features for this tier
-    const extras = TIER_FEATURES[pkg.id] || [];
-    let fy = cy + 44;
-    doc.setFontSize(7.5);
-    for (const feat of extras.slice(0, 2)) {
-      setColor(doc, isHighlighted ? LIGHT_TINT : GRAY);
-      doc.text(`+ ${feat}`, cx + cardPadding, fy);
-      fy += 4;
-    }
+    color(doc, isPopular ? [220, 245, 240] : GRAY);
+    doc.text("pro Monat", cx + 5, cy + 33);
   }
 
-  y += 62 * 2 + 10; // after 2 rows of cards
+  y += 42 * 2 + 6;
 
-  // ─── Key info box ───
-  doc.setFillColor(245, 247, 249);
-  doc.roundedRect(LEFT, y, CONTENT_WIDTH, 20, 2, 2, "F");
-  doc.setFont("helvetica", "bold");
-  doc.setFontSize(9);
-  doc.setTextColor(...DARK);
-  doc.text("Vertragsbedingungen", LEFT + 5, y + 6);
+  // ── Kleingedrucktes (footer area) ──
+  doc.setFillColor(...LIGHT_BG);
+  doc.roundedRect(LEFT, y, W, 18, 2, 2, "F");
   doc.setFont("helvetica", "normal");
-  doc.setFontSize(8);
-  doc.setTextColor(...GRAY);
-  doc.text("Mindestlaufzeit: 12 Monate  |  Kündigungsfrist: 60 Tage  |  Upgrade jederzeit möglich", LEFT + 5, y + 13);
+  doc.setFontSize(7.5);
+  color(doc, GRAY);
+  const fine = [
+    "Mindestlaufzeit: 12 Monate  |  Kündigungsfrist: 60 Tage  |  Monatliche Abrechnung im Voraus",
+    "Fair-Use Speicherregelung  |  Upgrade jederzeit möglich  |  Änderungen vorbehalten",
+  ];
+  doc.text(fine[0], LEFT + 4, y + 7);
+  doc.text(fine[1], LEFT + 4, y + 12);
 
-  drawBrochureFooter(doc);
+  drawFooter(doc, "Seite 1");
+}
 
-  // ─── PAGE 2: Features ───
-  doc.addPage();
-  drawBrochureHeader(doc);
-  y = 46;
+// ── PAGE 2 ─────────────────────────────────────────────────────
 
-  doc.setFont("helvetica", "bold");
-  doc.setFontSize(14);
-  doc.setTextColor(...BRAND_RGB);
-  doc.text("Enthaltene Funktionen – alle Pakete", LEFT, y);
-  y += 8;
+function drawPage2(doc: jsPDF) {
+  drawHeader(doc);
+  let y = 44;
 
-  // Feature list with brand-colored bullets
-  for (const feat of BASE_FEATURES) {
-    // Draw a filled circle as bullet
-    doc.setFillColor(...BRAND_RGB);
-    doc.circle(LEFT + 2, y - 1.2, 1.5, "F");
-    doc.setFont("helvetica", "normal");
-    doc.setFontSize(10);
-    doc.setTextColor(...DARK);
-    doc.text(feat, LEFT + 7, y);
-    y += 7;
+  // ── Enthaltene Funktionen ──
+  y = sectionTitle(doc, y, "Enthaltene Funktionen (alle Pakete)");
+  const features = [
+    "Patientenverwaltung mit Suchfunktion",
+    "Interaktive 3D-Körperkarte (Body-Map)",
+    "Mobiler Foto-Upload via QR-Code",
+    "ABCDE-Bewertung für Hautläsionen",
+    "Zeitlicher Bildvergleich (Overlay-Slider)",
+    "PDF-Berichte für Patienten & Zuweiser",
+    "E-Mail-Support",
+    "Tägliche Backups & Snapshots",
+  ];
+  for (const f of features) {
+    bulletCircle(doc, LEFT, y, f);
+    y += 6.5;
   }
+  y += 6;
 
-  y += 8;
-
-  // ─── Data protection section ───
-  doc.setFont("helvetica", "bold");
-  doc.setFontSize(14);
-  doc.setTextColor(...BRAND_RGB);
-  doc.text("Datenschutz & Sicherheit", LEFT, y);
-  y += 8;
-
-  const securityPoints = [
+  // ── Datenschutz ──
+  y = sectionTitle(doc, y, "Datenschutz & Sicherheit");
+  const security = [
     "Hosting ausschliesslich in der Schweiz (Infomaniak)",
     "Keine Datenweitergabe an Dritte",
     "Keine Verarbeitung ausserhalb der Schweiz",
@@ -224,35 +235,47 @@ export function buildBrochurePdf(): jsPDF {
     "Verschlüsselte Übertragung (TLS 1.2 / 1.3)",
     "Tägliche Backups & regelmässige Snapshots",
   ];
-
-  for (const point of securityPoints) {
-    // Draw a small filled square as bullet
+  for (const s of security) {
     doc.setFillColor(...BRAND_DARK);
     doc.rect(LEFT, y - 2.5, 3, 3, "F");
     doc.setFont("helvetica", "normal");
-    doc.setFontSize(10);
-    doc.setTextColor(...DARK);
-    doc.text(point, LEFT + 7, y);
-    y += 7;
+    doc.setFontSize(9.5);
+    color(doc, DARK);
+    doc.text(s, LEFT + 7, y);
+    y += 6.5;
   }
-
   y += 10;
 
-  // ─── Contact section ───
-  doc.setFillColor(...BRAND_RGB);
-  doc.roundedRect(LEFT, y, CONTENT_WIDTH, 30, 3, 3, "F");
-
+  // ── Kontakt ──
+  doc.setFillColor(...BRAND);
+  doc.roundedRect(LEFT, y, W, 30, 3, 3, "F");
   doc.setFont("helvetica", "bold");
   doc.setFontSize(12);
   doc.setTextColor(...WHITE);
   doc.text("Kontakt & nächste Schritte", LEFT + 8, y + 10);
-
   doc.setFont("helvetica", "normal");
   doc.setFontSize(9);
   doc.text("Gerne erstellen wir Ihnen ein individuelles Angebot oder einen Testaccount.", LEFT + 8, y + 17);
   doc.text("E-Mail: info@techassist.ch  |  Web: derm247.ch", LEFT + 8, y + 23);
 
-  drawBrochureFooter(doc);
+  drawFooter(doc, "Seite 2");
+}
 
+// ── Public API ─────────────────────────────────────────────────
+
+/** Standalone 2-page brochure */
+export function buildBrochurePdf(): jsPDF {
+  const doc = new jsPDF({ unit: "mm", format: "a4" });
+  drawPage1(doc);
+  doc.addPage();
+  drawPage2(doc);
   return doc;
+}
+
+/** Append brochure pages to an existing jsPDF doc (for combined PDF) */
+export function appendBrochurePages(doc: jsPDF) {
+  doc.addPage();
+  drawPage1(doc);
+  doc.addPage();
+  drawPage2(doc);
 }
