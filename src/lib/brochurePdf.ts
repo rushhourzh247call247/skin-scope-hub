@@ -257,7 +257,7 @@ function drawPage2(doc: jsPDF) {
     "Hosting ausschliesslich in der Schweiz (Infomaniak)",
     "Keine Datenweitergabe an Dritte",
     "Konform mit DSG und DSGVO",
-    "Verschlüsselte Übertragung (TLS 1.2 / 1.3)",
+    "Verschlüsselte Datenübertragung & Speicherung",
     "Tägliche Backups & regelmässige Snapshots",
   ];
   for (const s of security) {
