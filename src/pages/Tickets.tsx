@@ -103,15 +103,15 @@ export default function Tickets() {
 
   useEffect(() => { fetchTickets(); }, [fetchTickets]);
 
-  // Poll ticket list every 15s for new tickets / unread counts
+  // Poll ticket list every 8s for new tickets / unread counts
   useEffect(() => {
     const interval = setInterval(() => {
       api.getTickets().then(data => setTickets(data)).catch(() => {});
-    }, 15_000);
+    }, 8_000);
     return () => clearInterval(interval);
   }, []);
 
-  // Poll selected conversation every 5s for new messages (real-time feel)
+  // Poll selected conversation every 3s for new messages (near real-time)
   useEffect(() => {
     if (!selected) return;
     const id = selected.id;
@@ -120,7 +120,6 @@ export default function Tickets() {
         const updated = await api.getTicket(id);
         setSelected(prev => {
           if (!prev || prev.id !== id) return prev;
-          // Only update if message count changed (avoid unnecessary re-renders)
           if (updated.messages.length !== prev.messages.length || updated.status !== prev.status) {
             return updated;
           }
@@ -128,7 +127,7 @@ export default function Tickets() {
         });
         setTickets(prev => prev.map(t => t.id === id ? { ...updated, unread_count: 0 } : t));
       } catch {}
-    }, 5_000);
+    }, 3_000);
     return () => clearInterval(interval);
   }, [selected?.id]);
 
