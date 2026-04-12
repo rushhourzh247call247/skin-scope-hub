@@ -113,17 +113,8 @@ export default function ContractGenerator() {
     setPreviewType("brochure");
   };
 
-  const generateAndDownload = () => {
-    if (!kundeName || !selectedPaket) {
-      toast.error("Bitte Kundenname und Paket ausfüllen.");
-      return;
-    }
-    const vars = getVars();
-    const doc = buildContractPdf(vars);
-    const filename = `Vertrag_${kundeName.replace(/\s+/g, "_")}_${vars.vertragsnummer}.pdf`;
-    doc.save(filename);
-    toast.success("Vertrag wurde als PDF heruntergeladen.");
-  };
+
+
 
   const handleSaveToDb = () => {
     if (!kundeName || !selectedPaket || !pkg) {
