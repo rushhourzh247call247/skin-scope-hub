@@ -5,6 +5,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useTranslation } from "react-i18next";
 import { Users, MapPin, ImageIcon, Building2, ArrowRight, ShieldAlert, Eye, ShieldCheck, UsersRound } from "lucide-react";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import StorageOverview from "@/components/StorageOverview";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { formatDate } from "@/lib/dateUtils";
@@ -156,6 +157,7 @@ const Dashboard = () => {
         )}
       </div>
 
+      {isAdmin && <StorageOverview />}
       {isAdmin && <CompanyUserCounts />}
 
       {data.recentPatients && data.recentPatients.length > 0 && (
