@@ -264,13 +264,27 @@ export default function ContractGenerator() {
           </div>
 
           <div className="flex flex-wrap gap-3 pt-2">
+            <Button onClick={() => {
+              if (!kundeName || !selectedPaket) {
+                toast.error("Bitte Kundenname und Paket ausfüllen.");
+                return;
+              }
+              const vars = getVars();
+              const doc = buildCombinedPdf(vars);
+              const filename = `Derm247_Angebot_${kundeName.replace(/\s+/g, "_")}_${vars.vertragsnummer}.pdf`;
+              doc.save(filename);
+              toast.success("Angebot + Vertrag wurde als PDF heruntergeladen.");
+            }}>
+              <FileStack className="mr-2 h-4 w-4" />
+              Angebot + Vertrag PDF
+            </Button>
             <Button variant="outline" onClick={handlePreview}>
               <Eye className="mr-2 h-4 w-4" />
-              Vorschau
+              Vorschau (Vertrag)
             </Button>
-            <Button onClick={generateAndDownload}>
+            <Button variant="outline" onClick={generateAndDownload}>
               <Download className="mr-2 h-4 w-4" />
-              PDF herunterladen
+              Nur Vertrag PDF
             </Button>
             <Button
               variant="secondary"
@@ -289,7 +303,7 @@ export default function ContractGenerator() {
               }}
             >
               <BookOpen className="mr-2 h-4 w-4" />
-              Broschüre PDF
+              Nur Broschüre PDF
             </Button>
           </div>
         </CardContent>
