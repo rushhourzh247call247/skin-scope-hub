@@ -426,6 +426,24 @@ export default function ContractGenerator() {
             )}
           </div>
 
+          <div className="space-y-2">
+            <Label>Firma zuordnen (für DB-Speicherung)</Label>
+            <Select value={selectedCompanyId} onValueChange={setSelectedCompanyId}>
+              <SelectTrigger>
+                <SelectValue placeholder="Firma wählen…" />
+              </SelectTrigger>
+              <SelectContent>
+                {activeCompanies.map((c: any) => (
+                  <SelectItem key={c.id} value={String(c.id)}>
+                    <span className="flex items-center gap-2">
+                      <Building2 className="h-3.5 w-3.5" /> {c.name}
+                    </span>
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
           <div className="flex flex-wrap gap-3 pt-2">
             <Button variant="outline" onClick={handlePreview}>
               <Eye className="mr-2 h-4 w-4" />
@@ -433,7 +451,15 @@ export default function ContractGenerator() {
             </Button>
             <Button onClick={generateAndDownload}>
               <Download className="mr-2 h-4 w-4" />
-              Vertrag generieren (PDF)
+              PDF herunterladen
+            </Button>
+            <Button
+              variant="secondary"
+              onClick={handleSaveToDb}
+              disabled={saveMutation.isPending}
+            >
+              <Save className="mr-2 h-4 w-4" />
+              {saveMutation.isPending ? "Speichert…" : "In DB speichern"}
             </Button>
           </div>
         </CardContent>
