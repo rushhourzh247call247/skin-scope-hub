@@ -72,16 +72,21 @@ const PatientList = () => {
     .filter((p: Patient) => {
       const q = search.toLowerCase().replace(/^#/, "").trim();
       if (!q) return true;
+      // Build birth date in multiple formats for flexible search
+      const bd = p.birth_date ? new Date(p.birth_date) : null;
+      const bdFormats = bd && !isNaN(bd.getTime()) ? [
+        formatDate(p.birth_date, "dd. MMM yyyy"),  // 23. Feb. 2009
+        formatDate(p.birth_date, "dd.MM.yyyy"),     // 23.02.2009
+        `${bd.getDate()}.${bd.getMonth() + 1}.${bd.getFullYear()}`, // 23.2.2009
+        p.birth_date,                                // ISO: 2009-02-23
+      ] : [];
       const fields = [
         p.name,
         String((p as any).patient_number || p.id),
-        p.birth_date ? formatDate(p.birth_date, "dd. MMM yyyy") : "",
-        p.birth_date ? formatDate(p.birth_date, "dd.MM.yyyy") : "",
-        p.birth_date || "",
+        ...bdFormats,
         (p as any).email || "",
         (p as any).phone || "",
         (p as any).insurance_number || "",
-        
         (p as any).last_doctor || "",
         (p as any).created_by_name || "",
       ];
