@@ -31,6 +31,9 @@ function generateContractNumber(): string {
   return `V-${year}-${seq}`;
 }
 
+// Brand color: HSL(174, 72%, 40%) ≈ RGB(28, 175, 154)
+const BRAND_RGB: [number, number, number] = [28, 175, 154];
+
 interface ContractVars {
   vertragsnummer: string;
   kundeName: string;
@@ -39,6 +42,7 @@ interface ContractVars {
   preis: string;
   anzahlAerzte: string;
   datum: string;
+  vertragsbeginn: string;
 }
 
 function buildContractText(vars: ContractVars) {
