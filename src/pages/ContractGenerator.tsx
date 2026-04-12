@@ -30,6 +30,7 @@ export default function ContractGenerator() {
   const [vertragsbeginn, setVertragsbeginn] = useState(() => new Date().toISOString().slice(0, 10));
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [selectedCompanyId, setSelectedCompanyId] = useState("");
+  const [mwst, setMwst] = useState(false);
 
   const { data: companies = [] } = useQuery({
     queryKey: ["companies"],
@@ -49,6 +50,27 @@ export default function ContractGenerator() {
 
   const pkg = PACKAGES.find((p) => p.id === selectedPaket);
 
+  // Auto-sync: when doctor count changes, suggest matching package
+  const handleAnzahlChange = (val: string) => {
+    setAnzahlAerzte(val);
+    const num = parseInt(val) || 1;
+    const suggested = suggestPackage(num);
+    if (suggested !== selectedPaket) {
+      setSelectedPaket(suggested);
+    }
+  };
+
+  // Auto-sync: when package changes, clamp doctor count to valid range
+  const handlePaketChange = (val: string) => {
+    setSelectedPaket(val);
+    const p = PACKAGES.find((pk) => pk.id === val);
+    if (p) {
+      const current = parseInt(anzahlAerzte) || 1;
+      if (current < p.minDocs) setAnzahlAerzte(String(p.minDocs));
+      else if (current > p.maxDocs && p.maxDocs < 999) setAnzahlAerzte(String(p.maxDocs));
+    }
+  };
+
   const getVars = (): ContractVars => ({
     vertragsnummer,
     kundeName: kundeName || "–",
@@ -60,6 +82,7 @@ export default function ContractGenerator() {
     vertragsbeginn: vertragsbeginn
       ? new Date(vertragsbeginn).toLocaleDateString("de-CH")
       : new Date().toLocaleDateString("de-CH"),
+    mwst,
   });
 
   const handlePreview = () => {
