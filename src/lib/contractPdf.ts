@@ -44,7 +44,7 @@ function buildContractSections(vars: ContractVars): { title?: string; lines: str
 
   return [
     {
-      title: "Derm247 – Softwarelizenzvertrag",
+      title: "DERM247 – Softwarelizenzvertrag",
       lines: ["LIZENZVERTRAG", "", `Vertragsnummer: ${vars.vertragsnummer}`],
     },
     {
@@ -67,7 +67,7 @@ function buildContractSections(vars: ContractVars): { title?: string; lines: str
     {
       title: "1. Vertragsgegenstand",
       lines: [
-        "Die Lizenzgeberin gewährt dem Lizenznehmer das nicht-exklusive, nicht übertragbare Recht zur Nutzung der Software «Derm247» gemäss den Bedingungen dieses Vertrags.",
+        "Die Lizenzgeberin gewährt dem Lizenznehmer das nicht-exklusive, nicht übertragbare Recht zur Nutzung der Software «DERM247» gemäss den Bedingungen dieses Vertrags.",
       ],
     },
     {
@@ -160,10 +160,13 @@ function drawLogo(doc: jsPDF, x: number, y: number) {
   doc.setFont("helvetica", "bold");
   doc.text("D", x + 2.3, y + 6);
 
-  doc.setTextColor(255, 255, 255);
   doc.setFontSize(16);
   doc.setFont("helvetica", "bold");
-  doc.text("DERM247", x + 10.5, y + 6.5);
+  doc.setTextColor(255, 255, 255);
+  doc.text("DERM", x + 10.5, y + 6.5);
+  const dw = doc.getTextWidth("DERM");
+  doc.setTextColor(200, 245, 230);
+  doc.text("247", x + 10.5 + dw, y + 6.5);
 }
 
 function drawHeader(doc: jsPDF, vertragsnummer: string) {
@@ -181,7 +184,7 @@ function drawFooter(doc: jsPDF, vertragsnummer: string, pageNum: number, totalPa
   doc.setFontSize(7);
   doc.setTextColor(150, 150, 150);
   doc.text(
-    `Derm247 – Lizenzvertrag | ${vertragsnummer} | Seite ${pageNum} von ${totalPages}`,
+    `DERM247 – Lizenzvertrag | ${vertragsnummer} | Seite ${pageNum} von ${totalPages}`,
     17,
     290,
   );

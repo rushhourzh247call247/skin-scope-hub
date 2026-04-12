@@ -49,7 +49,7 @@ export function buildCombinedPdf(vars: ContractVars): jsPDF {
     brochure.setFontSize(7);
     brochure.setTextColor(100, 100, 100);
     const isFirstContractPage = i === 3;
-    const footerLeft = `Derm247 – Lizenzvertrag | ${vars.vertragsnummer}`;
+    const footerLeft = `DERM247 – Lizenzvertrag | ${vars.vertragsnummer}`;
     brochure.text(footerLeft, 17, 290);
     brochure.text(`Seite ${i} von ${totalPages}`, 193, 290, { align: "right" });
   }
