@@ -501,6 +501,22 @@ export const api = {
   deleteContract: (contractId: number) =>
     request<{ success: boolean }>(`/contracts/${contractId}`, { method: 'DELETE' }),
 
+  // Tickets
+  getTickets: () =>
+    request<any[]>('/tickets'),
+  getTicket: (id: number) =>
+    request<any>(`/tickets/${id}`),
+  createTicket: (data: { subject: string; message: string; priority: 'normal' | 'urgent' }) =>
+    request<any>('/tickets', { method: 'POST', body: JSON.stringify(data) }),
+  replyTicket: (ticketId: number, message: string) =>
+    request<any>(`/tickets/${ticketId}/reply`, { method: 'POST', body: JSON.stringify({ message }) }),
+  closeTicket: (ticketId: number) =>
+    request<any>(`/tickets/${ticketId}/close`, { method: 'PUT' }),
+  reopenTicket: (ticketId: number) =>
+    request<any>(`/tickets/${ticketId}/reopen`, { method: 'PUT' }),
+  deleteTicket: (ticketId: number) =>
+    request<{ success: boolean }>(`/tickets/${ticketId}`, { method: 'DELETE' }),
+
   // Storage stats
   getStorageStats: () =>
     request<{
