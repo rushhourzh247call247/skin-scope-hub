@@ -1,6 +1,7 @@
 import { useState, useMemo } from "react";
 import { useTranslation } from "react-i18next";
-import { FileText, Download, Eye, Hash } from "lucide-react";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { FileText, Download, Eye, Hash, Save, Building2 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -16,6 +17,7 @@ import {
 import { toast } from "sonner";
 import jsPDF from "jspdf";
 import PdfPreviewPages from "@/components/PdfPreviewPages";
+import { api } from "@/lib/api";
 
 const PACKAGES = [
   { id: "single", label: "Einzellizenz", price: "80.–", priceNum: 80, desc: "1 Arzt" },
