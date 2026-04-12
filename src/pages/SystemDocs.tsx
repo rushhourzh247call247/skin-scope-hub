@@ -119,6 +119,16 @@ const SystemDocs = () => {
         <InfoRow label={t('systemDocs.noThirdParty')} value={t('systemDocs.noThirdPartyVal')} />
         <InfoRow label={t('systemDocs.patientData')} value={t('systemDocs.patientDataVal')} />
         <InfoRow label={t('systemDocs.encryption')} value={t('systemDocs.encryptionVal')} />
+        <Separator className="my-2" />
+        <p className="text-foreground font-medium text-xs uppercase tracking-wider">{t('systemDocs.security')} — Hardening</p>
+        <InfoRow label={t('systemDocs.debugMode')} value={t('systemDocs.debugModeVal')} badge="✓" />
+        <InfoRow label={t('systemDocs.errorResponses')} value={t('systemDocs.errorResponsesVal')} badge="✓" />
+        <InfoRow label={t('systemDocs.storageAccess')} value={t('systemDocs.storageAccessVal')} badge="✓" />
+        <InfoRow label={t('systemDocs.imageAuth')} value={t('systemDocs.imageAuthVal')} badge="✓" />
+        <InfoRow label={t('systemDocs.concurrentLogin')} value={t('systemDocs.concurrentLoginVal')} badge="✓" />
+        <InfoRow label={t('systemDocs.configCache')} value={t('systemDocs.configCacheVal')} badge="✓" />
+        <InfoRow label={t('systemDocs.artisanServe')} value={t('systemDocs.artisanServeVal')} badge="✓" />
+        <InfoRow label={t('systemDocs.stagingEnv')} value={t('systemDocs.stagingEnvVal')} />
       </Section>
 
       <Section icon={RefreshCw} title={t('systemDocs.backup')}>
