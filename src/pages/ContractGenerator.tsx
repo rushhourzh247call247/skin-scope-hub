@@ -95,6 +95,7 @@ export default function ContractGenerator() {
       ? new Date(vertragsbeginn).toLocaleDateString("de-CH")
       : new Date().toLocaleDateString("de-CH"),
     mwst,
+    lang: pdfLanguage as any,
   });
 
   const handlePreviewContract = () => {
