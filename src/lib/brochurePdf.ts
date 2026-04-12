@@ -230,22 +230,22 @@ function drawPage2(doc: jsPDF) {
   }
   y += 4;
 
-  // ── KI Coming Soon ──
+  // ── KI in Entwicklung ──
   doc.setFillColor(245, 247, 249);
   doc.roundedRect(LEFT, y, W, 16, 2, 2, "F");
   doc.setFillColor(...BRAND);
-  doc.roundedRect(LEFT + 4, y + 3, 28, 5, 1, 1, "F");
+  doc.roundedRect(LEFT + 4, y + 3, 34, 5, 1, 1, "F");
   doc.setFont("helvetica", "bold");
   doc.setFontSize(6.5);
   doc.setTextColor(...WHITE);
-  doc.text("COMING SOON", LEFT + 6, y + 6.5);
+  doc.text("IN ENTWICKLUNG", LEFT + 6, y + 6.5);
   doc.setFont("helvetica", "normal");
   doc.setFontSize(9);
   color(doc, DARK);
-  doc.text("KI-gestützte Bildanalyse zur Unterstützung von Verdachtsdiagnosen", LEFT + 35, y + 7);
+  doc.text("Erweiterte Analysefunktionen mit KI-Unterstützung", LEFT + 41, y + 7);
   doc.setFontSize(7.5);
   color(doc, GRAY);
-  doc.text("Automatisierte Analyse mit intelligenter Zweitbefund-Empfehlung", LEFT + 35, y + 12.5);
+  doc.text("Intelligente Auswertung zur Unterstützung der klinischen Entscheidungsfindung", LEFT + 41, y + 12.5);
   y += 22;
 
   // ── Datenschutz ──
