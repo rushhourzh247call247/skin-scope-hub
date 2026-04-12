@@ -4,6 +4,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { FileText, Download, Eye, Hash, Save, Building2 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
@@ -17,7 +18,7 @@ import {
 import { toast } from "sonner";
 import PdfPreviewPages from "@/components/PdfPreviewPages";
 import { api } from "@/lib/api";
-import { PACKAGES, generateContractNumber, buildContractPdf, type ContractVars } from "@/lib/contractPdf";
+import { PACKAGES, suggestPackage, generateContractNumber, buildContractPdf, type ContractVars } from "@/lib/contractPdf";
 
 export default function ContractGenerator() {
   const { t } = useTranslation();
@@ -30,6 +31,7 @@ export default function ContractGenerator() {
   const [vertragsbeginn, setVertragsbeginn] = useState(() => new Date().toISOString().slice(0, 10));
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [selectedCompanyId, setSelectedCompanyId] = useState("");
+  const [mwst, setMwst] = useState(false);
 
   const { data: companies = [] } = useQuery({
     queryKey: ["companies"],
@@ -49,6 +51,27 @@ export default function ContractGenerator() {
 
   const pkg = PACKAGES.find((p) => p.id === selectedPaket);
 
+  // Auto-sync: when doctor count changes, suggest matching package
+  const handleAnzahlChange = (val: string) => {
+    setAnzahlAerzte(val);
+    const num = parseInt(val) || 1;
+    const suggested = suggestPackage(num);
+    if (suggested !== selectedPaket) {
+      setSelectedPaket(suggested);
+    }
+  };
+
+  // Auto-sync: when package changes, clamp doctor count to valid range
+  const handlePaketChange = (val: string) => {
+    setSelectedPaket(val);
+    const p = PACKAGES.find((pk) => pk.id === val);
+    if (p) {
+      const current = parseInt(anzahlAerzte) || 1;
+      if (current < p.minDocs) setAnzahlAerzte(String(p.minDocs));
+      else if (current > p.maxDocs && p.maxDocs < 999) setAnzahlAerzte(String(p.maxDocs));
+    }
+  };
+
   const getVars = (): ContractVars => ({
     vertragsnummer,
     kundeName: kundeName || "–",
@@ -60,6 +83,7 @@ export default function ContractGenerator() {
     vertragsbeginn: vertragsbeginn
       ? new Date(vertragsbeginn).toLocaleDateString("de-CH")
       : new Date().toLocaleDateString("de-CH"),
+    mwst,
   });
 
   const handlePreview = () => {
@@ -170,7 +194,7 @@ export default function ContractGenerator() {
                 type="number"
                 min={1}
                 value={anzahlAerzte}
-                onChange={(e) => setAnzahlAerzte(e.target.value)}
+                onChange={(e) => handleAnzahlChange(e.target.value)}
               />
             </div>
           </div>
@@ -188,7 +212,7 @@ export default function ContractGenerator() {
 
           <div className="space-y-2">
             <Label>Paket *</Label>
-            <Select value={selectedPaket} onValueChange={setSelectedPaket}>
+            <Select value={selectedPaket} onValueChange={handlePaketChange}>
               <SelectTrigger>
                 <SelectValue placeholder="Paket wählen…" />
               </SelectTrigger>
@@ -206,6 +230,11 @@ export default function ContractGenerator() {
                 {pkg.price} / Monat ({pkg.desc})
               </p>
             )}
+          </div>
+
+          <div className="flex items-center gap-2">
+            <Checkbox id="mwst" checked={mwst} onCheckedChange={(v: any) => setMwst(!!v)} />
+            <Label htmlFor="mwst" className="cursor-pointer">Preise exkl. MwSt. ausweisen</Label>
           </div>
 
           <div className="space-y-2">
