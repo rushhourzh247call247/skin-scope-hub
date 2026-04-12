@@ -193,7 +193,7 @@ export default function ContractGenerator() {
                 type="number"
                 min={1}
                 value={anzahlAerzte}
-                onChange={(e) => setAnzahlAerzte(e.target.value)}
+                onChange={(e) => handleAnzahlChange(e.target.value)}
               />
             </div>
           </div>
@@ -211,7 +211,7 @@ export default function ContractGenerator() {
 
           <div className="space-y-2">
             <Label>Paket *</Label>
-            <Select value={selectedPaket} onValueChange={setSelectedPaket}>
+            <Select value={selectedPaket} onValueChange={handlePaketChange}>
               <SelectTrigger>
                 <SelectValue placeholder="Paket wählen…" />
               </SelectTrigger>
