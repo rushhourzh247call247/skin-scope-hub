@@ -117,24 +117,24 @@ const PatientList = () => {
           {t("patients.loadError")}
         </div>
       ) : (
-        <div className="rounded-md border bg-card">
-          <table className="w-full">
+        <div className="rounded-md border bg-card overflow-x-auto">
+          <table className="w-full min-w-0">
             <thead>
               <tr className="border-b text-left text-xs font-medium uppercase tracking-wider text-muted-foreground">
-                <th className="px-4 py-3">
+                <th className="px-3 py-3 sm:px-4">
                   <div className="flex items-center gap-1.5">
                     <Hash className="h-3 w-3" /> {t("common.id")}
                   </div>
                 </th>
-                <th className="px-4 py-3">{t("common.name")}</th>
-                <th className="px-4 py-3">
+                <th className="px-3 py-3 sm:px-4">{t("common.name")}</th>
+                <th className="hidden sm:table-cell px-4 py-3">
                   <div className="flex items-center gap-1.5">
                     <Calendar className="h-3 w-3" /> {t("common.birthDate")}
                   </div>
                 </th>
-                <th className="px-4 py-3">{t("patients.lastDoctor")}</th>
-                <th className="px-4 py-3">{t("common.created")}</th>
-                <th className="px-4 py-3 text-right">{t("common.action")}</th>
+                <th className="hidden lg:table-cell px-4 py-3">{t("patients.lastDoctor")}</th>
+                <th className="hidden lg:table-cell px-4 py-3">{t("common.created")}</th>
+                <th className="hidden sm:table-cell px-4 py-3 text-right">{t("common.action")}</th>
               </tr>
             </thead>
             <tbody>
@@ -151,35 +151,41 @@ const PatientList = () => {
                     className={`border-b last:border-0 transition-colors duration-150 hover:bg-muted/50 ${(patient as any).deactivated_at ? "opacity-50" : "cursor-pointer"}`}
                     onClick={() => !(patient as any).deactivated_at && navigate(`/patient/${patient.id}`)}
                   >
-                    <td className="px-4 py-3">
+                    <td className="px-3 py-3 sm:px-4">
                       <span className="font-mono text-xs text-muted-foreground">#{(patient as any).patient_number || patient.id}</span>
                     </td>
-                    <td className="px-4 py-3">
-                      <div className="flex items-center gap-3">
-                        <div className="flex h-8 w-8 items-center justify-center rounded-md bg-secondary text-xs font-medium text-secondary-foreground">
+                    <td className="px-3 py-3 sm:px-4">
+                      <div className="flex items-center gap-2 sm:gap-3">
+                        <div className="flex h-7 w-7 sm:h-8 sm:w-8 shrink-0 items-center justify-center rounded-md bg-secondary text-[10px] sm:text-xs font-medium text-secondary-foreground">
                           {patient.name.split(" ").map((n) => n[0]).join("").slice(0, 2).toUpperCase()}
                         </div>
-                        <div className="flex items-center gap-2">
-                          <span className="text-sm font-medium text-foreground">{patient.name}</span>
-                          {(patient as any).is_test_patient && (
-                            <Badge variant="outline" className="text-[10px] px-1.5 py-0 border-primary/30 text-primary">Test</Badge>
-                          )}
-                          {(patient as any).deactivated_at && (
-                            <Badge variant="secondary" className="text-[10px] px-1.5 py-0">{t("common.deactivated")}</Badge>
-                          )}
+                        <div className="min-w-0">
+                          <div className="flex items-center gap-1.5 flex-wrap">
+                            <span className="text-sm font-medium text-foreground truncate">{patient.name}</span>
+                            {(patient as any).is_test_patient && (
+                              <Badge variant="outline" className="text-[10px] px-1.5 py-0 border-primary/30 text-primary shrink-0">Test</Badge>
+                            )}
+                            {(patient as any).deactivated_at && (
+                              <Badge variant="secondary" className="text-[10px] px-1.5 py-0 shrink-0">{t("common.deactivated")}</Badge>
+                            )}
+                          </div>
+                          {/* Show birth date below name on mobile */}
+                          <span className="sm:hidden text-xs text-muted-foreground">
+                            {patient.birth_date ? formatDate(patient.birth_date, "dd. MMM yyyy") : "\u2013"}
+                          </span>
                         </div>
                       </div>
                     </td>
-                    <td className="px-4 py-3 tabular-nums text-sm text-muted-foreground">
+                    <td className="hidden sm:table-cell px-4 py-3 tabular-nums text-sm text-muted-foreground">
                       {patient.birth_date ? formatDate(patient.birth_date, "dd. MMM yyyy") : "\u2013"}
                     </td>
-                    <td className="px-4 py-3 text-sm text-muted-foreground">
+                    <td className="hidden lg:table-cell px-4 py-3 text-sm text-muted-foreground">
                       {(patient as any).last_doctor || (!(patient as any).is_test_patient && (patient as any).created_by_name) || <span className="text-muted-foreground/50">{"\u2013"}</span>}
                     </td>
-                    <td className="px-4 py-3 tabular-nums text-sm text-muted-foreground">
+                    <td className="hidden lg:table-cell px-4 py-3 tabular-nums text-sm text-muted-foreground">
                       {(patient as any).is_test_patient ? "\u2013" : (patient.created_at ? formatDate(patient.created_at, "dd.MM.yyyy") : "\u2013")}
                     </td>
-                    <td className="px-4 py-3 text-right">
+                    <td className="hidden sm:table-cell px-4 py-3 text-right">
                       <div className="flex justify-end gap-1">
                         {(patient as any).deactivated_at ? (
                           <Button
