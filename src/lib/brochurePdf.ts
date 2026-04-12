@@ -143,7 +143,7 @@ function drawPage1(doc: jsPDF) {
     const row = Math.floor(i / 2);
     const cx = LEFT + col * (cardW + 6);
     const cy = y + row * 42;
-    const isPopular = pkg.id === "small";
+    const isPopular = pkg.id === "pack5";
 
     // Card bg
     if (isPopular) {
@@ -177,7 +177,7 @@ function drawPage1(doc: jsPDF) {
     doc.setFont("helvetica", "bold");
     doc.setFontSize(16);
     color(doc, isPopular ? WHITE : BRAND);
-    doc.text(`CHF ${pkg.price}`, cx + 5, cy + 28);
+    doc.text(pkg.perDoctor ? `CHF ${pkg.price}/Arzt` : `CHF ${pkg.price}`, cx + 5, cy + 28);
 
     doc.setFont("helvetica", "normal");
     doc.setFontSize(8);
