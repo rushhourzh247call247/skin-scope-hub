@@ -70,9 +70,22 @@ const PatientList = () => {
   const visiblePatients = showDeactivated ? patients : activePatients;
   const filtered = visiblePatients
     .filter((p: Patient) => {
-      const q = search.toLowerCase().replace(/^#/, "");
-      const idStr = String((p as any).patient_number || p.id);
-      return p.name.toLowerCase().includes(q) || idStr.includes(q);
+      const q = search.toLowerCase().replace(/^#/, "").trim();
+      if (!q) return true;
+      const fields = [
+        p.name,
+        String((p as any).patient_number || p.id),
+        p.birth_date ? formatDate(p.birth_date, "dd. MMM yyyy") : "",
+        p.birth_date ? formatDate(p.birth_date, "dd.MM.yyyy") : "",
+        p.birth_date || "",
+        (p as any).email || "",
+        (p as any).phone || "",
+        (p as any).insurance_number || "",
+        (p as any).notes || "",
+        (p as any).last_doctor || "",
+        (p as any).created_by_name || "",
+      ];
+      return fields.some(f => f.toLowerCase().includes(q));
     })
     .sort((a: Patient, b: Patient) => a.name.localeCompare(b.name, "de"));
 
