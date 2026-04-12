@@ -30,7 +30,7 @@ export function AppSidebar() {
 
   useEffect(() => {
     fetchUnread();
-    const interval = setInterval(fetchUnread, 60_000);
+    const interval = setInterval(fetchUnread, 30_000);
     return () => clearInterval(interval);
   }, [fetchUnread]);
 
