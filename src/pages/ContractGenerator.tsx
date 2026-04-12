@@ -1,6 +1,7 @@
 import { useState, useMemo } from "react";
 import { useTranslation } from "react-i18next";
-import { FileText, Download, Eye, Hash } from "lucide-react";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { FileText, Download, Eye, Hash, Save, Building2 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -16,6 +17,7 @@ import {
 import { toast } from "sonner";
 import jsPDF from "jspdf";
 import PdfPreviewPages from "@/components/PdfPreviewPages";
+import { api } from "@/lib/api";
 
 const PACKAGES = [
   { id: "single", label: "Einzellizenz", price: "80.–", priceNum: 80, desc: "1 Arzt" },
@@ -235,6 +237,7 @@ function buildPdf(vars: ContractVars): jsPDF {
 
 export default function ContractGenerator() {
   const { t } = useTranslation();
+  const queryClient = useQueryClient();
   const [kundeName, setKundeName] = useState("");
   const [kundeAdresse, setKundeAdresse] = useState("");
   const [selectedPaket, setSelectedPaket] = useState("");
@@ -242,6 +245,23 @@ export default function ContractGenerator() {
   const [vertragsnummer, setVertragsnummer] = useState(() => generateContractNumber());
   const [vertragsbeginn, setVertragsbeginn] = useState(() => new Date().toISOString().slice(0, 10));
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const [selectedCompanyId, setSelectedCompanyId] = useState("");
+
+  const { data: companies = [] } = useQuery({
+    queryKey: ["companies"],
+    queryFn: api.getCompanies,
+  });
+
+  const activeCompanies = companies.filter((c: any) => !c.suspended_at);
+
+  const saveMutation = useMutation({
+    mutationFn: (data: any) => api.createContract(data.companyId, data.contract),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["contracts"] });
+      toast.success("Vertrag in der Datenbank gespeichert");
+    },
+    onError: (err: any) => toast.error(err.message || "Speichern fehlgeschlagen"),
+  });
 
   const pkg = PACKAGES.find((p) => p.id === selectedPaket);
 
@@ -281,6 +301,35 @@ export default function ContractGenerator() {
   const regenerateNumber = () => {
     setVertragsnummer(generateContractNumber());
     toast.info("Neue Vertragsnummer generiert.");
+  };
+
+      const handleSaveToDb = () => {
+    if (!kundeName || !selectedPaket || !pkg) {
+      toast.error("Bitte Kundenname und Paket ausfüllen.");
+      return;
+    }
+    if (!selectedCompanyId) {
+      toast.error("Bitte eine Firma auswählen.");
+      return;
+    }
+    const endDate = new Date(vertragsbeginn);
+    endDate.setMonth(endDate.getMonth() + 12);
+
+    saveMutation.mutate({
+      companyId: parseInt(selectedCompanyId),
+      contract: {
+        contract_number: vertragsnummer,
+        package_name: pkg.label,
+        package_id: pkg.id,
+        licenses: parseInt(anzahlAerzte) || 1,
+        monthly_price: pkg.priceNum,
+        start_date: vertragsbeginn,
+        end_date: endDate.toISOString().slice(0, 10),
+        notice_period_days: 60,
+        customer_name: kundeName,
+        customer_address: kundeAdresse || undefined,
+      },
+    });
   };
 
   return (
@@ -377,6 +426,24 @@ export default function ContractGenerator() {
             )}
           </div>
 
+          <div className="space-y-2">
+            <Label>Firma zuordnen (für DB-Speicherung)</Label>
+            <Select value={selectedCompanyId} onValueChange={setSelectedCompanyId}>
+              <SelectTrigger>
+                <SelectValue placeholder="Firma wählen…" />
+              </SelectTrigger>
+              <SelectContent>
+                {activeCompanies.map((c: any) => (
+                  <SelectItem key={c.id} value={String(c.id)}>
+                    <span className="flex items-center gap-2">
+                      <Building2 className="h-3.5 w-3.5" /> {c.name}
+                    </span>
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
           <div className="flex flex-wrap gap-3 pt-2">
             <Button variant="outline" onClick={handlePreview}>
               <Eye className="mr-2 h-4 w-4" />
@@ -384,7 +451,15 @@ export default function ContractGenerator() {
             </Button>
             <Button onClick={generateAndDownload}>
               <Download className="mr-2 h-4 w-4" />
-              Vertrag generieren (PDF)
+              PDF herunterladen
+            </Button>
+            <Button
+              variant="secondary"
+              onClick={handleSaveToDb}
+              disabled={saveMutation.isPending}
+            >
+              <Save className="mr-2 h-4 w-4" />
+              {saveMutation.isPending ? "Speichert…" : "In DB speichern"}
             </Button>
           </div>
         </CardContent>
