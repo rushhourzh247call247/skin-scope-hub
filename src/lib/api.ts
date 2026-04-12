@@ -510,6 +510,8 @@ export const api = {
     request<any>('/tickets', { method: 'POST', body: JSON.stringify(data) }),
   replyTicket: (ticketId: number, message: string) =>
     request<any>(`/tickets/${ticketId}/reply`, { method: 'POST', body: JSON.stringify({ message }) }),
+  markTicketRead: (ticketId: number) =>
+    request<any>(`/tickets/${ticketId}/read`, { method: 'PUT' }),
   closeTicket: (ticketId: number) =>
     request<any>(`/tickets/${ticketId}/close`, { method: 'PUT' }),
   reopenTicket: (ticketId: number) =>
