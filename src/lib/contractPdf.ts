@@ -246,8 +246,10 @@ export function renderContractPages(doc: jsPDF, vars: ContractVars, startOnNewPa
     }
 
     const sectionHeight = sectionLines.length * LINE_HEIGHT + SECTION_GAP;
+    const remainingSpace = PAGE_BOTTOM - y;
 
-    if (y + sectionHeight > PAGE_BOTTOM && y > PAGE_TOP + 10) {
+    // If section doesn't fit OR less than 25mm (~5 lines) remaining, start new page
+    if ((y + sectionHeight > PAGE_BOTTOM || remainingSpace < 25) && y > PAGE_TOP + 10) {
       doc.addPage();
       drawHeader(doc, vars.vertragsnummer);
       y = PAGE_TOP;

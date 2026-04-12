@@ -39,8 +39,8 @@ function drawHeader(doc: jsPDF) {
   doc.setFont("helvetica", "normal");
   doc.text("Digitale Hautdokumentation für moderne Praxen", LEFT + 14, 22);
 
-  doc.setFontSize(8);
-  doc.text("Produkt- & Preisübersicht", LEFT + 14, 28);
+  doc.setFontSize(7.5);
+  doc.text("Schweizer Hosting  •  DSG konform  •  Für medizinische Praxen entwickelt", LEFT + 14, 28);
 }
 
 function drawFooter(doc: jsPDF, extra?: string) {
@@ -52,7 +52,7 @@ function drawFooter(doc: jsPDF, extra?: string) {
   doc.setFontSize(7);
   doc.setTextColor(...GRAY);
   doc.text(
-    "Derm247 – TechAssist | Dällikerstrasse 48, 8105 Regensdorf | info@techassist.ch",
+    "Derm247 | TechAssist | info@techassist.ch | derm247.ch",
     LEFT, y + 5,
   );
   const rightText = extra || `Stand: ${new Date().toLocaleDateString("de-CH")}`;
