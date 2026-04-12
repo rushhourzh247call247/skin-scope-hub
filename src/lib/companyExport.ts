@@ -23,8 +23,8 @@ export async function exportCompanyData(
   let patients: any[];
   try {
     patients = await api.getPatientsByCompany(companyId);
-  } catch {
-    patients = await api.getPatients();
+  } catch (err) {
+    throw new Error(`Failed to load patients for company ${companyId}: ${err}`);
   }
 
   // 2. Fetch full data for each patient
