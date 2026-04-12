@@ -500,4 +500,13 @@ export const api = {
     requestBlob(`/contracts/${contractId}/download-signed`),
   deleteContract: (contractId: number) =>
     request<{ success: boolean }>(`/contracts/${contractId}`, { method: 'DELETE' }),
+
+  // Storage stats
+  getStorageStats: () =>
+    request<{
+      total_bytes: number;
+      used_bytes: number;
+      free_bytes: number;
+      companies: { id: number; name: string; used_bytes: number; image_count: number }[];
+    }>('/storage-stats'),
 };
