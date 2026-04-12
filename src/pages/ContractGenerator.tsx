@@ -303,6 +303,35 @@ export default function ContractGenerator() {
     toast.info("Neue Vertragsnummer generiert.");
   };
 
+      const handleSaveToDb = () => {
+    if (!kundeName || !selectedPaket || !pkg) {
+      toast.error("Bitte Kundenname und Paket ausfüllen.");
+      return;
+    }
+    if (!selectedCompanyId) {
+      toast.error("Bitte eine Firma auswählen.");
+      return;
+    }
+    const endDate = new Date(vertragsbeginn);
+    endDate.setMonth(endDate.getMonth() + 12);
+
+    saveMutation.mutate({
+      companyId: parseInt(selectedCompanyId),
+      contract: {
+        contract_number: vertragsnummer,
+        package_name: pkg.label,
+        package_id: pkg.id,
+        licenses: parseInt(anzahlAerzte) || 1,
+        monthly_price: pkg.priceNum,
+        start_date: vertragsbeginn,
+        end_date: endDate.toISOString().slice(0, 10),
+        notice_period_days: 60,
+        customer_name: kundeName,
+        customer_address: kundeAdresse || undefined,
+      },
+    });
+  };
+
   return (
     <div className="mx-auto max-w-3xl space-y-6 p-4 md:p-6">
       <div className="flex items-center gap-3">
