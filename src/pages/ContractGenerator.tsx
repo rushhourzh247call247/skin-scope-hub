@@ -79,7 +79,14 @@ Monatliche Lizenzgebühr: CHF ${vars.preis} / Monat (exkl. MwSt.)
 Der Vertrag beginnt am ${vars.datum}. Die Mindestlaufzeit beträgt 12 Monate. Die Kündigungsfrist beträgt 60 Tage zum Vertragsende. Erfolgt keine fristgerechte Kündigung, verlängert sich der Vertrag automatisch um jeweils 12 Monate.
 
 
-4. Zahlungsbedingungen
+4. Paketänderungen (Upgrade / Downgrade)
+
+Ein Upgrade auf ein höheres Paket oder zusätzliche Lizenzen ist jederzeit möglich. Die neue Gebühr gilt ab dem Folgemonat.
+
+Ein Downgrade auf ein kleineres Paket oder weniger Lizenzen ist unter Einhaltung der laufenden Vertragsdauer möglich. Die Änderung wird frühestens zum Ende der aktuellen Vertragslaufzeit wirksam.
+
+
+5. Zahlungsbedingungen
 
 Die Lizenzgebühr wird monatlich im Voraus in Rechnung gestellt und ist innert 30 Tagen nach Rechnungsdatum zahlbar. Bei Zahlungsverzug behält sich die Lizenzgeberin das Recht vor, den Zugang zur Software zu sperren.
 
