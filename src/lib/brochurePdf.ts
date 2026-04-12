@@ -137,24 +137,24 @@ export function buildBrochurePdf(): jsPDF {
     // Package name
     doc.setFont("helvetica", "bold");
     doc.setFontSize(12);
-    doc.setTextColor(isHighlighted ? WHITE : DARK);
+    setColor(doc, isHighlighted ? WHITE : DARK);
     doc.text(pkg.label, cx + cardPadding, cy + 12);
 
     // Description
     doc.setFont("helvetica", "normal");
     doc.setFontSize(9);
-    doc.setTextColor(isHighlighted ? [220, 245, 240] : GRAY);
+    setColor(doc, isHighlighted ? LIGHT_TINT : GRAY);
     doc.text(pkg.desc, cx + cardPadding, cy + 19);
 
     // Price
     doc.setFont("helvetica", "bold");
     doc.setFontSize(18);
-    doc.setTextColor(isHighlighted ? WHITE : BRAND_RGB);
+    setColor(doc, isHighlighted ? WHITE : BRAND_RGB);
     doc.text(`CHF ${pkg.price}`, cx + cardPadding, cy + 32);
 
     doc.setFont("helvetica", "normal");
     doc.setFontSize(8);
-    doc.setTextColor(isHighlighted ? [220, 245, 240] : GRAY);
+    setColor(doc, isHighlighted ? LIGHT_TINT : GRAY);
     doc.text("pro Monat", cx + cardPadding, cy + 38);
 
     // Extra features for this tier
@@ -162,7 +162,7 @@ export function buildBrochurePdf(): jsPDF {
     let fy = cy + 44;
     doc.setFontSize(7.5);
     for (const feat of extras.slice(0, 2)) {
-      doc.setTextColor(isHighlighted ? [220, 245, 240] : GRAY);
+      setColor(doc, isHighlighted ? LIGHT_TINT : GRAY);
       doc.text(`+ ${feat}`, cx + cardPadding, fy);
       fy += 4;
     }
