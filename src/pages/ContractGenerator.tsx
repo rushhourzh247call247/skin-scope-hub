@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { FileText, Download, Eye, Hash, Save, Building2 } from "lucide-react";
+import { FileText, Download, Eye, Hash, Save, Building2, BookOpen } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -19,6 +19,7 @@ import { toast } from "sonner";
 import PdfPreviewPages from "@/components/PdfPreviewPages";
 import { api } from "@/lib/api";
 import { PACKAGES, suggestPackage, generateContractNumber, buildContractPdf, type ContractVars } from "@/lib/contractPdf";
+import { buildBrochurePdf } from "@/lib/brochurePdf";
 
 export default function ContractGenerator() {
   const { t } = useTranslation();
@@ -277,6 +278,17 @@ export default function ContractGenerator() {
             >
               <Save className="mr-2 h-4 w-4" />
               {saveMutation.isPending ? "Speichert…" : "In DB speichern"}
+            </Button>
+            <Button
+              variant="outline"
+              onClick={() => {
+                const doc = buildBrochurePdf();
+                doc.save("Derm247_Produktuebersicht.pdf");
+                toast.success("Broschüre wurde heruntergeladen.");
+              }}
+            >
+              <BookOpen className="mr-2 h-4 w-4" />
+              Broschüre PDF
             </Button>
           </div>
         </CardContent>
