@@ -19,6 +19,7 @@ import { toast } from "sonner";
 import PdfPreviewPages from "@/components/PdfPreviewPages";
 import { api } from "@/lib/api";
 import { PACKAGES, suggestPackage, generateContractNumber, buildContractPdf, type ContractVars } from "@/lib/contractPdf";
+import { buildBrochurePdf } from "@/lib/brochurePdf";
 
 export default function ContractGenerator() {
   const { t } = useTranslation();
