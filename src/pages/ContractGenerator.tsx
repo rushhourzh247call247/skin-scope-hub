@@ -271,7 +271,8 @@ export default function ContractGenerator() {
               }
               const vars = getVars();
               const doc = buildCombinedPdf(vars);
-              const filename = `Derm247_Angebot_${kundeName.replace(/\s+/g, "_")}_${vars.vertragsnummer}.pdf`;
+              const datum = new Date().toISOString().slice(0, 10);
+              const filename = `Derm247_Angebot_und_Vertrag_${kundeName.replace(/\s+/g, "_")}_${datum}.pdf`;
               doc.save(filename);
               toast.success("Angebot + Vertrag wurde als PDF heruntergeladen.");
             }}>
