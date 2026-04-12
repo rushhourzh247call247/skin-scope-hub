@@ -216,24 +216,43 @@ function drawPage2(doc: jsPDF) {
     "Patientenverwaltung mit Suchfunktion",
     "Interaktive 3D-Körperkarte (Body-Map)",
     "Mobiler Foto-Upload via QR-Code",
-    "ABCDE-Bewertung für Hautläsionen",
+    "ABCDE-Risikobewertung für Hautläsionen (Score 0–5)",
+    "Klinischer Risiko-Verlauf mit Trend-Analyse",
     "Zeitlicher Bildvergleich (Overlay-Slider)",
+    "Bildkalibrierung für konsistente Messungen",
     "PDF-Berichte für Patienten & Zuweiser",
-    "E-Mail-Support",
-    "Tägliche Backups & Snapshots",
+    "Mehrsprachig: DE, EN, FR, IT, ES",
+    "E-Mail-Support  |  Tägliche Backups",
   ];
   for (const f of features) {
     bulletCircle(doc, LEFT, y, f);
-    y += 6.5;
+    y += 6;
   }
-  y += 6;
+  y += 4;
+
+  // ── KI Coming Soon ──
+  doc.setFillColor(245, 247, 249);
+  doc.roundedRect(LEFT, y, W, 16, 2, 2, "F");
+  doc.setFillColor(...BRAND);
+  doc.roundedRect(LEFT + 4, y + 3, 28, 5, 1, 1, "F");
+  doc.setFont("helvetica", "bold");
+  doc.setFontSize(6.5);
+  doc.setTextColor(...WHITE);
+  doc.text("COMING SOON", LEFT + 6, y + 6.5);
+  doc.setFont("helvetica", "normal");
+  doc.setFontSize(9);
+  color(doc, DARK);
+  doc.text("KI-gestützte Bildanalyse zur Unterstützung von Verdachtsdiagnosen", LEFT + 35, y + 7);
+  doc.setFontSize(7.5);
+  color(doc, GRAY);
+  doc.text("Automatisierte Analyse mit intelligenter Zweitbefund-Empfehlung", LEFT + 35, y + 12.5);
+  y += 22;
 
   // ── Datenschutz ──
   y = sectionTitle(doc, y, "Datenschutz & Sicherheit");
   const security = [
     "Hosting ausschliesslich in der Schweiz (Infomaniak)",
     "Keine Datenweitergabe an Dritte",
-    "Keine Verarbeitung ausserhalb der Schweiz",
     "Konform mit DSG und DSGVO",
     "Verschlüsselte Übertragung (TLS 1.2 / 1.3)",
     "Tägliche Backups & regelmässige Snapshots",
@@ -245,9 +264,9 @@ function drawPage2(doc: jsPDF) {
     doc.setFontSize(9.5);
     color(doc, DARK);
     doc.text(s, LEFT + 7, y);
-    y += 6.5;
+    y += 6;
   }
-  y += 10;
+  y += 8;
 
   // ── Kontakt ──
   doc.setFillColor(...BRAND);
@@ -261,9 +280,6 @@ function drawPage2(doc: jsPDF) {
   doc.text("Gerne erstellen wir Ihnen ein individuelles Angebot oder einen Testaccount.", LEFT + 8, y + 17);
   doc.text("Testzugang auf Anfrage verfügbar.", LEFT + 8, y + 23);
   doc.text("E-Mail: info@techassist.ch  |  Web: derm247.ch", LEFT + 8, y + 29);
-
-  // Contact box is taller now
-  // Footer drawn separately via drawAllFooters
 }
 
 // ── Public API ─────────────────────────────────────────────────
