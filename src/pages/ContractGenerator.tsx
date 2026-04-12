@@ -97,11 +97,20 @@ export default function ContractGenerator() {
     mwst,
   });
 
-  const handlePreview = () => {
+  const handlePreviewContract = () => {
     const doc = buildContractPdf(getVars());
     const blob = doc.output("blob");
     if (previewUrl) URL.revokeObjectURL(previewUrl);
     setPreviewUrl(URL.createObjectURL(blob));
+    setPreviewType("contract");
+  };
+
+  const handlePreviewBrochure = () => {
+    const doc = buildBrochurePdf();
+    const blob = doc.output("blob");
+    if (previewUrl) URL.revokeObjectURL(previewUrl);
+    setPreviewUrl(URL.createObjectURL(blob));
+    setPreviewType("brochure");
   };
 
   const generateAndDownload = () => {
