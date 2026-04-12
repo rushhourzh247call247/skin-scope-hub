@@ -294,4 +294,3 @@ export function appendBrochurePages(doc: jsPDF) {
   doc.addPage();
   drawPage2(doc);
 }
-}
