@@ -5,7 +5,15 @@
 
 export type PdfLang = "de" | "en" | "fr" | "it" | "es";
 
+interface PackageTexts {
+  individual: { label: string; desc: string };
+  pack5: { label: string; desc: string };
+  medium: { label: string; desc: string };
+  unlimited: { label: string; desc: string };
+}
+
 interface PdfTexts {
+  packages: PackageTexts;
   // ── Brochure header ──
   headerSubtitle: string;
   headerTrust: string;
