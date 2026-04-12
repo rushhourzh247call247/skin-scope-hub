@@ -66,9 +66,13 @@ export default function ContractGenerator() {
     setSelectedPaket(val);
     const p = PACKAGES.find((pk) => pk.id === val);
     if (p) {
-      const current = parseInt(anzahlAerzte) || 1;
-      if (current < p.minDocs) setAnzahlAerzte(String(p.minDocs));
-      else if (current > p.maxDocs && p.maxDocs < 999) setAnzahlAerzte(String(p.maxDocs));
+      if (val === "single") {
+        setAnzahlAerzte("1");
+      } else {
+        const current = parseInt(anzahlAerzte) || 1;
+        if (current < p.minDocs) setAnzahlAerzte(String(p.minDocs));
+        else if (current > p.maxDocs && p.maxDocs < 999) setAnzahlAerzte(String(p.maxDocs));
+      }
     }
   };
 
