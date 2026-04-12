@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { FileText, Download, Eye, Hash, Save, Building2, BookOpen } from "lucide-react";
+import { FileText, Download, Eye, Hash, Save, Building2, BookOpen, FileStack } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -20,6 +20,7 @@ import PdfPreviewPages from "@/components/PdfPreviewPages";
 import { api } from "@/lib/api";
 import { PACKAGES, suggestPackage, generateContractNumber, buildContractPdf, type ContractVars } from "@/lib/contractPdf";
 import { buildBrochurePdf } from "@/lib/brochurePdf";
+import { buildCombinedPdf } from "@/lib/combinedPdf";
 
 export default function ContractGenerator() {
   const { t } = useTranslation();
@@ -263,13 +264,27 @@ export default function ContractGenerator() {
           </div>
 
           <div className="flex flex-wrap gap-3 pt-2">
+            <Button onClick={() => {
+              if (!kundeName || !selectedPaket) {
+                toast.error("Bitte Kundenname und Paket ausfüllen.");
+                return;
+              }
+              const vars = getVars();
+              const doc = buildCombinedPdf(vars);
+              const filename = `Derm247_Angebot_${kundeName.replace(/\s+/g, "_")}_${vars.vertragsnummer}.pdf`;
+              doc.save(filename);
+              toast.success("Angebot + Vertrag wurde als PDF heruntergeladen.");
+            }}>
+              <FileStack className="mr-2 h-4 w-4" />
+              Angebot + Vertrag PDF
+            </Button>
             <Button variant="outline" onClick={handlePreview}>
               <Eye className="mr-2 h-4 w-4" />
-              Vorschau
+              Vorschau (Vertrag)
             </Button>
-            <Button onClick={generateAndDownload}>
+            <Button variant="outline" onClick={generateAndDownload}>
               <Download className="mr-2 h-4 w-4" />
-              PDF herunterladen
+              Nur Vertrag PDF
             </Button>
             <Button
               variant="secondary"
@@ -288,7 +303,7 @@ export default function ContractGenerator() {
               }}
             >
               <BookOpen className="mr-2 h-4 w-4" />
-              Broschüre PDF
+              Nur Broschüre PDF
             </Button>
           </div>
         </CardContent>
