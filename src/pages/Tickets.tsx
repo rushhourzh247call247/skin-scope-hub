@@ -197,7 +197,7 @@ export default function Tickets() {
   const groups = selected ? groupByDate(selected.messages || []) : [];
 
   return (
-    <div className="h-[calc(100vh-4rem)] flex flex-col -mx-4 -my-4 sm:-m-6">
+    <div className="h-full flex flex-col">
       <div className="flex-1 flex min-h-0 border border-border rounded-none sm:rounded-xl overflow-hidden shadow-sm sm:m-4">
 
         {/* ───── LEFT: Conversation list ───── */}
