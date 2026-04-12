@@ -2,6 +2,7 @@ import { useState, useRef } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
 import { api } from "@/lib/api";
+import { PACKAGES, buildContractPdf, type ContractVars } from "@/lib/contractPdf";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -42,15 +43,10 @@ import {
   Undo2,
   Loader2,
   Plus,
+  Eye,
 } from "lucide-react";
 import { toast } from "sonner";
-
-const PACKAGES = [
-  { id: "single", label: "Einzellizenz", price: 80, desc: "1 Arzt" },
-  { id: "small", label: "1–5 Ärzte", price: 350, desc: "bis 5 Ärzte" },
-  { id: "medium", label: "6–10 Ärzte", price: 650, desc: "bis 10 Ärzte" },
-  { id: "unlimited", label: "Unbegrenzt", price: 1200, desc: "unbegrenzt" },
-];
+import PdfPreviewPages from "@/components/PdfPreviewPages";
 
 function generateContractNumber(): string {
   const year = new Date().getFullYear();
@@ -100,6 +96,7 @@ export default function ContractPanel({ companyId, companyName }: ContractPanelP
   const [terminatedBy, setTerminatedBy] = useState<"client" | "provider">("client");
   const [editingContract, setEditingContract] = useState<any>(null);
   const [uploadContractId, setUploadContractId] = useState<number | null>(null);
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
 
   const [form, setForm] = useState<ContractFormData>({
     contract_number: generateContractNumber(),
@@ -125,6 +122,7 @@ export default function ContractPanel({ companyId, companyName }: ContractPanelP
       queryClient.invalidateQueries({ queryKey: ["contracts", companyId] });
       toast.success("Vertrag erstellt");
       setCreateOpen(false);
+      setPreviewUrl(null);
     },
     onError: (err: any) => toast.error(err.message || "Fehler beim Erstellen"),
   });
@@ -136,6 +134,7 @@ export default function ContractPanel({ companyId, companyName }: ContractPanelP
       toast.success("Vertrag aktualisiert");
       setEditOpen(false);
       setEditingContract(null);
+      setPreviewUrl(null);
     },
     onError: (err: any) => toast.error(err.message || "Fehler beim Aktualisieren"),
   });
@@ -178,7 +177,7 @@ export default function ContractPanel({ companyId, companyName }: ContractPanelP
       package_name: pkg.label,
       package_id: pkg.id,
       licenses: form.licenses,
-      monthly_price: pkg.price,
+      monthly_price: pkg.priceNum,
       start_date: form.start_date,
       end_date: addMonths(form.start_date, 12),
       notice_period_days: 60,
@@ -198,7 +197,7 @@ export default function ContractPanel({ companyId, companyName }: ContractPanelP
         package_name: pkg.label,
         package_id: pkg.id,
         licenses: form.licenses,
-        monthly_price: pkg.price,
+        monthly_price: pkg.priceNum,
         start_date: form.start_date,
         end_date: addMonths(form.start_date, 12),
         customer_name: form.customer_name,
@@ -219,7 +218,32 @@ export default function ContractPanel({ companyId, companyName }: ContractPanelP
       customer_address: contract.customer_address || "",
       notes: contract.notes || "",
     });
+    setPreviewUrl(null);
     setEditOpen(true);
+  };
+
+  const handlePreview = () => {
+    const pkg = PACKAGES.find((p) => p.id === form.package_id);
+    if (!pkg) {
+      toast.error("Bitte ein Paket auswählen");
+      return;
+    }
+    const vars: ContractVars = {
+      vertragsnummer: form.contract_number,
+      kundeName: form.customer_name || "–",
+      kundeAdresse: form.customer_address || "–",
+      paket: pkg.label,
+      preis: pkg.price,
+      anzahlAerzte: String(form.licenses),
+      datum: new Date().toLocaleDateString("de-CH"),
+      vertragsbeginn: form.start_date
+        ? new Date(form.start_date).toLocaleDateString("de-CH")
+        : new Date().toLocaleDateString("de-CH"),
+    };
+    const doc = buildContractPdf(vars);
+    const blob = doc.output("blob");
+    if (previewUrl) URL.revokeObjectURL(previewUrl);
+    setPreviewUrl(URL.createObjectURL(blob));
   };
 
   const handleDownloadSigned = async (contractId: number, contractNumber: string) => {
@@ -264,7 +288,7 @@ export default function ContractPanel({ companyId, companyName }: ContractPanelP
 
     return (
       <div className="space-y-4">
-        <div className="flex items-center justify-between">
+        <div className="flex items-center justify-between flex-wrap gap-2">
           <div className="flex items-center gap-2">
             <FileText className="h-4 w-4 text-primary" />
             <span className="font-mono text-sm">{contract.contract_number}</span>
@@ -346,7 +370,7 @@ export default function ContractPanel({ companyId, companyName }: ContractPanelP
           <p className="text-sm text-muted-foreground bg-muted/50 rounded-md p-2">{contract.notes}</p>
         )}
 
-        <div className="flex items-center gap-2 pt-1">
+        <div className="flex items-center gap-2 pt-1 flex-wrap">
           {contract.signed_pdf_path ? (
             <Button
               variant="outline"
@@ -417,6 +441,7 @@ export default function ContractPanel({ companyId, companyName }: ContractPanelP
                 customer_address: "",
                 notes: "",
               });
+              setPreviewUrl(null);
               setCreateOpen(true);
             }}
           >
@@ -445,8 +470,8 @@ export default function ContractPanel({ companyId, companyName }: ContractPanelP
       )}
 
       {/* Create Dialog */}
-      <Dialog open={createOpen} onOpenChange={setCreateOpen}>
-        <DialogContent className="max-w-md">
+      <Dialog open={createOpen} onOpenChange={(open) => { setCreateOpen(open); if (!open) setPreviewUrl(null); }}>
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Neuen Vertrag erstellen</DialogTitle>
           </DialogHeader>
@@ -456,13 +481,15 @@ export default function ContractPanel({ companyId, companyName }: ContractPanelP
             onSubmit={handleCreate}
             isPending={createMutation.isPending}
             submitLabel="Vertrag erstellen"
+            onPreview={handlePreview}
+            previewUrl={previewUrl}
           />
         </DialogContent>
       </Dialog>
 
       {/* Edit Dialog */}
-      <Dialog open={editOpen} onOpenChange={setEditOpen}>
-        <DialogContent className="max-w-md">
+      <Dialog open={editOpen} onOpenChange={(open) => { setEditOpen(open); if (!open) setPreviewUrl(null); }}>
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Vertrag anpassen</DialogTitle>
           </DialogHeader>
@@ -473,6 +500,8 @@ export default function ContractPanel({ companyId, companyName }: ContractPanelP
             isPending={updateMutation.isPending}
             submitLabel="Änderungen speichern"
             isEdit
+            onPreview={handlePreview}
+            previewUrl={previewUrl}
           />
         </DialogContent>
       </Dialog>
@@ -522,6 +551,8 @@ function ContractForm({
   isPending,
   submitLabel,
   isEdit = false,
+  onPreview,
+  previewUrl,
 }: {
   form: ContractFormData;
   setForm: (f: ContractFormData) => void;
@@ -529,6 +560,8 @@ function ContractForm({
   isPending: boolean;
   submitLabel: string;
   isEdit?: boolean;
+  onPreview: () => void;
+  previewUrl: string | null;
 }) {
   const pkg = PACKAGES.find((p) => p.id === form.package_id);
 
@@ -585,14 +618,14 @@ function ContractForm({
           <SelectContent>
             {PACKAGES.map((p) => (
               <SelectItem key={p.id} value={p.id}>
-                {p.label} — CHF {p.price}.- / Monat
+                {p.label} — CHF {p.priceNum}.- / Monat
               </SelectItem>
             ))}
           </SelectContent>
         </Select>
         {pkg && (
           <p className="text-xs text-muted-foreground">
-            {pkg.label} — CHF {pkg.price}.- / Monat • Vertragsende: {formatDate(addMonths(form.start_date, 12))}
+            {pkg.label} — CHF {pkg.priceNum}.- / Monat • Vertragsende: {formatDate(addMonths(form.start_date, 12))}
           </p>
         )}
       </div>
@@ -605,10 +638,24 @@ function ContractForm({
           placeholder="Optionale Anmerkungen…"
         />
       </div>
-      <Button className="w-full" onClick={onSubmit} disabled={isPending}>
-        {isPending && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
-        {submitLabel}
-      </Button>
+      <div className="flex gap-2">
+        <Button variant="outline" onClick={onPreview} type="button">
+          <Eye className="h-4 w-4 mr-1" /> Vorschau
+        </Button>
+        <Button className="flex-1" onClick={onSubmit} disabled={isPending}>
+          {isPending && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
+          {submitLabel}
+        </Button>
+      </div>
+
+      {previewUrl && (
+        <div className="border rounded-lg p-2 mt-2">
+          <p className="text-xs font-medium text-muted-foreground mb-2">PDF-Vorschau</p>
+          <div className="min-h-[400px]">
+            <PdfPreviewPages pdfUrl={previewUrl} />
+          </div>
+        </div>
+      )}
     </div>
   );
 }
