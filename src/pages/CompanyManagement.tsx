@@ -8,14 +8,15 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Progress } from "@/components/ui/progress";
-import { Building2, Plus, Trash2, Shield, Download, Loader2, Ban, CheckCircle } from "lucide-react";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
+import { Building2, Plus, Trash2, Shield, Download, Loader2, Ban, CheckCircle, ChevronDown, FileText } from "lucide-react";
 import { toast } from "sonner";
+import ContractPanel from "@/components/ContractPanel";
 
 const PROTECTED_COMPANY_NAME = "techassist";
 
@@ -28,6 +29,7 @@ const CompanyManagement = () => {
   const [deleteId, setDeleteId] = useState<number | null>(null);
   const [exportingId, setExportingId] = useState<number | null>(null);
   const [exportProgress, setExportProgress] = useState<{ phase: string; pct: number } | null>(null);
+  const [expandedCompanyId, setExpandedCompanyId] = useState<number | null>(null);
 
   const isAdmin = user?.role === "admin";
 
@@ -79,9 +81,7 @@ const CompanyManagement = () => {
     onError: () => toast.error(t("companies.unsuspendError")),
   });
 
-  const canSuspend = (c: any) => {
-    return c.name?.toLowerCase() !== PROTECTED_COMPANY_NAME;
-  };
+  const canSuspend = (c: any) => c.name?.toLowerCase() !== PROTECTED_COMPANY_NAME;
 
   const handleExport = async (companyId: number, companyName: string) => {
     setExportingId(companyId);
@@ -100,97 +100,97 @@ const CompanyManagement = () => {
     }
   };
 
-  const renderCompanyRow = (c: any, isSuspendedTab: boolean) => {
+  const renderCompanyCard = (c: any, isSuspendedTab: boolean) => {
     const isProtected = c.name?.toLowerCase() === PROTECTED_COMPANY_NAME;
     const isExporting = exportingId === c.id;
+    const isExpanded = expandedCompanyId === c.id;
+
     return (
-      <TableRow key={c.id} className={isSuspendedTab ? "opacity-60" : ""}>
-        <TableCell className="font-mono text-xs text-muted-foreground">{c.id}</TableCell>
-        <TableCell className="font-medium">
-          <span className="flex items-center gap-2">
-            {c.name}
-            {isProtected && (
-              <Badge variant="secondary" className="gap-1 text-xs">
-                <Shield className="h-3 w-3" /> {t("common.protected")}
-              </Badge>
-            )}
-          </span>
-        </TableCell>
-        <TableCell>
-          <div className="flex items-center gap-1">
-            {isSuspendedTab ? (
-              <Button
-                variant="ghost"
-                size="icon"
-                title={t("common.unsuspend")}
-                onClick={() => unsuspendMutation.mutate(c.id)}
-                className="text-emerald-600 hover:text-emerald-700"
-              >
-                <CheckCircle className="h-4 w-4" />
-              </Button>
-            ) : (
-              <>
-                {canSuspend(c) && (
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    title={t("common.suspend")}
-                    onClick={() => suspendMutation.mutate(c.id)}
-                    className="text-amber-600 hover:text-amber-700"
-                  >
-                    <Ban className="h-4 w-4" />
+      <Collapsible
+        key={c.id}
+        open={isExpanded}
+        onOpenChange={(open) => setExpandedCompanyId(open ? c.id : null)}
+      >
+        <div className="border rounded-lg bg-card">
+          <div className="flex items-center justify-between p-4">
+            <div className="flex items-center gap-3">
+              <span className="font-mono text-xs text-muted-foreground w-8">{c.id}</span>
+              <span className="font-medium">{c.name}</span>
+              {isProtected && (
+                <Badge variant="secondary" className="gap-1 text-xs">
+                  <Shield className="h-3 w-3" /> {t("common.protected")}
+                </Badge>
+              )}
+            </div>
+
+            <div className="flex items-center gap-1">
+              {isSuspendedTab ? (
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  title={t("common.unsuspend")}
+                  onClick={() => unsuspendMutation.mutate(c.id)}
+                  className="text-emerald-600 hover:text-emerald-700"
+                >
+                  <CheckCircle className="h-4 w-4" />
+                </Button>
+              ) : (
+                <>
+                  {canSuspend(c) && (
+                    <Button variant="ghost" size="icon" title={t("common.suspend")} onClick={() => suspendMutation.mutate(c.id)} className="text-amber-600 hover:text-amber-700">
+                      <Ban className="h-4 w-4" />
+                    </Button>
+                  )}
+                  {isAdmin && (
+                    <Button variant="ghost" size="icon" disabled={isExporting || exportingId !== null} onClick={() => handleExport(c.id, c.name)} title={t("companies.exportTooltip")}>
+                      {isExporting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Download className="h-4 w-4" />}
+                    </Button>
+                  )}
+                  {isProtected ? (
+                    <span className="text-xs text-muted-foreground px-2">—</span>
+                  ) : (
+                    <Button variant="ghost" size="icon" onClick={() => setDeleteId(c.id)} className="text-destructive hover:text-destructive">
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  )}
+                </>
+              )}
+              {!isSuspendedTab && (
+                <CollapsibleTrigger asChild>
+                  <Button variant="ghost" size="icon" className="ml-1">
+                    <ChevronDown className={`h-4 w-4 transition-transform ${isExpanded ? "rotate-180" : ""}`} />
                   </Button>
-                )}
-                {isAdmin && (
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    disabled={isExporting || exportingId !== null}
-                    onClick={() => handleExport(c.id, c.name)}
-                    title={t("companies.exportTooltip")}
-                  >
-                    {isExporting ? (
-                      <Loader2 className="h-4 w-4 animate-spin" />
-                    ) : (
-                      <Download className="h-4 w-4" />
-                    )}
-                  </Button>
-                )}
-                {isProtected ? (
-                  <span className="text-xs text-muted-foreground">—</span>
-                ) : (
-                  <Button variant="ghost" size="icon" onClick={() => setDeleteId(c.id)} className="text-destructive hover:text-destructive">
-                    <Trash2 className="h-4 w-4" />
-                  </Button>
-                )}
-              </>
-            )}
+                </CollapsibleTrigger>
+              )}
+            </div>
           </div>
-        </TableCell>
-      </TableRow>
+
+          {!isSuspendedTab && (
+            <CollapsibleContent>
+              <div className="border-t px-4 py-4">
+                <div className="flex items-center gap-2 mb-3">
+                  <FileText className="h-4 w-4 text-primary" />
+                  <span className="text-sm font-semibold">Vertrag</span>
+                </div>
+                <ContractPanel companyId={c.id} companyName={c.name} />
+              </div>
+            </CollapsibleContent>
+          )}
+        </div>
+      </Collapsible>
     );
   };
 
-  const renderTable = (list: any[], isSuspendedTab: boolean) => (
+  const renderList = (list: any[], isSuspendedTab: boolean) =>
     list.length === 0 ? (
       <p className="py-8 text-center text-muted-foreground">
         {isSuspendedTab ? t("companies.noSuspended") : t("companies.noActive")}
       </p>
     ) : (
-      <Table>
-        <TableHeader>
-          <TableRow>
-            <TableHead>{t("common.id")}</TableHead>
-            <TableHead>{t("common.name")}</TableHead>
-            <TableHead className="w-[160px]">{t("common.action")}</TableHead>
-          </TableRow>
-        </TableHeader>
-        <TableBody>
-          {list.map((c: any) => renderCompanyRow(c, isSuspendedTab))}
-        </TableBody>
-      </Table>
-    )
-  );
+      <div className="space-y-2">
+        {list.map((c: any) => renderCompanyCard(c, isSuspendedTab))}
+      </div>
+    );
 
   return (
     <div className="container py-8 space-y-6">
@@ -257,10 +257,10 @@ const CompanyManagement = () => {
                 </TabsTrigger>
               </TabsList>
               <TabsContent value="active" className="mt-4">
-                {renderTable(activeCompanies, false)}
+                {renderList(activeCompanies, false)}
               </TabsContent>
               <TabsContent value="suspended" className="mt-4">
-                {renderTable(suspendedCompanies, true)}
+                {renderList(suspendedCompanies, true)}
               </TabsContent>
             </Tabs>
           )}
@@ -271,9 +271,7 @@ const CompanyManagement = () => {
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>{t("companies.deleteTitle")}</AlertDialogTitle>
-            <AlertDialogDescription>
-              {t("companies.deleteDescription")}
-            </AlertDialogDescription>
+            <AlertDialogDescription>{t("companies.deleteDescription")}</AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>{t("common.cancel")}</AlertDialogCancel>
