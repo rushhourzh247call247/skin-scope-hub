@@ -202,7 +202,6 @@ function drawPage1(doc: jsPDF) {
   doc.setFont("helvetica", "italic");
   color(doc, GRAY);
   doc.text("Unverbindliches Angebot – Änderungen vorbehalten", LEFT + 4, y + 17);
-  drawFooter(doc, "Seite 1");
 }
 
 // ── PAGE 2 ─────────────────────────────────────────────────────
@@ -263,7 +262,8 @@ function drawPage2(doc: jsPDF) {
   doc.text("Testzugang auf Anfrage verfügbar.", LEFT + 8, y + 23);
   doc.text("E-Mail: info@techassist.ch  |  Web: derm247.ch", LEFT + 8, y + 29);
 
-  drawFooter(doc, "Seite 2");
+  // Contact box is taller now
+  // Footer drawn separately via drawAllFooters
 }
 
 // ── Public API ─────────────────────────────────────────────────
