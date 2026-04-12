@@ -30,10 +30,13 @@ function drawHeader(doc: jsPDF) {
   doc.setFont("helvetica", "bold");
   doc.text("D", LEFT + 3, 15.5);
 
-  // Title
-  doc.setTextColor(...WHITE);
+  // Title – two-tone like login page
   doc.setFontSize(22);
-  doc.text("DERM247", LEFT + 14, 15.5);
+  doc.setTextColor(...WHITE);
+  doc.text("DERM", LEFT + 14, 15.5);
+  const dermW = doc.getTextWidth("DERM");
+  doc.setTextColor(200, 245, 230);
+  doc.text("247", LEFT + 14 + dermW, 15.5);
 
   doc.setFontSize(10);
   doc.setFont("helvetica", "normal");
@@ -52,7 +55,7 @@ function drawFooter(doc: jsPDF, pageNum: number, totalPages: number) {
   doc.setFontSize(7);
   doc.setTextColor(...GRAY);
   doc.text(
-    "Derm247 | TechAssist | info@techassist.ch | derm247.ch",
+    "DERM247 | TechAssist | info@techassist.ch | derm247.ch",
     LEFT, y + 5,
   );
   doc.text(`Seite ${pageNum} von ${totalPages}`, RIGHT, y + 5, { align: "right" });
@@ -116,7 +119,7 @@ function drawPage1(doc: jsPDF) {
   y += 4;
 
   // ── Warum Derm247 ──
-  y = sectionTitle(doc, y, "Warum Derm247?");
+  y = sectionTitle(doc, y, "Warum DERM247?");
   const reasons = [
     "Schweizer Hosting (Infomaniak) – keine Daten im Ausland",
     "QR-basierter Foto-Upload direkt vom Smartphone",

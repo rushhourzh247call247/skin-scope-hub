@@ -1123,7 +1123,7 @@ export async function generatePatientPDF(
   }
 
   /* ═══ OUTPUT ════════════════════════════════════════ */
-  const filename = `Derm247_${patient.name.replace(/\s+/g, "_")}_${formatDate(new Date(), "yyyy-MM-dd")}.pdf`;
+  const filename = `DERM247_${patient.name.replace(/\s+/g, "_")}_${formatDate(new Date(), "yyyy-MM-dd")}.pdf`;
   const blob = doc.output("blob");
   const blobUrl = URL.createObjectURL(blob);
 
@@ -1145,5 +1145,5 @@ export async function generatePatientPDF(
 }
 
 export function getPatientPdfFilename(patient: { name: string }): string {
-  return `Derm247_${patient.name.replace(/\s+/g, "_")}_${formatDate(new Date(), "yyyy-MM-dd")}.pdf`;
+  return `DERM247_${patient.name.replace(/\s+/g, "_")}_${formatDate(new Date(), "yyyy-MM-dd")}.pdf`;
 }
