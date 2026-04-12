@@ -74,7 +74,7 @@ function buildContractSections(vars: ContractVars): { title?: string; lines: str
       title: "2. Lizenzumfang",
       lines: [
         `Paket: ${vars.paket}`,
-        `Anzahl Ärzte: ${vars.anzahlAerzte}`,
+        ...(vars.paket === "Einzellizenz" ? [] : [`Anzahl Ärzte: ${vars.anzahlAerzte}`]),
         `Monatliche Lizenzgebühr: CHF ${vars.preis} / Monat${mwstHinweis}`,
       ],
     },
