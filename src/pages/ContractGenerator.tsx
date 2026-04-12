@@ -159,15 +159,11 @@ function drawLogo(doc: jsPDF, x: number, y: number) {
   doc.setFont("helvetica", "bold");
   doc.text("D", x + 2.3, y + 6);
 
-  // "DERM" in dark + "247" in blue
-  doc.setTextColor(30, 30, 30);
+  // "DERM247" in white on blue header
+  doc.setTextColor(255, 255, 255);
   doc.setFontSize(16);
   doc.setFont("helvetica", "bold");
-  doc.text("DERM", x + 10.5, y + 6.5);
-
-  const dermWidth = doc.getTextWidth("DERM");
-  doc.setTextColor(37, 99, 235);
-  doc.text("247", x + 10.5 + dermWidth + 0.5, y + 6.5);
+  doc.text("DERM247", x + 10.5, y + 6.5);
 }
 
 function buildPdf(vars: ContractVars): jsPDF {
