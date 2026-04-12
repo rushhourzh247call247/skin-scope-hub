@@ -37,9 +37,10 @@ LIZENZVERTRAG
 
 zwischen
 
-TechAssist GmbH
-Musterstrasse 1
-8000 Zürich
+TechAssist
+Dällikerstrasse 48
+8105 Regensdorf
+E-Mail: info@techassist.ch
 (nachfolgend «Lizenzgeberin»)
 
 und
@@ -51,7 +52,7 @@ ${vars.kundeAdresse}
 
 1. Vertragsgegenstand
 
-Die Lizenzgeberin gewährt dem Lizenznehmer das nicht-exklusive, nicht übertragbare Recht zur Nutzung der Software «DERM247» gemäss den Bedingungen dieses Vertrags.
+Die Lizenzgeberin gewährt dem Lizenznehmer das nicht-exklusive, nicht übertragbare Recht zur Nutzung der Software «Derm247» gemäss den Bedingungen dieses Vertrags.
 
 
 2. Lizenzumfang
@@ -63,30 +64,52 @@ Monatliche Lizenzgebühr: CHF ${vars.preis} / Monat (exkl. MwSt.)
 
 3. Vertragsbeginn und Laufzeit
 
-Der Vertrag beginnt am ${vars.datum} und wird auf unbestimmte Dauer abgeschlossen. Er kann von jeder Partei mit einer Frist von 3 Monaten auf Monatsende schriftlich gekündigt werden.
+Der Vertrag beginnt am ${vars.datum}. Die Mindestlaufzeit beträgt 12 Monate. Die Kündigungsfrist beträgt 60 Tage zum Vertragsende. Erfolgt keine fristgerechte Kündigung, verlängert sich der Vertrag automatisch um jeweils 12 Monate.
 
 
 4. Zahlungsbedingungen
 
-Die Lizenzgebühr wird monatlich in Rechnung gestellt und ist innert 30 Tagen nach Rechnungsdatum zahlbar. Bei Zahlungsverzug behält sich die Lizenzgeberin das Recht vor, den Zugang zur Software zu sperren.
+Die Lizenzgebühr wird monatlich im Voraus in Rechnung gestellt und ist innert 30 Tagen nach Rechnungsdatum zahlbar. Bei Zahlungsverzug behält sich die Lizenzgeberin das Recht vor, den Zugang zur Software zu sperren.
+
+Bankverbindung:
+IBAN: CH66 0070 0110 0057 8304 8
+Empfänger: Rached Mtiraoui (TechAssist)
 
 
 5. Datenschutz und Datensicherheit
 
-Die Lizenzgeberin verpflichtet sich, alle im Zusammenhang mit der Nutzung der Software anfallenden Daten gemäss dem Schweizerischen Datenschutzgesetz (DSG) und der DSGVO zu behandeln. Die Daten werden in der Schweiz gehostet.
+Die Lizenzgeberin verpflichtet sich, alle im Zusammenhang mit der Nutzung der Software anfallenden Daten gemäss dem Schweizerischen Datenschutzgesetz (DSG) und der DSGVO zu behandeln.
+
+Die Daten werden ausschliesslich auf Servern in der Schweiz (Infomaniak) gespeichert. Es werden tägliche Backups sowie regelmässige Snapshots durchgeführt. Die Daten werden nicht an Drittanbieter weitergegeben und nicht ausserhalb der Schweiz verarbeitet. Die Übertragung erfolgt verschlüsselt (TLS 1.2 / 1.3).
 
 
 6. Gewährleistung und Haftung
 
-Die Lizenzgeberin gewährleistet die Verfügbarkeit der Software von mindestens 99.5% im Jahresmittel (exkl. geplante Wartungsfenster). Die Haftung ist auf die Höhe der in den letzten 12 Monaten bezahlten Lizenzgebühren beschränkt.
+Die Lizenzgeberin betreibt die Software nach bestem Wissen und mit aktuellen Sicherheitsstandards. Eine Haftung besteht nur bei grober Fahrlässigkeit oder Vorsatz.
+
+Keine Haftung besteht insbesondere für:
+– Fehlbedienung durch den Kunden
+– Ausfälle durch höhere Gewalt
+– externe Angriffe trotz Schutzmassnahmen
+– indirekte Schäden oder Folgeschäden
 
 
-7. Geheimhaltung
+7. Support
+
+Support erfolgt ausschliesslich per E-Mail an info@techassist.ch. Ein Anspruch auf telefonischen oder Live-Support besteht nicht.
+
+
+8. Speicherung
+
+Die Nutzung beinhaltet eine angemessene Datenspeicherung im üblichen Rahmen. Bei aussergewöhnlich hohem Speicherbedarf kann eine individuelle Vereinbarung getroffen werden.
+
+
+9. Geheimhaltung
 
 Beide Parteien verpflichten sich, vertrauliche Informationen der jeweils anderen Partei geheim zu halten und nicht an Dritte weiterzugeben.
 
 
-8. Schlussbestimmungen
+10. Schlussbestimmungen
 
 Es gilt Schweizer Recht. Gerichtsstand ist Zürich.
 
@@ -100,7 +123,7 @@ Ort, Datum: ________________________          Ort, Datum: ______________________
 
 Lizenzgeberin:                                 Lizenznehmer:
 
-TechAssist GmbH                                ${vars.kundeName}
+TechAssist                                     ${vars.kundeName}
 
 
 ________________________                       ________________________
@@ -147,7 +170,7 @@ export default function ContractGenerator() {
     doc.setTextColor(255, 255, 255);
     doc.setFontSize(14);
     doc.setFont("helvetica", "bold");
-    doc.text("DERM247", 15, 12);
+    doc.text("Derm247", 15, 12);
     doc.setFontSize(8);
     doc.setFont("helvetica", "normal");
     doc.text("Lizenzvertrag", 55, 12);
@@ -190,7 +213,7 @@ export default function ContractGenerator() {
       doc.setPage(i);
       doc.setFontSize(7);
       doc.setTextColor(150, 150, 150);
-      doc.text(`DERM247 – Lizenzvertrag | Seite ${i} von ${pageCount}`, 17, 290);
+      doc.text(`Derm247 – Lizenzvertrag | Seite ${i} von ${pageCount}`, 17, 290);
     }
 
     const filename = `Vertrag_${kundeName.replace(/\s+/g, "_")}_${new Date().toISOString().slice(0, 10)}.pdf`;
