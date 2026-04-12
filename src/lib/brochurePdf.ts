@@ -195,13 +195,13 @@ export function buildBrochurePdf(): jsPDF {
   doc.text("Enthaltene Funktionen – alle Pakete", LEFT, y);
   y += 8;
 
-  // Feature list with checkmarks
+  // Feature list with brand-colored bullets
   for (const feat of BASE_FEATURES) {
-    doc.setFont("helvetica", "bold");
-    doc.setFontSize(10);
-    doc.setTextColor(...BRAND_RGB);
-    doc.text("✓", LEFT, y);
+    // Draw a filled circle as bullet
+    doc.setFillColor(...BRAND_RGB);
+    doc.circle(LEFT + 2, y - 1.2, 1.5, "F");
     doc.setFont("helvetica", "normal");
+    doc.setFontSize(10);
     doc.setTextColor(...DARK);
     doc.text(feat, LEFT + 7, y);
     y += 7;
@@ -226,13 +226,13 @@ export function buildBrochurePdf(): jsPDF {
   ];
 
   for (const point of securityPoints) {
-    doc.setFont("helvetica", "bold");
-    doc.setFontSize(10);
-    doc.setTextColor(...BRAND_DARK);
-    doc.text("🔒", LEFT, y);
+    // Draw a small filled square as bullet
+    doc.setFillColor(...BRAND_DARK);
+    doc.rect(LEFT, y - 2.5, 3, 3, "F");
     doc.setFont("helvetica", "normal");
+    doc.setFontSize(10);
     doc.setTextColor(...DARK);
-    doc.text(point, LEFT + 8, y);
+    doc.text(point, LEFT + 7, y);
     y += 7;
   }
 
