@@ -279,6 +279,17 @@ export default function ContractGenerator() {
               <Save className="mr-2 h-4 w-4" />
               {saveMutation.isPending ? "Speichert…" : "In DB speichern"}
             </Button>
+            <Button
+              variant="outline"
+              onClick={() => {
+                const doc = buildBrochurePdf();
+                doc.save("Derm247_Produktuebersicht.pdf");
+                toast.success("Broschüre wurde heruntergeladen.");
+              }}
+            >
+              <BookOpen className="mr-2 h-4 w-4" />
+              Broschüre PDF
+            </Button>
           </div>
         </CardContent>
       </Card>
