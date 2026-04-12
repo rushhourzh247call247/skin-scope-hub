@@ -69,7 +69,11 @@ const PatientList = () => {
 
   const visiblePatients = showDeactivated ? patients : activePatients;
   const filtered = visiblePatients
-    .filter((p: Patient) => p.name.toLowerCase().includes(search.toLowerCase()))
+    .filter((p: Patient) => {
+      const q = search.toLowerCase().replace(/^#/, "");
+      const idStr = String((p as any).patient_number || p.id);
+      return p.name.toLowerCase().includes(q) || idStr.includes(q);
+    })
     .sort((a: Patient, b: Patient) => a.name.localeCompare(b.name, "de"));
 
   return (
