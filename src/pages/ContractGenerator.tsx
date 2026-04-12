@@ -1,6 +1,6 @@
-import { useState, useRef } from "react";
+import { useState, useMemo } from "react";
 import { useTranslation } from "react-i18next";
-import { FileText, Download, Eye } from "lucide-react";
+import { FileText, Download, Eye, Hash } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -15,7 +15,7 @@ import {
 } from "@/components/ui/select";
 import { toast } from "sonner";
 import jsPDF from "jspdf";
-import { DermLogo } from "@/components/DermLogo";
+import PdfPreviewPages from "@/components/PdfPreviewPages";
 
 const PACKAGES = [
   { id: "single", label: "Einzellizenz", price: "80.–", priceNum: 80, desc: "1 Arzt" },
@@ -24,16 +24,28 @@ const PACKAGES = [
   { id: "unlimited", label: "Unbegrenzt", price: "1'200.–", priceNum: 1200, desc: "unbegrenzt" },
 ];
 
-function buildContractText(vars: {
+function generateContractNumber(): string {
+  const now = new Date();
+  const year = now.getFullYear();
+  const seq = String(Math.floor(Math.random() * 9999) + 1).padStart(4, "0");
+  return `V-${year}-${seq}`;
+}
+
+interface ContractVars {
+  vertragsnummer: string;
   kundeName: string;
   kundeAdresse: string;
   paket: string;
   preis: string;
   anzahlAerzte: string;
   datum: string;
-}) {
+}
+
+function buildContractText(vars: ContractVars) {
   return `
 LIZENZVERTRAG
+
+Vertragsnummer: ${vars.vertragsnummer}
 
 zwischen
 
@@ -131,17 +143,115 @@ Unterschrift                                   Unterschrift
 `.trim();
 }
 
+function drawLogo(doc: jsPDF, x: number, y: number) {
+  // Blue rounded rectangle
+  doc.setFillColor(37, 99, 235);
+  doc.roundedRect(x, y, 8, 8, 1.5, 1.5, "F");
+  doc.setTextColor(255, 255, 255);
+  doc.setFontSize(12);
+  doc.setFont("helvetica", "bold");
+  doc.text("D", x + 2.3, y + 6);
+
+  // "DERM" in dark + "247" in blue
+  doc.setTextColor(30, 30, 30);
+  doc.setFontSize(16);
+  doc.setFont("helvetica", "bold");
+  doc.text("DERM", x + 10.5, y + 6.5);
+
+  const dermWidth = doc.getTextWidth("DERM");
+  doc.setTextColor(37, 99, 235);
+  doc.text("247", x + 10.5 + dermWidth + 0.5, y + 6.5);
+}
+
+function buildPdf(vars: ContractVars): jsPDF {
+  const text = buildContractText(vars);
+  const doc = new jsPDF({ unit: "mm", format: "a4" });
+
+  // Header bar
+  doc.setFillColor(37, 99, 235);
+  doc.rect(0, 0, 210, 20, "F");
+
+  // Logo in header
+  drawLogo(doc, 14, 5.5);
+
+  // Contract number right-aligned
+  doc.setTextColor(255, 255, 255);
+  doc.setFontSize(8);
+  doc.setFont("helvetica", "normal");
+  doc.text(vars.vertragsnummer, 195, 13, { align: "right" });
+
+  // Body
+  doc.setTextColor(30, 30, 30);
+  doc.setFontSize(10);
+  doc.setFont("helvetica", "normal");
+
+  const lines = doc.splitTextToSize(text, 175);
+  let y = 30;
+  const pageHeight = 278;
+
+  for (const line of lines) {
+    if (y > pageHeight) {
+      doc.addPage();
+      y = 20;
+    }
+
+    if (/^\d+\.\s/.test(line) || line === "LIZENZVERTRAG") {
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(line === "LIZENZVERTRAG" ? 14 : 11);
+      doc.text(line, 17, y);
+      doc.setFont("helvetica", "normal");
+      doc.setFontSize(10);
+    } else if (line.startsWith("Vertragsnummer:")) {
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(9);
+      doc.setTextColor(100, 100, 100);
+      doc.text(line, 17, y);
+      doc.setFont("helvetica", "normal");
+      doc.setFontSize(10);
+      doc.setTextColor(30, 30, 30);
+    } else if (line.startsWith("zwischen") || line.startsWith("und")) {
+      doc.setFont("helvetica", "italic");
+      doc.text(line, 17, y);
+      doc.setFont("helvetica", "normal");
+    } else {
+      doc.text(line, 17, y);
+    }
+    y += 5;
+  }
+
+  // Footer
+  const pageCount = doc.getNumberOfPages();
+  for (let i = 1; i <= pageCount; i++) {
+    doc.setPage(i);
+    doc.setFontSize(7);
+    doc.setTextColor(150, 150, 150);
+    doc.text(
+      `Derm247 – Lizenzvertrag | ${vars.vertragsnummer} | Seite ${i} von ${pageCount}`,
+      17,
+      290,
+    );
+    // Thin line above footer
+    doc.setDrawColor(200, 200, 200);
+    doc.setLineWidth(0.2);
+    doc.line(17, 287, 193, 287);
+  }
+
+  return doc;
+}
+
 export default function ContractGenerator() {
   const { t } = useTranslation();
   const [kundeName, setKundeName] = useState("");
   const [kundeAdresse, setKundeAdresse] = useState("");
   const [selectedPaket, setSelectedPaket] = useState("");
   const [anzahlAerzte, setAnzahlAerzte] = useState("1");
-  const [previewText, setPreviewText] = useState<string | null>(null);
+  const [vertragsnummer, setVertragsnummer] = useState(() => generateContractNumber());
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
 
   const pkg = PACKAGES.find((p) => p.id === selectedPaket);
 
-  const getVars = () => ({
+  const getVars = (): ContractVars => ({
+    vertragsnummer,
     kundeName: kundeName || "–",
     kundeAdresse: kundeAdresse || "–",
     paket: pkg?.label || "–",
@@ -151,74 +261,28 @@ export default function ContractGenerator() {
   });
 
   const handlePreview = () => {
-    setPreviewText(buildContractText(getVars()));
+    const doc = buildPdf(getVars());
+    const blob = doc.output("blob");
+    // Revoke previous URL
+    if (previewUrl) URL.revokeObjectURL(previewUrl);
+    setPreviewUrl(URL.createObjectURL(blob));
   };
 
-  const generatePdf = () => {
+  const generateAndDownload = () => {
     if (!kundeName || !selectedPaket) {
       toast.error("Bitte Kundenname und Paket ausfüllen.");
       return;
     }
-
     const vars = getVars();
-    const text = buildContractText(vars);
-    const doc = new jsPDF({ unit: "mm", format: "a4" });
-
-    // Header with branding
-    doc.setFillColor(37, 99, 235); // primary blue
-    doc.rect(0, 0, 210, 18, "F");
-    doc.setTextColor(255, 255, 255);
-    doc.setFontSize(14);
-    doc.setFont("helvetica", "bold");
-    doc.text("Derm247", 15, 12);
-    doc.setFontSize(8);
-    doc.setFont("helvetica", "normal");
-    doc.text("Lizenzvertrag", 55, 12);
-
-    // Body
-    doc.setTextColor(30, 30, 30);
-    doc.setFontSize(10);
-    doc.setFont("helvetica", "normal");
-
-    const lines = doc.splitTextToSize(text, 175);
-    let y = 28;
-    const pageHeight = 280;
-
-    for (const line of lines) {
-      if (y > pageHeight) {
-        doc.addPage();
-        y = 20;
-      }
-
-      // Bold section headings (numbered)
-      if (/^\d+\.\s/.test(line) || line === "LIZENZVERTRAG") {
-        doc.setFont("helvetica", "bold");
-        doc.setFontSize(line === "LIZENZVERTRAG" ? 14 : 11);
-        doc.text(line, 17, y);
-        doc.setFont("helvetica", "normal");
-        doc.setFontSize(10);
-      } else if (line.startsWith("zwischen") || line.startsWith("und")) {
-        doc.setFont("helvetica", "italic");
-        doc.text(line, 17, y);
-        doc.setFont("helvetica", "normal");
-      } else {
-        doc.text(line, 17, y);
-      }
-      y += 5;
-    }
-
-    // Footer on last page
-    const pageCount = doc.getNumberOfPages();
-    for (let i = 1; i <= pageCount; i++) {
-      doc.setPage(i);
-      doc.setFontSize(7);
-      doc.setTextColor(150, 150, 150);
-      doc.text(`Derm247 – Lizenzvertrag | Seite ${i} von ${pageCount}`, 17, 290);
-    }
-
-    const filename = `Vertrag_${kundeName.replace(/\s+/g, "_")}_${new Date().toISOString().slice(0, 10)}.pdf`;
+    const doc = buildPdf(vars);
+    const filename = `Vertrag_${kundeName.replace(/\s+/g, "_")}_${vars.vertragsnummer}.pdf`;
     doc.save(filename);
     toast.success("Vertrag wurde als PDF heruntergeladen.");
+  };
+
+  const regenerateNumber = () => {
+    setVertragsnummer(generateContractNumber());
+    toast.info("Neue Vertragsnummer generiert.");
   };
 
   return (
@@ -233,6 +297,21 @@ export default function ContractGenerator() {
           <CardTitle className="text-lg">Kundendaten & Paket</CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
+          {/* Vertragsnummer */}
+          <div className="flex items-end gap-2">
+            <div className="flex-1 space-y-2">
+              <Label htmlFor="vertragsnummer">Vertragsnummer</Label>
+              <Input
+                id="vertragsnummer"
+                value={vertragsnummer}
+                onChange={(e) => setVertragsnummer(e.target.value)}
+              />
+            </div>
+            <Button variant="outline" size="icon" onClick={regenerateNumber} title="Neue Nummer">
+              <Hash className="h-4 w-4" />
+            </Button>
+          </div>
+
           <div className="grid gap-4 sm:grid-cols-2">
             <div className="space-y-2">
               <Label htmlFor="kundeName">Kunde Name *</Label>
@@ -282,7 +361,8 @@ export default function ContractGenerator() {
             </Select>
             {pkg && (
               <p className="text-sm text-muted-foreground">
-                Gewählt: <span className="font-medium text-foreground">{pkg.label}</span> — CHF {pkg.price} / Monat ({pkg.desc})
+                Gewählt: <span className="font-medium text-foreground">{pkg.label}</span> — CHF{" "}
+                {pkg.price} / Monat ({pkg.desc})
               </p>
             )}
           </div>
@@ -292,7 +372,7 @@ export default function ContractGenerator() {
               <Eye className="mr-2 h-4 w-4" />
               Vorschau
             </Button>
-            <Button onClick={generatePdf}>
+            <Button onClick={generateAndDownload}>
               <Download className="mr-2 h-4 w-4" />
               Vertrag generieren (PDF)
             </Button>
@@ -300,15 +380,15 @@ export default function ContractGenerator() {
         </CardContent>
       </Card>
 
-      {previewText && (
+      {previewUrl && (
         <Card>
           <CardHeader>
-            <CardTitle className="text-lg">Vorschau</CardTitle>
+            <CardTitle className="text-lg">PDF-Vorschau</CardTitle>
           </CardHeader>
           <CardContent>
-            <pre className="whitespace-pre-wrap rounded-lg border bg-muted/30 p-4 text-sm leading-relaxed font-mono">
-              {previewText}
-            </pre>
+            <div className="min-h-[600px]">
+              <PdfPreviewPages pdfUrl={previewUrl} />
+            </div>
           </CardContent>
         </Card>
       )}
