@@ -63,27 +63,29 @@ export default function ContractGenerator() {
     }
   };
 
-  // Auto-sync: when package changes, clamp doctor count to valid range
+  // Auto-sync: when package changes, set default doctor count
   const handlePaketChange = (val: string) => {
     setSelectedPaket(val);
     const p = PACKAGES.find((pk) => pk.id === val);
     if (p) {
-      if (val === "single") {
-        setAnzahlAerzte("1");
-      } else {
+      if (p.perDoctor) {
         const current = parseInt(anzahlAerzte) || 1;
         if (current < p.minDocs) setAnzahlAerzte(String(p.minDocs));
-        else if (current > p.maxDocs && p.maxDocs < 999) setAnzahlAerzte(String(p.maxDocs));
+        else if (current > p.maxDocs) setAnzahlAerzte(String(p.maxDocs));
+      } else {
+        setAnzahlAerzte(String(p.minDocs));
       }
     }
   };
+
+  const priceInfo = pkg ? calcPrice(pkg.id, parseInt(anzahlAerzte) || 1) : null;
 
   const getVars = (): ContractVars => ({
     vertragsnummer,
     kundeName: kundeName || "–",
     kundeAdresse: kundeAdresse || "–",
     paket: pkg?.label || "–",
-    preis: pkg?.price || "–",
+    preis: priceInfo?.display || "–",
     anzahlAerzte: anzahlAerzte || "–",
     datum: new Date().toLocaleDateString("de-CH"),
     vertragsbeginn: vertragsbeginn
