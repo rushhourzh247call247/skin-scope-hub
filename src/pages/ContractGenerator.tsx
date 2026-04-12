@@ -224,7 +224,7 @@ export default function ContractGenerator() {
                 {pkg.price} / Monat ({pkg.desc})
               </p>
             )}
-            {pkg && pkg.id !== "single" && (
+            {pkg && pkg.id === "small" && (
               <div className="mt-3 space-y-2">
                 <Label htmlFor="anzahlAerzte">Anzahl Ärzte (konkret)</Label>
                 <Input
