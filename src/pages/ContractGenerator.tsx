@@ -18,7 +18,7 @@ import {
 import { toast } from "sonner";
 import PdfPreviewPages from "@/components/PdfPreviewPages";
 import { api } from "@/lib/api";
-import { PACKAGES, suggestPackage, generateContractNumber, buildContractPdf, type ContractVars } from "@/lib/contractPdf";
+import { PACKAGES, suggestPackage, generateContractNumber, buildContractPdf, calcPrice, type ContractVars } from "@/lib/contractPdf";
 import { buildBrochurePdf } from "@/lib/brochurePdf";
 import { buildCombinedPdf } from "@/lib/combinedPdf";
 
@@ -63,27 +63,29 @@ export default function ContractGenerator() {
     }
   };
 
-  // Auto-sync: when package changes, clamp doctor count to valid range
+  // Auto-sync: when package changes, set default doctor count
   const handlePaketChange = (val: string) => {
     setSelectedPaket(val);
     const p = PACKAGES.find((pk) => pk.id === val);
     if (p) {
-      if (val === "single") {
-        setAnzahlAerzte("1");
-      } else {
+      if (p.perDoctor) {
         const current = parseInt(anzahlAerzte) || 1;
         if (current < p.minDocs) setAnzahlAerzte(String(p.minDocs));
-        else if (current > p.maxDocs && p.maxDocs < 999) setAnzahlAerzte(String(p.maxDocs));
+        else if (current > p.maxDocs) setAnzahlAerzte(String(p.maxDocs));
+      } else {
+        setAnzahlAerzte(String(p.minDocs));
       }
     }
   };
+
+  const priceInfo = pkg ? calcPrice(pkg.id, parseInt(anzahlAerzte) || 1) : null;
 
   const getVars = (): ContractVars => ({
     vertragsnummer,
     kundeName: kundeName || "–",
     kundeAdresse: kundeAdresse || "–",
     paket: pkg?.label || "–",
-    preis: pkg?.price || "–",
+    preis: priceInfo?.display || "–",
     anzahlAerzte: anzahlAerzte || "–",
     datum: new Date().toLocaleDateString("de-CH"),
     vertragsbeginn: vertragsbeginn
@@ -130,7 +132,7 @@ export default function ContractGenerator() {
         package_name: pkg.label,
         package_id: pkg.id,
         licenses: parseInt(anzahlAerzte) || 1,
-        monthly_price: pkg.priceNum,
+        monthly_price: priceInfo?.total || pkg.priceNum,
         start_date: vertragsbeginn,
         end_date: endDate.toISOString().slice(0, 10),
         notice_period_days: 60,
@@ -213,7 +215,7 @@ export default function ContractGenerator() {
               <SelectContent>
                 {PACKAGES.map((p) => (
                   <SelectItem key={p.id} value={p.id}>
-                    {p.label} — CHF {p.price} / Monat
+                    {p.label} — {p.perDoctor ? `CHF ${p.price} pro Arzt / Monat` : `CHF ${p.price} / Monat`}
                   </SelectItem>
                 ))}
               </SelectContent>
@@ -221,21 +223,24 @@ export default function ContractGenerator() {
             {pkg && (
               <p className="text-sm text-muted-foreground">
                 Gewählt: <span className="font-medium text-foreground">{pkg.label}</span> — CHF{" "}
-                {pkg.price} / Monat ({pkg.desc})
+                {priceInfo?.display} / Monat ({pkg.desc})
               </p>
             )}
-            {pkg && pkg.id === "small" && (
+            {pkg && pkg.perDoctor && (
               <div className="mt-3 space-y-2">
-                <Label htmlFor="anzahlAerzte">Anzahl Ärzte (konkret)</Label>
+                <Label htmlFor="anzahlAerzte">Anzahl Ärzte (1–{pkg.maxDocs})</Label>
                 <Input
                   id="anzahlAerzte"
                   type="number"
                   min={pkg.minDocs}
-                  max={pkg.maxDocs < 999 ? pkg.maxDocs : undefined}
+                  max={pkg.maxDocs}
                   value={anzahlAerzte}
                   onChange={(e) => handleAnzahlChange(e.target.value)}
                   className="max-w-[120px]"
                 />
+                <p className="text-xs text-muted-foreground">
+                  {anzahlAerzte} × CHF 80.– = CHF {priceInfo?.display} / Monat
+                </p>
               </div>
             )}
           </div>

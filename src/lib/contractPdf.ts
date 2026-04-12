@@ -1,16 +1,29 @@
 import jsPDF from "jspdf";
 
+export const PRICE_PER_DOCTOR = 80;
+
 export const PACKAGES = [
-  { id: "single", label: "Einzellizenz", price: "80.–", priceNum: 80, desc: "1 Arzt", minDocs: 1, maxDocs: 1 },
-  { id: "small", label: "1–5 Ärzte", price: "350.–", priceNum: 350, desc: "bis 5 Ärzte", minDocs: 1, maxDocs: 5 },
-  { id: "medium", label: "6–10 Ärzte", price: "650.–", priceNum: 650, desc: "bis 10 Ärzte", minDocs: 6, maxDocs: 10 },
-  { id: "unlimited", label: "Unbegrenzt", price: "1'200.–", priceNum: 1200, desc: "unbegrenzt", minDocs: 1, maxDocs: 999 },
+  { id: "individual", label: "Einzellizenz", price: "80.–", priceNum: 80, desc: "1–4 Ärzte, je CHF 80.–/Mt.", minDocs: 1, maxDocs: 4, perDoctor: true },
+  { id: "pack5", label: "5er-Paket", price: "350.–", priceNum: 350, desc: "5 Ärzte, Festpreis", minDocs: 5, maxDocs: 5, perDoctor: false },
+  { id: "medium", label: "6–10 Ärzte", price: "650.–", priceNum: 650, desc: "bis 10 Ärzte, Festpreis", minDocs: 6, maxDocs: 10, perDoctor: false },
+  { id: "unlimited", label: "Unbegrenzt", price: "1'200.–", priceNum: 1200, desc: "unbegrenzt, Festpreis", minDocs: 1, maxDocs: 999, perDoctor: false },
 ];
+
+/** Calculate actual monthly price based on package and doctor count */
+export function calcPrice(pkgId: string, doctors: number): { total: number; display: string } {
+  const pkg = PACKAGES.find(p => p.id === pkgId);
+  if (!pkg) return { total: 0, display: "–" };
+  if (pkg.perDoctor) {
+    const total = doctors * PRICE_PER_DOCTOR;
+    return { total, display: `${total}.–` };
+  }
+  return { total: pkg.priceNum, display: pkg.price };
+}
 
 /** Suggest the best package for a given doctor count */
 export function suggestPackage(count: number): string {
-  if (count <= 1) return "single";
-  if (count <= 5) return "small";
+  if (count <= 4) return "individual";
+  if (count === 5) return "pack5";
   if (count <= 10) return "medium";
   return "unlimited";
 }
