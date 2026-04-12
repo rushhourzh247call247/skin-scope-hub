@@ -120,6 +120,7 @@ function drawPage1(doc: jsPDF, lang: PdfLang) {
 
   for (let i = 0; i < PACKAGES.length; i++) {
     const pkg = PACKAGES[i];
+    const pkgT = t.packages[pkg.id as keyof typeof t.packages];
     const col = i % 2;
     const row = Math.floor(i / 2);
     const cx = LEFT + col * (cardW + 6);
@@ -143,12 +144,12 @@ function drawPage1(doc: jsPDF, lang: PdfLang) {
     doc.setFont("helvetica", "bold");
     doc.setFontSize(11);
     color(doc, isPopular ? WHITE : DARK);
-    doc.text(pkg.label, cx + 5, cy + 11);
+    doc.text(pkgT.label, cx + 5, cy + 11);
 
     doc.setFont("helvetica", "normal");
     doc.setFontSize(8.5);
     color(doc, isPopular ? [220, 245, 240] : GRAY);
-    doc.text(pkg.desc, cx + 5, cy + 17);
+    doc.text(pkgT.desc, cx + 5, cy + 17);
 
     doc.setFont("helvetica", "bold");
     doc.setFontSize(16);

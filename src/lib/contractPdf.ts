@@ -53,6 +53,20 @@ function buildContractSections(vars: ContractVars): { title?: string; lines: str
   const t = getPdfTexts(lang);
   const mwstHinweis = vars.mwst ? t.exclVat : "";
 
+  // Map German package id to translated label
+  const pkgIdMap: Record<string, keyof typeof t.packages> = {
+    "Einzellizenz": "individual",
+    "5er-Paket": "pack5",
+    "6–10 Ärzte": "medium",
+    "Unbegrenzt": "unlimited",
+  };
+  const pkgKey = pkgIdMap[vars.paket] || "individual";
+  const translatedPaket = t.packages[pkgKey].label;
+  const isIndividual = pkgKey === "individual";
+
+  const andWord = { de: "und", en: "and", fr: "et", it: "e", es: "y" }[lang] || "und";
+  const monthWord = { de: "Monat", en: "month", fr: "mois", it: "mese", es: "mes" }[lang] || "Monat";
+
   return [
     {
       title: t.contractTitle,
@@ -68,7 +82,7 @@ function buildContractSections(vars: ContractVars): { title?: string; lines: str
         "E-Mail: info@techassist.ch",
         t.licensor,
         "",
-        lang === "de" ? "und" : t.between === "entre" ? "et" : t.between === "tra" ? "e" : "and",
+        andWord,
         "",
         vars.kundeName,
         vars.kundeAdresse,
@@ -82,9 +96,9 @@ function buildContractSections(vars: ContractVars): { title?: string; lines: str
     {
       title: t.section2Title,
       lines: [
-        `${t.packageLabel}: ${vars.paket}`,
-        ...(vars.paket === "Einzellizenz" ? [] : [`${t.doctorCountLabel}: ${vars.anzahlAerzte}`]),
-        `${t.monthlyFeeLabel}: CHF ${vars.preis} / ${lang === "de" ? "Monat" : lang === "fr" ? "mois" : lang === "it" ? "mese" : lang === "es" ? "mes" : "month"}${mwstHinweis}`,
+        `${t.packageLabel}: ${translatedPaket}`,
+        ...(isIndividual ? [] : [`${t.doctorCountLabel}: ${vars.anzahlAerzte}`]),
+        `${t.monthlyFeeLabel}: CHF ${vars.preis} / ${monthWord}${mwstHinweis}`,
       ],
     },
     {

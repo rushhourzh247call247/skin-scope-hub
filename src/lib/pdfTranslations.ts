@@ -5,7 +5,15 @@
 
 export type PdfLang = "de" | "en" | "fr" | "it" | "es";
 
+interface PackageTexts {
+  individual: { label: string; desc: string };
+  pack5: { label: string; desc: string };
+  medium: { label: string; desc: string };
+  unlimited: { label: string; desc: string };
+}
+
 interface PdfTexts {
+  packages: PackageTexts;
   // ── Brochure header ──
   headerSubtitle: string;
   headerTrust: string;
@@ -98,6 +106,12 @@ interface PdfTexts {
 }
 
 const de: PdfTexts = {
+  packages: {
+    individual: { label: "Einzellizenz", desc: "1–4 Ärzte, je CHF 80.–/Mt." },
+    pack5: { label: "5er-Paket", desc: "5 Ärzte, Festpreis" },
+    medium: { label: "6–10 Ärzte", desc: "bis 10 Ärzte, Festpreis" },
+    unlimited: { label: "Unbegrenzt", desc: "unbegrenzt, Festpreis" },
+  },
   headerSubtitle: "Digitale Hautdokumentation für moderne Praxen",
   headerTrust: "Schweizer Hosting  •  DSG konform  •  Für medizinische Praxen entwickelt",
 
@@ -217,6 +231,12 @@ const de: PdfTexts = {
 };
 
 const en: PdfTexts = {
+  packages: {
+    individual: { label: "Individual License", desc: "1–4 doctors, CHF 80.– each/mo." },
+    pack5: { label: "5-Pack", desc: "5 doctors, fixed price" },
+    medium: { label: "6–10 Doctors", desc: "up to 10 doctors, fixed price" },
+    unlimited: { label: "Unlimited", desc: "unlimited, fixed price" },
+  },
   headerSubtitle: "Digital skin documentation for modern practices",
   headerTrust: "Swiss Hosting  •  DSG compliant  •  Developed for medical practices",
 
@@ -336,6 +356,12 @@ const en: PdfTexts = {
 };
 
 const fr: PdfTexts = {
+  packages: {
+    individual: { label: "Licence individuelle", desc: "1–4 médecins, CHF 80.–/mois chacun" },
+    pack5: { label: "Pack 5", desc: "5 médecins, prix fixe" },
+    medium: { label: "6–10 Médecins", desc: "jusqu'à 10 médecins, prix fixe" },
+    unlimited: { label: "Illimité", desc: "illimité, prix fixe" },
+  },
   headerSubtitle: "Documentation dermatologique numérique pour cabinets modernes",
   headerTrust: "Hébergement suisse  •  Conforme LPD  •  Développé pour les cabinets médicaux",
 
@@ -455,6 +481,12 @@ const fr: PdfTexts = {
 };
 
 const it: PdfTexts = {
+  packages: {
+    individual: { label: "Licenza individuale", desc: "1–4 medici, CHF 80.–/mese ciascuno" },
+    pack5: { label: "Pacchetto 5", desc: "5 medici, prezzo fisso" },
+    medium: { label: "6–10 Medici", desc: "fino a 10 medici, prezzo fisso" },
+    unlimited: { label: "Illimitato", desc: "illimitato, prezzo fisso" },
+  },
   headerSubtitle: "Documentazione dermatologica digitale per studi moderni",
   headerTrust: "Hosting svizzero  •  Conforme LPD  •  Sviluppato per studi medici",
 
@@ -574,6 +606,12 @@ const it: PdfTexts = {
 };
 
 const es: PdfTexts = {
+  packages: {
+    individual: { label: "Licencia individual", desc: "1–4 médicos, CHF 80.–/mes cada uno" },
+    pack5: { label: "Paquete 5", desc: "5 médicos, precio fijo" },
+    medium: { label: "6–10 Médicos", desc: "hasta 10 médicos, precio fijo" },
+    unlimited: { label: "Ilimitado", desc: "ilimitado, precio fijo" },
+  },
   headerSubtitle: "Documentación dermatológica digital para consultas modernas",
   headerTrust: "Alojamiento suizo  •  Conforme LPD  •  Desarrollado para consultas médicas",
 
