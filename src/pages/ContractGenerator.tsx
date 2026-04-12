@@ -237,6 +237,7 @@ function buildPdf(vars: ContractVars): jsPDF {
 
 export default function ContractGenerator() {
   const { t } = useTranslation();
+  const queryClient = useQueryClient();
   const [kundeName, setKundeName] = useState("");
   const [kundeAdresse, setKundeAdresse] = useState("");
   const [selectedPaket, setSelectedPaket] = useState("");
@@ -244,6 +245,23 @@ export default function ContractGenerator() {
   const [vertragsnummer, setVertragsnummer] = useState(() => generateContractNumber());
   const [vertragsbeginn, setVertragsbeginn] = useState(() => new Date().toISOString().slice(0, 10));
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const [selectedCompanyId, setSelectedCompanyId] = useState("");
+
+  const { data: companies = [] } = useQuery({
+    queryKey: ["companies"],
+    queryFn: api.getCompanies,
+  });
+
+  const activeCompanies = companies.filter((c: any) => !c.suspended_at);
+
+  const saveMutation = useMutation({
+    mutationFn: (data: any) => api.createContract(data.companyId, data.contract),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["contracts"] });
+      toast.success("Vertrag in der Datenbank gespeichert");
+    },
+    onError: (err: any) => toast.error(err.message || "Speichern fehlgeschlagen"),
+  });
 
   const pkg = PACKAGES.find((p) => p.id === selectedPaket);
 
