@@ -186,18 +186,6 @@ export default function ContractGenerator() {
             </div>
           </div>
 
-          <div className="grid gap-4 sm:grid-cols-2">
-            <div className="space-y-2">
-              <Label htmlFor="anzahlAerzte">Anzahl Ärzte</Label>
-              <Input
-                id="anzahlAerzte"
-                type="number"
-                min={1}
-                value={anzahlAerzte}
-                onChange={(e) => handleAnzahlChange(e.target.value)}
-              />
-            </div>
-          </div>
 
           <div className="space-y-2">
             <Label htmlFor="kundeAdresse">Kunde Adresse</Label>
