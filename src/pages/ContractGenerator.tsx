@@ -232,6 +232,11 @@ export default function ContractGenerator() {
             )}
           </div>
 
+          <div className="flex items-center gap-2">
+            <Checkbox id="mwst" checked={mwst} onCheckedChange={(v: any) => setMwst(!!v)} />
+            <Label htmlFor="mwst" className="cursor-pointer">Preise exkl. MwSt. ausweisen</Label>
+          </div>
+
           <div className="space-y-2">
             <Label>Firma zuordnen (für DB-Speicherung)</Label>
             <Select value={selectedCompanyId} onValueChange={setSelectedCompanyId}>
