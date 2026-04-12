@@ -103,9 +103,38 @@ export default function Tickets() {
 
   useEffect(() => { fetchTickets(); }, [fetchTickets]);
 
+  // Poll ticket list every 15s for new tickets / unread counts
+  useEffect(() => {
+    const interval = setInterval(() => {
+      api.getTickets().then(data => setTickets(data)).catch(() => {});
+    }, 15_000);
+    return () => clearInterval(interval);
+  }, []);
+
+  // Poll selected conversation every 5s for new messages (real-time feel)
+  useEffect(() => {
+    if (!selected) return;
+    const id = selected.id;
+    const interval = setInterval(async () => {
+      try {
+        const updated = await api.getTicket(id);
+        setSelected(prev => {
+          if (!prev || prev.id !== id) return prev;
+          // Only update if message count changed (avoid unnecessary re-renders)
+          if (updated.messages.length !== prev.messages.length || updated.status !== prev.status) {
+            return updated;
+          }
+          return prev;
+        });
+        setTickets(prev => prev.map(t => t.id === id ? { ...updated, unread_count: 0 } : t));
+      } catch {}
+    }, 5_000);
+    return () => clearInterval(interval);
+  }, [selected?.id]);
+
   useEffect(() => {
     chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [selected?.messages]);
+  }, [selected?.messages?.length]);
 
   useEffect(() => {
     if (selected && (selected.unread_count ?? 0) > 0) {
