@@ -95,14 +95,14 @@ IBAN: CH66 0070 0110 0057 8304 8
 Empfänger: Rached Mtiraoui (TechAssist)
 
 
-5. Datenschutz und Datensicherheit
+6. Datenschutz und Datensicherheit
 
 Die Lizenzgeberin verpflichtet sich, alle im Zusammenhang mit der Nutzung der Software anfallenden Daten gemäss dem Schweizerischen Datenschutzgesetz (DSG) und der DSGVO zu behandeln.
 
 Die Daten werden ausschliesslich auf Servern in der Schweiz (Infomaniak) gespeichert. Es werden tägliche Backups sowie regelmässige Snapshots durchgeführt. Die Daten werden nicht an Drittanbieter weitergegeben und nicht ausserhalb der Schweiz verarbeitet. Die Übertragung erfolgt verschlüsselt (TLS 1.2 / 1.3).
 
 
-6. Gewährleistung und Haftung
+7. Gewährleistung und Haftung
 
 Die Lizenzgeberin betreibt die Software nach bestem Wissen und mit aktuellen Sicherheitsstandards. Eine Haftung besteht nur bei grober Fahrlässigkeit oder Vorsatz.
 
@@ -113,22 +113,22 @@ Keine Haftung besteht insbesondere für:
 – indirekte Schäden oder Folgeschäden
 
 
-7. Support
+8. Support
 
 Support erfolgt ausschliesslich per E-Mail an info@techassist.ch. Ein Anspruch auf telefonischen oder Live-Support besteht nicht.
 
 
-8. Speicherung
+9. Speicherung
 
 Die Nutzung beinhaltet eine angemessene Datenspeicherung im üblichen Rahmen. Bei aussergewöhnlich hohem Speicherbedarf kann eine individuelle Vereinbarung getroffen werden.
 
 
-9. Geheimhaltung
+10. Geheimhaltung
 
 Beide Parteien verpflichten sich, vertrauliche Informationen der jeweils anderen Partei geheim zu halten und nicht an Dritte weiterzugeben.
 
 
-10. Schlussbestimmungen
+11. Schlussbestimmungen
 
 Es gilt Schweizer Recht. Gerichtsstand ist Zürich.
 
