@@ -255,7 +255,6 @@ export default function ContractGenerator() {
   const [vertragsnummer, setVertragsnummer] = useState(() => generateContractNumber());
   const [vertragsbeginn, setVertragsbeginn] = useState(() => new Date().toISOString().slice(0, 10));
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
-  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
 
   const pkg = PACKAGES.find((p) => p.id === selectedPaket);
 
