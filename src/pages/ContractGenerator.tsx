@@ -66,9 +66,13 @@ export default function ContractGenerator() {
     setSelectedPaket(val);
     const p = PACKAGES.find((pk) => pk.id === val);
     if (p) {
-      const current = parseInt(anzahlAerzte) || 1;
-      if (current < p.minDocs) setAnzahlAerzte(String(p.minDocs));
-      else if (current > p.maxDocs && p.maxDocs < 999) setAnzahlAerzte(String(p.maxDocs));
+      if (val === "single") {
+        setAnzahlAerzte("1");
+      } else {
+        const current = parseInt(anzahlAerzte) || 1;
+        if (current < p.minDocs) setAnzahlAerzte(String(p.minDocs));
+        else if (current > p.maxDocs && p.maxDocs < 999) setAnzahlAerzte(String(p.maxDocs));
+      }
     }
   };
 
@@ -186,18 +190,6 @@ export default function ContractGenerator() {
             </div>
           </div>
 
-          <div className="grid gap-4 sm:grid-cols-2">
-            <div className="space-y-2">
-              <Label htmlFor="anzahlAerzte">Anzahl Ärzte</Label>
-              <Input
-                id="anzahlAerzte"
-                type="number"
-                min={1}
-                value={anzahlAerzte}
-                onChange={(e) => handleAnzahlChange(e.target.value)}
-              />
-            </div>
-          </div>
 
           <div className="space-y-2">
             <Label htmlFor="kundeAdresse">Kunde Adresse</Label>
@@ -229,6 +221,20 @@ export default function ContractGenerator() {
                 Gewählt: <span className="font-medium text-foreground">{pkg.label}</span> — CHF{" "}
                 {pkg.price} / Monat ({pkg.desc})
               </p>
+            )}
+            {pkg && pkg.id !== "single" && (
+              <div className="mt-3 space-y-2">
+                <Label htmlFor="anzahlAerzte">Anzahl Ärzte (konkret)</Label>
+                <Input
+                  id="anzahlAerzte"
+                  type="number"
+                  min={pkg.minDocs}
+                  max={pkg.maxDocs < 999 ? pkg.maxDocs : undefined}
+                  value={anzahlAerzte}
+                  onChange={(e) => handleAnzahlChange(e.target.value)}
+                  className="max-w-[120px]"
+                />
+              </div>
             )}
           </div>
 
