@@ -1,51 +1,63 @@
 
 
-## UX-Redesign: Patientendetail vereinfachen
+# Marketing-Video Derm247 — Finaler Szenenplan
 
-### Probleme (aus dem Screenshot)
+## Bestätigungen
 
-1. **Header-Tabs**: 7 kleine Icons ohne Labels auf Mobile — Ärzte erkennen nicht, was was ist
-2. **Informationsüberflutung**: Body Map + Zonen + Spots + Papierkorb alle untereinander gestapelt — kein klarer Fokus
-3. **Rechte Icon-Leiste** auf der 3D-Map: ~10 Icons ohne Erklärung — wirkt wie ein CAD-Programm
-4. **Kein geführter Workflow**: Arzt weiß nicht, wo er anfangen soll
+**Datenschutz** — Ja, wird prominent gezeigt:
+- Schweizer Hosting (Standort Schweiz)
+- Verschlüsselte Datenübertragung
+- Keine Drittanbieter, keine Cloud-Dienste ausserhalb der Schweiz
+- Bilder nur mit Auth-Token abrufbar
+- Automatische Session-Abmeldung
 
-### Vorschlag: 3 Säulen der Vereinfachung
+**Preismodelle** — Ja, ohne konkrete Preise:
+- "Flexible Lizenzmodelle — pro Praxis oder pro Benutzer"
+- Hinweis auf Testzugang
 
-#### 1. Header-Tabs → Bottom-Navigation (Mobile) + klare Labels (Desktop)
-- Auf Mobile: Feste Bottom-Tab-Bar mit **4 Haupttabs** + Labels: `Akte | Spots | Fotos | Berichte`
-- "Zonen" und "Timeline" werden Unterseiten (Zonen → in Fotos integriert, Timeline → in Akte)
-- Auf Desktop: Tabs bleiben oben, aber mit sichtbarem Text statt nur Icons
+## Meine Ergänzungen (basierend auf dem Tool)
 
-#### 2. Sidebar: Body Map + Spotliste klar trennen
-- Body Map standardmäßig **eingeklappt** auf Mobile (nur Mini-Vorschau mit "Antippen zum Öffnen")
-- Spotliste bekommt einen **klaren leeren Zustand** mit großem "Erste Stelle markieren"-Button
-- Zonen-Liste und Spots-Liste in **eigene Tabs** innerhalb der Sidebar (nicht beide sichtbar)
-- Papierkorb → hinter "⋯ Mehr"-Menü verstecken statt permanent sichtbar
+1. **Papierkorb / Soft-Delete** — kurz zeigen dass gelöschte Daten wiederherstellbar sind, kein versehentlicher Datenverlust
+2. **Firmen-/Mandantenverwaltung** — mehrere Praxen/Firmen unter einem System, jede isoliert
+3. **Rollen-System** — Admin, Arzt, Benutzer — wer was sehen darf
+4. **Responsive Mobile-Ansicht** — kurzer Frame der zeigt dass es auch auf Tablet/Handy funktioniert
+5. **Automatische Backups** — tägliche Sicherung, Daten gehen nie verloren
+6. **Bild-Authentifizierung** — Bilder sind nicht öffentlich zugänglich, nur mit gültigem Token
+7. **Verlaufs-Tracking** — Risikoprogression über Zeit (RiskProgression-Komponente)
+8. **Übersichtsfoto mit Zonen** — Ganzkörper-Übersicht mit automatischen Markierungen
 
-#### 3. 3D-Map Toolbar vereinfachen
-- Die rechte Icon-Leiste auf **3 Hauptaktionen** reduzieren: `Spot setzen | Zone setzen | Filter`
-- Restliche Funktionen (Klassifikationsfilter, Download etc.) in ein Menü auslagern
-- Klare Texthinweise statt nur Icons: "Tippen Sie auf den Körper um eine Stelle zu markieren"
+## Aktualisierter Szenenplan (~55 Sekunden)
 
-### Technische Umsetzung
+| # | Szene | Dauer | Inhalt | Maus-Aktion |
+|---|-------|-------|--------|-------------|
+| 1 | Intro | 3s | Logo, "Digitale Hautkrebsvorsorge" | — |
+| 2 | Login | 4s | Login mit verpixelten Daten, 5 Sprach-Flaggen zeigen | Klick auf Felder, Login |
+| 3 | Dashboard | 4s | Statistiken, Patientenliste, Risiko-Übersicht | Maus über Karten |
+| 4 | Patient erstellen | 4s | Formular mit Dummy-Daten ausfüllen | Felder ausfüllen, Speichern |
+| 5 | Patientendetail | 4s | Tabs: Akte, Spots, Zonen, Befunde | Tab-Wechsel |
+| 6 | 3D-Körperkarte | 4s | Marker setzen, auto Körperstellen-Benennung | Klick auf Körperstelle |
+| 7 | QR-Upload | 4s | QR-Dialog, Text: "Bilder landen sicher beim richtigen Patienten" | QR-Button klicken |
+| 8 | Bildvergleich | 4s | Side-by-Side, Overlay, KI-Ausrichtung (OpenCV) | Slider ziehen |
+| 9 | ABCDE | 3s | Bewertung mit Risiko-Score, Farbcodierung | Werte einstellen |
+| 10 | Risiko-Verlauf | 2s | Progression über Zeit | Hover |
+| 11 | Klassifikation & Befunde | 3s | Dokumentation schreiben | Text eingeben |
+| 12 | Zonen | 3s | Übersichtsfoto mit Pins, Leader-Lines | Hover über Pins |
+| 13 | PDF-Export | 3s | Export-Dialog, PDF-Vorschau | Klick Export |
+| 14 | Datenschutz | 3s | Text-Overlay: Schweizer Hosting, Verschlüsselung, keine Drittanbieter, Auth-geschützte Bilder, Auto-Logout | — |
+| 15 | Preismodelle | 2s | "Flexible Lizenzmodelle — pro Praxis oder pro Benutzer", Testzugang | — |
+| 16 | Firmen & Rollen | 2s | Multi-Mandant, Rollensystem (Admin/Arzt/User) | — |
+| 17 | Support | 2s | Ticket/Chat-System | — |
+| 18 | Outro | 3s | Logo, derm247.ch, "Hosting in der Schweiz", Kontakt | — |
 
-**Datei: `src/pages/PatientDetail.tsx`**
-- Mobile Bottom-Navigation als fixierte Leiste am unteren Bildschirmrand (nur bei `< lg`)
-- Header-Tabs auf Mobile ausblenden, auf Desktop mit Labels anzeigen
-- Sidebar-Tabs: `useState<"spots"|"zonen">` für Sidebar-Inhalt unterhalb der Map
-- Body Map auf Mobile: Standardmäßig `mobileMapExpanded = false`, mit Thumbnail-Vorschau
-- Papierkorb: Hinter Collapsible mit weniger Prominenz
+## Technischer Ablauf
 
-**Datei: `src/components/BodyMap3D.tsx`**
-- Rechte Toolbar: Icons gruppieren, sekundäre Aktionen in Dropdown-Menü
-- Tooltip-Text auf allen Buttons hinzufügen
-
-**Dateien: `src/i18n/locales/de.json`, `en.json`**
-- Neue Keys für Bottom-Nav-Labels und vereinfachte Hinweistexte
-
-### Ergebnis
-- Arzt sieht beim Öffnen: **Patientenakte** (klare Übersicht)
-- Will er Spots bearbeiten: **1 Tap auf "Spots"** → Body Map + Spotliste
-- Will er Fotos sehen: **1 Tap auf "Fotos"** → Galerie + Zonen
-- Kein Rätselraten bei Icons, kein Scrollen durch irrelevante Bereiche
+1. **Screenshots sammeln**: Browser öffnen, mit `test@test.ch / welcome` einloggen, durch alle 18 Szenen navigieren, je einen Screenshot erfassen. Dabei einen echten Patienten anlegen mit Dummy-Daten.
+2. **Realistische Muttermal-Bilder**: Klinisch aussehende Hautläsionen als vollformatige Aufnahmen (keine abgeschnittenen Ränder).
+3. **Remotion-Projekt**: Aufsetzen unter `remotion/`, jede Szene als eigene Komponente.
+4. **Animierter Maus-Cursor**: SVG-Cursor mit realistischer Kurven-Bewegung und Klick-Ripple-Effekt.
+5. **Stil**: Tech Product / Clean Medical — dunkler Hintergrund, Teal-Akzente passend zum Derm247-Branding, MacOS-Fensterrahmen.
+6. **Text-Overlays**: Deutsche Feature-Beschreibungen pro Szene.
+7. **Blur-Masken**: Login-Daten und Patientennamen verpixelt.
+8. **Render**: 1920x1080, 30fps, H.264 → `/mnt/documents/derm247-tour.mp4`
+9. **QA**: Frame-Spot-Checks an kritischen Stellen, jede Szene auf Vollständigkeit prüfen.
 
