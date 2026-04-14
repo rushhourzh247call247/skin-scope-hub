@@ -237,7 +237,21 @@ const UserManagement = () => {
           </DialogTrigger>
           <DialogContent>
             <DialogHeader><DialogTitle>{t("users.createTitle")}</DialogTitle></DialogHeader>
-            <form onSubmit={(e) => { e.preventDefault(); createMutation.mutate({ name, email, password, company_id: Number(companyId), role }); }} className="space-y-4">
+            <form onSubmit={async (e) => {
+              e.preventDefault();
+              if (companyId) {
+                try {
+                  const status = await api.getLicenseStatus(Number(companyId));
+                  if (status.available <= 0) {
+                    toast.error(`Lizenzlimit erreicht (${status.used}/${status.licenses}). Bitte Vertrag upgraden.`);
+                    return;
+                  }
+                } catch {
+                  // If endpoint not available yet, proceed without check
+                }
+              }
+              createMutation.mutate({ name, email, password, company_id: Number(companyId), role });
+            }} className="space-y-4">
               <div className="space-y-2">
                 <Label htmlFor="user-name">{t("common.name")}</Label>
                 <Input id="user-name" required value={name} onChange={(e) => setName(e.target.value)} placeholder={t("users.namePlaceholder")} />
