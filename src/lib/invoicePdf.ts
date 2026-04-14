@@ -27,7 +27,7 @@ const COMPANY_INFO = {
   name: "TechAssist",
   owner: "Rached Mtiraoui",
   addressLine1: "TechAssist – Rached Mtiraoui",
-  addressLine2: "Dällikerstrasse 50",
+  addressLine2: "Dällikerstrasse 48",
   addressLine3: "8105 Regensdorf",
   country: "Schweiz",
   email: "info@techassist.ch",
