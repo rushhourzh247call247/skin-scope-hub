@@ -219,19 +219,23 @@ function drawPage2(doc: jsPDF, lang: PdfLang) {
     doc.text(s, LEFT + 7, y);
     y += 6;
   }
-  y += 8;
+  y += 6;
+
+  // Position contact box to fill remaining space nicely (end ~10mm above footer at 282)
+  const contactBoxHeight = 34;
+  const contactY = Math.max(y, 272 - contactBoxHeight - 10);
 
   doc.setFillColor(...BRAND);
-  doc.roundedRect(LEFT, y, W, 30, 3, 3, "F");
+  doc.roundedRect(LEFT, contactY, W, contactBoxHeight, 3, 3, "F");
   doc.setFont("helvetica", "bold");
   doc.setFontSize(12);
   doc.setTextColor(...WHITE);
-  doc.text(t.contactTitle, LEFT + 8, y + 10);
+  doc.text(t.contactTitle, LEFT + 8, contactY + 11);
   doc.setFont("helvetica", "normal");
   doc.setFontSize(9);
-  doc.text(t.contactLine1, LEFT + 8, y + 17);
-  doc.text(t.contactLine2, LEFT + 8, y + 23);
-  doc.text(t.contactLine3, LEFT + 8, y + 29);
+  doc.text(t.contactLine1, LEFT + 8, contactY + 19);
+  doc.text(t.contactLine2, LEFT + 8, contactY + 25);
+  doc.text(t.contactLine3, LEFT + 8, contactY + 31);
 }
 
 // ── Public API ─────────────────────────────────────────────────
