@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { FileText, Eye, Hash, Save, Building2, FileStack, Globe, Download, Upload, Loader2, Search, Trash2 } from "lucide-react";
+import { FileText, Eye, Hash, Save, Building2, FileStack, Globe, Download, Upload, Loader2, Search, Trash2, Users } from "lucide-react";
 import { SUPPORTED_LANGUAGES } from "@/i18n";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -60,7 +60,21 @@ function ContractsOverview() {
     queryFn: api.getCompanies,
   });
 
+  const { data: allUsers = [] } = useQuery({
+    queryKey: ["users"],
+    queryFn: api.getUsers,
+  });
+
   const companyMap = Object.fromEntries(companies.map((c: any) => [c.id, c.name]));
+
+  // Group active (non-accountant) users by company
+  const usersByCompany: Record<string, any[]> = {};
+  allUsers.forEach((u: any) => {
+    if (u.role === "accountant") return;
+    const cid = String(u.company_id);
+    if (!usersByCompany[cid]) usersByCompany[cid] = [];
+    usersByCompany[cid].push(u);
+  });
 
   const deleteMutation = useMutation({
     mutationFn: (contractId: number) => api.deleteContract(contractId),
@@ -180,6 +194,27 @@ function ContractsOverview() {
             {" "}= <span className="font-medium">{contract.licenses + (contract.bonus_licenses || 0)} total</span>
           </div>
         </div>
+        {/* Active users for this company */}
+        {(() => {
+          const companyUsers = usersByCompany[String(contract.company_id)] || [];
+          const totalLicenses = contract.licenses + (contract.bonus_licenses || 0);
+          if (companyUsers.length === 0) return null;
+          return (
+            <div className="text-sm space-y-1">
+              <div className="flex items-center gap-1.5 text-muted-foreground">
+                <Users className="h-3.5 w-3.5" />
+                <span>Aktive Benutzer ({companyUsers.length}/{totalLicenses}):</span>
+              </div>
+              <div className="flex flex-wrap gap-1.5">
+                {companyUsers.map((u: any) => (
+                  <Badge key={u.id} variant="secondary" className="text-xs font-normal">
+                    {u.name} <span className="text-muted-foreground ml-1">({u.email})</span>
+                  </Badge>
+                ))}
+              </div>
+            </div>
+          );
+        })()}
         {contract.notes && (
           <p className="text-xs text-muted-foreground bg-muted/50 rounded p-2">{contract.notes}</p>
         )}
