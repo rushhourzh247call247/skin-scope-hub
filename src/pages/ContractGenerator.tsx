@@ -18,7 +18,16 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { toast } from "sonner";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import PdfPreviewPages from "@/components/PdfPreviewPages";
 import { api } from "@/lib/api";
 import { PACKAGES, suggestPackage, generateContractNumber, buildContractPdf, buildAmendmentPdf, calcPrice, type ContractVars } from "@/lib/contractPdf";
