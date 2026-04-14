@@ -307,3 +307,132 @@ export function buildContractPdf(vars: ContractVars): jsPDF {
   renderContractPages(doc, vars, false);
   return doc;
 }
+
+// ─── Amendment PDF (Nachtrag) ───────────────────
+
+export interface AmendmentVars {
+  vertragsnummer: string;
+  kundeName: string;
+  kundeAdresse: string;
+  oldPaket: string;
+  oldPreis: string;
+  oldLizenzen: string;
+  newPaket: string;
+  newPreis: string;
+  newLizenzen: string;
+  datum: string;
+  newEndDate: string;
+  lang?: PdfLang;
+}
+
+export function buildAmendmentPdf(vars: AmendmentVars): jsPDF {
+  const doc = new jsPDF({ unit: "mm", format: "a4" });
+  const lang = vars.lang || "de";
+
+  drawContractHeader(doc, vars.vertragsnummer, lang);
+
+  let y = PAGE_TOP + 4;
+
+  // Title
+  doc.setFont("helvetica", "bold");
+  doc.setFontSize(16);
+  doc.setTextColor(30, 30, 30);
+  doc.text("Vertragsnachtrag / Amendment", LEFT_MARGIN, y);
+  y += 8;
+
+  doc.setFont("helvetica", "normal");
+  doc.setFontSize(9);
+  doc.setTextColor(100, 100, 100);
+  doc.text(`Zum Vertrag Nr. ${vars.vertragsnummer}`, LEFT_MARGIN, y);
+  y += LINE_HEIGHT;
+  doc.text(`Datum: ${vars.datum}`, LEFT_MARGIN, y);
+  y += LINE_HEIGHT * 2;
+
+  // Parties
+  doc.setFontSize(10);
+  doc.setTextColor(30, 30, 30);
+  doc.text("Zwischen", LEFT_MARGIN, y);
+  y += LINE_HEIGHT;
+  doc.setFont("helvetica", "bold");
+  doc.text("TechAssist (Lizenzgeber)", LEFT_MARGIN, y);
+  y += LINE_HEIGHT;
+  doc.setFont("helvetica", "normal");
+  doc.text("und", LEFT_MARGIN, y);
+  y += LINE_HEIGHT;
+  doc.setFont("helvetica", "bold");
+  doc.text(`${vars.kundeName} (Lizenznehmer)`, LEFT_MARGIN, y);
+  y += LINE_HEIGHT;
+  doc.setFont("helvetica", "normal");
+  doc.text(vars.kundeAdresse, LEFT_MARGIN, y);
+  y += LINE_HEIGHT * 2;
+
+  // Changes table
+  doc.setFont("helvetica", "bold");
+  doc.setFontSize(11);
+  doc.text("Änderungen", LEFT_MARGIN, y);
+  y += LINE_HEIGHT + 2;
+
+  // Table header
+  const col1 = LEFT_MARGIN;
+  const col2 = LEFT_MARGIN + 60;
+  const col3 = LEFT_MARGIN + 120;
+  doc.setFillColor(240, 240, 240);
+  doc.rect(LEFT_MARGIN, y - 4, TEXT_WIDTH, 6, "F");
+  doc.setFontSize(9);
+  doc.setFont("helvetica", "bold");
+  doc.text("", col1, y);
+  doc.text("Bisher", col2, y);
+  doc.text("Neu", col3, y);
+  y += LINE_HEIGHT + 1;
+
+  doc.setFont("helvetica", "normal");
+  doc.setFontSize(10);
+
+  // Paket
+  doc.text("Paket:", col1, y);
+  doc.text(vars.oldPaket, col2, y);
+  doc.text(vars.newPaket, col3, y);
+  y += LINE_HEIGHT;
+
+  // Lizenzen
+  doc.text("Lizenzen:", col1, y);
+  doc.text(vars.oldLizenzen, col2, y);
+  doc.text(vars.newLizenzen, col3, y);
+  y += LINE_HEIGHT;
+
+  // Preis
+  doc.text("Monatspreis:", col1, y);
+  doc.text(`CHF ${vars.oldPreis}`, col2, y);
+  doc.setFont("helvetica", "bold");
+  doc.text(`CHF ${vars.newPreis}`, col3, y);
+  doc.setFont("helvetica", "normal");
+  y += LINE_HEIGHT * 2;
+
+  // New end date
+  doc.setFont("helvetica", "bold");
+  doc.setFontSize(11);
+  doc.text("Neue Mindestlaufzeit", LEFT_MARGIN, y);
+  y += LINE_HEIGHT;
+  doc.setFont("helvetica", "normal");
+  doc.setFontSize(10);
+  doc.text(`Der Vertrag verlängert sich mit einer neuen Mindestlaufzeit bis zum ${vars.newEndDate}.`, LEFT_MARGIN, y);
+  y += LINE_HEIGHT;
+  doc.text("Alle übrigen Vertragsbestimmungen bleiben unverändert bestehen.", LEFT_MARGIN, y);
+  y += LINE_HEIGHT * 3;
+
+  // Signatures
+  doc.text(`Ort, Datum: ________________________          Ort, Datum: ________________________`, LEFT_MARGIN, y);
+  y += LINE_HEIGHT * 2;
+  doc.text("Lizenzgeber:                                 Lizenznehmer:", LEFT_MARGIN, y);
+  y += LINE_HEIGHT;
+  doc.text(`Rached Mtiraoui (TechAssist)                   ${vars.kundeName}`, LEFT_MARGIN, y);
+  y += LINE_HEIGHT * 2;
+  doc.text("________________________                       ________________________", LEFT_MARGIN, y);
+  y += LINE_HEIGHT;
+  doc.setFontSize(8);
+  doc.text("Unterschrift                                   Unterschrift", LEFT_MARGIN, y);
+
+  drawContractFooter(doc, 1, 1, lang);
+
+  return doc;
+}

@@ -2,7 +2,7 @@ import { useState, useRef } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
 import { api } from "@/lib/api";
-import { PACKAGES, buildContractPdf, type ContractVars } from "@/lib/contractPdf";
+import { PACKAGES, calcPrice, buildContractPdf, buildAmendmentPdf, type ContractVars } from "@/lib/contractPdf";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -84,6 +84,33 @@ type ContractFormData = {
   customer_address: string;
   notes: string;
 };
+
+function LicenseUsageBadge({ companyId, maxLicenses }: { companyId: number; maxLicenses: number }) {
+  const { data: licenseStatus } = useQuery({
+    queryKey: ["license-status", companyId],
+    queryFn: () => api.getLicenseStatus(companyId),
+    staleTime: 30_000,
+  });
+
+  if (!licenseStatus) return null;
+
+  const used = licenseStatus.used;
+  const available = maxLicenses - used;
+  const isFull = available <= 0;
+
+  return (
+    <div className="flex items-center gap-2 mb-2">
+      <Badge
+        variant={isFull ? "destructive" : "secondary"}
+        className="text-xs"
+      >
+        {used} / {maxLicenses} Lizenzen belegt
+        {!isFull && ` (${available} frei)`}
+        {isFull && " – Limit erreicht"}
+      </Badge>
+    </div>
+  );
+}
 
 export default function ContractPanel({ companyId, companyName }: ContractPanelProps) {
   const { t } = useTranslation();
@@ -172,12 +199,13 @@ export default function ContractPanel({ companyId, companyName }: ContractPanelP
       toast.error("Bitte Kundenname und Paket ausfüllen");
       return;
     }
+    const price = calcPrice(pkg.id, form.licenses);
     createMutation.mutate({
       contract_number: form.contract_number,
       package_name: pkg.label,
       package_id: pkg.id,
       licenses: form.licenses,
-      monthly_price: pkg.priceNum,
+      monthly_price: price.total,
       start_date: form.start_date,
       end_date: addMonths(form.start_date, 12),
       notice_period_days: 60,
@@ -191,18 +219,81 @@ export default function ContractPanel({ companyId, companyName }: ContractPanelP
     if (!editingContract) return;
     const pkg = PACKAGES.find((p) => p.id === form.package_id);
     if (!pkg) return;
+
+    const price = calcPrice(pkg.id, form.licenses);
+    const today = new Date().toISOString().slice(0, 10);
+    const newMinEnd = addMonths(today, 12);
+    const existingEnd = editingContract.end_date?.slice(0, 10) || newMinEnd;
+    const endDate = existingEnd > newMinEnd ? existingEnd : newMinEnd;
+
+    // Build change log
+    const changes: string[] = [];
+    const oldPkg = PACKAGES.find(p => p.id === editingContract.package_id);
+    if (editingContract.package_id !== form.package_id) {
+      changes.push(`Paket: ${oldPkg?.label || editingContract.package_id}→${pkg.label}`);
+    }
+    if (editingContract.licenses !== form.licenses) {
+      changes.push(`Lizenzen: ${editingContract.licenses}→${form.licenses}`);
+    }
+    const oldPrice = Number(editingContract.monthly_price);
+    if (oldPrice !== price.total) {
+      changes.push(`Preis: CHF ${oldPrice}→${price.total}`);
+    }
+
+    let notes = form.notes || "";
+    if (changes.length > 0) {
+      const changeEntry = `${new Date().toLocaleDateString("de-CH")}: ${changes.join(", ")}, Mindestlaufzeit bis ${new Date(endDate).toLocaleDateString("de-CH")}`;
+      notes = notes ? `${notes}\n${changeEntry}` : changeEntry;
+    }
+
+    const amendmentData = changes.length > 0 ? {
+      oldContract: editingContract,
+      newPkg: pkg,
+      newLicenses: form.licenses,
+      newPrice: price.total,
+      newEndDate: endDate,
+    } : null;
+
     updateMutation.mutate({
       id: editingContract.id,
       data: {
         package_name: pkg.label,
         package_id: pkg.id,
         licenses: form.licenses,
-        monthly_price: pkg.priceNum,
+        monthly_price: price.total,
         start_date: form.start_date,
-        end_date: addMonths(form.start_date, 12),
+        end_date: endDate,
         customer_name: form.customer_name,
         customer_address: form.customer_address || null,
-        notes: form.notes || null,
+        notes: notes || null,
+      },
+    }, {
+      onSuccess: () => {
+        if (amendmentData) {
+          toast("Vertrag angepasst. Nachtrag-PDF herunterladen?", {
+            action: {
+              label: "PDF herunterladen",
+              onClick: () => {
+                const oldPkgObj = PACKAGES.find(p => p.id === amendmentData.oldContract.package_id);
+                const doc = buildAmendmentPdf({
+                  vertragsnummer: amendmentData.oldContract.contract_number,
+                  kundeName: form.customer_name,
+                  kundeAdresse: form.customer_address || "–",
+                  oldPaket: oldPkgObj?.label || amendmentData.oldContract.package_name,
+                  oldPreis: `${Number(amendmentData.oldContract.monthly_price)}.–`,
+                  oldLizenzen: String(amendmentData.oldContract.licenses),
+                  newPaket: amendmentData.newPkg.label,
+                  newPreis: `${amendmentData.newPrice}.–`,
+                  newLizenzen: String(amendmentData.newLicenses),
+                  datum: new Date().toLocaleDateString("de-CH"),
+                  newEndDate: new Date(amendmentData.newEndDate).toLocaleDateString("de-CH"),
+                });
+                doc.save(`Nachtrag_${amendmentData.oldContract.contract_number}_${new Date().toISOString().slice(0, 10)}.pdf`);
+              },
+            },
+            duration: 10000,
+          });
+        }
       },
     });
   };
@@ -324,6 +415,8 @@ export default function ContractPanel({ companyId, companyName }: ContractPanelP
             )}
           </div>
         </div>
+
+        <LicenseUsageBadge companyId={companyId} maxLicenses={contract.licenses} />
 
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3 text-sm">
           <div>
@@ -625,7 +718,7 @@ function ContractForm({
         </Select>
         {pkg && (
           <p className="text-xs text-muted-foreground">
-            {pkg.label} — CHF {pkg.priceNum}.- / Monat • Vertragsende: {formatDate(addMonths(form.start_date, 12))}
+            {pkg.label} — CHF {calcPrice(pkg.id, form.licenses).total}.- / Monat • Vertragsende: {formatDate(addMonths(form.start_date, 12))}
           </p>
         )}
       </div>

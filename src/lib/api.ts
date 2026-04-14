@@ -501,6 +501,10 @@ export const api = {
   deleteContract: (contractId: number) =>
     request<{ success: boolean }>(`/contracts/${contractId}`, { method: 'DELETE' }),
 
+  // License status
+  getLicenseStatus: (companyId: number) =>
+    request<{ licenses: number; used: number; available: number }>(`/companies/${companyId}/license-status`),
+
   // Tickets
   getTickets: () =>
     request<any[]>('/tickets'),
