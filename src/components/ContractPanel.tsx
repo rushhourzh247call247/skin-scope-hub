@@ -79,13 +79,15 @@ type ContractFormData = {
   contract_number: string;
   package_id: string;
   licenses: number;
+  bonus_licenses: number;
+  custom_price: string;
   start_date: string;
   customer_name: string;
   customer_address: string;
   notes: string;
 };
 
-function LicenseUsageBadge({ companyId, maxLicenses }: { companyId: number; maxLicenses: number }) {
+function LicenseUsageBadge({ companyId, maxLicenses, bonusLicenses = 0 }: { companyId: number; maxLicenses: number; bonusLicenses?: number }) {
   const { data: licenseStatus } = useQuery({
     queryKey: ["license-status", companyId],
     queryFn: () => api.getLicenseStatus(companyId),
@@ -94,8 +96,9 @@ function LicenseUsageBadge({ companyId, maxLicenses }: { companyId: number; maxL
 
   if (!licenseStatus) return null;
 
+  const totalLicenses = maxLicenses + bonusLicenses;
   const used = licenseStatus.used;
-  const available = maxLicenses - used;
+  const available = totalLicenses - used;
   const isFull = available <= 0;
 
   return (
@@ -104,10 +107,15 @@ function LicenseUsageBadge({ companyId, maxLicenses }: { companyId: number; maxL
         variant={isFull ? "destructive" : "secondary"}
         className="text-xs"
       >
-        {used} / {maxLicenses} Lizenzen belegt
+        {used} / {totalLicenses} Lizenzen belegt
         {!isFull && ` (${available} frei)`}
         {isFull && " – Limit erreicht"}
       </Badge>
+      {bonusLicenses > 0 && (
+        <Badge variant="outline" className="text-xs text-primary border-primary/30">
+          +{bonusLicenses} Kulanz
+        </Badge>
+      )}
     </div>
   );
 }
@@ -129,6 +137,8 @@ export default function ContractPanel({ companyId, companyName }: ContractPanelP
     contract_number: generateContractNumber(),
     package_id: "",
     licenses: 1,
+    bonus_licenses: 0,
+    custom_price: "",
     start_date: new Date().toISOString().slice(0, 10),
     customer_name: companyName,
     customer_address: "",
@@ -199,13 +209,15 @@ export default function ContractPanel({ companyId, companyName }: ContractPanelP
       toast.error("Bitte Kundenname und Paket ausfüllen");
       return;
     }
-    const price = calcPrice(pkg.id, form.licenses);
+    const price = form.custom_price ? parseFloat(form.custom_price) : calcPrice(pkg.id, form.licenses).total;
     createMutation.mutate({
       contract_number: form.contract_number,
       package_name: pkg.label,
       package_id: pkg.id,
       licenses: form.licenses,
-      monthly_price: price.total,
+      bonus_licenses: form.bonus_licenses || 0,
+      monthly_price: price,
+      custom_price: form.custom_price ? parseFloat(form.custom_price) : null,
       start_date: form.start_date,
       end_date: addMonths(form.start_date, 12),
       notice_period_days: 60,
@@ -220,7 +232,8 @@ export default function ContractPanel({ companyId, companyName }: ContractPanelP
     const pkg = PACKAGES.find((p) => p.id === form.package_id);
     if (!pkg) return;
 
-    const price = calcPrice(pkg.id, form.licenses);
+    const effectivePrice = form.custom_price ? parseFloat(form.custom_price) : calcPrice(pkg.id, form.licenses).total;
+    const price = { total: effectivePrice };
     const today = new Date().toISOString().slice(0, 10);
     const newMinEnd = addMonths(today, 12);
     const existingEnd = editingContract.end_date?.slice(0, 10) || newMinEnd;
@@ -260,7 +273,9 @@ export default function ContractPanel({ companyId, companyName }: ContractPanelP
         package_name: pkg.label,
         package_id: pkg.id,
         licenses: form.licenses,
+        bonus_licenses: form.bonus_licenses || 0,
         monthly_price: price.total,
+        custom_price: form.custom_price ? parseFloat(form.custom_price) : null,
         start_date: form.start_date,
         end_date: endDate,
         customer_name: form.customer_name,
@@ -304,6 +319,8 @@ export default function ContractPanel({ companyId, companyName }: ContractPanelP
       contract_number: contract.contract_number,
       package_id: contract.package_id,
       licenses: contract.licenses,
+      bonus_licenses: contract.bonus_licenses || 0,
+      custom_price: contract.custom_price ? String(contract.custom_price) : "",
       start_date: contract.start_date?.slice(0, 10) || "",
       customer_name: contract.customer_name || "",
       customer_address: contract.customer_address || "",
@@ -416,7 +433,7 @@ export default function ContractPanel({ companyId, companyName }: ContractPanelP
           </div>
         </div>
 
-        <LicenseUsageBadge companyId={companyId} maxLicenses={contract.licenses} />
+        <LicenseUsageBadge companyId={companyId} maxLicenses={contract.licenses} bonusLicenses={contract.bonus_licenses || 0} />
 
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3 text-sm">
           <div>
@@ -425,11 +442,21 @@ export default function ContractPanel({ companyId, companyName }: ContractPanelP
           </div>
           <div>
             <span className="text-muted-foreground">Lizenzen:</span>{" "}
-            <span className="font-medium">{contract.licenses}</span>
+            <span className="font-medium">
+              {contract.licenses}
+              {(contract.bonus_licenses || 0) > 0 && (
+                <span className="text-primary"> +{contract.bonus_licenses} Kulanz</span>
+              )}
+            </span>
           </div>
           <div>
             <span className="text-muted-foreground">Monatlich:</span>{" "}
-            <span className="font-medium">{formatPrice(contract.monthly_price)}</span>
+            <span className="font-medium">
+              {contract.custom_price
+                ? <>{formatPrice(contract.custom_price)} <span className="text-xs text-primary">(Sonderpreis)</span></>
+                : formatPrice(contract.monthly_price)
+              }
+            </span>
           </div>
           <div>
             <span className="text-muted-foreground">Vertragsbeginn:</span>{" "}
@@ -581,6 +608,8 @@ export default function ContractPanel({ companyId, companyName }: ContractPanelP
                 contract_number: generateContractNumber(),
                 package_id: "",
                 licenses: 1,
+                bonus_licenses: 0,
+                custom_price: "",
                 start_date: new Date().toISOString().slice(0, 10),
                 customer_name: companyName,
                 customer_address: "",
@@ -752,6 +781,30 @@ function ContractForm({
             value={form.licenses}
             onChange={(e) => setForm({ ...form, licenses: parseInt(e.target.value) || 1 })}
           />
+        </div>
+      </div>
+      <div className="grid gap-4 grid-cols-2">
+        <div className="space-y-2">
+          <Label>Zusatzlizenzen (Kulanz)</Label>
+          <Input
+            type="number"
+            min={0}
+            value={form.bonus_licenses}
+            onChange={(e) => setForm({ ...form, bonus_licenses: parseInt(e.target.value) || 0 })}
+          />
+          <p className="text-xs text-muted-foreground">Extra-Lizenzen ohne Vertragsänderung</p>
+        </div>
+        <div className="space-y-2">
+          <Label>Sonderpreis (CHF/Mt.)</Label>
+          <Input
+            type="number"
+            min={0}
+            step={10}
+            value={form.custom_price}
+            onChange={(e) => setForm({ ...form, custom_price: e.target.value })}
+            placeholder={pkg ? String(calcPrice(pkg.id, form.licenses).total) : "–"}
+          />
+          <p className="text-xs text-muted-foreground">Leer = Standardpreis</p>
         </div>
       </div>
       <div className="space-y-2">
