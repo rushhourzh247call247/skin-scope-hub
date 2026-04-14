@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { FileText, Eye, Hash, Save, Building2, FileStack, Globe, Download, Upload, Loader2 } from "lucide-react";
+import { FileText, Eye, Hash, Save, Building2, FileStack, Globe, Download, Upload, Loader2, Search, Trash2 } from "lucide-react";
 import { SUPPORTED_LANGUAGES } from "@/i18n";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -18,6 +18,16 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { toast } from "sonner";
 import PdfPreviewPages from "@/components/PdfPreviewPages";
 import { api } from "@/lib/api";
@@ -36,6 +46,10 @@ function formatPrice(price: number | string): string {
 }
 
 function ContractsOverview() {
+  const queryClient = useQueryClient();
+  const [searchTerm, setSearchTerm] = useState("");
+  const [deleteTarget, setDeleteTarget] = useState<any>(null);
+
   const { data: allContracts = [], isLoading } = useQuery({
     queryKey: ["all-contracts"],
     queryFn: api.getAllContracts,
@@ -48,9 +62,31 @@ function ContractsOverview() {
 
   const companyMap = Object.fromEntries(companies.map((c: any) => [c.id, c.name]));
 
-  const activeContracts = allContracts.filter((c: any) => c.status === "active");
-  const terminatedContracts = allContracts.filter((c: any) => c.status === "terminated");
-  const expiredContracts = allContracts.filter((c: any) => c.status === "expired");
+  const deleteMutation = useMutation({
+    mutationFn: (contractId: number) => api.deleteContract(contractId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["all-contracts"] });
+      queryClient.invalidateQueries({ queryKey: ["contracts"] });
+      toast.success("Vertrag gelöscht");
+      setDeleteTarget(null);
+    },
+    onError: (err: any) => toast.error(err.message || "Löschen fehlgeschlagen"),
+  });
+
+  // Filter by search
+  const lowerSearch = searchTerm.toLowerCase().trim();
+  const filteredContracts = lowerSearch
+    ? allContracts.filter((c: any) => {
+        const companyName = (companyMap[c.company_id] || "").toLowerCase();
+        const contractNum = (c.contract_number || "").toLowerCase();
+        const customerName = (c.customer_name || "").toLowerCase();
+        return companyName.includes(lowerSearch) || contractNum.includes(lowerSearch) || customerName.includes(lowerSearch);
+      })
+    : allContracts;
+
+  const activeContracts = filteredContracts.filter((c: any) => c.status === "active");
+  const terminatedContracts = filteredContracts.filter((c: any) => c.status === "terminated");
+  const expiredContracts = filteredContracts.filter((c: any) => c.status === "expired");
 
   const handleDownloadContractPdf = (contract: any) => {
     const pkg = PACKAGES.find(p => p.id === contract.package_id);
@@ -161,6 +197,14 @@ function ContractsOverview() {
               <Download className="h-3.5 w-3.5 mr-1" /> Signiertes PDF
             </Button>
           )}
+          <Button
+            variant="ghost"
+            size="sm"
+            className="text-destructive hover:text-destructive ml-auto"
+            onClick={() => setDeleteTarget(contract)}
+          >
+            <Trash2 className="h-3.5 w-3.5 mr-1" /> Löschen
+          </Button>
         </div>
       </div>
     );
@@ -176,6 +220,17 @@ function ContractsOverview() {
 
   return (
     <div className="space-y-6">
+      {/* Search */}
+      <div className="relative">
+        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+        <Input
+          placeholder="Suche nach Firma, Kunde oder Vertragsnummer…"
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+          className="pl-9"
+        />
+      </div>
+
       <div className="grid gap-4 sm:grid-cols-3">
         <Card>
           <CardContent className="pt-4 text-center">
@@ -197,13 +252,46 @@ function ContractsOverview() {
         </Card>
       </div>
 
-      {allContracts.length === 0 ? (
-        <p className="text-center text-muted-foreground py-8">Keine Verträge vorhanden</p>
+      {filteredContracts.length === 0 ? (
+        <p className="text-center text-muted-foreground py-8">
+          {searchTerm ? "Keine Verträge gefunden" : "Keine Verträge vorhanden"}
+        </p>
       ) : (
         <div className="space-y-3">
-          {allContracts.map(renderContractRow)}
+          {filteredContracts.map(renderContractRow)}
         </div>
       )}
+
+      {/* Delete Confirmation Dialog */}
+      <AlertDialog open={!!deleteTarget} onOpenChange={(open) => { if (!open) setDeleteTarget(null); }}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Vertrag löschen</AlertDialogTitle>
+            <AlertDialogDescription>
+              {deleteTarget?.status === "active" ? (
+                <span className="text-destructive font-medium">
+                  ⚠️ Achtung: Dies ist ein aktiver Vertrag! Das Löschen kann nicht rückgängig gemacht werden.
+                </span>
+              ) : (
+                "Dieser Vertrag wird unwiderruflich gelöscht."
+              )}
+              <br /><br />
+              Vertrag: <strong>{deleteTarget?.contract_number}</strong>
+              {deleteTarget?.customer_name && <> — {deleteTarget.customer_name}</>}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Abbrechen</AlertDialogCancel>
+            <AlertDialogAction
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              onClick={() => deleteTarget && deleteMutation.mutate(deleteTarget.id)}
+              disabled={deleteMutation.isPending}
+            >
+              {deleteMutation.isPending ? "Lösche…" : "Endgültig löschen"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
