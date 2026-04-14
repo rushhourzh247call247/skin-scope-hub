@@ -24,6 +24,7 @@ import Tickets from "./pages/Tickets";
 import FinanceDashboard from "./pages/FinanceDashboard";
 import InvoiceManagement from "./pages/InvoiceManagement";
 import FinanceCompanies from "./pages/FinanceCompanies";
+import FinanceContracts from "./pages/FinanceContracts";
 
 const queryClient = new QueryClient({
   defaultOptions: {
