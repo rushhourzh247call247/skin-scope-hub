@@ -62,9 +62,31 @@ function ContractsOverview() {
 
   const companyMap = Object.fromEntries(companies.map((c: any) => [c.id, c.name]));
 
-  const activeContracts = allContracts.filter((c: any) => c.status === "active");
-  const terminatedContracts = allContracts.filter((c: any) => c.status === "terminated");
-  const expiredContracts = allContracts.filter((c: any) => c.status === "expired");
+  const deleteMutation = useMutation({
+    mutationFn: (contractId: number) => api.deleteContract(contractId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["all-contracts"] });
+      queryClient.invalidateQueries({ queryKey: ["contracts"] });
+      toast.success("Vertrag gelöscht");
+      setDeleteTarget(null);
+    },
+    onError: (err: any) => toast.error(err.message || "Löschen fehlgeschlagen"),
+  });
+
+  // Filter by search
+  const lowerSearch = searchTerm.toLowerCase().trim();
+  const filteredContracts = lowerSearch
+    ? allContracts.filter((c: any) => {
+        const companyName = (companyMap[c.company_id] || "").toLowerCase();
+        const contractNum = (c.contract_number || "").toLowerCase();
+        const customerName = (c.customer_name || "").toLowerCase();
+        return companyName.includes(lowerSearch) || contractNum.includes(lowerSearch) || customerName.includes(lowerSearch);
+      })
+    : allContracts;
+
+  const activeContracts = filteredContracts.filter((c: any) => c.status === "active");
+  const terminatedContracts = filteredContracts.filter((c: any) => c.status === "terminated");
+  const expiredContracts = filteredContracts.filter((c: any) => c.status === "expired");
 
   const handleDownloadContractPdf = (contract: any) => {
     const pkg = PACKAGES.find(p => p.id === contract.package_id);
