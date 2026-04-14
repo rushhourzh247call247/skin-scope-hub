@@ -87,7 +87,7 @@ type ContractFormData = {
   notes: string;
 };
 
-function LicenseUsageBadge({ companyId, maxLicenses, bonusLicenses = 0 }: { companyId: number; maxLicenses: number; bonusLicenses?: number }) {
+function LicenseUsageBadge({ companyId, maxLicenses, bonusLicenses = 0, packageId }: { companyId: number; maxLicenses: number; bonusLicenses?: number; packageId?: string }) {
   const { data: licenseStatus } = useQuery({
     queryKey: ["license-status", companyId],
     queryFn: () => api.getLicenseStatus(companyId),
@@ -96,7 +96,10 @@ function LicenseUsageBadge({ companyId, maxLicenses, bonusLicenses = 0 }: { comp
 
   if (!licenseStatus) return null;
 
-  const totalLicenses = maxLicenses + bonusLicenses;
+  // For fixed-price packages, use the package maxDocs if stored licenses is too low
+  const pkg = packageId ? PACKAGES.find(p => p.id === packageId) : null;
+  const effectiveMax = pkg && !pkg.perDoctor ? Math.max(maxLicenses, pkg.maxDocs) : maxLicenses;
+  const totalLicenses = effectiveMax + bonusLicenses;
   const used = licenseStatus.used;
   const available = totalLicenses - used;
   const isFull = available <= 0;
