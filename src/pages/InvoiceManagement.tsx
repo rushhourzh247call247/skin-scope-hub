@@ -11,6 +11,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { Textarea } from "@/components/ui/textarea";
 import { Search, Plus, CheckCircle, AlertTriangle, FileDown, RotateCcw, Send, Receipt } from "lucide-react";
+import { downloadInvoicePdf } from "@/lib/invoicePdf";
 import { format } from "date-fns";
 import { toast } from "sonner";
 
@@ -188,14 +189,12 @@ export default function InvoiceManagement() {
                           )}
                           <Button size="icon" variant="ghost" className="h-8 w-8" title="PDF herunterladen"
                             onClick={() => {
-                              api.downloadInvoicePdf(inv.id).then(blob => {
-                                const url = URL.createObjectURL(blob);
-                                const a = document.createElement("a");
-                                a.href = url;
-                                a.download = `Rechnung_${inv.invoice_number}.pdf`;
-                                a.click();
-                                URL.revokeObjectURL(url);
-                              }).catch(() => toast.error("PDF-Download fehlgeschlagen"));
+                              try {
+                                downloadInvoicePdf(inv);
+                                toast.success("PDF heruntergeladen");
+                              } catch {
+                                toast.error("PDF-Erstellung fehlgeschlagen");
+                              }
                             }}>
                             <FileDown className="h-4 w-4" />
                           </Button>
