@@ -46,6 +46,10 @@ function formatPrice(price: number | string): string {
 }
 
 function ContractsOverview() {
+  const queryClient = useQueryClient();
+  const [searchTerm, setSearchTerm] = useState("");
+  const [deleteTarget, setDeleteTarget] = useState<any>(null);
+
   const { data: allContracts = [], isLoading } = useQuery({
     queryKey: ["all-contracts"],
     queryFn: api.getAllContracts,
