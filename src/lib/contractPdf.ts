@@ -219,7 +219,6 @@ const LINE_HEIGHT = 5;
 const SECTION_GAP = 4;
 const LEFT_MARGIN = 17;
 const TEXT_WIDTH = 175;
-const TEXT_WIDTH = 175;
 
 export function renderContractPages(doc: jsPDF, vars: ContractVars, startOnNewPage = true): { firstPage: number; lastPage: number } {
   const sections = buildContractSections(vars);
