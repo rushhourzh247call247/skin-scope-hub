@@ -189,14 +189,12 @@ export default function InvoiceManagement() {
                           )}
                           <Button size="icon" variant="ghost" className="h-8 w-8" title="PDF herunterladen"
                             onClick={() => {
-                              api.downloadInvoicePdf(inv.id).then(blob => {
-                                const url = URL.createObjectURL(blob);
-                                const a = document.createElement("a");
-                                a.href = url;
-                                a.download = `Rechnung_${inv.invoice_number}.pdf`;
-                                a.click();
-                                URL.revokeObjectURL(url);
-                              }).catch(() => toast.error("PDF-Download fehlgeschlagen"));
+                              try {
+                                downloadInvoicePdf(inv);
+                                toast.success("PDF heruntergeladen");
+                              } catch {
+                                toast.error("PDF-Erstellung fehlgeschlagen");
+                              }
                             }}>
                             <FileDown className="h-4 w-4" />
                           </Button>
