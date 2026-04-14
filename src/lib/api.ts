@@ -533,4 +533,15 @@ export const api = {
       free_bytes: number;
       companies: { id: number; name: string; used_bytes: number; image_count: number }[];
     }>('/storage-stats'),
+
+  // Invoices
+  getInvoices: () => request<any[]>('/invoices'),
+  markInvoicePaid: (invoiceId: number, notes?: string) =>
+    request<any>(`/invoices/${invoiceId}/pay`, { method: 'PUT', body: JSON.stringify({ notes }) }),
+  sendDunning: (invoiceId: number, level: number) =>
+    request<any>(`/invoices/${invoiceId}/dunning`, { method: 'PUT', body: JSON.stringify({ dunning_level: level }) }),
+  generateMonthlyInvoices: () =>
+    request<{ count: number }>('/invoices/generate', { method: 'POST' }),
+  downloadInvoicePdf: (invoiceId: number) =>
+    requestBlob(`/invoices/${invoiceId}/pdf`),
 };
