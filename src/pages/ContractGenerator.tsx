@@ -194,6 +194,27 @@ function ContractsOverview() {
             {" "}= <span className="font-medium">{contract.licenses + (contract.bonus_licenses || 0)} total</span>
           </div>
         </div>
+        {/* Active users for this company */}
+        {(() => {
+          const companyUsers = usersByCompany[String(contract.company_id)] || [];
+          const totalLicenses = contract.licenses + (contract.bonus_licenses || 0);
+          if (companyUsers.length === 0) return null;
+          return (
+            <div className="text-sm space-y-1">
+              <div className="flex items-center gap-1.5 text-muted-foreground">
+                <Users className="h-3.5 w-3.5" />
+                <span>Aktive Benutzer ({companyUsers.length}/{totalLicenses}):</span>
+              </div>
+              <div className="flex flex-wrap gap-1.5">
+                {companyUsers.map((u: any) => (
+                  <Badge key={u.id} variant="secondary" className="text-xs font-normal">
+                    {u.name} <span className="text-muted-foreground ml-1">({u.email})</span>
+                  </Badge>
+                ))}
+              </div>
+            </div>
+          );
+        })()}
         {contract.notes && (
           <p className="text-xs text-muted-foreground bg-muted/50 rounded p-2">{contract.notes}</p>
         )}
