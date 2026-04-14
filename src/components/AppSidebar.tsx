@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from "react";
-import { Users, UserPlus, LogOut, Building2, UserCog, LayoutDashboard, Settings, Database, FileText, ScrollText, TicketCheck } from "lucide-react";
+import { Users, UserPlus, LogOut, Building2, UserCog, LayoutDashboard, Settings, Database, FileText, ScrollText, TicketCheck, Receipt, Landmark, CreditCard } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
 import { useLocation } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
@@ -18,6 +18,7 @@ export function AppSidebar() {
   const location = useLocation();
   const { user, logout } = useAuth();
   const isAdmin = user?.role === "admin";
+  const isAccountant = user?.role === "accountant";
   const [unreadTickets, setUnreadTickets] = useState(0);
 
   const fetchUnread = useCallback(async () => {
@@ -29,10 +30,18 @@ export function AppSidebar() {
   }, []);
 
   useEffect(() => {
+    if (isAccountant) return;
     fetchUnread();
     const interval = setInterval(fetchUnread, 15_000);
     return () => clearInterval(interval);
-  }, [fetchUnread]);
+  }, [fetchUnread, isAccountant]);
+
+  const financeNav = [
+    { title: "Finanz-Dashboard", url: "/finance", icon: Landmark },
+    { title: "Rechnungen", url: "/finance/invoices", icon: Receipt },
+    { title: "Firmen-Zahlungen", url: "/finance/companies", icon: CreditCard },
+    { title: t("nav.settings"), url: "/settings", icon: Settings },
+  ];
 
   const mainNav = [
     { title: t("nav.dashboard"), url: "/", icon: LayoutDashboard },
@@ -50,6 +59,12 @@ export function AppSidebar() {
     { title: "Verträge", url: "/contracts", icon: ScrollText },
   ];
 
+  const adminFinanceNav = [
+    { title: "Finanz-Dashboard", url: "/finance", icon: Landmark },
+    { title: "Rechnungen", url: "/finance/invoices", icon: Receipt },
+    { title: "Firmen-Zahlungen", url: "/finance/companies", icon: CreditCard },
+  ];
+
   const isActive = (path: string) => location.pathname === path;
 
   return (
@@ -65,35 +80,12 @@ export function AppSidebar() {
           )}
         </div>
 
-        <SidebarGroup>
-          <SidebarGroupLabel className="text-sidebar-foreground/50 text-[10px] uppercase tracking-widest">{t("nav.navigation")}</SidebarGroupLabel>
-          <SidebarGroupContent>
-            <SidebarMenu>
-              {mainNav.map((item) => (
-                <SidebarMenuItem key={item.url}>
-                  <SidebarMenuButton asChild isActive={isActive(item.url)}>
-                    <NavLink to={item.url} end className="hover:bg-sidebar-accent relative" activeClassName="bg-sidebar-accent text-primary font-medium">
-                      <item.icon className="mr-2 h-4 w-4" />
-                      {!collapsed && <span>{item.title}</span>}
-                      {item.url === "/tickets" && unreadTickets > 0 && (
-                        <span className="ml-auto flex h-5 min-w-5 items-center justify-center rounded-full bg-destructive text-[10px] font-bold text-destructive-foreground px-1">
-                          {unreadTickets}
-                        </span>
-                      )}
-                    </NavLink>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-              ))}
-            </SidebarMenu>
-          </SidebarGroupContent>
-        </SidebarGroup>
-
-        {isAdmin && (
+        {isAccountant ? (
           <SidebarGroup>
-            <SidebarGroupLabel className="text-sidebar-foreground/50 text-[10px] uppercase tracking-widest">{t("nav.administration")}</SidebarGroupLabel>
+            <SidebarGroupLabel className="text-sidebar-foreground/50 text-[10px] uppercase tracking-widest">Buchhaltung</SidebarGroupLabel>
             <SidebarGroupContent>
               <SidebarMenu>
-                {adminNav.map((item) => (
+                {financeNav.map((item) => (
                   <SidebarMenuItem key={item.url}>
                     <SidebarMenuButton asChild isActive={isActive(item.url)}>
                       <NavLink to={item.url} end className="hover:bg-sidebar-accent" activeClassName="bg-sidebar-accent text-primary font-medium">
@@ -106,6 +98,71 @@ export function AppSidebar() {
               </SidebarMenu>
             </SidebarGroupContent>
           </SidebarGroup>
+        ) : (
+          <>
+            <SidebarGroup>
+              <SidebarGroupLabel className="text-sidebar-foreground/50 text-[10px] uppercase tracking-widest">{t("nav.navigation")}</SidebarGroupLabel>
+              <SidebarGroupContent>
+                <SidebarMenu>
+                  {mainNav.map((item) => (
+                    <SidebarMenuItem key={item.url}>
+                      <SidebarMenuButton asChild isActive={isActive(item.url)}>
+                        <NavLink to={item.url} end className="hover:bg-sidebar-accent relative" activeClassName="bg-sidebar-accent text-primary font-medium">
+                          <item.icon className="mr-2 h-4 w-4" />
+                          {!collapsed && <span>{item.title}</span>}
+                          {item.url === "/tickets" && unreadTickets > 0 && (
+                            <span className="ml-auto flex h-5 min-w-5 items-center justify-center rounded-full bg-destructive text-[10px] font-bold text-destructive-foreground px-1">
+                              {unreadTickets}
+                            </span>
+                          )}
+                        </NavLink>
+                      </SidebarMenuButton>
+                    </SidebarMenuItem>
+                  ))}
+                </SidebarMenu>
+              </SidebarGroupContent>
+            </SidebarGroup>
+
+            {isAdmin && (
+              <>
+                <SidebarGroup>
+                  <SidebarGroupLabel className="text-sidebar-foreground/50 text-[10px] uppercase tracking-widest">{t("nav.administration")}</SidebarGroupLabel>
+                  <SidebarGroupContent>
+                    <SidebarMenu>
+                      {adminNav.map((item) => (
+                        <SidebarMenuItem key={item.url}>
+                          <SidebarMenuButton asChild isActive={isActive(item.url)}>
+                            <NavLink to={item.url} end className="hover:bg-sidebar-accent" activeClassName="bg-sidebar-accent text-primary font-medium">
+                              <item.icon className="mr-2 h-4 w-4" />
+                              {!collapsed && <span>{item.title}</span>}
+                            </NavLink>
+                          </SidebarMenuButton>
+                        </SidebarMenuItem>
+                      ))}
+                    </SidebarMenu>
+                  </SidebarGroupContent>
+                </SidebarGroup>
+
+                <SidebarGroup>
+                  <SidebarGroupLabel className="text-sidebar-foreground/50 text-[10px] uppercase tracking-widest">Finanzen</SidebarGroupLabel>
+                  <SidebarGroupContent>
+                    <SidebarMenu>
+                      {adminFinanceNav.map((item) => (
+                        <SidebarMenuItem key={item.url}>
+                          <SidebarMenuButton asChild isActive={isActive(item.url)}>
+                            <NavLink to={item.url} end className="hover:bg-sidebar-accent" activeClassName="bg-sidebar-accent text-primary font-medium">
+                              <item.icon className="mr-2 h-4 w-4" />
+                              {!collapsed && <span>{item.title}</span>}
+                            </NavLink>
+                          </SidebarMenuButton>
+                        </SidebarMenuItem>
+                      ))}
+                    </SidebarMenu>
+                  </SidebarGroupContent>
+                </SidebarGroup>
+              </>
+            )}
+          </>
         )}
       </SidebarContent>
 
