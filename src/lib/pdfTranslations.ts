@@ -197,7 +197,7 @@ const de: PdfTexts = {
   section4Title: "4. Zahlungsbedingungen",
   section4Text: "Die Lizenzgebühr wird monatlich im Voraus in Rechnung gestellt und ist innert 30 Tagen nach Rechnungsdatum zahlbar. Bei Zahlungsverzug behält sich die Lizenzgeberin das Recht vor, den Zugang zur Software zu sperren.",
   bankDetails: "Bankverbindung:",
-  iban: "IBAN: CH66 0070 0110 0057 8304 8",
+  iban: "IBAN: CH95 0070 0114 9053 5408 5",
   recipient: "Empfänger: Rached Mtiraoui (TechAssist)",
 
   section5Title: "5. Datenschutz und Datensicherheit",
@@ -323,7 +323,7 @@ const en: PdfTexts = {
   section4Title: "4. Payment Terms",
   section4Text: "The license fee is invoiced monthly in advance and is payable within 30 days of the invoice date. In the event of late payment, the Licensor reserves the right to suspend access to the software.",
   bankDetails: "Bank details:",
-  iban: "IBAN: CH66 0070 0110 0057 8304 8",
+  iban: "IBAN: CH95 0070 0114 9053 5408 5",
   recipient: "Recipient: Rached Mtiraoui (TechAssist)",
 
   section5Title: "5. Data Protection and Data Security",
@@ -449,7 +449,7 @@ const fr: PdfTexts = {
   section4Title: "4. Conditions de paiement",
   section4Text: "La redevance est facturée mensuellement à l'avance et est payable dans les 30 jours suivant la date de facturation. En cas de retard de paiement, le Concédant se réserve le droit de suspendre l'accès au logiciel.",
   bankDetails: "Coordonnées bancaires :",
-  iban: "IBAN : CH66 0070 0110 0057 8304 8",
+  iban: "IBAN : CH95 0070 0114 9053 5408 5",
   recipient: "Bénéficiaire : Rached Mtiraoui (TechAssist)",
 
   section5Title: "5. Protection et sécurité des données",
@@ -575,7 +575,7 @@ const it: PdfTexts = {
   section4Title: "4. Condizioni di pagamento",
   section4Text: "Il canone è fatturato mensilmente in anticipo ed è dovuto entro 30 giorni dalla data della fattura. In caso di ritardo nel pagamento, il Licenziante si riserva il diritto di sospendere l'accesso al software.",
   bankDetails: "Coordinate bancarie:",
-  iban: "IBAN: CH66 0070 0110 0057 8304 8",
+  iban: "IBAN: CH95 0070 0114 9053 5408 5",
   recipient: "Beneficiario: Rached Mtiraoui (TechAssist)",
 
   section5Title: "5. Protezione e sicurezza dei dati",
@@ -701,7 +701,7 @@ const es: PdfTexts = {
   section4Title: "4. Condiciones de pago",
   section4Text: "La tarifa se factura mensualmente por adelantado y es pagadera dentro de los 30 días posteriores a la fecha de factura. En caso de retraso en el pago, el Licenciante se reserva el derecho de suspender el acceso al software.",
   bankDetails: "Datos bancarios:",
-  iban: "IBAN: CH66 0070 0110 0057 8304 8",
+  iban: "IBAN: CH95 0070 0114 9053 5408 5",
   recipient: "Beneficiario: Rached Mtiraoui (TechAssist)",
 
   section5Title: "5. Protección y seguridad de datos",
