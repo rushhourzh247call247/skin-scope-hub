@@ -256,7 +256,7 @@ export function generateInvoicePdf(invoice: InvoiceData): jsPDF {
   doc.text(`E-Mail: ${COMPANY_INFO.email}`, col2X, footerY + 9);
   doc.text(`Web: ${COMPANY_INFO.web}`, col2X, footerY + 13);
 
-  doc.text(`UID: ${COMPANY_INFO.uid}`, col3X, footerY + 5);
+  doc.text(`Inhaber: ${COMPANY_INFO.owner}`, col3X, footerY + 5);
   doc.text(`IBAN: ${COMPANY_INFO.iban}`, col3X, footerY + 9);
   doc.text(`Bank: ${COMPANY_INFO.bank}`, col3X, footerY + 13);
 
