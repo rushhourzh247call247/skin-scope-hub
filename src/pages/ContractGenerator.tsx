@@ -67,13 +67,12 @@ function ContractsOverview() {
 
   const companyMap = Object.fromEntries(companies.map((c: any) => [c.id, c.name]));
 
-  // Group active (non-accountant) users by company
-  const usersByCompany: Record<string, any[]> = {};
+  const activeUsersByCompany: Record<string, any[]> = {};
   allUsers.forEach((u: any) => {
-    if (u.role === "accountant") return;
+    if (u.role === "accountant" || u.suspended_at) return;
     const cid = String(u.company_id);
-    if (!usersByCompany[cid]) usersByCompany[cid] = [];
-    usersByCompany[cid].push(u);
+    if (!activeUsersByCompany[cid]) activeUsersByCompany[cid] = [];
+    activeUsersByCompany[cid].push(u);
   });
 
   const deleteMutation = useMutation({
@@ -161,6 +160,9 @@ function ContractsOverview() {
 
   const renderContractRow = (contract: any) => {
     const hasAmendment = contract.notes && contract.notes.includes("Paket:");
+    const companyUsers = activeUsersByCompany[String(contract.company_id)] || [];
+    const totalLicenses = contract.licenses + (contract.bonus_licenses || 0);
+
     return (
       <div key={contract.id} className="border rounded-lg p-4 bg-card space-y-2">
         <div className="flex items-center justify-between flex-wrap gap-2">
@@ -191,30 +193,28 @@ function ContractsOverview() {
             {(contract.bonus_licenses || 0) > 0 && (
               <span className="text-primary"> +{contract.bonus_licenses} Kulanz</span>
             )}
-            {" "}= <span className="font-medium">{contract.licenses + (contract.bonus_licenses || 0)} total</span>
+            {" "}= <span className="font-medium">{totalLicenses} total</span>
           </div>
         </div>
-        {/* Active users for this company */}
-        {(() => {
-          const companyUsers = usersByCompany[String(contract.company_id)] || [];
-          const totalLicenses = contract.licenses + (contract.bonus_licenses || 0);
-          if (companyUsers.length === 0) return null;
-          return (
-            <div className="text-sm space-y-1">
-              <div className="flex items-center gap-1.5 text-muted-foreground">
-                <Users className="h-3.5 w-3.5" />
-                <span>Aktive Benutzer ({companyUsers.length}/{totalLicenses}):</span>
-              </div>
-              <div className="flex flex-wrap gap-1.5">
-                {companyUsers.map((u: any) => (
-                  <Badge key={u.id} variant="secondary" className="text-xs font-normal">
-                    {u.name} <span className="text-muted-foreground ml-1">({u.email})</span>
-                  </Badge>
-                ))}
-              </div>
+        <div className="space-y-1 rounded-md bg-muted/30 p-2">
+          <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
+            <Users className="h-3.5 w-3.5" />
+            <span>Aktive Benutzer ({companyUsers.length}/{totalLicenses}):</span>
+          </div>
+          {companyUsers.length > 0 ? (
+            <div className="flex flex-wrap gap-1.5">
+              {companyUsers.map((u: any) => (
+                <Badge key={u.id} variant="secondary" className="text-xs font-normal">
+                  {u.name} <span className="ml-1 text-muted-foreground">({u.email})</span>
+                </Badge>
+              ))}
             </div>
-          );
-        })()}
+          ) : (
+            <p className="text-xs text-muted-foreground">
+              Für diese Firma sind aktuell keine aktiven Benutzer sichtbar.
+            </p>
+          )}
+        </div>
         {contract.notes && (
           <p className="text-xs text-muted-foreground bg-muted/50 rounded p-2">{contract.notes}</p>
         )}
