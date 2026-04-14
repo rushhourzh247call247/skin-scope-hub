@@ -220,6 +220,17 @@ function ContractsOverview() {
 
   return (
     <div className="space-y-6">
+      {/* Search */}
+      <div className="relative">
+        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+        <Input
+          placeholder="Suche nach Firma, Kunde oder Vertragsnummer…"
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+          className="pl-9"
+        />
+      </div>
+
       <div className="grid gap-4 sm:grid-cols-3">
         <Card>
           <CardContent className="pt-4 text-center">
@@ -241,13 +252,46 @@ function ContractsOverview() {
         </Card>
       </div>
 
-      {allContracts.length === 0 ? (
-        <p className="text-center text-muted-foreground py-8">Keine Verträge vorhanden</p>
+      {filteredContracts.length === 0 ? (
+        <p className="text-center text-muted-foreground py-8">
+          {searchTerm ? "Keine Verträge gefunden" : "Keine Verträge vorhanden"}
+        </p>
       ) : (
         <div className="space-y-3">
-          {allContracts.map(renderContractRow)}
+          {filteredContracts.map(renderContractRow)}
         </div>
       )}
+
+      {/* Delete Confirmation Dialog */}
+      <AlertDialog open={!!deleteTarget} onOpenChange={(open) => { if (!open) setDeleteTarget(null); }}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Vertrag löschen</AlertDialogTitle>
+            <AlertDialogDescription>
+              {deleteTarget?.status === "active" ? (
+                <span className="text-destructive font-medium">
+                  ⚠️ Achtung: Dies ist ein aktiver Vertrag! Das Löschen kann nicht rückgängig gemacht werden.
+                </span>
+              ) : (
+                "Dieser Vertrag wird unwiderruflich gelöscht."
+              )}
+              <br /><br />
+              Vertrag: <strong>{deleteTarget?.contract_number}</strong>
+              {deleteTarget?.customer_name && <> — {deleteTarget.customer_name}</>}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Abbrechen</AlertDialogCancel>
+            <AlertDialogAction
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              onClick={() => deleteTarget && deleteMutation.mutate(deleteTarget.id)}
+              disabled={deleteMutation.isPending}
+            >
+              {deleteMutation.isPending ? "Lösche…" : "Endgültig löschen"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
