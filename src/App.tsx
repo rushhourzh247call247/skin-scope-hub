@@ -84,6 +84,7 @@ const App = () => (
             <Route path="/finance" element={<ProtectedPage><FinanceRoute><FinanceDashboard /></FinanceRoute></ProtectedPage>} />
             <Route path="/finance/invoices" element={<ProtectedPage><FinanceRoute><InvoiceManagement /></FinanceRoute></ProtectedPage>} />
             <Route path="/finance/companies" element={<ProtectedPage><FinanceRoute><FinanceCompanies /></FinanceRoute></ProtectedPage>} />
+            <Route path="/finance/contracts" element={<ProtectedPage><FinanceRoute><FinanceContracts /></FinanceRoute></ProtectedPage>} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>
