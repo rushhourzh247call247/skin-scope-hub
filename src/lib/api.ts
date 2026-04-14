@@ -469,6 +469,8 @@ export const api = {
     ),
 
   // Contracts
+  getAllContracts: () =>
+    request<any[]>('/contracts'),
   getContracts: (companyId: number) =>
     request<any[]>(`/companies/${companyId}/contracts`),
   createContract: (companyId: number, data: {
