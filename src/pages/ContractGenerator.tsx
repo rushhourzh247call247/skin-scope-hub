@@ -398,8 +398,12 @@ export default function ContractGenerator() {
                 )}
                 {pkg && pkg.perDoctor && (
                   <div className="mt-3 space-y-2">
-                    <Label htmlFor="anzahlAerzte">Anzahl Ärzte (1–{pkg.maxDocs})</Label>
-                    <Input id="anzahlAerzte" type="number" min={pkg.minDocs} max={pkg.maxDocs} value={anzahlAerzte} onChange={(e) => handleAnzahlChange(e.target.value)} className="max-w-[120px]" />
+                    <Label>Anzahl Ärzte (1–{pkg.maxDocs})</Label>
+                    <div className="flex items-center gap-2">
+                      <Button type="button" variant="outline" size="icon" className="h-10 w-10" onClick={() => { const n = Math.max(pkg.minDocs, (parseInt(anzahlAerzte) || 1) - 1); handleAnzahlChange(String(n)); }}>−</Button>
+                      <span className="text-lg font-semibold w-10 text-center">{anzahlAerzte}</span>
+                      <Button type="button" variant="outline" size="icon" className="h-10 w-10" onClick={() => { const n = Math.min(pkg.maxDocs, (parseInt(anzahlAerzte) || 1) + 1); handleAnzahlChange(String(n)); }}>+</Button>
+                    </div>
                     <p className="text-xs text-muted-foreground">{anzahlAerzte} × CHF 80.– = CHF {priceInfo?.display} / Monat</p>
                   </div>
                 )}
