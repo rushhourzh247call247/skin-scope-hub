@@ -272,7 +272,14 @@ const UserManagement = () => {
               </div>
               <div className="space-y-2">
                 <Label>{t("dashboard.company")}</Label>
-                <Select value={companyId} onValueChange={setCompanyId} required>
+                <Select value={companyId} onValueChange={(val) => {
+                  setCompanyId(val);
+                  // Wenn nicht techassist gewählt → Rolle auf "user" zurücksetzen
+                  const selected = companies.find((c: any) => String(c.id) === val);
+                  if (selected?.name?.toLowerCase() !== TECHASSIST_NAME && (role === "admin" || role === "accountant")) {
+                    setRole("user");
+                  }
+                }} required>
                   <SelectTrigger><SelectValue placeholder={t("users.selectCompany")} /></SelectTrigger>
                   <SelectContent>
                     {companies.map((c: any) => (
@@ -281,17 +288,26 @@ const UserManagement = () => {
                   </SelectContent>
                 </Select>
               </div>
-              <div className="space-y-2">
-                <Label>{t("common.role")}</Label>
-                <Select value={role} onValueChange={setRole}>
-                  <SelectTrigger><SelectValue /></SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="admin">{t("users.roleAdmin")}</SelectItem>
-                    <SelectItem value="user">{t("users.roleUser")}</SelectItem>
-                    <SelectItem value="accountant">Buchhaltung</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
+              {(() => {
+                const selectedCompany = companies.find((c: any) => String(c.id) === companyId);
+                const isTechassist = selectedCompany?.name?.toLowerCase() === TECHASSIST_NAME;
+                return (
+                  <div className="space-y-2">
+                    <Label>{t("common.role")}</Label>
+                    <Select value={role} onValueChange={setRole}>
+                      <SelectTrigger><SelectValue /></SelectTrigger>
+                      <SelectContent>
+                        {isTechassist && <SelectItem value="admin">{t("users.roleAdmin")}</SelectItem>}
+                        <SelectItem value="user">{t("users.roleUser")}</SelectItem>
+                        {isTechassist && <SelectItem value="accountant">Buchhaltung</SelectItem>}
+                      </SelectContent>
+                    </Select>
+                    {!isTechassist && companyId && (
+                      <p className="text-xs text-muted-foreground">Admin- und Buchhaltungsrollen sind nur für techassist verfügbar.</p>
+                    )}
+                  </div>
+                );
+              })()}
               <Button type="submit" className="w-full" disabled={createMutation.isPending}>
                 {createMutation.isPending ? t("users.createSubmitting") : t("users.createSubmit")}
               </Button>
