@@ -442,11 +442,21 @@ export default function ContractPanel({ companyId, companyName }: ContractPanelP
           </div>
           <div>
             <span className="text-muted-foreground">Lizenzen:</span>{" "}
-            <span className="font-medium">{contract.licenses}</span>
+            <span className="font-medium">
+              {contract.licenses}
+              {(contract.bonus_licenses || 0) > 0 && (
+                <span className="text-primary"> +{contract.bonus_licenses} Kulanz</span>
+              )}
+            </span>
           </div>
           <div>
             <span className="text-muted-foreground">Monatlich:</span>{" "}
-            <span className="font-medium">{formatPrice(contract.monthly_price)}</span>
+            <span className="font-medium">
+              {contract.custom_price
+                ? <>{formatPrice(contract.custom_price)} <span className="text-xs text-primary">(Sonderpreis)</span></>
+                : formatPrice(contract.monthly_price)
+              }
+            </span>
           </div>
           <div>
             <span className="text-muted-foreground">Vertragsbeginn:</span>{" "}
