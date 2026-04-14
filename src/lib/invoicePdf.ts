@@ -21,16 +21,16 @@ interface InvoiceData {
 }
 
 const COMPANY_INFO = {
-  name: "DERM247",
-  addressLine1: "Derm247 GmbH",
-  addressLine2: "Musterstrasse 10",
-  addressLine3: "8000 Zürich",
+  name: "TechAssist",
+  owner: "Rached Mtiraoui",
+  addressLine1: "TechAssist – Rached Mtiraoui",
+  addressLine2: "Dällikerstrasse 48",
+  addressLine3: "8105 Regensdorf",
   country: "Schweiz",
-  email: "info@derm247.ch",
+  email: "info@techassist.ch",
   web: "www.derm247.ch",
-  phone: "+41 44 000 00 00",
-  uid: "CHE-000.000.000",
-  iban: "CH00 0000 0000 0000 0000 0",
+  phone: "+41 79 801 20 48",
+  iban: "CH66 0070 0110 0057 8304 8",
   bank: "Zürcher Kantonalbank",
 };
 
