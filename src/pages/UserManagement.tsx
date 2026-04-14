@@ -239,7 +239,8 @@ const UserManagement = () => {
             <DialogHeader><DialogTitle>{t("users.createTitle")}</DialogTitle></DialogHeader>
             <form onSubmit={async (e) => {
               e.preventDefault();
-              if (companyId) {
+              // Accountants zählen nicht gegen Lizenzen – sie sind interne techassist-Benutzer
+              if (companyId && role !== "accountant") {
                 try {
                   const status = await api.getLicenseStatus(Number(companyId));
                   if (status.available <= 0) {
