@@ -287,6 +287,7 @@ const UserManagement = () => {
                   <SelectContent>
                     <SelectItem value="admin">{t("users.roleAdmin")}</SelectItem>
                     <SelectItem value="user">{t("users.roleUser")}</SelectItem>
+                    <SelectItem value="accountant">Buchhaltung</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
