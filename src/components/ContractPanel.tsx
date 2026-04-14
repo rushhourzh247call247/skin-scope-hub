@@ -446,7 +446,7 @@ export default function ContractPanel({ companyId, companyName }: ContractPanelP
           <div>
             <span className="text-muted-foreground">Lizenzen:</span>{" "}
             <span className="font-medium">
-              {contract.licenses}
+              {(() => { const p = PACKAGES.find(pk => pk.id === contract.package_id); return p && !p.perDoctor ? Math.max(contract.licenses, p.maxDocs) : contract.licenses; })()}
               {(contract.bonus_licenses || 0) > 0 && (
                 <span className="text-primary"> +{contract.bonus_licenses} Kulanz</span>
               )}
