@@ -807,7 +807,11 @@ function ContractForm({
       </div>
       <div className="space-y-2">
         <Label>Paket *</Label>
-        <Select value={form.package_id} onValueChange={(v) => setForm({ ...form, package_id: v })}>
+        <Select value={form.package_id} onValueChange={(v) => {
+          const newPkg = PACKAGES.find(p => p.id === v);
+          const newLicenses = newPkg ? (newPkg.perDoctor ? Math.max(newPkg.minDocs, Math.min(form.licenses, newPkg.maxDocs)) : newPkg.maxDocs) : form.licenses;
+          setForm({ ...form, package_id: v, licenses: newLicenses });
+        }}>
           <SelectTrigger>
             <SelectValue placeholder="Paket wählen…" />
           </SelectTrigger>
