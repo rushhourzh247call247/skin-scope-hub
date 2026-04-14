@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useSearchParams } from "react-router-dom";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { api } from "@/lib/api";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -32,8 +33,10 @@ interface Invoice {
 
 export default function InvoiceManagement() {
   const queryClient = useQueryClient();
+  const [searchParams] = useSearchParams();
+  const initialStatus = searchParams.get("status") || "all";
   const [search, setSearch] = useState("");
-  const [statusFilter, setStatusFilter] = useState<string>("all");
+  const [statusFilter, setStatusFilter] = useState<string>(initialStatus);
   const [payDialog, setPayDialog] = useState<Invoice | null>(null);
   const [dunningDialog, setDunningDialog] = useState<Invoice | null>(null);
   const [generateDialog, setGenerateDialog] = useState(false);

@@ -1,5 +1,6 @@
 import { useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
+import { useNavigate } from "react-router-dom";
 import { api } from "@/lib/api";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -25,6 +26,7 @@ interface Invoice {
 }
 
 export default function FinanceDashboard() {
+  const navigate = useNavigate();
   const { data: contracts = [] } = useQuery({ queryKey: ["all-contracts"], queryFn: () => api.getAllContracts() });
   const { data: companies = [] } = useQuery({ queryKey: ["companies"], queryFn: () => api.getCompanies() });
   const { data: invoices = [] } = useQuery({ queryKey: ["invoices"], queryFn: () => api.getInvoices().catch(() => []) });
@@ -131,7 +133,7 @@ export default function FinanceDashboard() {
 
       {/* KPI Cards */}
       <div className="grid gap-4 grid-cols-2 lg:grid-cols-4">
-        <Card>
+        <Card className="cursor-pointer hover:shadow-md transition-shadow" onClick={() => navigate("/finance/contracts")}>
           <CardContent className="pt-6">
             <div className="flex items-center justify-between">
               <div>
@@ -146,7 +148,7 @@ export default function FinanceDashboard() {
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="cursor-pointer hover:shadow-md transition-shadow" onClick={() => navigate("/finance/invoices?status=open")}>
           <CardContent className="pt-6">
             <div className="flex items-center justify-between">
               <div>
@@ -161,7 +163,7 @@ export default function FinanceDashboard() {
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="cursor-pointer hover:shadow-md transition-shadow" onClick={() => navigate("/finance/invoices?status=overdue")}>
           <CardContent className="pt-6">
             <div className="flex items-center justify-between">
               <div>
@@ -176,7 +178,7 @@ export default function FinanceDashboard() {
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="cursor-pointer hover:shadow-md transition-shadow" onClick={() => navigate("/finance/invoices?status=paid")}>
           <CardContent className="pt-6">
             <div className="flex items-center justify-between">
               <div>
