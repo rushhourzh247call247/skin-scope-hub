@@ -167,49 +167,53 @@ function buildContractSections(vars: ContractVars): { title?: string; lines: str
   ];
 }
 
-function drawLogo(doc: jsPDF, x: number, y: number) {
+function drawContractHeader(doc: jsPDF, vertragsnummer: string, lang: PdfLang = "de") {
+  const t = getPdfTexts(lang);
+  // Same tall header as brochure (36mm)
   doc.setFillColor(...BRAND_RGB);
-  doc.roundedRect(x, y, 8, 8, 1.5, 1.5, "F");
-  doc.setTextColor(255, 255, 255);
-  doc.setFontSize(12);
-  doc.setFont("helvetica", "bold");
-  doc.text("D", x + 2.3, y + 6);
+  doc.rect(0, 0, 210, 36, "F");
 
-  doc.setFontSize(16);
+  // Logo icon
+  doc.setFillColor(255, 255, 255);
+  doc.roundedRect(17, 8, 10, 10, 2, 2, "F");
+  doc.setTextColor(...BRAND_RGB);
+  doc.setFontSize(14);
   doc.setFont("helvetica", "bold");
+  doc.text("D", 20, 15.5);
+
+  // DERM247
+  doc.setFontSize(22);
   doc.setTextColor(255, 255, 255);
-  doc.text("DERM", x + 10.5, y + 6.5);
-  const dw = doc.getTextWidth("DERM");
+  doc.text("DERM", 31, 15.5);
+  const dermW = doc.getTextWidth("DERM");
   doc.setTextColor(200, 245, 230);
-  doc.text("247", x + 10.5 + dw, y + 6.5);
-}
+  doc.text("247", 31 + dermW, 15.5);
 
-function drawHeader(doc: jsPDF, vertragsnummer: string) {
-  doc.setFillColor(...BRAND_RGB);
-  doc.rect(0, 0, 210, 20, "F");
-  drawLogo(doc, 14, 5.5);
-
-  doc.setTextColor(255, 255, 255);
-  doc.setFontSize(8);
+  // Subtitle
+  doc.setFontSize(10);
   doc.setFont("helvetica", "normal");
-  doc.text(vertragsnummer, 195, 13, { align: "right" });
+  doc.setTextColor(255, 255, 255);
+  doc.text(t.headerSubtitle, 31, 22);
+
+  // Contract number right-aligned
+  doc.setFontSize(8);
+  doc.text(vertragsnummer, 193, 15.5, { align: "right" });
 }
 
-function drawFooter(doc: jsPDF, vars: ContractVars, pageNum: number, totalPages: number) {
-  const t = getPdfTexts(vars.lang || "de");
-  doc.setFontSize(7);
-  doc.setTextColor(150, 150, 150);
-  doc.text(
-    `${t.contractFooter} | ${vars.vertragsnummer} | ${t.pageOf(pageNum, totalPages)}`,
-    17,
-    290,
-  );
+function drawContractFooter(doc: jsPDF, pageNum: number, totalPages: number, lang: PdfLang = "de") {
+  const t = getPdfTexts(lang);
+  const y = 282;
   doc.setDrawColor(200, 200, 200);
   doc.setLineWidth(0.2);
-  doc.line(17, 287, 193, 287);
+  doc.line(17, y, 193, y);
+
+  doc.setFontSize(7);
+  doc.setTextColor(100, 100, 100);
+  doc.text(t.footerLine, 17, y + 5);
+  doc.text(t.pageOf(pageNum, totalPages), 193, y + 5, { align: "right" });
 }
 
-const PAGE_TOP = 28;
+const PAGE_TOP = 42;
 const PAGE_BOTTOM = 278;
 const LINE_HEIGHT = 5;
 const SECTION_GAP = 4;
@@ -224,7 +228,7 @@ export function renderContractPages(doc: jsPDF, vars: ContractVars, startOnNewPa
   }
   const firstPage = doc.getNumberOfPages();
 
-  drawHeader(doc, vars.vertragsnummer);
+  drawContractHeader(doc, vars.vertragsnummer, vars.lang);
 
   let y = PAGE_TOP + 4;
 
@@ -267,14 +271,14 @@ export function renderContractPages(doc: jsPDF, vars: ContractVars, startOnNewPa
 
     if ((y + sectionHeight > PAGE_BOTTOM || remainingSpace < 25) && y > PAGE_TOP + 10) {
       doc.addPage();
-      drawHeader(doc, vars.vertragsnummer);
+      drawContractHeader(doc, vars.vertragsnummer, vars.lang);
       y = PAGE_TOP;
     }
 
     for (const ln of sectionLines) {
       if (y > PAGE_BOTTOM) {
         doc.addPage();
-        drawHeader(doc, vars.vertragsnummer);
+        drawContractHeader(doc, vars.vertragsnummer, vars.lang);
         y = PAGE_TOP;
       }
       doc.setFont("helvetica", ln.style as any);
@@ -292,7 +296,7 @@ export function renderContractPages(doc: jsPDF, vars: ContractVars, startOnNewPa
   const contractPageCount = lastPage - firstPage + 1;
   for (let i = 0; i < contractPageCount; i++) {
     doc.setPage(firstPage + i);
-    drawFooter(doc, vars, i + 1, contractPageCount);
+    drawContractFooter(doc, i + 1, contractPageCount, vars.lang);
   }
 
   return { firstPage, lastPage };

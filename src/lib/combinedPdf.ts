@@ -18,22 +18,20 @@ export function buildCombinedPdf(vars: ContractVars): jsPDF {
 
   const totalPages = brochure.getNumberOfPages();
 
-  // Redraw brochure footers with global page numbers
-  drawBrochureFooters(brochure, 1, 2, totalPages, lang);
-
-  // Contract footers: override with global numbering
-  for (let i = 3; i <= totalPages; i++) {
+  // Unified footers across all pages (same style)
+  for (let i = 1; i <= totalPages; i++) {
     brochure.setPage(i);
+    // Clear old footer area
     brochure.setFillColor(255, 255, 255);
-    brochure.rect(0, 287, 210, 10, "F");
+    brochure.rect(0, 278, 210, 20, "F");
+    // Draw unified footer
     brochure.setDrawColor(200, 200, 200);
     brochure.setLineWidth(0.2);
-    brochure.line(17, 287, 193, 287);
+    brochure.line(17, 282, 193, 282);
     brochure.setFontSize(7);
     brochure.setTextColor(100, 100, 100);
-    const footerLeft = `${t.contractFooter} | ${vars.vertragsnummer}`;
-    brochure.text(footerLeft, 17, 290);
-    brochure.text(t.pageOf(i, totalPages), 193, 290, { align: "right" });
+    brochure.text(t.footerLine, 17, 287);
+    brochure.text(t.pageOf(i, totalPages), 193, 287, { align: "right" });
   }
 
   // "VERTRAGSBESTANDTEIL" separator on first contract page
