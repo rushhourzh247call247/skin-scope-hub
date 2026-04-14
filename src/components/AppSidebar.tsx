@@ -40,6 +40,7 @@ export function AppSidebar() {
     { title: "Finanz-Dashboard", url: "/finance", icon: Landmark },
     { title: "Rechnungen", url: "/finance/invoices", icon: Receipt },
     { title: "Firmen-Zahlungen", url: "/finance/companies", icon: CreditCard },
+    { title: "Verträge", url: "/finance/contracts", icon: ScrollText },
     { title: t("nav.settings"), url: "/settings", icon: Settings },
   ];
 
@@ -63,6 +64,7 @@ export function AppSidebar() {
     { title: "Finanz-Dashboard", url: "/finance", icon: Landmark },
     { title: "Rechnungen", url: "/finance/invoices", icon: Receipt },
     { title: "Firmen-Zahlungen", url: "/finance/companies", icon: CreditCard },
+    { title: "Verträge", url: "/finance/contracts", icon: ScrollText },
   ];
 
   const isActive = (path: string) => location.pathname === path;
