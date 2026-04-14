@@ -648,7 +648,7 @@ export default function ContractPanel({ companyId, companyName }: ContractPanelP
 
       {/* Create Dialog */}
       <Dialog open={createOpen} onOpenChange={(open) => { setCreateOpen(open); if (!open) setPreviewUrl(null); }}>
-        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+        <DialogContent className="max-w-2xl max-h-[100dvh] sm:max-h-[90vh] overflow-y-auto h-[100dvh] sm:h-auto rounded-none sm:rounded-lg p-4 sm:p-6">
           <DialogHeader>
             <DialogTitle>Neuen Vertrag erstellen</DialogTitle>
           </DialogHeader>
@@ -666,7 +666,7 @@ export default function ContractPanel({ companyId, companyName }: ContractPanelP
 
       {/* Edit Dialog */}
       <Dialog open={editOpen} onOpenChange={(open) => { setEditOpen(open); if (!open) setPreviewUrl(null); }}>
-        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+        <DialogContent className="max-w-2xl max-h-[100dvh] sm:max-h-[90vh] overflow-y-auto h-[100dvh] sm:h-auto rounded-none sm:rounded-lg p-4 sm:p-6">
           <DialogHeader>
             <DialogTitle>Vertrag anpassen</DialogTitle>
           </DialogHeader>
