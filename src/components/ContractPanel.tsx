@@ -775,23 +775,21 @@ function ContractForm({
         </div>
         <div className="space-y-2">
           <Label>Lizenzen</Label>
-          <Input
-            type="number"
-            min={1}
-            value={form.licenses}
-            onChange={(e) => setForm({ ...form, licenses: parseInt(e.target.value) || 1 })}
-          />
+          <div className="flex items-center gap-2">
+            <Button type="button" variant="outline" size="icon" className="h-10 w-10" onClick={() => setForm({ ...form, licenses: Math.max(1, form.licenses - 1) })}>−</Button>
+            <span className="text-lg font-semibold w-10 text-center">{form.licenses}</span>
+            <Button type="button" variant="outline" size="icon" className="h-10 w-10" onClick={() => setForm({ ...form, licenses: form.licenses + 1 })}>+</Button>
+          </div>
         </div>
       </div>
       <div className="grid gap-4 grid-cols-2">
         <div className="space-y-2">
           <Label>Zusatzlizenzen (Kulanz)</Label>
-          <Input
-            type="number"
-            min={0}
-            value={form.bonus_licenses}
-            onChange={(e) => setForm({ ...form, bonus_licenses: parseInt(e.target.value) || 0 })}
-          />
+          <div className="flex items-center gap-2">
+            <Button type="button" variant="outline" size="icon" className="h-10 w-10" onClick={() => setForm({ ...form, bonus_licenses: Math.max(0, form.bonus_licenses - 1) })}>−</Button>
+            <span className="text-lg font-semibold w-10 text-center">{form.bonus_licenses}</span>
+            <Button type="button" variant="outline" size="icon" className="h-10 w-10" onClick={() => setForm({ ...form, bonus_licenses: form.bonus_licenses + 1 })}>+</Button>
+          </div>
           <p className="text-xs text-muted-foreground">Extra-Lizenzen ohne Vertragsänderung</p>
         </div>
         <div className="space-y-2">
