@@ -189,11 +189,11 @@ function ContractsOverview() {
         <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-4 text-sm">
           <div>
             <span className="text-muted-foreground">Lizenzen:</span>{" "}
-            {contract.licenses}
-            {(contract.bonus_licenses || 0) > 0 && (
-              <span className="text-primary"> +{contract.bonus_licenses} Kulanz</span>
+            {(contract.bonus_licenses || 0) > 0 ? (
+              <>{contract.licenses}<span className="text-primary"> +{contract.bonus_licenses} Kulanz</span> = <span className="font-medium">{totalLicenses} total</span></>
+            ) : (
+              <span className="font-medium">{contract.licenses}</span>
             )}
-            {" "}= <span className="font-medium">{totalLicenses} total</span>
           </div>
         </div>
         <div className="space-y-1 rounded-md bg-muted/30 p-2">
