@@ -131,7 +131,7 @@ const UserManagement = () => {
           </span>
         </TableCell>
         <TableCell className="text-muted-foreground">{u.email}</TableCell>
-        <TableCell>{u.company?.name ?? `#${u.company_id}`}</TableCell>
+        <TableCell>{u.company?.name ?? companies.find((c: any) => c.id === u.company_id)?.name ?? `#${u.company_id}`}</TableCell>
         <TableCell>
           <span className={`inline-flex rounded-full px-2 py-0.5 text-xs font-medium ${u.role === "admin" ? "bg-primary/10 text-primary" : "bg-muted text-muted-foreground"}`}>
             {u.role === "admin" ? t("users.roleAdmin") : t("users.roleUser")}
