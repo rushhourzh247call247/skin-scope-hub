@@ -18,6 +18,8 @@ interface InvoiceData {
   notes?: string;
   created_at: string;
   contract_number?: string;
+  licenses?: number;
+  package_name?: string;
 }
 
 const COMPANY_INFO = {
@@ -139,13 +141,16 @@ export function generateInvoicePdf(invoice: InvoiceData): jsPDF {
   doc.setFontSize(9);
   doc.setTextColor(...DARK_RGB);
 
+  const licenseCount = invoice.licenses || 1;
+  const pkgLabel = invoice.package_name ? ` – ${invoice.package_name}` : "";
   const description = invoice.contract_number
-    ? `Monatliche Lizenzgebühr (Vertrag ${invoice.contract_number})`
-    : "Monatliche Lizenzgebühr – DERM247 Software";
+    ? `DERM247 Softwarelizenz${pkgLabel} (Vertrag ${invoice.contract_number})`
+    : `DERM247 Softwarelizenz${pkgLabel}`;
+  const unitPrice = licenseCount > 0 ? invoice.amount / licenseCount : invoice.amount;
 
   doc.text(description, marginL + 3, y);
-  doc.text("1", marginL + contentW - 60, y, { align: "right" });
-  doc.text(`CHF ${invoice.amount.toLocaleString("de-CH", { minimumFractionDigits: 2 })}`, marginL + contentW - 30, y, { align: "right" });
+  doc.text(String(licenseCount), marginL + contentW - 60, y, { align: "right" });
+  doc.text(`CHF ${unitPrice.toLocaleString("de-CH", { minimumFractionDigits: 2 })}`, marginL + contentW - 30, y, { align: "right" });
   doc.text(`CHF ${invoice.amount.toLocaleString("de-CH", { minimumFractionDigits: 2 })}`, marginL + contentW - 3, y, { align: "right" });
 
   // ── Subtotal separator ──
