@@ -464,6 +464,58 @@ export default function ContractPanel({ companyId, companyName }: ContractPanelP
         )}
 
         <div className="flex items-center gap-2 pt-1 flex-wrap">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => {
+              const pkg = PACKAGES.find(p => p.id === contract.package_id);
+              const vars: ContractVars = {
+                vertragsnummer: contract.contract_number,
+                kundeName: contract.customer_name || companyName,
+                kundeAdresse: contract.customer_address || "–",
+                paket: pkg?.label || contract.package_name,
+                preis: `${Number(contract.monthly_price)}.–`,
+                anzahlAerzte: String(contract.licenses),
+                datum: formatDate(contract.created_at || contract.start_date),
+                vertragsbeginn: contract.start_date
+                  ? new Date(contract.start_date).toLocaleDateString("de-CH")
+                  : "–",
+              };
+              const doc = buildContractPdf(vars);
+              doc.save(`Vertrag_${contract.contract_number}.pdf`);
+            }}
+          >
+            <Download className="h-3.5 w-3.5 mr-1" /> Vertrag PDF
+          </Button>
+          {contract.notes && contract.notes.includes("Paket:") && (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => {
+                // Parse last amendment from notes
+                const noteLines = (contract.notes || "").split("\n");
+                const lastChange = noteLines[noteLines.length - 1] || "";
+                const doc = buildAmendmentPdf({
+                  vertragsnummer: contract.contract_number,
+                  kundeName: contract.customer_name || companyName,
+                  kundeAdresse: contract.customer_address || "–",
+                  oldPaket: "–",
+                  oldPreis: "–",
+                  oldLizenzen: "–",
+                  newPaket: contract.package_name,
+                  newPreis: `${Number(contract.monthly_price)}.–`,
+                  newLizenzen: String(contract.licenses),
+                  datum: new Date().toLocaleDateString("de-CH"),
+                  newEndDate: contract.end_date
+                    ? new Date(contract.end_date).toLocaleDateString("de-CH")
+                    : "–",
+                });
+                doc.save(`Nachtrag_${contract.contract_number}_${new Date().toISOString().slice(0, 10)}.pdf`);
+              }}
+            >
+              <Download className="h-3.5 w-3.5 mr-1" /> Nachtrag PDF
+            </Button>
+          )}
           {contract.signed_pdf_path ? (
             <Button
               variant="outline"
