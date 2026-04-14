@@ -133,7 +133,7 @@ export default function FinanceDashboard() {
 
       {/* KPI Cards */}
       <div className="grid gap-4 grid-cols-2 lg:grid-cols-4">
-        <Card>
+        <Card className="cursor-pointer hover:shadow-md transition-shadow" onClick={() => navigate("/finance/contracts")}>
           <CardContent className="pt-6">
             <div className="flex items-center justify-between">
               <div>
@@ -148,7 +148,7 @@ export default function FinanceDashboard() {
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="cursor-pointer hover:shadow-md transition-shadow" onClick={() => navigate("/finance/invoices?status=open")}>
           <CardContent className="pt-6">
             <div className="flex items-center justify-between">
               <div>
@@ -163,7 +163,7 @@ export default function FinanceDashboard() {
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="cursor-pointer hover:shadow-md transition-shadow" onClick={() => navigate("/finance/invoices?status=overdue")}>
           <CardContent className="pt-6">
             <div className="flex items-center justify-between">
               <div>
@@ -178,7 +178,7 @@ export default function FinanceDashboard() {
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="cursor-pointer hover:shadow-md transition-shadow" onClick={() => navigate("/finance/invoices?status=paid")}>
           <CardContent className="pt-6">
             <div className="flex items-center justify-between">
               <div>
