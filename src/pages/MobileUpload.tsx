@@ -93,6 +93,19 @@ const MobileUpload = () => {
     validate();
   }, [token]);
 
+  // Client-side expiry check — mark session as expired when 30min are up
+  useEffect(() => {
+    if (session.status !== "active" || !session.expiresAt) return;
+    const checkExpiry = () => {
+      if (new Date(session.expiresAt) < new Date()) {
+        setSession({ status: "expired" });
+      }
+    };
+    checkExpiry();
+    const interval = setInterval(checkExpiry, 10000);
+    return () => clearInterval(interval);
+  }, [session]);
+
   const handleOpenCamera = useCallback(() => {
     cameraInputRef.current?.click();
   }, []);
