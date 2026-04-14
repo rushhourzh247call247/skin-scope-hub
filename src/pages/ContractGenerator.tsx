@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { FileText, Eye, Hash, Save, Building2, FileStack, Globe, Download, Upload, Loader2, Search, Trash2 } from "lucide-react";
+import { FileText, Eye, Hash, Save, Building2, FileStack, Globe, Download, Upload, Loader2, Search, Trash2, Users } from "lucide-react";
 import { SUPPORTED_LANGUAGES } from "@/i18n";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
