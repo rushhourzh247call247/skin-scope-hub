@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { FileText, Eye, Hash, Save, Building2, FileStack, Globe } from "lucide-react";
+import { FileText, Eye, Hash, Save, Building2, FileStack, Globe, Download, Upload, Loader2 } from "lucide-react";
 import { SUPPORTED_LANGUAGES } from "@/i18n";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -9,6 +9,8 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
+import { Badge } from "@/components/ui/badge";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   Select,
   SelectContent,
@@ -19,9 +21,176 @@ import {
 import { toast } from "sonner";
 import PdfPreviewPages from "@/components/PdfPreviewPages";
 import { api } from "@/lib/api";
-import { PACKAGES, suggestPackage, generateContractNumber, buildContractPdf, calcPrice, type ContractVars } from "@/lib/contractPdf";
+import { PACKAGES, suggestPackage, generateContractNumber, buildContractPdf, buildAmendmentPdf, calcPrice, type ContractVars } from "@/lib/contractPdf";
 import { buildBrochurePdf } from "@/lib/brochurePdf";
 import { buildCombinedPdf } from "@/lib/combinedPdf";
+
+function formatDate(dateStr: string | null | undefined): string {
+  if (!dateStr) return "–";
+  return new Date(dateStr).toLocaleDateString("de-CH");
+}
+
+function formatPrice(price: number | string): string {
+  const n = typeof price === "string" ? parseFloat(price) : price;
+  return `CHF ${n.toLocaleString("de-CH", { minimumFractionDigits: 0 })}.-`;
+}
+
+function ContractsOverview() {
+  const { data: allContracts = [], isLoading } = useQuery({
+    queryKey: ["all-contracts"],
+    queryFn: api.getAllContracts,
+  });
+
+  const { data: companies = [] } = useQuery({
+    queryKey: ["companies"],
+    queryFn: api.getCompanies,
+  });
+
+  const companyMap = Object.fromEntries(companies.map((c: any) => [c.id, c.name]));
+
+  const activeContracts = allContracts.filter((c: any) => c.status === "active");
+  const terminatedContracts = allContracts.filter((c: any) => c.status === "terminated");
+  const expiredContracts = allContracts.filter((c: any) => c.status === "expired");
+
+  const handleDownloadContractPdf = (contract: any) => {
+    const pkg = PACKAGES.find(p => p.id === contract.package_id);
+    const vars: ContractVars = {
+      vertragsnummer: contract.contract_number,
+      kundeName: contract.customer_name || companyMap[contract.company_id] || "–",
+      kundeAdresse: contract.customer_address || "–",
+      paket: pkg?.label || contract.package_name,
+      preis: `${Number(contract.monthly_price)}.–`,
+      anzahlAerzte: String(contract.licenses),
+      datum: formatDate(contract.created_at || contract.start_date),
+      vertragsbeginn: contract.start_date
+        ? new Date(contract.start_date).toLocaleDateString("de-CH")
+        : "–",
+    };
+    const doc = buildContractPdf(vars);
+    doc.save(`Vertrag_${contract.contract_number}.pdf`);
+  };
+
+  const handleDownloadAmendmentPdf = (contract: any) => {
+    const doc = buildAmendmentPdf({
+      vertragsnummer: contract.contract_number,
+      kundeName: contract.customer_name || companyMap[contract.company_id] || "–",
+      kundeAdresse: contract.customer_address || "–",
+      oldPaket: "–",
+      oldPreis: "–",
+      oldLizenzen: "–",
+      newPaket: contract.package_name,
+      newPreis: `${Number(contract.monthly_price)}.–`,
+      newLizenzen: String(contract.licenses),
+      datum: new Date().toLocaleDateString("de-CH"),
+      newEndDate: contract.end_date
+        ? new Date(contract.end_date).toLocaleDateString("de-CH")
+        : "–",
+    });
+    doc.save(`Nachtrag_${contract.contract_number}_${new Date().toISOString().slice(0, 10)}.pdf`);
+  };
+
+  const handleDownloadSigned = async (contract: any) => {
+    try {
+      const blob = await api.downloadSignedContract(contract.id);
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `Vertrag_${contract.contract_number}_signed.pdf`;
+      a.click();
+      URL.revokeObjectURL(url);
+    } catch {
+      toast.error("Download fehlgeschlagen");
+    }
+  };
+
+  const statusBadge = (status: string) => {
+    if (status === "expired") return <Badge variant="secondary" className="text-xs">Ausgelaufen</Badge>;
+    if (status === "terminated") return <Badge variant="destructive" className="text-xs">Gekündigt</Badge>;
+    return <Badge className="text-xs bg-emerald-600">Aktiv</Badge>;
+  };
+
+  const renderContractRow = (contract: any) => {
+    const hasAmendment = contract.notes && contract.notes.includes("Paket:");
+    return (
+      <div key={contract.id} className="border rounded-lg p-4 bg-card space-y-2">
+        <div className="flex items-center justify-between flex-wrap gap-2">
+          <div className="flex items-center gap-2">
+            <span className="font-mono text-sm">{contract.contract_number}</span>
+            {statusBadge(contract.status)}
+          </div>
+          <span className="text-xs text-muted-foreground">
+            {companyMap[contract.company_id] || `Firma #${contract.company_id}`}
+          </span>
+        </div>
+        <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-4 text-sm">
+          <div><span className="text-muted-foreground">Kunde:</span> {contract.customer_name}</div>
+          <div><span className="text-muted-foreground">Paket:</span> {contract.package_name}</div>
+          <div><span className="text-muted-foreground">Preis:</span> {formatPrice(contract.monthly_price)}</div>
+          <div><span className="text-muted-foreground">Laufzeit:</span> {formatDate(contract.start_date)} – {formatDate(contract.end_date)}</div>
+        </div>
+        {contract.notes && (
+          <p className="text-xs text-muted-foreground bg-muted/50 rounded p-2">{contract.notes}</p>
+        )}
+        <div className="flex items-center gap-2 flex-wrap pt-1">
+          <Button variant="outline" size="sm" onClick={() => handleDownloadContractPdf(contract)}>
+            <Download className="h-3.5 w-3.5 mr-1" /> Vertrag PDF
+          </Button>
+          {hasAmendment && (
+            <Button variant="outline" size="sm" onClick={() => handleDownloadAmendmentPdf(contract)}>
+              <Download className="h-3.5 w-3.5 mr-1" /> Nachtrag PDF
+            </Button>
+          )}
+          {contract.signed_pdf_path && (
+            <Button variant="outline" size="sm" onClick={() => handleDownloadSigned(contract)}>
+              <Download className="h-3.5 w-3.5 mr-1" /> Signiertes PDF
+            </Button>
+          )}
+        </div>
+      </div>
+    );
+  };
+
+  if (isLoading) {
+    return (
+      <div className="flex justify-center py-8">
+        <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-6">
+      <div className="grid gap-4 sm:grid-cols-3">
+        <Card>
+          <CardContent className="pt-4 text-center">
+            <div className="text-2xl font-bold text-emerald-600">{activeContracts.length}</div>
+            <p className="text-xs text-muted-foreground">Aktive Verträge</p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="pt-4 text-center">
+            <div className="text-2xl font-bold text-amber-600">{terminatedContracts.length}</div>
+            <p className="text-xs text-muted-foreground">Gekündigte Verträge</p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="pt-4 text-center">
+            <div className="text-2xl font-bold text-muted-foreground">{expiredContracts.length}</div>
+            <p className="text-xs text-muted-foreground">Ausgelaufene Verträge</p>
+          </CardContent>
+        </Card>
+      </div>
+
+      {allContracts.length === 0 ? (
+        <p className="text-center text-muted-foreground py-8">Keine Verträge vorhanden</p>
+      ) : (
+        <div className="space-y-3">
+          {allContracts.map(renderContractRow)}
+        </div>
+      )}
+    </div>
+  );
+}
 
 export default function ContractGenerator() {
   const { t } = useTranslation();
@@ -49,6 +218,7 @@ export default function ContractGenerator() {
     mutationFn: (data: any) => api.createContract(data.companyId, data.contract),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["contracts"] });
+      queryClient.invalidateQueries({ queryKey: ["all-contracts"] });
       toast.success("Vertrag in der Datenbank gespeichert");
     },
     onError: (err: any) => toast.error(err.message || "Speichern fehlgeschlagen"),
@@ -56,17 +226,13 @@ export default function ContractGenerator() {
 
   const pkg = PACKAGES.find((p) => p.id === selectedPaket);
 
-  // Auto-sync: when doctor count changes, suggest matching package
   const handleAnzahlChange = (val: string) => {
     setAnzahlAerzte(val);
     const num = parseInt(val) || 1;
     const suggested = suggestPackage(num);
-    if (suggested !== selectedPaket) {
-      setSelectedPaket(suggested);
-    }
+    if (suggested !== selectedPaket) setSelectedPaket(suggested);
   };
 
-  // Auto-sync: when package changes, set default doctor count
   const handlePaketChange = (val: string) => {
     setSelectedPaket(val);
     const p = PACKAGES.find((pk) => pk.id === val);
@@ -114,9 +280,6 @@ export default function ContractGenerator() {
     setPreviewType("brochure");
   };
 
-
-
-
   const handleSaveToDb = () => {
     if (!kundeName || !selectedPaket || !pkg) {
       toast.error("Bitte Kundenname und Paket ausfüllen.");
@@ -152,194 +315,151 @@ export default function ContractGenerator() {
   };
 
   return (
-    <div className="mx-auto max-w-3xl space-y-6 p-4 md:p-6">
+    <div className="mx-auto max-w-4xl space-y-6 p-4 md:p-6">
       <div className="flex items-center gap-3">
         <FileText className="h-6 w-6 text-primary" />
-        <h1 className="text-2xl font-bold tracking-tight">Vertrag erstellen</h1>
+        <h1 className="text-2xl font-bold tracking-tight">Verträge</h1>
       </div>
 
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-lg">Kundendaten & Paket</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="flex items-end gap-2">
-            <div className="flex-1 space-y-2">
-              <Label htmlFor="vertragsnummer">Vertragsnummer</Label>
-              <Input
-                id="vertragsnummer"
-                value={vertragsnummer}
-                onChange={(e) => setVertragsnummer(e.target.value)}
-              />
-            </div>
-            <Button variant="outline" size="icon" onClick={regenerateNumber} title="Neue Nummer">
-              <Hash className="h-4 w-4" />
-            </Button>
-          </div>
+      <Tabs defaultValue="overview">
+        <TabsList>
+          <TabsTrigger value="overview">Übersicht</TabsTrigger>
+          <TabsTrigger value="create">Neuer Vertrag</TabsTrigger>
+        </TabsList>
 
-          <div className="grid gap-4 sm:grid-cols-2">
-            <div className="space-y-2">
-              <Label htmlFor="kundeName">Kunde Name *</Label>
-              <Input
-                id="kundeName"
-                placeholder="Praxis Dr. Müller"
-                value={kundeName}
-                onChange={(e) => setKundeName(e.target.value)}
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="vertragsbeginn">Vertragsbeginn</Label>
-              <Input
-                id="vertragsbeginn"
-                type="date"
-                value={vertragsbeginn}
-                onChange={(e) => setVertragsbeginn(e.target.value)}
-              />
-            </div>
-          </div>
+        <TabsContent value="overview" className="mt-4">
+          <ContractsOverview />
+        </TabsContent>
 
-
-          <div className="space-y-2">
-            <Label htmlFor="kundeAdresse">Kunde Adresse</Label>
-            <Textarea
-              id="kundeAdresse"
-              placeholder={"Musterstrasse 10\n8000 Zürich"}
-              rows={3}
-              value={kundeAdresse}
-              onChange={(e) => setKundeAdresse(e.target.value)}
-            />
-          </div>
-
-          <div className="space-y-2">
-            <Label>Paket *</Label>
-            <Select value={selectedPaket} onValueChange={handlePaketChange}>
-              <SelectTrigger>
-                <SelectValue placeholder="Paket wählen…" />
-              </SelectTrigger>
-              <SelectContent>
-                {PACKAGES.map((p) => (
-                  <SelectItem key={p.id} value={p.id}>
-                    {p.label} — {p.perDoctor ? `CHF ${p.price} pro Arzt / Monat` : `CHF ${p.price} / Monat`}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            {pkg && (
-              <p className="text-sm text-muted-foreground">
-                Gewählt: <span className="font-medium text-foreground">{pkg.label}</span> — CHF{" "}
-                {priceInfo?.display} / Monat ({pkg.desc})
-              </p>
-            )}
-            {pkg && pkg.perDoctor && (
-              <div className="mt-3 space-y-2">
-                <Label htmlFor="anzahlAerzte">Anzahl Ärzte (1–{pkg.maxDocs})</Label>
-                <Input
-                  id="anzahlAerzte"
-                  type="number"
-                  min={pkg.minDocs}
-                  max={pkg.maxDocs}
-                  value={anzahlAerzte}
-                  onChange={(e) => handleAnzahlChange(e.target.value)}
-                  className="max-w-[120px]"
-                />
-                <p className="text-xs text-muted-foreground">
-                  {anzahlAerzte} × CHF 80.– = CHF {priceInfo?.display} / Monat
-                </p>
+        <TabsContent value="create" className="mt-4">
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-lg">Kundendaten & Paket</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="flex items-end gap-2">
+                <div className="flex-1 space-y-2">
+                  <Label htmlFor="vertragsnummer">Vertragsnummer</Label>
+                  <Input id="vertragsnummer" value={vertragsnummer} onChange={(e) => setVertragsnummer(e.target.value)} />
+                </div>
+                <Button variant="outline" size="icon" onClick={regenerateNumber} title="Neue Nummer">
+                  <Hash className="h-4 w-4" />
+                </Button>
               </div>
-            )}
-          </div>
 
-          <div className="flex items-center gap-2">
-            <Checkbox id="mwst" checked={mwst} onCheckedChange={(v: any) => setMwst(!!v)} />
-            <Label htmlFor="mwst" className="cursor-pointer">Preise exkl. MwSt. ausweisen</Label>
-          </div>
+              <div className="grid gap-4 sm:grid-cols-2">
+                <div className="space-y-2">
+                  <Label htmlFor="kundeName">Kunde Name *</Label>
+                  <Input id="kundeName" placeholder="Praxis Dr. Müller" value={kundeName} onChange={(e) => setKundeName(e.target.value)} />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="vertragsbeginn">Vertragsbeginn</Label>
+                  <Input id="vertragsbeginn" type="date" value={vertragsbeginn} onChange={(e) => setVertragsbeginn(e.target.value)} />
+                </div>
+              </div>
 
-          <div className="space-y-2">
-            <Label>Firma zuordnen (für DB-Speicherung)</Label>
-            <Select value={selectedCompanyId} onValueChange={setSelectedCompanyId}>
-              <SelectTrigger>
-                <SelectValue placeholder="Firma wählen…" />
-              </SelectTrigger>
-              <SelectContent>
-                {activeCompanies.map((c: any) => (
-                  <SelectItem key={c.id} value={String(c.id)}>
-                    <span className="flex items-center gap-2">
-                      <Building2 className="h-3.5 w-3.5" /> {c.name}
-                    </span>
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
+              <div className="space-y-2">
+                <Label htmlFor="kundeAdresse">Kunde Adresse</Label>
+                <Textarea id="kundeAdresse" placeholder={"Musterstrasse 10\n8000 Zürich"} rows={3} value={kundeAdresse} onChange={(e) => setKundeAdresse(e.target.value)} />
+              </div>
 
-          <div className="space-y-2">
-            <Label className="flex items-center gap-1.5">
-              <Globe className="h-3.5 w-3.5" /> PDF-Sprache
-            </Label>
-            <Select value={pdfLanguage} onValueChange={setPdfLanguage}>
-              <SelectTrigger className="max-w-[200px]">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                {SUPPORTED_LANGUAGES.map((lang) => (
-                  <SelectItem key={lang.code} value={lang.code}>
-                    {lang.flag} {lang.label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
+              <div className="space-y-2">
+                <Label>Paket *</Label>
+                <Select value={selectedPaket} onValueChange={handlePaketChange}>
+                  <SelectTrigger><SelectValue placeholder="Paket wählen…" /></SelectTrigger>
+                  <SelectContent>
+                    {PACKAGES.map((p) => (
+                      <SelectItem key={p.id} value={p.id}>
+                        {p.label} — {p.perDoctor ? `CHF ${p.price} pro Arzt / Monat` : `CHF ${p.price} / Monat`}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                {pkg && (
+                  <p className="text-sm text-muted-foreground">
+                    Gewählt: <span className="font-medium text-foreground">{pkg.label}</span> — CHF {priceInfo?.display} / Monat ({pkg.desc})
+                  </p>
+                )}
+                {pkg && pkg.perDoctor && (
+                  <div className="mt-3 space-y-2">
+                    <Label htmlFor="anzahlAerzte">Anzahl Ärzte (1–{pkg.maxDocs})</Label>
+                    <Input id="anzahlAerzte" type="number" min={pkg.minDocs} max={pkg.maxDocs} value={anzahlAerzte} onChange={(e) => handleAnzahlChange(e.target.value)} className="max-w-[120px]" />
+                    <p className="text-xs text-muted-foreground">{anzahlAerzte} × CHF 80.– = CHF {priceInfo?.display} / Monat</p>
+                  </div>
+                )}
+              </div>
 
-          <div className="flex flex-wrap gap-3 pt-2">
-            <Button variant="outline" onClick={handlePreviewContract}>
-              <Eye className="mr-2 h-4 w-4" />
-              Vorschau Vertrag
-            </Button>
-            <Button variant="outline" onClick={handlePreviewBrochure}>
-              <Eye className="mr-2 h-4 w-4" />
-              Vorschau Broschüre
-            </Button>
-            <Button onClick={() => {
-              if (!kundeName || !selectedPaket) {
-                toast.error("Bitte Kundenname und Paket ausfüllen.");
-                return;
-              }
-              const vars = getVars();
-              const doc = buildCombinedPdf(vars);
-              const datum = new Date().toISOString().slice(0, 10);
-              const filename = `Derm247_Angebot_und_Vertrag_${kundeName.replace(/\s+/g, "_")}_${datum}.pdf`;
-              doc.save(filename);
-              toast.success("Angebot + Vertrag wurde als PDF heruntergeladen.");
-            }}>
-              <FileStack className="mr-2 h-4 w-4" />
-              Speichern & Herunterladen
-            </Button>
-            <Button
-              variant="secondary"
-              onClick={handleSaveToDb}
-              disabled={saveMutation.isPending}
-            >
-              <Save className="mr-2 h-4 w-4" />
-              {saveMutation.isPending ? "Speichert…" : "In DB speichern"}
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
+              <div className="flex items-center gap-2">
+                <Checkbox id="mwst" checked={mwst} onCheckedChange={(v: any) => setMwst(!!v)} />
+                <Label htmlFor="mwst" className="cursor-pointer">Preise exkl. MwSt. ausweisen</Label>
+              </div>
 
-      {previewUrl && (
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-lg">
-              {previewType === "contract" ? "Vertrag – Vorschau" : "Broschüre – Vorschau"}
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="min-h-[600px]">
-              <PdfPreviewPages pdfUrl={previewUrl} />
-            </div>
-          </CardContent>
-        </Card>
-      )}
+              <div className="space-y-2">
+                <Label>Firma zuordnen (für DB-Speicherung)</Label>
+                <Select value={selectedCompanyId} onValueChange={setSelectedCompanyId}>
+                  <SelectTrigger><SelectValue placeholder="Firma wählen…" /></SelectTrigger>
+                  <SelectContent>
+                    {activeCompanies.map((c: any) => (
+                      <SelectItem key={c.id} value={String(c.id)}>
+                        <span className="flex items-center gap-2"><Building2 className="h-3.5 w-3.5" /> {c.name}</span>
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="space-y-2">
+                <Label className="flex items-center gap-1.5"><Globe className="h-3.5 w-3.5" /> PDF-Sprache</Label>
+                <Select value={pdfLanguage} onValueChange={setPdfLanguage}>
+                  <SelectTrigger className="max-w-[200px]"><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    {SUPPORTED_LANGUAGES.map((lang) => (
+                      <SelectItem key={lang.code} value={lang.code}>{lang.flag} {lang.label}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="flex flex-wrap gap-3 pt-2">
+                <Button variant="outline" onClick={handlePreviewContract}>
+                  <Eye className="mr-2 h-4 w-4" /> Vorschau Vertrag
+                </Button>
+                <Button variant="outline" onClick={handlePreviewBrochure}>
+                  <Eye className="mr-2 h-4 w-4" /> Vorschau Broschüre
+                </Button>
+                <Button onClick={() => {
+                  if (!kundeName || !selectedPaket) { toast.error("Bitte Kundenname und Paket ausfüllen."); return; }
+                  const vars = getVars();
+                  const doc = buildCombinedPdf(vars);
+                  const datum = new Date().toISOString().slice(0, 10);
+                  doc.save(`Derm247_Angebot_und_Vertrag_${kundeName.replace(/\s+/g, "_")}_${datum}.pdf`);
+                  toast.success("Angebot + Vertrag wurde als PDF heruntergeladen.");
+                }}>
+                  <FileStack className="mr-2 h-4 w-4" /> Speichern & Herunterladen
+                </Button>
+                <Button variant="secondary" onClick={handleSaveToDb} disabled={saveMutation.isPending}>
+                  <Save className="mr-2 h-4 w-4" /> {saveMutation.isPending ? "Speichert…" : "In DB speichern"}
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+
+          {previewUrl && (
+            <Card className="mt-4">
+              <CardHeader>
+                <CardTitle className="text-lg">
+                  {previewType === "contract" ? "Vertrag – Vorschau" : "Broschüre – Vorschau"}
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="min-h-[600px]">
+                  <PdfPreviewPages pdfUrl={previewUrl} />
+                </div>
+              </CardContent>
+            </Card>
+          )}
+        </TabsContent>
+      </Tabs>
     </div>
   );
 }
