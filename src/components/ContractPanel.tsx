@@ -436,7 +436,7 @@ export default function ContractPanel({ companyId, companyName }: ContractPanelP
           </div>
         </div>
 
-        <LicenseUsageBadge companyId={companyId} maxLicenses={contract.licenses} bonusLicenses={contract.bonus_licenses || 0} />
+        <LicenseUsageBadge companyId={companyId} maxLicenses={contract.licenses} bonusLicenses={contract.bonus_licenses || 0} packageId={contract.package_id} />
 
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3 text-sm">
           <div>
