@@ -4,7 +4,7 @@ import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import {
   Server, Database, Shield, Globe, HardDrive, Lock, Network,
-  FileText, Clock, RefreshCw, Monitor, Cpu, Key, Eye
+  FileText, Clock, RefreshCw, Monitor, Cpu, Key, Eye, Mail
 } from "lucide-react";
 
 const Section = ({ icon: Icon, title, children }: { icon: any; title: string; children: React.ReactNode }) => (
@@ -42,7 +42,7 @@ const SystemDocs = () => {
         <InfoRow label={t('systemDocs.provider')} value={t('systemDocs.providerVal')} />
         <InfoRow label={t('systemDocs.product')} value={t('systemDocs.productVal')} />
         <InfoRow label={t('systemDocs.os')} value="Ubuntu 24.04.3 LTS" />
-        <InfoRow label={t('systemDocs.kernel')} value="6.8.0-106-generic (x86_64)" />
+        <InfoRow label={t('systemDocs.kernel')} value="6.8.0-107-generic (x86_64)" />
         <InfoRow label={t('systemDocs.ipv4')} value="83.228.246.191" />
         <InfoRow label={t('systemDocs.ipv6')} value="2001:1600:18:201::3a1" />
         <InfoRow label={t('systemDocs.storage')} value="57 GB SSD" badge={t('systemDocs.storageUsed')} />
@@ -108,6 +108,16 @@ const SystemDocs = () => {
         <InfoRow label={t('systemDocs.maxUploadSize')} value="20 MB" />
       </Section>
 
+      <Section icon={Mail} title={t('systemDocs.emailSystem')}>
+        <InfoRow label={t('systemDocs.mailService')} value="Postfix" badge={t('systemDocs.autoStartLabel')} />
+        <InfoRow label={t('systemDocs.mailRelay')} value={t('systemDocs.mailRelayVal')} />
+        <InfoRow label={t('systemDocs.mailPort')} value="465 (SSL/TLS)" />
+        <InfoRow label={t('systemDocs.mailAuth')} value="SASL (libsasl2-modules)" />
+        <InfoRow label={t('systemDocs.mailSender')} value="info@techassist.ch" />
+        <InfoRow label={t('systemDocs.mailPurpose')} value={t('systemDocs.mailPurposeVal')} />
+        <InfoRow label={t('systemDocs.mailNote')} value={t('systemDocs.mailNoteVal')} />
+      </Section>
+
       <Section icon={Shield} title={t('systemDocs.security')}>
         <InfoRow label={t('systemDocs.firewall')} value={t('systemDocs.firewallVal')} badge={t('common.active')} />
         <InfoRow label={t('systemDocs.openPorts')} value={t('systemDocs.openPortsVal')} />
@@ -132,6 +142,7 @@ const SystemDocs = () => {
       </Section>
 
       <Section icon={RefreshCw} title={t('systemDocs.backup')}>
+        <p className="text-foreground font-medium text-xs uppercase tracking-wider">{t('systemDocs.localBackups')}</p>
         <InfoRow label={t('systemDocs.backupDir')} value="~/backups/" />
         <InfoRow label={t('systemDocs.dbBackup')} value={t('systemDocs.dbBackupVal')} />
         <InfoRow label={t('systemDocs.dbRetention')} value={t('systemDocs.dbRetentionVal')} />
@@ -139,6 +150,13 @@ const SystemDocs = () => {
         <InfoRow label={t('systemDocs.imgRetention')} value={t('systemDocs.imgRetentionVal')} />
         <InfoRow label={t('systemDocs.snapshots')} value={t('systemDocs.snapshotsVal')} />
         <InfoRow label={t('systemDocs.backupFormat')} value={t('systemDocs.backupFormatVal')} />
+        <Separator className="my-2" />
+        <p className="text-foreground font-medium text-xs uppercase tracking-wider">{t('systemDocs.offsiteBackups')}</p>
+        <InfoRow label={t('systemDocs.offsiteScript')} value="~/backup-offsite.sh" />
+        <InfoRow label={t('systemDocs.offsiteSchedule')} value={t('systemDocs.offsiteScheduleVal')} />
+        <InfoRow label={t('systemDocs.offsiteContent')} value={t('systemDocs.offsiteContentVal')} />
+        <InfoRow label={t('systemDocs.offsiteRetention')} value={t('systemDocs.offsiteRetentionVal')} />
+        <InfoRow label={t('systemDocs.offsiteNotify')} value={t('systemDocs.offsiteNotifyVal')} />
       </Section>
 
       <Section icon={Clock} title={t('systemDocs.autoStart')}>
@@ -146,6 +164,7 @@ const SystemDocs = () => {
           {[
             "Nginx (Webserver)",
             "PHP 8.3 FPM (API)",
+            "Postfix (E-Mail Relay)",
             "Cron (Backups)",
             "Certbot (SSL)",
             "UFW Firewall",
