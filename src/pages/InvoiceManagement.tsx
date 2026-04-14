@@ -11,6 +11,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { Textarea } from "@/components/ui/textarea";
 import { Search, Plus, CheckCircle, AlertTriangle, FileDown, RotateCcw, Send, Receipt } from "lucide-react";
+import { downloadInvoicePdf } from "@/lib/invoicePdf";
 import { format } from "date-fns";
 import { toast } from "sonner";
 
