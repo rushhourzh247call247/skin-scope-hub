@@ -15,7 +15,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { UserCog, Plus, Trash2, KeyRound, Eye, EyeOff, ShieldOff, Shield, Ban, CheckCircle } from "lucide-react";
 import { toast } from "sonner";
 
-
+const TECHASSIST_NAME = "techassist";
 
 const UserManagement = () => {
   const { t } = useTranslation();
