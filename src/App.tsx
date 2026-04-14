@@ -21,6 +21,9 @@ import Calibrate from "./pages/Calibrate";
 import SystemDocs from "./pages/SystemDocs";
 import ContractGenerator from "./pages/ContractGenerator";
 import Tickets from "./pages/Tickets";
+import FinanceDashboard from "./pages/FinanceDashboard";
+import InvoiceManagement from "./pages/InvoiceManagement";
+import FinanceCompanies from "./pages/FinanceCompanies";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -43,6 +46,18 @@ const AdminRoute = ({ children }: { children: React.ReactNode }) => {
   return <>{children}</>;
 };
 
+const FinanceRoute = ({ children }: { children: React.ReactNode }) => {
+  const { user } = useAuth();
+  if (user?.role !== "admin" && user?.role !== "accountant") return <Navigate to="/" replace />;
+  return <>{children}</>;
+};
+
+const AccountantRedirect = ({ children }: { children: React.ReactNode }) => {
+  const { user } = useAuth();
+  if (user?.role === "accountant") return <Navigate to="/finance" replace />;
+  return <>{children}</>;
+};
+
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <AuthProvider>
@@ -54,17 +69,21 @@ const App = () => (
             <Route path="/login" element={<Login />} />
             <Route path="/upload" element={<MobileUpload />} />
             <Route path="/calibrate" element={<Calibrate />} />
-            <Route path="/" element={<ProtectedPage><Dashboard /></ProtectedPage>} />
-            <Route path="/patients" element={<ProtectedPage><PatientList /></ProtectedPage>} />
-            <Route path="/new-patient" element={<ProtectedPage><NewPatient /></ProtectedPage>} />
-            <Route path="/patient/:id" element={<ProtectedPage><PatientDetail /></ProtectedPage>} />
+            <Route path="/" element={<ProtectedPage><AccountantRedirect><Dashboard /></AccountantRedirect></ProtectedPage>} />
+            <Route path="/patients" element={<ProtectedPage><AccountantRedirect><PatientList /></AccountantRedirect></ProtectedPage>} />
+            <Route path="/new-patient" element={<ProtectedPage><AccountantRedirect><NewPatient /></AccountantRedirect></ProtectedPage>} />
+            <Route path="/patient/:id" element={<ProtectedPage><AccountantRedirect><PatientDetail /></AccountantRedirect></ProtectedPage>} />
             <Route path="/companies" element={<ProtectedPage><AdminRoute><CompanyManagement /></AdminRoute></ProtectedPage>} />
             <Route path="/users" element={<ProtectedPage><AdminRoute><UserManagement /></AdminRoute></ProtectedPage>} />
             <Route path="/snapshots" element={<ProtectedPage><AdminRoute><Snapshots /></AdminRoute></ProtectedPage>} />
             <Route path="/settings" element={<ProtectedPage><Settings /></ProtectedPage>} />
             <Route path="/system-docs" element={<ProtectedPage><AdminRoute><SystemDocs /></AdminRoute></ProtectedPage>} />
             <Route path="/contracts" element={<ProtectedPage><AdminRoute><ContractGenerator /></AdminRoute></ProtectedPage>} />
-            <Route path="/tickets" element={<ProtectedPage><Tickets /></ProtectedPage>} />
+            <Route path="/tickets" element={<ProtectedPage><AccountantRedirect><Tickets /></AccountantRedirect></ProtectedPage>} />
+            {/* Finance routes - accessible by admin and accountant */}
+            <Route path="/finance" element={<ProtectedPage><FinanceRoute><FinanceDashboard /></FinanceRoute></ProtectedPage>} />
+            <Route path="/finance/invoices" element={<ProtectedPage><FinanceRoute><InvoiceManagement /></FinanceRoute></ProtectedPage>} />
+            <Route path="/finance/companies" element={<ProtectedPage><FinanceRoute><FinanceCompanies /></FinanceRoute></ProtectedPage>} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>
