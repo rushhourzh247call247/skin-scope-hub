@@ -87,7 +87,7 @@ type ContractFormData = {
   notes: string;
 };
 
-function LicenseUsageBadge({ companyId, maxLicenses, bonusLicenses = 0 }: { companyId: number; maxLicenses: number; bonusLicenses?: number }) {
+function LicenseUsageBadge({ companyId, maxLicenses, bonusLicenses = 0, packageId }: { companyId: number; maxLicenses: number; bonusLicenses?: number; packageId?: string }) {
   const { data: licenseStatus } = useQuery({
     queryKey: ["license-status", companyId],
     queryFn: () => api.getLicenseStatus(companyId),
@@ -96,7 +96,10 @@ function LicenseUsageBadge({ companyId, maxLicenses, bonusLicenses = 0 }: { comp
 
   if (!licenseStatus) return null;
 
-  const totalLicenses = maxLicenses + bonusLicenses;
+  // For fixed-price packages, use the package maxDocs if stored licenses is too low
+  const pkg = packageId ? PACKAGES.find(p => p.id === packageId) : null;
+  const effectiveMax = pkg && !pkg.perDoctor ? Math.max(maxLicenses, pkg.maxDocs) : maxLicenses;
+  const totalLicenses = effectiveMax + bonusLicenses;
   const used = licenseStatus.used;
   const available = totalLicenses - used;
   const isFull = available <= 0;
@@ -433,7 +436,7 @@ export default function ContractPanel({ companyId, companyName }: ContractPanelP
           </div>
         </div>
 
-        <LicenseUsageBadge companyId={companyId} maxLicenses={contract.licenses} bonusLicenses={contract.bonus_licenses || 0} />
+        <LicenseUsageBadge companyId={companyId} maxLicenses={contract.licenses} bonusLicenses={contract.bonus_licenses || 0} packageId={contract.package_id} />
 
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3 text-sm">
           <div>
@@ -443,7 +446,7 @@ export default function ContractPanel({ companyId, companyName }: ContractPanelP
           <div>
             <span className="text-muted-foreground">Lizenzen:</span>{" "}
             <span className="font-medium">
-              {contract.licenses}
+              {(() => { const p = PACKAGES.find(pk => pk.id === contract.package_id); return p && !p.perDoctor ? Math.max(contract.licenses, p.maxDocs) : contract.licenses; })()}
               {(contract.bonus_licenses || 0) > 0 && (
                 <span className="text-primary"> +{contract.bonus_licenses} Kulanz</span>
               )}
@@ -807,7 +810,11 @@ function ContractForm({
       </div>
       <div className="space-y-2">
         <Label>Paket *</Label>
-        <Select value={form.package_id} onValueChange={(v) => setForm({ ...form, package_id: v })}>
+        <Select value={form.package_id} onValueChange={(v) => {
+          const newPkg = PACKAGES.find(p => p.id === v);
+          const newLicenses = newPkg ? (newPkg.perDoctor ? Math.max(newPkg.minDocs, Math.min(form.licenses, newPkg.maxDocs)) : newPkg.maxDocs) : form.licenses;
+          setForm({ ...form, package_id: v, licenses: newLicenses });
+        }}>
           <SelectTrigger>
             <SelectValue placeholder="Paket wählen…" />
           </SelectTrigger>
