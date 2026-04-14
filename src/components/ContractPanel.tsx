@@ -79,13 +79,15 @@ type ContractFormData = {
   contract_number: string;
   package_id: string;
   licenses: number;
+  bonus_licenses: number;
+  custom_price: string;
   start_date: string;
   customer_name: string;
   customer_address: string;
   notes: string;
 };
 
-function LicenseUsageBadge({ companyId, maxLicenses }: { companyId: number; maxLicenses: number }) {
+function LicenseUsageBadge({ companyId, maxLicenses, bonusLicenses = 0 }: { companyId: number; maxLicenses: number; bonusLicenses?: number }) {
   const { data: licenseStatus } = useQuery({
     queryKey: ["license-status", companyId],
     queryFn: () => api.getLicenseStatus(companyId),
@@ -94,8 +96,9 @@ function LicenseUsageBadge({ companyId, maxLicenses }: { companyId: number; maxL
 
   if (!licenseStatus) return null;
 
+  const totalLicenses = maxLicenses + bonusLicenses;
   const used = licenseStatus.used;
-  const available = maxLicenses - used;
+  const available = totalLicenses - used;
   const isFull = available <= 0;
 
   return (
@@ -104,10 +107,15 @@ function LicenseUsageBadge({ companyId, maxLicenses }: { companyId: number; maxL
         variant={isFull ? "destructive" : "secondary"}
         className="text-xs"
       >
-        {used} / {maxLicenses} Lizenzen belegt
+        {used} / {totalLicenses} Lizenzen belegt
         {!isFull && ` (${available} frei)`}
         {isFull && " – Limit erreicht"}
       </Badge>
+      {bonusLicenses > 0 && (
+        <Badge variant="outline" className="text-xs text-primary border-primary/30">
+          +{bonusLicenses} Kulanz
+        </Badge>
+      )}
     </div>
   );
 }
@@ -416,7 +424,7 @@ export default function ContractPanel({ companyId, companyName }: ContractPanelP
           </div>
         </div>
 
-        <LicenseUsageBadge companyId={companyId} maxLicenses={contract.licenses} />
+        <LicenseUsageBadge companyId={companyId} maxLicenses={contract.licenses} bonusLicenses={contract.bonus_licenses || 0} />
 
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3 text-sm">
           <div>
