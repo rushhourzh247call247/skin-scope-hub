@@ -191,42 +191,59 @@ export function generateInvoicePdf(invoice: InvoiceData): jsPDF {
 
   // ── Payment info box with QR ──
   y += 18;
-  const qrSize = 30;
-  const payBoxH = 40;
+  const qrSize = 32;
+  const payBoxH = 48;
   doc.setFillColor(245, 250, 249);
   doc.setDrawColor(...BRAND_RGB);
   doc.setLineWidth(0.3);
   doc.roundedRect(marginL, y, contentW, payBoxH, 2, 2, "FD");
 
-  // QR code on the right side
-  const qrX = marginL + contentW - qrSize - 4;
+  // QR code on the right side with subtle border
+  const qrX = marginL + contentW - qrSize - 6;
   const qrY = y + (payBoxH - qrSize) / 2;
+  doc.setDrawColor(220, 220, 220);
+  doc.setLineWidth(0.2);
+  doc.roundedRect(qrX - 1.5, qrY - 1.5, qrSize + 3, qrSize + 3, 1, 1, "S");
   try {
     doc.addImage(PAYMENT_QR_PNG, "PNG", qrX, qrY, qrSize, qrSize);
   } catch { /* QR image not available */ }
 
-  y += 7;
+  // "Scan to pay" label under QR
+  doc.setFontSize(6);
+  doc.setFont("helvetica", "normal");
+  doc.setTextColor(...GRAY_RGB);
+  doc.text("QR-Code scannen", qrX + qrSize / 2, qrY + qrSize + 4, { align: "center" });
+
+  // Title
+  const infoY = y + 7;
   doc.setFontSize(10);
   doc.setFont("helvetica", "bold");
   doc.setTextColor(...BRAND_RGB);
-  doc.text("Zahlungsinformationen", marginL + 5, y);
+  doc.text("Zahlungsinformationen", marginL + 5, infoY);
 
-  y += 7;
-  doc.setFontSize(9);
-  doc.setFont("helvetica", "normal");
-  doc.setTextColor(...DARK_RGB);
+  // Payment details – left column layout
+  const lineX = marginL + 5;
+  const valX = marginL + 42;
+  const maxTextX = qrX - 8; // don't overlap QR
+  let lineY = infoY + 8;
+  doc.setFontSize(8.5);
 
-  const textAreaW = contentW - qrSize - 12;
-  const paymentLines = [
-    [`Bank: ${COMPANY_INFO.bank}`, `IBAN: ${COMPANY_INFO.iban}`],
-    [`Zahlbar bis: ${format(new Date(invoice.due_date), "dd.MM.yyyy", { locale: de })}`, `Referenz: ${invoice.invoice_number}`],
-    [`Konto: ${COMPANY_INFO.owner}`, `${COMPANY_INFO.addressLine2}, ${COMPANY_INFO.addressLine3}`],
+  const payDetails: [string, string][] = [
+    ["Empfänger:", COMPANY_INFO.owner],
+    ["Bank:", COMPANY_INFO.bank],
+    ["IBAN:", COMPANY_INFO.iban],
+    ["Referenz:", invoice.invoice_number],
+    ["Zahlbar bis:", format(new Date(invoice.due_date), "dd.MM.yyyy", { locale: de })],
   ];
 
-  for (const [left, right] of paymentLines) {
-    doc.text(left, marginL + 5, y);
-    doc.text(right, marginL + textAreaW / 2 + 30, y);
-    y += 6;
+  for (const [label, value] of payDetails) {
+    doc.setFont("helvetica", "normal");
+    doc.setTextColor(...GRAY_RGB);
+    doc.text(label, lineX, lineY);
+    doc.setFont("helvetica", "bold");
+    doc.setTextColor(...DARK_RGB);
+    doc.text(value, valX, lineY);
+    lineY += 5.5;
   }
 
   // ── Notes ──
