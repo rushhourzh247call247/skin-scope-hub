@@ -783,6 +783,30 @@ function ContractForm({
           />
         </div>
       </div>
+      <div className="grid gap-4 grid-cols-2">
+        <div className="space-y-2">
+          <Label>Zusatzlizenzen (Kulanz)</Label>
+          <Input
+            type="number"
+            min={0}
+            value={form.bonus_licenses}
+            onChange={(e) => setForm({ ...form, bonus_licenses: parseInt(e.target.value) || 0 })}
+          />
+          <p className="text-xs text-muted-foreground">Extra-Lizenzen ohne Vertragsänderung</p>
+        </div>
+        <div className="space-y-2">
+          <Label>Sonderpreis (CHF/Mt.)</Label>
+          <Input
+            type="number"
+            min={0}
+            step={10}
+            value={form.custom_price}
+            onChange={(e) => setForm({ ...form, custom_price: e.target.value })}
+            placeholder={pkg ? String(calcPrice(pkg.id, form.licenses).total) : "–"}
+          />
+          <p className="text-xs text-muted-foreground">Leer = Standardpreis</p>
+        </div>
+      </div>
       <div className="space-y-2">
         <Label>Paket *</Label>
         <Select value={form.package_id} onValueChange={(v) => setForm({ ...form, package_id: v })}>
