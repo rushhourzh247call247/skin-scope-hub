@@ -85,6 +85,33 @@ type ContractFormData = {
   notes: string;
 };
 
+function LicenseUsageBadge({ companyId, maxLicenses }: { companyId: number; maxLicenses: number }) {
+  const { data: licenseStatus } = useQuery({
+    queryKey: ["license-status", companyId],
+    queryFn: () => api.getLicenseStatus(companyId),
+    staleTime: 30_000,
+  });
+
+  if (!licenseStatus) return null;
+
+  const used = licenseStatus.used;
+  const available = maxLicenses - used;
+  const isFull = available <= 0;
+
+  return (
+    <div className="flex items-center gap-2 mb-2">
+      <Badge
+        variant={isFull ? "destructive" : "secondary"}
+        className="text-xs"
+      >
+        {used} / {maxLicenses} Lizenzen belegt
+        {!isFull && ` (${available} frei)`}
+        {isFull && " – Limit erreicht"}
+      </Badge>
+    </div>
+  );
+}
+
 export default function ContractPanel({ companyId, companyName }: ContractPanelProps) {
   const { t } = useTranslation();
   const queryClient = useQueryClient();
