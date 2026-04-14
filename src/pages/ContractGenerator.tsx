@@ -125,8 +125,24 @@ function ContractsOverview() {
         <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-4 text-sm">
           <div><span className="text-muted-foreground">Kunde:</span> {contract.customer_name}</div>
           <div><span className="text-muted-foreground">Paket:</span> {contract.package_name}</div>
-          <div><span className="text-muted-foreground">Preis:</span> {formatPrice(contract.monthly_price)}</div>
+          <div>
+            <span className="text-muted-foreground">Preis:</span>{" "}
+            {contract.custom_price
+              ? <>{formatPrice(contract.custom_price)} <span className="text-xs text-primary">(Sonderpreis)</span></>
+              : formatPrice(contract.monthly_price)
+            }
+          </div>
           <div><span className="text-muted-foreground">Laufzeit:</span> {formatDate(contract.start_date)} – {formatDate(contract.end_date)}</div>
+        </div>
+        <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-4 text-sm">
+          <div>
+            <span className="text-muted-foreground">Lizenzen:</span>{" "}
+            {contract.licenses}
+            {(contract.bonus_licenses || 0) > 0 && (
+              <span className="text-primary"> +{contract.bonus_licenses} Kulanz</span>
+            )}
+            {" "}= <span className="font-medium">{contract.licenses + (contract.bonus_licenses || 0)} total</span>
+          </div>
         </div>
         {contract.notes && (
           <p className="text-xs text-muted-foreground bg-muted/50 rounded p-2">{contract.notes}</p>
