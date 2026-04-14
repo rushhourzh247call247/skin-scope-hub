@@ -1,6 +1,7 @@
 import jsPDF from "jspdf";
 import { format } from "date-fns";
 import { de } from "date-fns/locale";
+import { PAYMENT_QR_PNG } from "@/assets/paymentQrBase64";
 
 const BRAND_RGB: [number, number, number] = [28, 175, 154];
 const DARK_RGB: [number, number, number] = [30, 30, 30];
@@ -188,12 +189,21 @@ export function generateInvoicePdf(invoice: InvoiceData): jsPDF {
   doc.text("Gesamtbetrag", marginL + contentW - 80, y);
   doc.text(`CHF ${invoice.amount.toLocaleString("de-CH", { minimumFractionDigits: 2 })}`, marginL + contentW - 3, y, { align: "right" });
 
-  // ── Payment info box ──
+  // ── Payment info box with QR ──
   y += 18;
+  const qrSize = 30;
+  const payBoxH = 40;
   doc.setFillColor(245, 250, 249);
   doc.setDrawColor(...BRAND_RGB);
   doc.setLineWidth(0.3);
-  doc.roundedRect(marginL, y, contentW, 35, 2, 2, "FD");
+  doc.roundedRect(marginL, y, contentW, payBoxH, 2, 2, "FD");
+
+  // QR code on the right side
+  const qrX = marginL + contentW - qrSize - 4;
+  const qrY = y + (payBoxH - qrSize) / 2;
+  try {
+    doc.addImage(PAYMENT_QR_PNG, "PNG", qrX, qrY, qrSize, qrSize);
+  } catch { /* QR image not available */ }
 
   y += 7;
   doc.setFontSize(10);
@@ -206,14 +216,16 @@ export function generateInvoicePdf(invoice: InvoiceData): jsPDF {
   doc.setFont("helvetica", "normal");
   doc.setTextColor(...DARK_RGB);
 
+  const textAreaW = contentW - qrSize - 12;
   const paymentLines = [
     [`Bank: ${COMPANY_INFO.bank}`, `IBAN: ${COMPANY_INFO.iban}`],
     [`Zahlbar bis: ${format(new Date(invoice.due_date), "dd.MM.yyyy", { locale: de })}`, `Referenz: ${invoice.invoice_number}`],
+    [`Konto: ${COMPANY_INFO.owner}`, `${COMPANY_INFO.addressLine2}, ${COMPANY_INFO.addressLine3}`],
   ];
 
   for (const [left, right] of paymentLines) {
     doc.text(left, marginL + 5, y);
-    doc.text(right, marginL + contentW / 2, y);
+    doc.text(right, marginL + textAreaW / 2 + 30, y);
     y += 6;
   }
 
