@@ -34,6 +34,23 @@ type SessionState =
       expiresAt: string;
     };
 
+const normalizeApiTimestamp = (value?: string | null) => {
+  if (!value) return "";
+
+  const normalizedValue = value.includes("T") ? value : value.replace(" ", "T");
+  return /(?:[zZ]|[+-]\d{2}:\d{2})$/.test(normalizedValue)
+    ? normalizedValue
+    : `${normalizedValue}Z`;
+};
+
+const isExpiredTimestamp = (value?: string | null) => {
+  const normalizedValue = normalizeApiTimestamp(value);
+  if (!normalizedValue) return false;
+
+  const expiresAtMs = Date.parse(normalizedValue);
+  return Number.isNaN(expiresAtMs) ? false : expiresAtMs <= Date.now();
+};
+
 // ─── Main Component ───
 
 const MobileUpload = () => {
@@ -57,7 +74,9 @@ const MobileUpload = () => {
     const validate = async () => {
       try {
         const result = await api.validateUploadSession(token);
-        if (result.expired) {
+        const expiresAt = normalizeApiTimestamp(result.expires_at);
+
+        if (result.expired || isExpiredTimestamp(expiresAt)) {
           setSession({ status: "expired" });
           return;
         }
@@ -75,7 +94,7 @@ const MobileUpload = () => {
           patientName: result.patient_name,
           locationName: result.location_name,
           locationId: result.location_id,
-          expiresAt: result.expires_at,
+          expiresAt,
         });
       } catch (err: any) {
         // If 410 Gone or similar, treat as expired
@@ -96,8 +115,9 @@ const MobileUpload = () => {
   // Client-side expiry check — mark session as expired when 30min are up
   useEffect(() => {
     if (session.status !== "active" || !session.expiresAt) return;
+
     const checkExpiry = () => {
-      if (new Date(session.expiresAt) < new Date()) {
+      if (isExpiredTimestamp(session.expiresAt)) {
         setSession({ status: "expired" });
       }
     };
