@@ -24,6 +24,7 @@ import Tickets from "./pages/Tickets";
 import FinanceDashboard from "./pages/FinanceDashboard";
 import InvoiceManagement from "./pages/InvoiceManagement";
 import FinanceCompanies from "./pages/FinanceCompanies";
+import FinanceContracts from "./pages/FinanceContracts";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -84,6 +85,7 @@ const App = () => (
             <Route path="/finance" element={<ProtectedPage><FinanceRoute><FinanceDashboard /></FinanceRoute></ProtectedPage>} />
             <Route path="/finance/invoices" element={<ProtectedPage><FinanceRoute><InvoiceManagement /></FinanceRoute></ProtectedPage>} />
             <Route path="/finance/companies" element={<ProtectedPage><FinanceRoute><FinanceCompanies /></FinanceRoute></ProtectedPage>} />
+            <Route path="/finance/contracts" element={<ProtectedPage><FinanceRoute><FinanceContracts /></FinanceRoute></ProtectedPage>} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>

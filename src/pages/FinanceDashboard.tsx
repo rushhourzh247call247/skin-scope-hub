@@ -1,19 +1,15 @@
-import { useState, useEffect, useMemo } from "react";
+import { useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { api } from "@/lib/api";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Input } from "@/components/ui/input";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { DollarSign, TrendingUp, AlertTriangle, CheckCircle, Clock, Search, FileText, Building2, ArrowUpRight, ArrowDownRight, Receipt } from "lucide-react";
-import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar } from "recharts";
-import { format, subMonths, isAfter, isBefore, addDays } from "date-fns";
+import { TrendingUp, AlertTriangle, CheckCircle, Clock, ArrowUpRight, Receipt, CalendarClock, ScrollText, ShieldAlert } from "lucide-react";
+import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
+import { format, subMonths, differenceInDays, addDays } from "date-fns";
 import { de } from "date-fns/locale";
 
-// Types
 interface Invoice {
   id: number;
   invoice_number: string;
@@ -33,10 +29,9 @@ export default function FinanceDashboard() {
   const { data: companies = [] } = useQuery({ queryKey: ["companies"], queryFn: () => api.getCompanies() });
   const { data: invoices = [] } = useQuery({ queryKey: ["invoices"], queryFn: () => api.getInvoices().catch(() => []) });
 
-  // KPIs
   const activeContracts = contracts.filter((c: any) => c.status === "active");
   const mrr = activeContracts.reduce((sum: number, c: any) => sum + (Number(c.monthly_price) || 0), 0);
-  
+
   const openInvoices = invoices.filter((i: Invoice) => i.status === "open" || i.status === "overdue");
   const overdueInvoices = invoices.filter((i: Invoice) => i.status === "overdue");
   const paidInvoices = invoices.filter((i: Invoice) => i.status === "paid");
@@ -61,16 +56,41 @@ export default function FinanceDashboard() {
         .reduce((sum: number, inv: Invoice) => sum + inv.amount, 0);
       months.push({
         month: format(date, "MMM yy", { locale: de }),
-        umsatz: monthPaid || mrr, // fallback to MRR if no invoice data
+        umsatz: monthPaid || mrr,
       });
     }
     return months;
   }, [paidInvoices, mrr]);
 
-  // Recent invoices
-  const recentInvoices = [...invoices]
-    .sort((a: Invoice, b: Invoice) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
-    .slice(0, 10);
+  // Upcoming due invoices (next 14 days)
+  const upcomingDue = useMemo(() => {
+    const now = new Date();
+    const in14 = addDays(now, 14);
+    return openInvoices
+      .filter((inv) => {
+        const due = new Date(inv.due_date);
+        return due >= now && due <= in14;
+      })
+      .sort((a, b) => new Date(a.due_date).getTime() - new Date(b.due_date).getTime());
+  }, [openInvoices]);
+
+  // Contracts expiring within 60 days
+  const expiringContracts = useMemo(() => {
+    const now = new Date();
+    const in60 = addDays(now, 60);
+    return activeContracts
+      .filter((c: any) => {
+        if (!c.end_date) return false;
+        const end = new Date(c.end_date);
+        return end >= now && end <= in60;
+      })
+      .map((c: any) => {
+        const company = companies.find((co: any) => co.id === c.company_id);
+        const daysLeft = differenceInDays(new Date(c.end_date), now);
+        return { ...c, companyName: company?.name || `#${c.company_id}`, daysLeft };
+      })
+      .sort((a: any, b: any) => a.daysLeft - b.daysLeft);
+  }, [activeContracts, companies]);
 
   // Companies with payment issues
   const companiesWithIssues = useMemo(() => {
@@ -84,6 +104,11 @@ export default function FinanceDashboard() {
     });
     return Array.from(issueMap.entries()).map(([id, data]) => ({ id, ...data }));
   }, [overdueInvoices]);
+
+  // Recent invoices
+  const recentInvoices = [...invoices]
+    .sort((a: Invoice, b: Invoice) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
+    .slice(0, 8);
 
   const statusBadge = (status: string, dunningLevel: number) => {
     if (status === "paid") return <Badge className="bg-emerald-500/10 text-emerald-600 border-emerald-200">Bezahlt</Badge>;
@@ -101,7 +126,7 @@ export default function FinanceDashboard() {
     <div className="space-y-6">
       <div>
         <h1 className="text-2xl font-bold tracking-tight">Finanzen</h1>
-        <p className="text-muted-foreground text-sm">Übersicht über Umsatz, Rechnungen und Zahlungsstatus</p>
+        <p className="text-muted-foreground text-sm">Übersicht über Umsatz, Rechnungen, Verträge und Zahlungsstatus</p>
       </div>
 
       {/* KPI Cards */}
@@ -167,9 +192,84 @@ export default function FinanceDashboard() {
         </Card>
       </div>
 
-      {/* Charts Row */}
+      {/* Alerts Row: Upcoming + Expiring */}
+      <div className="grid gap-4 lg:grid-cols-2">
+        {/* Upcoming Due Invoices */}
+        <Card className={upcomingDue.length > 0 ? "border-amber-200/60" : ""}>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-base flex items-center gap-2">
+              <CalendarClock className="h-4 w-4 text-amber-600" />
+              Fällig in den nächsten 14 Tagen
+              {upcomingDue.length > 0 && (
+                <Badge className="bg-amber-500/10 text-amber-600 border-amber-200 ml-auto">{upcomingDue.length}</Badge>
+              )}
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            {upcomingDue.length === 0 ? (
+              <p className="text-sm text-muted-foreground py-3">Keine anstehenden Fälligkeiten</p>
+            ) : (
+              <div className="space-y-2">
+                {upcomingDue.slice(0, 5).map((inv) => {
+                  const daysUntil = differenceInDays(new Date(inv.due_date), new Date());
+                  return (
+                    <div key={inv.id} className="flex items-center justify-between py-2 px-3 rounded-lg bg-muted/50 text-sm">
+                      <div className="min-w-0">
+                        <p className="font-medium truncate">{inv.company_name}</p>
+                        <p className="text-xs text-muted-foreground">{inv.invoice_number}</p>
+                      </div>
+                      <div className="text-right shrink-0 ml-3">
+                        <p className="font-semibold">CHF {inv.amount.toLocaleString("de-CH")}</p>
+                        <p className={`text-xs ${daysUntil <= 3 ? "text-destructive font-medium" : "text-muted-foreground"}`}>
+                          {daysUntil === 0 ? "Heute fällig" : daysUntil === 1 ? "Morgen fällig" : `in ${daysUntil} Tagen`}
+                        </p>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </CardContent>
+        </Card>
+
+        {/* Expiring Contracts */}
+        <Card className={expiringContracts.length > 0 ? "border-orange-200/60" : ""}>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-base flex items-center gap-2">
+              <ScrollText className="h-4 w-4 text-orange-600" />
+              Verträge laufen bald aus
+              {expiringContracts.length > 0 && (
+                <Badge className="bg-orange-500/10 text-orange-600 border-orange-200 ml-auto">{expiringContracts.length}</Badge>
+              )}
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            {expiringContracts.length === 0 ? (
+              <p className="text-sm text-muted-foreground py-3">Keine Verträge laufen in den nächsten 60 Tagen aus</p>
+            ) : (
+              <div className="space-y-2">
+                {expiringContracts.slice(0, 5).map((c: any) => (
+                  <div key={c.id} className="flex items-center justify-between py-2 px-3 rounded-lg bg-muted/50 text-sm">
+                    <div className="min-w-0">
+                      <p className="font-medium truncate">{c.companyName}</p>
+                      <p className="text-xs text-muted-foreground">{c.package_name} · {c.contract_number}</p>
+                    </div>
+                    <div className="text-right shrink-0 ml-3">
+                      <p className="text-xs text-muted-foreground">Endet {format(new Date(c.end_date), "dd.MM.yyyy")}</p>
+                      <p className={`text-xs font-medium ${c.daysLeft <= 14 ? "text-destructive" : c.daysLeft <= 30 ? "text-amber-600" : "text-orange-600"}`}>
+                        {c.daysLeft === 0 ? "Heute" : `noch ${c.daysLeft} Tage`}
+                      </p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Charts + Dunning Row */}
       <div className="grid gap-4 lg:grid-cols-3">
-        {/* Revenue Chart */}
         <Card className="lg:col-span-2">
           <CardHeader className="pb-2">
             <CardTitle className="text-base">Umsatzentwicklung (12 Monate)</CardTitle>
@@ -198,30 +298,33 @@ export default function FinanceDashboard() {
           </CardContent>
         </Card>
 
-        {/* Dunning Overview */}
+        {/* Dunning + Issues */}
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-base">Mahnungen</CardTitle>
+            <CardTitle className="text-base flex items-center gap-2">
+              <ShieldAlert className="h-4 w-4" />
+              Mahnungen
+            </CardTitle>
           </CardHeader>
-          <CardContent className="space-y-4">
+          <CardContent className="space-y-3">
             <div className="flex items-center justify-between p-3 rounded-lg bg-amber-500/5 border border-amber-200/50">
               <div>
                 <p className="text-sm font-medium">Zahlungserinnerung</p>
-                <p className="text-xs text-muted-foreground">Stufe 1</p>
+                <p className="text-xs text-muted-foreground">Stufe 1 · 7 Tage</p>
               </div>
               <span className="text-lg font-bold text-amber-600">{dunningCounts.level1}</span>
             </div>
             <div className="flex items-center justify-between p-3 rounded-lg bg-orange-500/5 border border-orange-200/50">
               <div>
                 <p className="text-sm font-medium">1. Mahnung</p>
-                <p className="text-xs text-muted-foreground">Stufe 2</p>
+                <p className="text-xs text-muted-foreground">Stufe 2 · 14 Tage</p>
               </div>
               <span className="text-lg font-bold text-orange-600">{dunningCounts.level2}</span>
             </div>
             <div className="flex items-center justify-between p-3 rounded-lg bg-destructive/5 border border-destructive/20">
               <div>
-                <p className="text-sm font-medium">2. Mahnung + Sperrwarnung</p>
-                <p className="text-xs text-muted-foreground">Stufe 3</p>
+                <p className="text-sm font-medium">2. Mahnung + Sperrung</p>
+                <p className="text-xs text-muted-foreground">Stufe 3 · 30 Tage</p>
               </div>
               <span className="text-lg font-bold text-destructive">{dunningCounts.level3}</span>
             </div>
