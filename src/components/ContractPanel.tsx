@@ -209,13 +209,15 @@ export default function ContractPanel({ companyId, companyName }: ContractPanelP
       toast.error("Bitte Kundenname und Paket ausfüllen");
       return;
     }
-    const price = calcPrice(pkg.id, form.licenses);
+    const price = form.custom_price ? parseFloat(form.custom_price) : calcPrice(pkg.id, form.licenses).total;
     createMutation.mutate({
       contract_number: form.contract_number,
       package_name: pkg.label,
       package_id: pkg.id,
       licenses: form.licenses,
-      monthly_price: price.total,
+      bonus_licenses: form.bonus_licenses || 0,
+      monthly_price: price,
+      custom_price: form.custom_price ? parseFloat(form.custom_price) : null,
       start_date: form.start_date,
       end_date: addMonths(form.start_date, 12),
       notice_period_days: 60,
