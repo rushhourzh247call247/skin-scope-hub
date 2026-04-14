@@ -60,7 +60,21 @@ function ContractsOverview() {
     queryFn: api.getCompanies,
   });
 
+  const { data: allUsers = [] } = useQuery({
+    queryKey: ["users"],
+    queryFn: api.getUsers,
+  });
+
   const companyMap = Object.fromEntries(companies.map((c: any) => [c.id, c.name]));
+
+  // Group active (non-accountant) users by company
+  const usersByCompany: Record<string, any[]> = {};
+  allUsers.forEach((u: any) => {
+    if (u.role === "accountant") return;
+    const cid = String(u.company_id);
+    if (!usersByCompany[cid]) usersByCompany[cid] = [];
+    usersByCompany[cid].push(u);
+  });
 
   const deleteMutation = useMutation({
     mutationFn: (contractId: number) => api.deleteContract(contractId),
