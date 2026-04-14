@@ -1,63 +1,62 @@
 
 
-# Marketing-Video Derm247 — Finaler Szenenplan
+# Vertragsanpassungen, Mindestlaufzeit und Lizenzkontrolle
 
-## Bestätigungen
+## Aktueller Stand -- Was fehlt
 
-**Datenschutz** — Ja, wird prominent gezeigt:
-- Schweizer Hosting (Standort Schweiz)
-- Verschlüsselte Datenübertragung
-- Keine Drittanbieter, keine Cloud-Dienste ausserhalb der Schweiz
-- Bilder nur mit Auth-Token abrufbar
-- Automatische Session-Abmeldung
+1. **Keine Mindestlaufzeit-Neuberechnung bei Paketwechsel**: Wenn ein Vertrag bearbeitet wird, wird `end_date` immer auf `start_date + 12 Monate` gesetzt -- auch wenn der Vertrag schon 6 Monate läuft. Es gibt keine Logik, die eine neue Mindestlaufzeit ab dem Änderungsdatum berechnet.
 
-**Preismodelle** — Ja, ohne konkrete Preise:
-- "Flexible Lizenzmodelle — pro Praxis oder pro Benutzer"
-- Hinweis auf Testzugang
+2. **Kein Zusatzvertrag/Änderungsvermerk**: Das System erstellt keinen formalen Nachtrag. Die Änderung überschreibt einfach die bisherigen Werte. Es gibt kein Änderungsprotokoll im PDF.
 
-## Meine Ergänzungen (basierend auf dem Tool)
+3. **Keine Lizenzkontrolle**: Beim Erstellen eines neuen Benutzers (UserManagement) wird die Lizenzanzahl aus dem Vertrag nicht geprüft. Man kann beliebig viele User anlegen, auch wenn nur 5 Lizenzen vorhanden sind. Auch in der Firmenübersicht ist nicht ersichtlich, wie viele Lizenzen belegt/frei sind.
 
-1. **Papierkorb / Soft-Delete** — kurz zeigen dass gelöschte Daten wiederherstellbar sind, kein versehentlicher Datenverlust
-2. **Firmen-/Mandantenverwaltung** — mehrere Praxen/Firmen unter einem System, jede isoliert
-3. **Rollen-System** — Admin, Arzt, Benutzer — wer was sehen darf
-4. **Responsive Mobile-Ansicht** — kurzer Frame der zeigt dass es auch auf Tablet/Handy funktioniert
-5. **Automatische Backups** — tägliche Sicherung, Daten gehen nie verloren
-6. **Bild-Authentifizierung** — Bilder sind nicht öffentlich zugänglich, nur mit gültigem Token
-7. **Verlaufs-Tracking** — Risikoprogression über Zeit (RiskProgression-Komponente)
-8. **Übersichtsfoto mit Zonen** — Ganzkörper-Übersicht mit automatischen Markierungen
+4. **Preis wird bei Bearbeitung nicht korrekt berechnet**: `handleEdit()` nutzt `pkg.priceNum` statt `calcPrice()`, dadurch wird bei Einzellizenzen der Preis falsch gesetzt.
 
-## Aktualisierter Szenenplan (~55 Sekunden)
+---
 
-| # | Szene | Dauer | Inhalt | Maus-Aktion |
-|---|-------|-------|--------|-------------|
-| 1 | Intro | 3s | Logo, "Digitale Hautkrebsvorsorge" | — |
-| 2 | Login | 4s | Login mit verpixelten Daten, 5 Sprach-Flaggen zeigen | Klick auf Felder, Login |
-| 3 | Dashboard | 4s | Statistiken, Patientenliste, Risiko-Übersicht | Maus über Karten |
-| 4 | Patient erstellen | 4s | Formular mit Dummy-Daten ausfüllen | Felder ausfüllen, Speichern |
-| 5 | Patientendetail | 4s | Tabs: Akte, Spots, Zonen, Befunde | Tab-Wechsel |
-| 6 | 3D-Körperkarte | 4s | Marker setzen, auto Körperstellen-Benennung | Klick auf Körperstelle |
-| 7 | QR-Upload | 4s | QR-Dialog, Text: "Bilder landen sicher beim richtigen Patienten" | QR-Button klicken |
-| 8 | Bildvergleich | 4s | Side-by-Side, Overlay, KI-Ausrichtung (OpenCV) | Slider ziehen |
-| 9 | ABCDE | 3s | Bewertung mit Risiko-Score, Farbcodierung | Werte einstellen |
-| 10 | Risiko-Verlauf | 2s | Progression über Zeit | Hover |
-| 11 | Klassifikation & Befunde | 3s | Dokumentation schreiben | Text eingeben |
-| 12 | Zonen | 3s | Übersichtsfoto mit Pins, Leader-Lines | Hover über Pins |
-| 13 | PDF-Export | 3s | Export-Dialog, PDF-Vorschau | Klick Export |
-| 14 | Datenschutz | 3s | Text-Overlay: Schweizer Hosting, Verschlüsselung, keine Drittanbieter, Auth-geschützte Bilder, Auto-Logout | — |
-| 15 | Preismodelle | 2s | "Flexible Lizenzmodelle — pro Praxis oder pro Benutzer", Testzugang | — |
-| 16 | Firmen & Rollen | 2s | Multi-Mandant, Rollensystem (Admin/Arzt/User) | — |
-| 17 | Support | 2s | Ticket/Chat-System | — |
-| 18 | Outro | 3s | Logo, derm247.ch, "Hosting in der Schweiz", Kontakt | — |
+## Plan
 
-## Technischer Ablauf
+### 1. Preisberechnung bei Bearbeitung korrigieren
+**Datei: `src/components/ContractPanel.tsx`**
+- `handleEdit()`: `monthly_price` via `calcPrice(pkg.id, form.licenses).total` berechnen statt `pkg.priceNum`
 
-1. **Screenshots sammeln**: Browser öffnen, mit `test@test.ch / welcome` einloggen, durch alle 18 Szenen navigieren, je einen Screenshot erfassen. Dabei einen echten Patienten anlegen mit Dummy-Daten.
-2. **Realistische Muttermal-Bilder**: Klinisch aussehende Hautläsionen als vollformatige Aufnahmen (keine abgeschnittenen Ränder).
-3. **Remotion-Projekt**: Aufsetzen unter `remotion/`, jede Szene als eigene Komponente.
-4. **Animierter Maus-Cursor**: SVG-Cursor mit realistischer Kurven-Bewegung und Klick-Ripple-Effekt.
-5. **Stil**: Tech Product / Clean Medical — dunkler Hintergrund, Teal-Akzente passend zum Derm247-Branding, MacOS-Fensterrahmen.
-6. **Text-Overlays**: Deutsche Feature-Beschreibungen pro Szene.
-7. **Blur-Masken**: Login-Daten und Patientennamen verpixelt.
-8. **Render**: 1920x1080, 30fps, H.264 → `/mnt/documents/derm247-tour.mp4`
-9. **QA**: Frame-Spot-Checks an kritischen Stellen, jede Szene auf Vollständigkeit prüfen.
+### 2. Mindestlaufzeit bei Vertragsänderung
+**Datei: `src/components/ContractPanel.tsx`**
+- Wenn Paket oder Lizenzen geändert werden: neues `end_date` = max(bestehendes end_date, heute + 12 Monate)
+- So wird die Mindestlaufzeit ab Änderungsdatum garantiert, aber ein bereits weiter laufender Vertrag nicht verkürzt
+- Automatischer Vermerk im `notes`-Feld: z.B. "14.04.2026: Paket geändert Einzellizenz→5er-Paket, Lizenzen 2→5, neue Mindestlaufzeit bis 14.04.2027"
+
+### 3. Zusatzvertrag-PDF (Nachtrag)
+**Datei: `src/lib/contractPdf.ts`**
+- Neue Funktion `buildAmendmentPdf()` die einen Vertragsnachtrag erstellt mit: Bezug auf Originalvertragsnummer, Änderungsdatum, alte vs. neue Konditionen, neue Mindestlaufzeit
+- Nach dem Speichern einer Vertragsänderung: Toast mit "Nachtrag-PDF herunterladen?" anbieten
+
+### 4. Lizenzanzeige in der Firmenübersicht
+**Datei: `src/components/ContractPanel.tsx` und `src/pages/CompanyManagement.tsx`**
+- Im ContractPanel die Anzahl aktiver User der Firma (aus dem Users-Query) mit der Lizenzanzahl vergleichen
+- Anzeige: "3 / 5 Lizenzen belegt (2 frei)" mit farbigem Badge
+- Bei voller Auslastung: roter Badge "Alle Lizenzen belegt"
+
+### 5. Lizenzprüfung beim User-Erstellen
+**Datei: `src/pages/UserManagement.tsx`**
+- Vor dem Erstellen eines neuen Users: aktiven Vertrag der gewählten Firma prüfen
+- Wenn Anzahl aktiver User >= Lizenzanzahl: Erstellen blockieren mit Fehlermeldung "Lizenzlimit erreicht. Bitte Vertrag upgraden."
+- Benötigt: API-Call um aktiven Vertrag + User-Count der Firma zu holen (oder aus bestehenden Queries ableiten)
+
+### 6. Backend-Ergänzung (manuell auf Server)
+- Endpunkt `GET /api/companies/{id}/license-status` der `{ licenses: 5, used: 3, available: 2 }` zurückgibt
+- Optional: Middleware-Check im `POST /api/users` Endpunkt, der serverseitig das Lizenzlimit prüft
+
+---
+
+## Betroffene Dateien
+
+| Datei | Änderung |
+|---|---|
+| `src/components/ContractPanel.tsx` | Preisberechnung, Mindestlaufzeit, Änderungsvermerk, Lizenzanzeige |
+| `src/lib/contractPdf.ts` | Neue `buildAmendmentPdf()` Funktion |
+| `src/pages/UserManagement.tsx` | Lizenzprüfung vor User-Erstellung |
+| `src/pages/CompanyManagement.tsx` | Lizenzstatus in Firmenübersicht |
+| `src/lib/api.ts` | Neuer API-Call `getLicenseStatus()` |
+| Backend (manuell) | Neuer Endpunkt + serverseitige Prüfung |
 
