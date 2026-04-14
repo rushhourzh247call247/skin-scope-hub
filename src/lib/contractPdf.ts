@@ -213,11 +213,12 @@ function drawContractFooter(doc: jsPDF, pageNum: number, totalPages: number, lan
   doc.text(t.pageOf(pageNum, totalPages), 193, y + 5, { align: "right" });
 }
 
-const PAGE_TOP = 28;
+const PAGE_TOP = 42;
 const PAGE_BOTTOM = 278;
 const LINE_HEIGHT = 5;
 const SECTION_GAP = 4;
 const LEFT_MARGIN = 17;
+const TEXT_WIDTH = 175;
 const TEXT_WIDTH = 175;
 
 export function renderContractPages(doc: jsPDF, vars: ContractVars, startOnNewPage = true): { firstPage: number; lastPage: number } {
@@ -228,7 +229,7 @@ export function renderContractPages(doc: jsPDF, vars: ContractVars, startOnNewPa
   }
   const firstPage = doc.getNumberOfPages();
 
-  drawHeader(doc, vars.vertragsnummer);
+  drawContractHeader(doc, vars.vertragsnummer, vars.lang);
 
   let y = PAGE_TOP + 4;
 
@@ -271,14 +272,14 @@ export function renderContractPages(doc: jsPDF, vars: ContractVars, startOnNewPa
 
     if ((y + sectionHeight > PAGE_BOTTOM || remainingSpace < 25) && y > PAGE_TOP + 10) {
       doc.addPage();
-      drawHeader(doc, vars.vertragsnummer);
+      drawContractHeader(doc, vars.vertragsnummer, vars.lang);
       y = PAGE_TOP;
     }
 
     for (const ln of sectionLines) {
       if (y > PAGE_BOTTOM) {
         doc.addPage();
-        drawHeader(doc, vars.vertragsnummer);
+        drawContractHeader(doc, vars.vertragsnummer, vars.lang);
         y = PAGE_TOP;
       }
       doc.setFont("helvetica", ln.style as any);
@@ -296,7 +297,7 @@ export function renderContractPages(doc: jsPDF, vars: ContractVars, startOnNewPa
   const contractPageCount = lastPage - firstPage + 1;
   for (let i = 0; i < contractPageCount; i++) {
     doc.setPage(firstPage + i);
-    drawFooter(doc, vars, i + 1, contractPageCount);
+    drawContractFooter(doc, i + 1, contractPageCount, vars.lang);
   }
 
   return { firstPage, lastPage };
