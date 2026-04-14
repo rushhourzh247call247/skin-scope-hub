@@ -204,7 +204,6 @@ export default function InvoiceManagement() {
                               } catch {
                                 toast.error("PDF-Erstellung fehlgeschlagen");
                               }
-                              }
                             }}>
                             <FileDown className="h-4 w-4" />
                           </Button>
