@@ -232,7 +232,8 @@ export default function ContractPanel({ companyId, companyName }: ContractPanelP
     const pkg = PACKAGES.find((p) => p.id === form.package_id);
     if (!pkg) return;
 
-    const price = calcPrice(pkg.id, form.licenses);
+    const effectivePrice = form.custom_price ? parseFloat(form.custom_price) : calcPrice(pkg.id, form.licenses).total;
+    const price = { total: effectivePrice };
     const today = new Date().toISOString().slice(0, 10);
     const newMinEnd = addMonths(today, 12);
     const existingEnd = editingContract.end_date?.slice(0, 10) || newMinEnd;
@@ -272,7 +273,9 @@ export default function ContractPanel({ companyId, companyName }: ContractPanelP
         package_name: pkg.label,
         package_id: pkg.id,
         licenses: form.licenses,
+        bonus_licenses: form.bonus_licenses || 0,
         monthly_price: price.total,
+        custom_price: form.custom_price ? parseFloat(form.custom_price) : null,
         start_date: form.start_date,
         end_date: endDate,
         customer_name: form.customer_name,
