@@ -197,6 +197,14 @@ function ContractsOverview() {
               <Download className="h-3.5 w-3.5 mr-1" /> Signiertes PDF
             </Button>
           )}
+          <Button
+            variant="ghost"
+            size="sm"
+            className="text-destructive hover:text-destructive ml-auto"
+            onClick={() => setDeleteTarget(contract)}
+          >
+            <Trash2 className="h-3.5 w-3.5 mr-1" /> Löschen
+          </Button>
         </div>
       </div>
     );
