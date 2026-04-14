@@ -537,11 +537,11 @@ export const api = {
   // Invoices
   getInvoices: () => request<any[]>('/invoices'),
   markInvoicePaid: (invoiceId: number, notes?: string) =>
-    request<any>(`/invoices/${invoiceId}/pay`, { method: 'PUT', body: JSON.stringify({ notes }) }),
+    request<any>(`/invoices/${invoiceId}/pay`, { method: 'POST', body: JSON.stringify({ notes }) }),
   sendDunning: (invoiceId: number, level: number) =>
-    request<any>(`/invoices/${invoiceId}/dunning`, { method: 'PUT', body: JSON.stringify({ dunning_level: level }) }),
+    request<any>(`/invoices/${invoiceId}/dunning`, { method: 'POST', body: JSON.stringify({ dunning_level: level }) }),
   generateMonthlyInvoices: () =>
-    request<{ count: number }>('/invoices/generate', { method: 'POST' }),
+    request<{ count: number }>('/invoices/generate-monthly', { method: 'POST' }),
   downloadInvoicePdf: (invoiceId: number) =>
     requestBlob(`/invoices/${invoiceId}/pdf`),
 };
