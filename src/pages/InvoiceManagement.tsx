@@ -193,7 +193,13 @@ export default function InvoiceManagement() {
                           <Button size="icon" variant="ghost" className="h-8 w-8" title="PDF herunterladen"
                             onClick={() => {
                               try {
-                                downloadInvoicePdf(inv);
+                                const contract = contracts.find((c: any) => c.id === inv.contract_id);
+                                downloadInvoicePdf({
+                                  ...inv,
+                                  contract_number: contract?.contract_number,
+                                  licenses: contract?.licenses,
+                                  package_name: contract?.package_name,
+                                });
                                 toast.success("PDF heruntergeladen");
                               } catch {
                                 toast.error("PDF-Erstellung fehlgeschlagen");
