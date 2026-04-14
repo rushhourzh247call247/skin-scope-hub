@@ -26,13 +26,13 @@ const COMPANY_INFO = {
   name: "TechAssist",
   owner: "Rached Mtiraoui",
   addressLine1: "TechAssist – Rached Mtiraoui",
-  addressLine2: "Dällikerstrasse 48",
+  addressLine2: "Dällikerstrasse 50",
   addressLine3: "8105 Regensdorf",
   country: "Schweiz",
   email: "info@techassist.ch",
   web: "www.derm247.ch",
   phone: "+41 79 801 20 48",
-  iban: "CH66 0070 0110 0057 8304 8",
+  iban: "CH95 0070 0114 9053 5408 5",
   bank: "Zürcher Kantonalbank",
 };
 

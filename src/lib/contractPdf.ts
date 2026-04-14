@@ -77,7 +77,7 @@ function buildContractSections(vars: ContractVars): { title?: string; lines: str
         t.between,
         "",
         "TechAssist",
-        "Dällikerstrasse 48",
+        "Dällikerstrasse 50",
         "8105 Regensdorf",
         "E-Mail: info@techassist.ch",
         t.licensor,
