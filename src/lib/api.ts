@@ -1,6 +1,6 @@
 import type { LesionClassification, Appointment, PatientDocument, Consultation } from '@/types/patient';
 
-const DEFAULT_API_BASE_URL = 'http://138.199.167.214/api';
+const DEFAULT_API_BASE_URL = 'https://dev.derm247.ch/api';
 
 let authToken: string | null = null;
 
