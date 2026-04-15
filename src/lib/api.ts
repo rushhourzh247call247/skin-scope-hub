@@ -12,7 +12,8 @@ function getApiBaseUrl() {
   const configuredUrl = import.meta.env.VITE_API_BASE_URL?.trim();
   const normalizedUrl = (configuredUrl || DEFAULT_API_BASE_URL).replace(/\/$/, '');
 
-  if (typeof window !== 'undefined' && window.location.protocol === 'https:' && normalizedUrl.startsWith('http://')) {
+  // Dev-Server: HTTP erlaubt für Staging
+  if (typeof window !== 'undefined' && window.location.protocol === 'https:' && normalizedUrl.startsWith('http://') && !normalizedUrl.includes('138.199.167.214')) {
     return DEFAULT_API_BASE_URL.replace(/\/$/, '');
   }
 
