@@ -1,6 +1,6 @@
 import type { LesionClassification, Appointment, PatientDocument, Consultation } from '@/types/patient';
 
-const DEFAULT_API_BASE_URL = 'http://138.199.167.214/api';
+const DEFAULT_API_BASE_URL = 'https://api.derm247.ch/api';
 
 let authToken: string | null = null;
 
@@ -12,8 +12,7 @@ function getApiBaseUrl() {
   const configuredUrl = import.meta.env.VITE_API_BASE_URL?.trim();
   const normalizedUrl = (configuredUrl || DEFAULT_API_BASE_URL).replace(/\/$/, '');
 
-  // Dev-Server: HTTP erlaubt für Staging
-  if (typeof window !== 'undefined' && window.location.protocol === 'https:' && normalizedUrl.startsWith('http://') && !normalizedUrl.includes('138.199.167.214')) {
+  if (typeof window !== 'undefined' && window.location.protocol === 'https:' && normalizedUrl.startsWith('http://')) {
     return DEFAULT_API_BASE_URL.replace(/\/$/, '');
   }
 
