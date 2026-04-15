@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from "react";
-import { Users, UserPlus, LogOut, Building2, UserCog, LayoutDashboard, Settings, Database, FileText, ScrollText, TicketCheck, Receipt, Landmark, CreditCard } from "lucide-react";
+import { Users, UserPlus, LogOut, Building2, UserCog, LayoutDashboard, Settings, Database, FileText, ScrollText, TicketCheck, Receipt, Landmark, CreditCard, Server } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
 import { useLocation } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
@@ -58,6 +58,7 @@ export function AppSidebar() {
     { title: t("nav.snapshots"), url: "/snapshots", icon: Database },
     { title: t("nav.systemDocs"), url: "/system-docs", icon: FileText },
     { title: "Verträge", url: "/contracts", icon: ScrollText },
+    { title: "Server", url: "/server-admin", icon: Server },
   ];
 
   const adminFinanceNav = [
