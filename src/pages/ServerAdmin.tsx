@@ -1,0 +1,560 @@
+import { useState, useRef, useEffect, useCallback } from "react";
+import { useTranslation } from "react-i18next";
+import { useQuery, useMutation } from "@tanstack/react-query";
+import { api } from "@/lib/api";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Progress } from "@/components/ui/progress";
+import {
+  AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
+  AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import {
+  Server, Rocket, GitBranch, HardDrive, RotateCcw, Play, Square, RefreshCw,
+  CheckCircle2, XCircle, Clock, Cpu, MemoryStick, Database, Activity,
+  Download, Trash2, Camera, Loader2, ChevronRight, AlertTriangle
+} from "lucide-react";
+import { toast } from "sonner";
+
+/* ── Types ─────────────────────────────────────────────── */
+
+interface ServerStatus {
+  uptime: string;
+  cpu_usage: number;
+  memory_usage: number;
+  memory_total: string;
+  disk_usage: number;
+  disk_total: string;
+  php_version: string;
+  nginx_status: string;
+  fpm_status: string;
+}
+
+interface GitVersion {
+  hash: string;
+  short_hash: string;
+  date: string;
+  message: string;
+  author: string;
+  is_current: boolean;
+}
+
+interface BackupEntry {
+  filename: string;
+  size: string;
+  date: string;
+  age: string;
+}
+
+interface TerminalLine {
+  text: string;
+  type: "info" | "success" | "error" | "warning" | "step";
+  timestamp: string;
+}
+
+/* ── Terminal Component ────────────────────────────────── */
+
+function Terminal({ lines, isRunning }: { lines: TerminalLine[]; isRunning: boolean }) {
+  const ref = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (ref.current) ref.current.scrollTop = ref.current.scrollHeight;
+  }, [lines]);
+
+  const colorClass = (type: TerminalLine["type"]) => {
+    switch (type) {
+      case "success": return "text-emerald-400";
+      case "error": return "text-red-400";
+      case "warning": return "text-amber-400";
+      case "step": return "text-sky-400 font-semibold";
+      default: return "text-zinc-300";
+    }
+  };
+
+  return (
+    <div className="relative rounded-lg border border-zinc-700 bg-zinc-950 shadow-inner">
+      <div className="flex items-center gap-1.5 border-b border-zinc-800 px-4 py-2">
+        <div className="h-3 w-3 rounded-full bg-red-500/80" />
+        <div className="h-3 w-3 rounded-full bg-yellow-500/80" />
+        <div className="h-3 w-3 rounded-full bg-green-500/80" />
+        <span className="ml-3 text-xs text-zinc-500 font-mono">server-admin — bash</span>
+        {isRunning && <Loader2 className="ml-auto h-3.5 w-3.5 animate-spin text-sky-400" />}
+      </div>
+      <div ref={ref} className="h-64 overflow-y-auto p-4 font-mono text-xs leading-5 scrollbar-thin">
+        {lines.length === 0 && (
+          <span className="text-zinc-600">Bereit für Befehle…</span>
+        )}
+        {lines.map((line, i) => (
+          <div key={i} className="flex gap-2">
+            <span className="shrink-0 text-zinc-600">{line.timestamp}</span>
+            <span className={colorClass(line.type)}>{line.text}</span>
+          </div>
+        ))}
+        {isRunning && (
+          <div className="flex gap-2">
+            <span className="text-zinc-600">{new Date().toLocaleTimeString("de-CH")}</span>
+            <span className="text-zinc-400 animate-pulse">█</span>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+/* ── Status Indicator ──────────────────────────────────── */
+
+function StatusDot({ status }: { status: "ok" | "warn" | "error" | "unknown" }) {
+  const cls = {
+    ok: "bg-emerald-500 shadow-emerald-500/40",
+    warn: "bg-amber-500 shadow-amber-500/40",
+    error: "bg-red-500 shadow-red-500/40",
+    unknown: "bg-zinc-400",
+  }[status];
+  return <div className={`h-2.5 w-2.5 rounded-full shadow-lg ${cls}`} />;
+}
+
+/* ── Main Page ─────────────────────────────────────────── */
+
+const ServerAdmin = () => {
+  const { t } = useTranslation();
+  const [terminalLines, setTerminalLines] = useState<TerminalLine[]>([]);
+  const [isRunning, setIsRunning] = useState(false);
+  const [confirmAction, setConfirmAction] = useState<{
+    title: string;
+    description: string;
+    onConfirm: () => void;
+  } | null>(null);
+
+  const addLine = useCallback((text: string, type: TerminalLine["type"] = "info") => {
+    setTerminalLines(prev => [...prev, {
+      text,
+      type,
+      timestamp: new Date().toLocaleTimeString("de-CH"),
+    }]);
+  }, []);
+
+  /* ── Server Status ──────── */
+  const { data: status, isLoading: statusLoading, refetch: refetchStatus } = useQuery({
+    queryKey: ["server-admin-status"],
+    queryFn: api.serverAdmin.getStatus,
+    refetchInterval: 30000,
+  });
+
+  /* ── Versions ──────── */
+  const { data: versions = [], isLoading: versionsLoading, refetch: refetchVersions } = useQuery({
+    queryKey: ["server-admin-versions"],
+    queryFn: api.serverAdmin.getVersions,
+  });
+
+  /* ── Backups ──────── */
+  const { data: backups = [], isLoading: backupsLoading, refetch: refetchBackups } = useQuery({
+    queryKey: ["server-admin-backups"],
+    queryFn: api.serverAdmin.getBackups,
+  });
+
+  /* ── Services ──────── */
+  const { data: services, refetch: refetchServices } = useQuery({
+    queryKey: ["server-admin-services"],
+    queryFn: api.serverAdmin.getServices,
+    refetchInterval: 30000,
+  });
+
+  /* ── Deploy ──────── */
+  const deployMutation = useMutation({
+    mutationFn: async () => {
+      setIsRunning(true);
+      setTerminalLines([]);
+      addLine("═══ Deployment gestartet ═══", "step");
+      
+      const response = await api.serverAdmin.deploy();
+      
+      if (response.steps) {
+        for (const step of response.steps) {
+          addLine(step.label, step.success ? "success" : "error");
+          if (step.output) addLine(step.output, "info");
+        }
+      }
+      
+      if (response.success) {
+        addLine("═══ Deployment erfolgreich abgeschlossen ═══", "success");
+      } else {
+        addLine(`═══ Deployment fehlgeschlagen: ${response.error || "Unbekannter Fehler"} ═══`, "error");
+      }
+      
+      return response;
+    },
+    onSuccess: () => {
+      refetchVersions();
+      refetchStatus();
+    },
+    onError: (err: Error) => {
+      addLine(`FEHLER: ${err.message}`, "error");
+      toast.error("Deployment fehlgeschlagen");
+    },
+    onSettled: () => setIsRunning(false),
+  });
+
+  /* ── Backup erstellen ──────── */
+  const backupMutation = useMutation({
+    mutationFn: async () => {
+      addLine("Erstelle Datenbank-Backup…", "step");
+      const res = await api.serverAdmin.createBackup();
+      addLine(`Backup erstellt: ${res.filename}`, "success");
+      return res;
+    },
+    onSuccess: () => {
+      refetchBackups();
+      toast.success("Backup erstellt");
+    },
+    onError: (err: Error) => {
+      addLine(`Backup-Fehler: ${err.message}`, "error");
+      toast.error("Backup fehlgeschlagen");
+    },
+  });
+
+  /* ── Rollback ──────── */
+  const rollbackMutation = useMutation({
+    mutationFn: async (hash: string) => {
+      setIsRunning(true);
+      addLine(`Rollback auf Version ${hash.slice(0, 7)}…`, "step");
+      const res = await api.serverAdmin.rollback(hash);
+      if (res.success) {
+        addLine("Rollback erfolgreich", "success");
+      } else {
+        addLine(`Rollback fehlgeschlagen: ${res.error}`, "error");
+      }
+      return res;
+    },
+    onSuccess: () => {
+      refetchVersions();
+      refetchStatus();
+    },
+    onError: (err: Error) => addLine(`Fehler: ${err.message}`, "error"),
+    onSettled: () => setIsRunning(false),
+  });
+
+  /* ── Backup Restore ──────── */
+  const restoreMutation = useMutation({
+    mutationFn: async (filename: string) => {
+      setIsRunning(true);
+      addLine(`Stelle Backup wieder her: ${filename}…`, "step");
+      const res = await api.serverAdmin.restoreBackup(filename);
+      addLine(res.success ? "Wiederherstellung erfolgreich" : `Fehler: ${res.error}`, res.success ? "success" : "error");
+      return res;
+    },
+    onError: (err: Error) => addLine(`Fehler: ${err.message}`, "error"),
+    onSettled: () => setIsRunning(false),
+  });
+
+  /* ── Service Restart ──────── */
+  const restartMutation = useMutation({
+    mutationFn: async (service: string) => {
+      addLine(`Starte ${service} neu…`, "step");
+      const res = await api.serverAdmin.restartService(service);
+      addLine(res.success ? `${service} neugestartet` : `Fehler: ${res.error}`, res.success ? "success" : "error");
+      return res;
+    },
+    onSuccess: () => refetchServices(),
+    onError: (err: Error) => addLine(`Fehler: ${err.message}`, "error"),
+  });
+
+  /* ── Snapshot ──────── */
+  const snapshotMutation = useMutation({
+    mutationFn: async () => {
+      addLine("Erstelle Snapshot…", "step");
+      const res = await api.serverAdmin.createSnapshot();
+      addLine(res.success ? `Snapshot erstellt: ${res.filename}` : `Fehler: ${res.error}`, res.success ? "success" : "error");
+      return res;
+    },
+    onError: (err: Error) => addLine(`Fehler: ${err.message}`, "error"),
+  });
+
+  const usageColor = (pct: number) => pct > 90 ? "text-red-500" : pct > 70 ? "text-amber-500" : "text-emerald-500";
+  const usageStatus = (pct: number): "ok" | "warn" | "error" => pct > 90 ? "error" : pct > 70 ? "warn" : "ok";
+
+  return (
+    <div className="min-h-screen space-y-6 p-4 md:p-6">
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-2xl font-bold text-foreground flex items-center gap-2">
+            <Server className="h-6 w-6 text-primary" />
+            Server-Administration
+          </h1>
+          <p className="text-sm text-muted-foreground mt-1">Deployment, Backups & Service-Management</p>
+        </div>
+        <Button variant="outline" size="sm" onClick={() => { refetchStatus(); refetchVersions(); refetchBackups(); refetchServices(); }}>
+          <RefreshCw className="h-4 w-4 mr-1" /> Aktualisieren
+        </Button>
+      </div>
+
+      {/* ── Server Status ───────────────────── */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+        {statusLoading ? (
+          Array.from({ length: 4 }).map((_, i) => (
+            <Card key={i} className="animate-pulse">
+              <CardContent className="p-4"><div className="h-12 bg-muted rounded" /></CardContent>
+            </Card>
+          ))
+        ) : status ? (
+          <>
+            <Card>
+              <CardContent className="p-4">
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-xs text-muted-foreground flex items-center gap-1"><Cpu className="h-3 w-3" /> CPU</span>
+                  <StatusDot status={usageStatus(status.cpu_usage)} />
+                </div>
+                <p className={`text-2xl font-bold ${usageColor(status.cpu_usage)}`}>{status.cpu_usage}%</p>
+                <Progress value={status.cpu_usage} className="mt-2 h-1.5" />
+              </CardContent>
+            </Card>
+            <Card>
+              <CardContent className="p-4">
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-xs text-muted-foreground flex items-center gap-1"><MemoryStick className="h-3 w-3" /> RAM</span>
+                  <StatusDot status={usageStatus(status.memory_usage)} />
+                </div>
+                <p className={`text-2xl font-bold ${usageColor(status.memory_usage)}`}>{status.memory_usage}%</p>
+                <p className="text-[10px] text-muted-foreground mt-1">{status.memory_total}</p>
+                <Progress value={status.memory_usage} className="mt-1 h-1.5" />
+              </CardContent>
+            </Card>
+            <Card>
+              <CardContent className="p-4">
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-xs text-muted-foreground flex items-center gap-1"><HardDrive className="h-3 w-3" /> Disk</span>
+                  <StatusDot status={usageStatus(status.disk_usage)} />
+                </div>
+                <p className={`text-2xl font-bold ${usageColor(status.disk_usage)}`}>{status.disk_usage}%</p>
+                <p className="text-[10px] text-muted-foreground mt-1">{status.disk_total}</p>
+                <Progress value={status.disk_usage} className="mt-1 h-1.5" />
+              </CardContent>
+            </Card>
+            <Card>
+              <CardContent className="p-4">
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-xs text-muted-foreground flex items-center gap-1"><Activity className="h-3 w-3" /> Uptime</span>
+                  <StatusDot status="ok" />
+                </div>
+                <p className="text-lg font-bold text-foreground">{status.uptime}</p>
+                <p className="text-[10px] text-muted-foreground mt-1">PHP {status.php_version}</p>
+              </CardContent>
+            </Card>
+          </>
+        ) : (
+          <Card className="col-span-full">
+            <CardContent className="p-4 text-center text-muted-foreground">
+              <XCircle className="h-5 w-5 mx-auto mb-1 text-destructive" />
+              Server nicht erreichbar
+            </CardContent>
+          </Card>
+        )}
+      </div>
+
+      {/* ── Services ───────────────────── */}
+      {services && (
+        <div className="flex flex-wrap gap-2">
+          {Object.entries(services).map(([name, info]: [string, any]) => (
+            <div key={name} className="flex items-center gap-2 rounded-lg border bg-card px-3 py-2">
+              <StatusDot status={info.running ? "ok" : "error"} />
+              <span className="text-sm font-medium">{name}</span>
+              <Badge variant={info.running ? "default" : "destructive"} className="text-[10px]">
+                {info.running ? "Aktiv" : "Gestoppt"}
+              </Badge>
+              <Button
+                variant="ghost"
+                size="sm"
+                className="h-6 px-2 text-xs"
+                disabled={isRunning}
+                onClick={() => setConfirmAction({
+                  title: `${name} neustarten?`,
+                  description: `Der Dienst ${name} wird neugestartet. Kurzfristige Unterbrechung möglich.`,
+                  onConfirm: () => restartMutation.mutate(name),
+                })}
+              >
+                <RotateCcw className="h-3 w-3" />
+              </Button>
+            </div>
+          ))}
+        </div>
+      )}
+
+      <div className="grid gap-6 lg:grid-cols-2">
+        {/* ── Deployment Panel ───────────────────── */}
+        <Card className="lg:col-span-2">
+          <CardHeader className="pb-3">
+            <div className="flex items-center justify-between">
+              <CardTitle className="flex items-center gap-2 text-lg">
+                <Rocket className="h-5 w-5 text-primary" />
+                Deployment
+              </CardTitle>
+              <div className="flex gap-2">
+                <Button
+                  onClick={() => setConfirmAction({
+                    title: "Deployment starten?",
+                    description: "Es wird ein Backup erstellt, dann git pull, Migrationen und Cache-Clear ausgeführt.",
+                    onConfirm: () => deployMutation.mutate(),
+                  })}
+                  disabled={isRunning}
+                  className="gap-1.5"
+                >
+                  {isRunning ? <Loader2 className="h-4 w-4 animate-spin" /> : <Play className="h-4 w-4" />}
+                  {isRunning ? "Läuft…" : "Deploy"}
+                </Button>
+                <Button
+                  variant="outline"
+                  size="icon"
+                  onClick={() => setTerminalLines([])}
+                  disabled={isRunning}
+                  title="Terminal leeren"
+                >
+                  <Trash2 className="h-4 w-4" />
+                </Button>
+              </div>
+            </div>
+          </CardHeader>
+          <CardContent>
+            <Terminal lines={terminalLines} isRunning={isRunning} />
+          </CardContent>
+        </Card>
+
+        {/* ── Versions ───────────────────── */}
+        <Card>
+          <CardHeader className="pb-3">
+            <CardTitle className="flex items-center gap-2 text-lg">
+              <GitBranch className="h-5 w-5 text-primary" />
+              Versionen
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            {versionsLoading ? (
+              <div className="flex justify-center py-8"><Loader2 className="h-5 w-5 animate-spin text-muted-foreground" /></div>
+            ) : versions.length === 0 ? (
+              <p className="text-sm text-muted-foreground text-center py-8">Keine Versionen gefunden</p>
+            ) : (
+              <div className="max-h-80 overflow-y-auto space-y-1.5">
+                {versions.map((v: GitVersion) => (
+                  <div
+                    key={v.hash}
+                    className={`flex items-center justify-between rounded-lg px-3 py-2 text-sm ${
+                      v.is_current ? "bg-primary/10 border border-primary/30" : "bg-muted/50 hover:bg-muted"
+                    }`}
+                  >
+                    <div className="min-w-0 flex-1">
+                      <div className="flex items-center gap-2">
+                        <code className="text-xs font-mono text-muted-foreground">{v.short_hash}</code>
+                        {v.is_current && <Badge variant="default" className="text-[10px]">Aktiv</Badge>}
+                      </div>
+                      <p className="truncate text-sm mt-0.5">{v.message}</p>
+                      <p className="text-[10px] text-muted-foreground">{v.date} — {v.author}</p>
+                    </div>
+                    {!v.is_current && (
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="ml-2 shrink-0 text-xs"
+                        disabled={isRunning}
+                        onClick={() => setConfirmAction({
+                          title: `Rollback auf ${v.short_hash}?`,
+                          description: `Der Server wird auf den Commit "${v.message}" zurückgesetzt. Ein Backup wird vorher erstellt.`,
+                          onConfirm: () => rollbackMutation.mutate(v.hash),
+                        })}
+                      >
+                        <RotateCcw className="h-3.5 w-3.5 mr-1" /> Rollback
+                      </Button>
+                    )}
+                  </div>
+                ))}
+              </div>
+            )}
+          </CardContent>
+        </Card>
+
+        {/* ── Backups & Snapshots ───────────────────── */}
+        <Card>
+          <CardHeader className="pb-3">
+            <div className="flex items-center justify-between">
+              <CardTitle className="flex items-center gap-2 text-lg">
+                <Database className="h-5 w-5 text-primary" />
+                Backups & Snapshots
+              </CardTitle>
+              <div className="flex gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => snapshotMutation.mutate()}
+                  disabled={isRunning}
+                  className="gap-1 text-xs"
+                >
+                  <Camera className="h-3.5 w-3.5" /> Snapshot
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => backupMutation.mutate()}
+                  disabled={isRunning}
+                  className="gap-1 text-xs"
+                >
+                  <Download className="h-3.5 w-3.5" /> Backup
+                </Button>
+              </div>
+            </div>
+          </CardHeader>
+          <CardContent>
+            {backupsLoading ? (
+              <div className="flex justify-center py-8"><Loader2 className="h-5 w-5 animate-spin text-muted-foreground" /></div>
+            ) : backups.length === 0 ? (
+              <p className="text-sm text-muted-foreground text-center py-8">Keine Backups vorhanden</p>
+            ) : (
+              <div className="max-h-80 overflow-y-auto space-y-1.5">
+                {backups.map((b: BackupEntry) => (
+                  <div key={b.filename} className="flex items-center justify-between rounded-lg bg-muted/50 px-3 py-2 hover:bg-muted">
+                    <div>
+                      <p className="text-sm font-mono">{b.filename}</p>
+                      <p className="text-[10px] text-muted-foreground">{b.date} — {b.size} — {b.age}</p>
+                    </div>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="text-xs"
+                      disabled={isRunning}
+                      onClick={() => setConfirmAction({
+                        title: "Backup wiederherstellen?",
+                        description: `Die aktuelle Datenbank wird mit "${b.filename}" überschrieben. Ein Sicherungs-Backup wird vorher erstellt.`,
+                        onConfirm: () => restoreMutation.mutate(b.filename),
+                      })}
+                    >
+                      <RotateCcw className="h-3.5 w-3.5 mr-1" /> Restore
+                    </Button>
+                  </div>
+                ))}
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* ── Confirm Dialog ───────────────────── */}
+      <AlertDialog open={!!confirmAction} onOpenChange={(o) => !o && setConfirmAction(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle className="flex items-center gap-2">
+              <AlertTriangle className="h-5 w-5 text-amber-500" />
+              {confirmAction?.title}
+            </AlertDialogTitle>
+            <AlertDialogDescription>{confirmAction?.description}</AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Abbrechen</AlertDialogCancel>
+            <AlertDialogAction onClick={() => { confirmAction?.onConfirm(); setConfirmAction(null); }}>
+              Bestätigen
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </div>
+  );
+};
+
+export default ServerAdmin;
