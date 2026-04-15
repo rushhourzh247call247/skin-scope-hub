@@ -544,4 +544,54 @@ export const api = {
     request<{ count: number }>('/invoices/generate-monthly', { method: 'POST' }),
   downloadInvoicePdf: (invoiceId: number) =>
     requestBlob(`/invoices/${invoiceId}/pdf`),
+
+  // Server Admin
+  serverAdmin: {
+    getStatus: () =>
+      request<{
+        uptime: string;
+        cpu_usage: number;
+        memory_usage: number;
+        memory_total: string;
+        disk_usage: number;
+        disk_total: string;
+        php_version: string;
+        nginx_status: string;
+        fpm_status: string;
+      }>('/server-admin/status'),
+    getVersions: () =>
+      request<{
+        hash: string;
+        short_hash: string;
+        date: string;
+        message: string;
+        author: string;
+        is_current: boolean;
+      }[]>('/server-admin/versions'),
+    getBackups: () =>
+      request<{
+        filename: string;
+        size: string;
+        date: string;
+        age: string;
+      }[]>('/server-admin/backups'),
+    getServices: () =>
+      request<Record<string, { running: boolean; pid?: number }>>('/server-admin/services'),
+    deploy: () =>
+      request<{
+        success: boolean;
+        error?: string;
+        steps?: { label: string; success: boolean; output?: string }[];
+      }>('/server-admin/deploy', { method: 'POST' }),
+    createBackup: () =>
+      request<{ success: boolean; filename: string; error?: string }>('/server-admin/backup', { method: 'POST' }),
+    rollback: (hash: string) =>
+      request<{ success: boolean; error?: string }>('/server-admin/rollback', { method: 'POST', body: JSON.stringify({ hash }) }),
+    restoreBackup: (filename: string) =>
+      request<{ success: boolean; error?: string }>('/server-admin/backup/restore', { method: 'POST', body: JSON.stringify({ filename }) }),
+    restartService: (service: string) =>
+      request<{ success: boolean; error?: string }>('/server-admin/services/restart', { method: 'POST', body: JSON.stringify({ service }) }),
+    createSnapshot: () =>
+      request<{ success: boolean; filename?: string; error?: string }>('/server-admin/snapshot', { method: 'POST' }),
+  },
 };
