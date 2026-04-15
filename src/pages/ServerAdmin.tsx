@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect, useCallback } from "react";
+import React, { useState, useRef, useEffect, useCallback } from "react";
 import { useTranslation } from "react-i18next";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { api } from "@/lib/api";
@@ -105,15 +105,18 @@ function Terminal({ lines, isRunning }: { lines: TerminalLine[]; isRunning: bool
 
 /* ── Status Indicator ──────────────────────────────────── */
 
-function StatusDot({ status }: { status: "ok" | "warn" | "error" | "unknown" }) {
-  const cls = {
-    ok: "bg-emerald-500 shadow-emerald-500/40",
-    warn: "bg-amber-500 shadow-amber-500/40",
-    error: "bg-red-500 shadow-red-500/40",
-    unknown: "bg-zinc-400",
-  }[status];
-  return <div className={`h-2.5 w-2.5 rounded-full shadow-lg ${cls}`} />;
-}
+const StatusDot = React.forwardRef<HTMLDivElement, { status: "ok" | "warn" | "error" | "unknown" }>(
+  ({ status, ...props }, ref) => {
+    const cls = {
+      ok: "bg-emerald-500 shadow-emerald-500/40",
+      warn: "bg-amber-500 shadow-amber-500/40",
+      error: "bg-red-500 shadow-red-500/40",
+      unknown: "bg-zinc-400",
+    }[status];
+    return <div ref={ref} className={`h-2.5 w-2.5 rounded-full shadow-lg ${cls}`} {...props} />;
+  }
+);
+StatusDot.displayName = "StatusDot";
 
 /* ── Main Page ─────────────────────────────────────────── */
 
