@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect, useCallback } from "react";
+import { Input } from "@/components/ui/input";
 import { useTranslation } from "react-i18next";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { api } from "@/lib/api";
@@ -547,7 +548,7 @@ const ServerAdmin = () => {
       </div>
 
       {/* ── Confirm Dialog ───────────────────── */}
-      <AlertDialog open={!!confirmAction} onOpenChange={(o) => !o && setConfirmAction(null)}>
+      <AlertDialog open={!!confirmAction} onOpenChange={(o) => { if (!o) { setConfirmAction(null); setActionPassword(""); setPasswordError(false); } }}>
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle className="flex items-center gap-2">
@@ -556,9 +557,35 @@ const ServerAdmin = () => {
             </AlertDialogTitle>
             <AlertDialogDescription>{confirmAction?.description}</AlertDialogDescription>
           </AlertDialogHeader>
+          <div className="space-y-2 py-2">
+            <label className="text-sm font-medium text-foreground">Aktions-Passwort eingeben:</label>
+            <Input
+              type="password"
+              placeholder="Passwort zur Bestätigung"
+              value={actionPassword}
+              onChange={(e) => { setActionPassword(e.target.value); setPasswordError(false); }}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" && actionPassword.length > 0) {
+                  confirmAction?.onConfirm(actionPassword);
+                  setConfirmAction(null);
+                  setActionPassword("");
+                }
+              }}
+              className={passwordError ? "border-destructive" : ""}
+              autoFocus
+            />
+            {passwordError && <p className="text-xs text-destructive">Falsches Passwort</p>}
+          </div>
           <AlertDialogFooter>
             <AlertDialogCancel>Abbrechen</AlertDialogCancel>
-            <AlertDialogAction onClick={() => { confirmAction?.onConfirm(); setConfirmAction(null); }}>
+            <AlertDialogAction
+              disabled={actionPassword.length === 0}
+              onClick={() => {
+                confirmAction?.onConfirm(actionPassword);
+                setConfirmAction(null);
+                setActionPassword("");
+              }}
+            >
               Bestätigen
             </AlertDialogAction>
           </AlertDialogFooter>
