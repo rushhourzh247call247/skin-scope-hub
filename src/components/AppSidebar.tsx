@@ -20,6 +20,7 @@ export function AppSidebar() {
   const isAdmin = user?.role === "admin";
   const isAccountant = user?.role === "accountant";
   const [unreadTickets, setUnreadTickets] = useState(0);
+  const [appVersion, setAppVersion] = useState<string | null>(null);
 
   const fetchUnread = useCallback(async () => {
     try {
