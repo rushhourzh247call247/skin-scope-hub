@@ -287,8 +287,9 @@ const ServerAdmin = () => {
           <h1 className="text-2xl font-bold text-foreground flex items-center gap-2">
             <Server className="h-6 w-6 text-primary" />
             Server-Administration
+            <Badge variant="outline" className="ml-2 text-[10px] border-primary/50 text-primary">Live-Server</Badge>
           </h1>
-          <p className="text-sm text-muted-foreground mt-1">Deployment, Backups & Service-Management</p>
+          <p className="text-sm text-muted-foreground mt-1">Live-Server (83.228.246.191) — Deployment, Backups & Service-Management</p>
         </div>
         <Button variant="outline" size="sm" onClick={() => { refetchStatus(); refetchVersions(); refetchBackups(); refetchServices(); }}>
           <RefreshCw className="h-4 w-4 mr-1" /> Aktualisieren
