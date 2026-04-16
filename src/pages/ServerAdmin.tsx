@@ -168,12 +168,12 @@ const ServerAdmin = () => {
 
   /* ── Deploy ──────── */
   const deployMutation = useMutation({
-    mutationFn: async () => {
+    mutationFn: async (password: string) => {
       setIsRunning(true);
       setTerminalLines([]);
-      addLine("═══ Deployment gestartet ═══", "step");
+      addLine("═══ Deployment auf Live-Server gestartet ═══", "step");
       
-      const response = await api.serverAdmin.deploy();
+      const response = await api.serverAdmin.deploy(password);
       
       if (response.steps) {
         for (const step of response.steps) {
@@ -203,9 +203,9 @@ const ServerAdmin = () => {
 
   /* ── Backup erstellen ──────── */
   const backupMutation = useMutation({
-    mutationFn: async () => {
-      addLine("Erstelle Datenbank-Backup…", "step");
-      const res = await api.serverAdmin.createBackup();
+    mutationFn: async (password: string) => {
+      addLine("Erstelle Datenbank-Backup auf Live-Server…", "step");
+      const res = await api.serverAdmin.createBackup(password);
       addLine(`Backup erstellt: ${res.filename}`, "success");
       return res;
     },
