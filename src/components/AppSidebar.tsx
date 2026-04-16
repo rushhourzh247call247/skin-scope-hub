@@ -37,6 +37,16 @@ export function AppSidebar() {
     return () => clearInterval(interval);
   }, [fetchUnread, isAccountant]);
 
+  useEffect(() => {
+    if (!isAdmin) return;
+    api.serverAdmin.getVersions().then((versions: any[]) => {
+      if (versions?.length > 0) {
+        const current = versions.find((v: any) => v.is_current) || versions[0];
+        setAppVersion(current?.short_hash || null);
+      }
+    }).catch(() => {});
+  }, [isAdmin]);
+
   const financeNav = [
     { title: "Finanz-Dashboard", url: "/finance", icon: Landmark },
     { title: "Rechnungen", url: "/finance/invoices", icon: Receipt },
