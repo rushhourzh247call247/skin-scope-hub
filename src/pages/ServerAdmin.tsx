@@ -31,6 +31,7 @@ interface ServerStatus {
   php_version: string;
   nginx_status: string;
   fpm_status: string;
+  app_version?: string;
 }
 
 interface GitVersion {
