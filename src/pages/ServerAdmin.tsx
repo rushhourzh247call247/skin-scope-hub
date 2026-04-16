@@ -400,7 +400,7 @@ const ServerAdmin = () => {
                 <Button
                   onClick={() => setConfirmAction({
                     title: "Deployment auf Live-Server starten?",
-                    description: "Es wird ein Backup der Live-DB erstellt, dann git pull, Migrationen und Cache-Clear auf dem Live-Server ausgeführt.",
+                    description: "Backend wird per rsync vom Dev-Server synchronisiert, Frontend per git pull von GitHub gebaut. DB wird nur migriert, nie überschrieben. Vorher wird ein DB-Backup erstellt.",
                     onConfirm: (pw) => deployMutation.mutate(pw),
                   })}
                   disabled={isRunning}
