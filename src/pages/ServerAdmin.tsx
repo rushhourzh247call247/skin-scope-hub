@@ -374,8 +374,8 @@ const ServerAdmin = () => {
                 disabled={isRunning}
                 onClick={() => setConfirmAction({
                   title: `${name} neustarten?`,
-                  description: `Der Dienst ${name} wird neugestartet. Kurzfristige Unterbrechung möglich.`,
-                  onConfirm: () => restartMutation.mutate(name),
+                  description: `Der Dienst ${name} wird auf dem Live-Server neugestartet. Kurzfristige Unterbrechung möglich.`,
+                  onConfirm: (pw) => restartMutation.mutate({ service: name, password: pw }),
                 })}
               >
                 <RotateCcw className="h-3 w-3" />
@@ -397,9 +397,9 @@ const ServerAdmin = () => {
               <div className="flex gap-2">
                 <Button
                   onClick={() => setConfirmAction({
-                    title: "Deployment starten?",
-                    description: "Es wird ein Backup erstellt, dann git pull, Migrationen und Cache-Clear ausgeführt.",
-                    onConfirm: () => deployMutation.mutate(),
+                    title: "Deployment auf Live-Server starten?",
+                    description: "Es wird ein Backup der Live-DB erstellt, dann git pull, Migrationen und Cache-Clear auf dem Live-Server ausgeführt.",
+                    onConfirm: (pw) => deployMutation.mutate(pw),
                   })}
                   disabled={isRunning}
                   className="gap-1.5"
@@ -460,11 +460,11 @@ const ServerAdmin = () => {
                         size="sm"
                         className="ml-2 shrink-0 text-xs"
                         disabled={isRunning}
-                        onClick={() => setConfirmAction({
-                          title: `Rollback auf ${v.short_hash}?`,
-                          description: `Der Server wird auf den Commit "${v.message}" zurückgesetzt. Ein Backup wird vorher erstellt.`,
-                          onConfirm: () => rollbackMutation.mutate(v.hash),
-                        })}
+                      onClick={() => setConfirmAction({
+                        title: `Rollback auf ${v.short_hash}?`,
+                        description: `Der Live-Server wird auf den Commit "${v.message}" zurückgesetzt. Ein Backup wird vorher erstellt.`,
+                        onConfirm: (pw) => rollbackMutation.mutate({ hash: v.hash, password: pw }),
+                      })}
                       >
                         <RotateCcw className="h-3.5 w-3.5 mr-1" /> Rollback
                       </Button>
@@ -488,16 +488,22 @@ const ServerAdmin = () => {
                 <Button
                   variant="outline"
                   size="sm"
-                  onClick={() => snapshotMutation.mutate()}
-                  disabled={isRunning}
-                  className="gap-1 text-xs"
+                  onClick={() => setConfirmAction({
+                    title: "Snapshot auf Live-Server erstellen?",
+                    description: "Die aktuelle Live-Datenbank und Bilder werden als Snapshot gesichert.",
+                    onConfirm: (pw) => snapshotMutation.mutate(pw),
+                  })}
                 >
                   <Camera className="h-3.5 w-3.5" /> Snapshot
                 </Button>
                 <Button
                   variant="outline"
                   size="sm"
-                  onClick={() => backupMutation.mutate()}
+                  onClick={() => setConfirmAction({
+                    title: "Backup der Live-DB erstellen?",
+                    description: "Die aktuelle Live-Datenbank wird gesichert.",
+                    onConfirm: (pw) => backupMutation.mutate(pw),
+                  })}
                   disabled={isRunning}
                   className="gap-1 text-xs"
                 >
@@ -525,9 +531,9 @@ const ServerAdmin = () => {
                       className="text-xs"
                       disabled={isRunning}
                       onClick={() => setConfirmAction({
-                        title: "Backup wiederherstellen?",
-                        description: `Die aktuelle Datenbank wird mit "${b.filename}" überschrieben. Ein Sicherungs-Backup wird vorher erstellt.`,
-                        onConfirm: () => restoreMutation.mutate(b.filename),
+                        title: "Backup auf Live-Server wiederherstellen?",
+                        description: `Die aktuelle Live-Datenbank wird mit "${b.filename}" überschrieben. Ein Sicherungs-Backup wird vorher erstellt.`,
+                        onConfirm: (pw) => restoreMutation.mutate({ filename: b.filename, password: pw }),
                       })}
                     >
                       <RotateCcw className="h-3.5 w-3.5 mr-1" /> Restore
