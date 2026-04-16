@@ -221,10 +221,10 @@ const ServerAdmin = () => {
 
   /* ── Rollback ──────── */
   const rollbackMutation = useMutation({
-    mutationFn: async (hash: string) => {
+    mutationFn: async ({ hash, password }: { hash: string; password: string }) => {
       setIsRunning(true);
-      addLine(`Rollback auf Version ${hash.slice(0, 7)}…`, "step");
-      const res = await api.serverAdmin.rollback(hash);
+      addLine(`Rollback auf Version ${hash.slice(0, 7)} (Live-Server)…`, "step");
+      const res = await api.serverAdmin.rollback(hash, password);
       if (res.success) {
         addLine("Rollback erfolgreich", "success");
       } else {
@@ -242,10 +242,10 @@ const ServerAdmin = () => {
 
   /* ── Backup Restore ──────── */
   const restoreMutation = useMutation({
-    mutationFn: async (filename: string) => {
+    mutationFn: async ({ filename, password }: { filename: string; password: string }) => {
       setIsRunning(true);
-      addLine(`Stelle Backup wieder her: ${filename}…`, "step");
-      const res = await api.serverAdmin.restoreBackup(filename);
+      addLine(`Stelle Backup wieder her auf Live-Server: ${filename}…`, "step");
+      const res = await api.serverAdmin.restoreBackup(filename, password);
       addLine(res.success ? "Wiederherstellung erfolgreich" : `Fehler: ${res.error}`, res.success ? "success" : "error");
       return res;
     },
@@ -255,9 +255,9 @@ const ServerAdmin = () => {
 
   /* ── Service Restart ──────── */
   const restartMutation = useMutation({
-    mutationFn: async (service: string) => {
-      addLine(`Starte ${service} neu…`, "step");
-      const res = await api.serverAdmin.restartService(service);
+    mutationFn: async ({ service, password }: { service: string; password: string }) => {
+      addLine(`Starte ${service} auf Live-Server neu…`, "step");
+      const res = await api.serverAdmin.restartService(service, password);
       addLine(res.success ? `${service} neugestartet` : `Fehler: ${res.error}`, res.success ? "success" : "error");
       return res;
     },
@@ -267,9 +267,9 @@ const ServerAdmin = () => {
 
   /* ── Snapshot ──────── */
   const snapshotMutation = useMutation({
-    mutationFn: async () => {
-      addLine("Erstelle Snapshot…", "step");
-      const res = await api.serverAdmin.createSnapshot();
+    mutationFn: async (password: string) => {
+      addLine("Erstelle Snapshot auf Live-Server…", "step");
+      const res = await api.serverAdmin.createSnapshot(password);
       addLine(res.success ? `Snapshot erstellt: ${res.filename}` : `Fehler: ${res.error}`, res.success ? "success" : "error");
       return res;
     },
