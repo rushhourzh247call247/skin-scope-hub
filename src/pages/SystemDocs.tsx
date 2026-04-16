@@ -4,7 +4,7 @@ import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import {
   Server, Database, Shield, Globe, HardDrive, Lock, Network,
-  FileText, Clock, RefreshCw, Monitor, Cpu, Key, Eye, Mail
+  FileText, Clock, RefreshCw, Monitor, Cpu, Key, Eye, Mail, GitBranch, Cloud
 } from "lucide-react";
 
 const Section = ({ icon: Icon, title, children }: { icon: any; title: string; children: React.ReactNode }) => (
@@ -38,7 +38,19 @@ const SystemDocs = () => {
         <p className="text-sm text-muted-foreground">{t('systemDocs.subtitle')}</p>
       </div>
 
+      {/* ── 3-Server-Architektur ── */}
+      <Section icon={Cloud} title={t('systemDocs.serverArchitecture')}>
+        <p className="text-foreground font-medium text-xs uppercase tracking-wider mb-1">{t('systemDocs.threeServerTitle')}</p>
+        <InfoRow label={t('systemDocs.liveServer')} value="83.228.246.191" badge="Infomaniak 🇨🇭" />
+        <InfoRow label={t('systemDocs.devServer')} value="138.199.167.214" badge="Hetzner 🇩🇪" />
+        <InfoRow label={t('systemDocs.backupServer')} value="138.199.173.21" badge="Hetzner 🇩🇪" />
+        <InfoRow label={t('systemDocs.serverComm')} value={t('systemDocs.serverCommVal')} />
+        <InfoRow label={t('systemDocs.devServerRole')} value={t('systemDocs.devServerRoleVal')} />
+        <InfoRow label={t('systemDocs.backupServerRole')} value={t('systemDocs.backupServerRoleVal')} />
+      </Section>
+
       <Section icon={Server} title={t('systemDocs.serverHosting')}>
+        <p className="text-foreground font-medium text-xs uppercase tracking-wider mb-1">{t('systemDocs.liveServer')}</p>
         <InfoRow label={t('systemDocs.provider')} value={t('systemDocs.providerVal')} />
         <InfoRow label={t('systemDocs.product')} value={t('systemDocs.productVal')} />
         <InfoRow label={t('systemDocs.os')} value="Ubuntu 24.04.3 LTS" />
@@ -179,21 +191,28 @@ const SystemDocs = () => {
 
       <Section icon={FileText} title={t('systemDocs.deployWorkflow')}>
         <div className="space-y-2">
-          <p className="text-foreground font-medium text-xs uppercase tracking-wider">{t('systemDocs.frontendDeploy')}</p>
+          <p className="text-foreground font-medium text-xs uppercase tracking-wider">{t('systemDocs.deployViaAdmin')}</p>
+          <p className="text-xs italic">{t('systemDocs.deployViaAdminDesc')}</p>
           <ol className="list-decimal list-inside space-y-1 ml-1">
-            <li>{t('systemDocs.deployStep1')}</li>
-            <li>{t('systemDocs.deployStep2')}</li>
-            <li>{t('systemDocs.deployStep3')} — <code className="text-xs bg-muted px-1 rounded">~/derm-frontend</code></li>
-            <li>{t('systemDocs.deployStep4')} — <code className="text-xs bg-muted px-1 rounded">npm run build</code></li>
-            <li>{t('systemDocs.deployStep5')} — <code className="text-xs bg-muted px-1 rounded">rsync -a --delete</code></li>
+            <li>{t('systemDocs.deployNew1')}</li>
+            <li>{t('systemDocs.deployNew2')}</li>
+            <li>{t('systemDocs.deployNew3')}</li>
+            <li>{t('systemDocs.deployNew4')}</li>
+            <li>{t('systemDocs.deployNew5')}</li>
+            <li>{t('systemDocs.deployNew6')}</li>
+            <li>{t('systemDocs.deployNew7')}</li>
           </ol>
           <Separator className="my-3" />
-          <p className="text-foreground font-medium text-xs uppercase tracking-wider">{t('systemDocs.backendLabel')}</p>
-          <ol className="list-decimal list-inside space-y-1 ml-1">
-            <li>{t('systemDocs.backendStep1')}</li>
-            <li>{t('systemDocs.backendStep2')} — <code className="text-xs bg-muted px-1 rounded">php artisan migrate</code></li>
-            <li className="text-destructive font-medium">{t('systemDocs.backendStep3')}</li>
-          </ol>
+          <p className="text-foreground font-medium text-xs uppercase tracking-wider">{t('systemDocs.deploySources')}</p>
+          <InfoRow label={t('systemDocs.backendSource')} value={t('systemDocs.backendSourceVal')} />
+          <InfoRow label={t('systemDocs.frontendSource')} value={t('systemDocs.frontendSourceVal')} />
+          <InfoRow label={t('systemDocs.dbPolicy')} value={t('systemDocs.dbPolicyVal')} />
+          <Separator className="my-3" />
+          <p className="text-foreground font-medium text-xs uppercase tracking-wider">{t('systemDocs.safetyMeasures')}</p>
+          <InfoRow label={t('systemDocs.safetyBackup')} value={t('systemDocs.safetyBackupVal')} />
+          <InfoRow label={t('systemDocs.safetyExclude')} value={t('systemDocs.safetyExcludeVal')} />
+          <InfoRow label={t('systemDocs.safetyMigFail')} value={t('systemDocs.safetyMigFailVal')} />
+          <li className="list-none text-destructive font-medium text-xs mt-2">{t('systemDocs.backendStep3')}</li>
         </div>
       </Section>
 
