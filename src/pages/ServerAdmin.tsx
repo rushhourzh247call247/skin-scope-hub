@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect, useCallback } from "react";
+import { Input } from "@/components/ui/input";
 import { useTranslation } from "react-i18next";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { api } from "@/lib/api";
@@ -124,10 +125,12 @@ const ServerAdmin = () => {
   const { t } = useTranslation();
   const [terminalLines, setTerminalLines] = useState<TerminalLine[]>([]);
   const [isRunning, setIsRunning] = useState(false);
+  const [actionPassword, setActionPassword] = useState("");
+  const [passwordError, setPasswordError] = useState(false);
   const [confirmAction, setConfirmAction] = useState<{
     title: string;
     description: string;
-    onConfirm: () => void;
+    onConfirm: (password: string) => void;
   } | null>(null);
 
   const addLine = useCallback((text: string, type: TerminalLine["type"] = "info") => {
@@ -166,12 +169,12 @@ const ServerAdmin = () => {
 
   /* ── Deploy ──────── */
   const deployMutation = useMutation({
-    mutationFn: async () => {
+    mutationFn: async (password: string) => {
       setIsRunning(true);
       setTerminalLines([]);
-      addLine("═══ Deployment gestartet ═══", "step");
+      addLine("═══ Deployment auf Live-Server gestartet ═══", "step");
       
-      const response = await api.serverAdmin.deploy();
+      const response = await api.serverAdmin.deploy(password);
       
       if (response.steps) {
         for (const step of response.steps) {
@@ -201,9 +204,9 @@ const ServerAdmin = () => {
 
   /* ── Backup erstellen ──────── */
   const backupMutation = useMutation({
-    mutationFn: async () => {
-      addLine("Erstelle Datenbank-Backup…", "step");
-      const res = await api.serverAdmin.createBackup();
+    mutationFn: async (password: string) => {
+      addLine("Erstelle Datenbank-Backup auf Live-Server…", "step");
+      const res = await api.serverAdmin.createBackup(password);
       addLine(`Backup erstellt: ${res.filename}`, "success");
       return res;
     },
@@ -219,10 +222,10 @@ const ServerAdmin = () => {
 
   /* ── Rollback ──────── */
   const rollbackMutation = useMutation({
-    mutationFn: async (hash: string) => {
+    mutationFn: async ({ hash, password }: { hash: string; password: string }) => {
       setIsRunning(true);
-      addLine(`Rollback auf Version ${hash.slice(0, 7)}…`, "step");
-      const res = await api.serverAdmin.rollback(hash);
+      addLine(`Rollback auf Version ${hash.slice(0, 7)} (Live-Server)…`, "step");
+      const res = await api.serverAdmin.rollback(hash, password);
       if (res.success) {
         addLine("Rollback erfolgreich", "success");
       } else {
@@ -240,10 +243,10 @@ const ServerAdmin = () => {
 
   /* ── Backup Restore ──────── */
   const restoreMutation = useMutation({
-    mutationFn: async (filename: string) => {
+    mutationFn: async ({ filename, password }: { filename: string; password: string }) => {
       setIsRunning(true);
-      addLine(`Stelle Backup wieder her: ${filename}…`, "step");
-      const res = await api.serverAdmin.restoreBackup(filename);
+      addLine(`Stelle Backup wieder her auf Live-Server: ${filename}…`, "step");
+      const res = await api.serverAdmin.restoreBackup(filename, password);
       addLine(res.success ? "Wiederherstellung erfolgreich" : `Fehler: ${res.error}`, res.success ? "success" : "error");
       return res;
     },
@@ -253,9 +256,9 @@ const ServerAdmin = () => {
 
   /* ── Service Restart ──────── */
   const restartMutation = useMutation({
-    mutationFn: async (service: string) => {
-      addLine(`Starte ${service} neu…`, "step");
-      const res = await api.serverAdmin.restartService(service);
+    mutationFn: async ({ service, password }: { service: string; password: string }) => {
+      addLine(`Starte ${service} auf Live-Server neu…`, "step");
+      const res = await api.serverAdmin.restartService(service, password);
       addLine(res.success ? `${service} neugestartet` : `Fehler: ${res.error}`, res.success ? "success" : "error");
       return res;
     },
@@ -265,9 +268,9 @@ const ServerAdmin = () => {
 
   /* ── Snapshot ──────── */
   const snapshotMutation = useMutation({
-    mutationFn: async () => {
-      addLine("Erstelle Snapshot…", "step");
-      const res = await api.serverAdmin.createSnapshot();
+    mutationFn: async (password: string) => {
+      addLine("Erstelle Snapshot auf Live-Server…", "step");
+      const res = await api.serverAdmin.createSnapshot(password);
       addLine(res.success ? `Snapshot erstellt: ${res.filename}` : `Fehler: ${res.error}`, res.success ? "success" : "error");
       return res;
     },
@@ -284,8 +287,9 @@ const ServerAdmin = () => {
           <h1 className="text-2xl font-bold text-foreground flex items-center gap-2">
             <Server className="h-6 w-6 text-primary" />
             Server-Administration
+            <Badge variant="outline" className="ml-2 text-[10px] border-primary/50 text-primary">Live-Server</Badge>
           </h1>
-          <p className="text-sm text-muted-foreground mt-1">Deployment, Backups & Service-Management</p>
+          <p className="text-sm text-muted-foreground mt-1">Live-Server (83.228.246.191) — Deployment, Backups & Service-Management</p>
         </div>
         <Button variant="outline" size="sm" onClick={() => { refetchStatus(); refetchVersions(); refetchBackups(); refetchServices(); }}>
           <RefreshCw className="h-4 w-4 mr-1" /> Aktualisieren
@@ -372,8 +376,8 @@ const ServerAdmin = () => {
                 disabled={isRunning}
                 onClick={() => setConfirmAction({
                   title: `${name} neustarten?`,
-                  description: `Der Dienst ${name} wird neugestartet. Kurzfristige Unterbrechung möglich.`,
-                  onConfirm: () => restartMutation.mutate(name),
+                  description: `Der Dienst ${name} wird auf dem Live-Server neugestartet. Kurzfristige Unterbrechung möglich.`,
+                  onConfirm: (pw) => restartMutation.mutate({ service: name, password: pw }),
                 })}
               >
                 <RotateCcw className="h-3 w-3" />
@@ -395,9 +399,9 @@ const ServerAdmin = () => {
               <div className="flex gap-2">
                 <Button
                   onClick={() => setConfirmAction({
-                    title: "Deployment starten?",
-                    description: "Es wird ein Backup erstellt, dann git pull, Migrationen und Cache-Clear ausgeführt.",
-                    onConfirm: () => deployMutation.mutate(),
+                    title: "Deployment auf Live-Server starten?",
+                    description: "Es wird ein Backup der Live-DB erstellt, dann git pull, Migrationen und Cache-Clear auf dem Live-Server ausgeführt.",
+                    onConfirm: (pw) => deployMutation.mutate(pw),
                   })}
                   disabled={isRunning}
                   className="gap-1.5"
@@ -458,11 +462,11 @@ const ServerAdmin = () => {
                         size="sm"
                         className="ml-2 shrink-0 text-xs"
                         disabled={isRunning}
-                        onClick={() => setConfirmAction({
-                          title: `Rollback auf ${v.short_hash}?`,
-                          description: `Der Server wird auf den Commit "${v.message}" zurückgesetzt. Ein Backup wird vorher erstellt.`,
-                          onConfirm: () => rollbackMutation.mutate(v.hash),
-                        })}
+                      onClick={() => setConfirmAction({
+                        title: `Rollback auf ${v.short_hash}?`,
+                        description: `Der Live-Server wird auf den Commit "${v.message}" zurückgesetzt. Ein Backup wird vorher erstellt.`,
+                        onConfirm: (pw) => rollbackMutation.mutate({ hash: v.hash, password: pw }),
+                      })}
                       >
                         <RotateCcw className="h-3.5 w-3.5 mr-1" /> Rollback
                       </Button>
@@ -486,16 +490,22 @@ const ServerAdmin = () => {
                 <Button
                   variant="outline"
                   size="sm"
-                  onClick={() => snapshotMutation.mutate()}
-                  disabled={isRunning}
-                  className="gap-1 text-xs"
+                  onClick={() => setConfirmAction({
+                    title: "Snapshot auf Live-Server erstellen?",
+                    description: "Die aktuelle Live-Datenbank und Bilder werden als Snapshot gesichert.",
+                    onConfirm: (pw) => snapshotMutation.mutate(pw),
+                  })}
                 >
                   <Camera className="h-3.5 w-3.5" /> Snapshot
                 </Button>
                 <Button
                   variant="outline"
                   size="sm"
-                  onClick={() => backupMutation.mutate()}
+                  onClick={() => setConfirmAction({
+                    title: "Backup der Live-DB erstellen?",
+                    description: "Die aktuelle Live-Datenbank wird gesichert.",
+                    onConfirm: (pw) => backupMutation.mutate(pw),
+                  })}
                   disabled={isRunning}
                   className="gap-1 text-xs"
                 >
@@ -523,9 +533,9 @@ const ServerAdmin = () => {
                       className="text-xs"
                       disabled={isRunning}
                       onClick={() => setConfirmAction({
-                        title: "Backup wiederherstellen?",
-                        description: `Die aktuelle Datenbank wird mit "${b.filename}" überschrieben. Ein Sicherungs-Backup wird vorher erstellt.`,
-                        onConfirm: () => restoreMutation.mutate(b.filename),
+                        title: "Backup auf Live-Server wiederherstellen?",
+                        description: `Die aktuelle Live-Datenbank wird mit "${b.filename}" überschrieben. Ein Sicherungs-Backup wird vorher erstellt.`,
+                        onConfirm: (pw) => restoreMutation.mutate({ filename: b.filename, password: pw }),
                       })}
                     >
                       <RotateCcw className="h-3.5 w-3.5 mr-1" /> Restore
@@ -539,7 +549,7 @@ const ServerAdmin = () => {
       </div>
 
       {/* ── Confirm Dialog ───────────────────── */}
-      <AlertDialog open={!!confirmAction} onOpenChange={(o) => !o && setConfirmAction(null)}>
+      <AlertDialog open={!!confirmAction} onOpenChange={(o) => { if (!o) { setConfirmAction(null); setActionPassword(""); setPasswordError(false); } }}>
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle className="flex items-center gap-2">
@@ -548,9 +558,35 @@ const ServerAdmin = () => {
             </AlertDialogTitle>
             <AlertDialogDescription>{confirmAction?.description}</AlertDialogDescription>
           </AlertDialogHeader>
+          <div className="space-y-2 py-2">
+            <label className="text-sm font-medium text-foreground">Aktions-Passwort eingeben:</label>
+            <Input
+              type="password"
+              placeholder="Passwort zur Bestätigung"
+              value={actionPassword}
+              onChange={(e) => { setActionPassword(e.target.value); setPasswordError(false); }}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" && actionPassword.length > 0) {
+                  confirmAction?.onConfirm(actionPassword);
+                  setConfirmAction(null);
+                  setActionPassword("");
+                }
+              }}
+              className={passwordError ? "border-destructive" : ""}
+              autoFocus
+            />
+            {passwordError && <p className="text-xs text-destructive">Falsches Passwort</p>}
+          </div>
           <AlertDialogFooter>
             <AlertDialogCancel>Abbrechen</AlertDialogCancel>
-            <AlertDialogAction onClick={() => { confirmAction?.onConfirm(); setConfirmAction(null); }}>
+            <AlertDialogAction
+              disabled={actionPassword.length === 0}
+              onClick={() => {
+                confirmAction?.onConfirm(actionPassword);
+                setConfirmAction(null);
+                setActionPassword("");
+              }}
+            >
               Bestätigen
             </AlertDialogAction>
           </AlertDialogFooter>
