@@ -124,10 +124,12 @@ const ServerAdmin = () => {
   const { t } = useTranslation();
   const [terminalLines, setTerminalLines] = useState<TerminalLine[]>([]);
   const [isRunning, setIsRunning] = useState(false);
+  const [actionPassword, setActionPassword] = useState("");
+  const [passwordError, setPasswordError] = useState(false);
   const [confirmAction, setConfirmAction] = useState<{
     title: string;
     description: string;
-    onConfirm: () => void;
+    onConfirm: (password: string) => void;
   } | null>(null);
 
   const addLine = useCallback((text: string, type: TerminalLine["type"] = "info") => {

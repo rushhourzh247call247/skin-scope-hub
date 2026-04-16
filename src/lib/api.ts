@@ -577,21 +577,21 @@ export const api = {
       }[]>('/server-admin/backups'),
     getServices: () =>
       request<Record<string, { running: boolean; pid?: number }>>('/server-admin/services'),
-    deploy: () =>
+    deploy: (actionPassword: string) =>
       request<{
         success: boolean;
         error?: string;
         steps?: { label: string; success: boolean; output?: string }[];
-      }>('/server-admin/deploy', { method: 'POST' }),
-    createBackup: () =>
-      request<{ success: boolean; filename: string; error?: string }>('/server-admin/backup', { method: 'POST' }),
-    rollback: (hash: string) =>
-      request<{ success: boolean; error?: string }>('/server-admin/rollback', { method: 'POST', body: JSON.stringify({ hash }) }),
-    restoreBackup: (filename: string) =>
-      request<{ success: boolean; error?: string }>('/server-admin/backup/restore', { method: 'POST', body: JSON.stringify({ filename }) }),
-    restartService: (service: string) =>
-      request<{ success: boolean; error?: string }>('/server-admin/services/restart', { method: 'POST', body: JSON.stringify({ service }) }),
-    createSnapshot: () =>
-      request<{ success: boolean; filename?: string; error?: string }>('/server-admin/snapshot', { method: 'POST' }),
+      }>('/server-admin/deploy', { method: 'POST', body: JSON.stringify({ action_password: actionPassword }) }),
+    createBackup: (actionPassword: string) =>
+      request<{ success: boolean; filename: string; error?: string }>('/server-admin/backup', { method: 'POST', body: JSON.stringify({ action_password: actionPassword }) }),
+    rollback: (hash: string, actionPassword: string) =>
+      request<{ success: boolean; error?: string }>('/server-admin/rollback', { method: 'POST', body: JSON.stringify({ hash, action_password: actionPassword }) }),
+    restoreBackup: (filename: string, actionPassword: string) =>
+      request<{ success: boolean; error?: string }>('/server-admin/backup/restore', { method: 'POST', body: JSON.stringify({ filename, action_password: actionPassword }) }),
+    restartService: (service: string, actionPassword: string) =>
+      request<{ success: boolean; error?: string }>('/server-admin/services/restart', { method: 'POST', body: JSON.stringify({ service, action_password: actionPassword }) }),
+    createSnapshot: (actionPassword: string) =>
+      request<{ success: boolean; filename?: string; error?: string }>('/server-admin/snapshot', { method: 'POST', body: JSON.stringify({ action_password: actionPassword }) }),
   },
 };
