@@ -37,6 +37,12 @@ export function AppSidebar() {
     return () => clearInterval(interval);
   }, [fetchUnread, isAccountant]);
 
+  useEffect(() => {
+    if (!isAdmin) return;
+    api.serverAdmin.getStatus().then((status: any) => {
+      if (status?.app_version) setAppVersion(status.app_version);
+    }).catch(() => {});
+  }, [isAdmin]);
 
   const financeNav = [
     { title: "Finanz-Dashboard", url: "/finance", icon: Landmark },
