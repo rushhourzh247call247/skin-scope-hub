@@ -198,7 +198,7 @@ export function AppSidebar() {
           )}
         </div>
         {!collapsed && (
-          <div className="px-3 pb-3 pt-2">
+          <div className="px-3 pb-3 pt-2 space-y-1">
             <a
               href="https://www.techassist.ch"
               target="_blank"
@@ -207,6 +207,11 @@ export function AppSidebar() {
             >
               designed by <span className="font-medium">techassist.ch</span>
             </a>
+            {isAdmin && appVersion && (
+              <p className="text-center text-[9px] text-sidebar-foreground/25 font-mono">
+                v{appVersion}
+              </p>
+            )}
           </div>
         )}
       </SidebarFooter>
