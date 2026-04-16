@@ -868,8 +868,8 @@ export async function generatePatientPDF(
       // Pre-load all images to determine aspect ratios
       const imageData: { base64: string | null; aspect: number; img: LocationImage }[] = [];
       for (const img of displayImages) {
-        const filename = (img.file_path || '').split('/').pop() || '';
-        const imgUrl = `https://api.derm247.ch/api/image/${encodeURIComponent(filename)}?v=${Date.now()}_${img.id}`;
+        const baseUrl = api.resolveImageSrc(img);
+        const imgUrl = baseUrl ? `${baseUrl}${baseUrl.includes('?') ? '&' : '?'}v=${Date.now()}_${img.id}` : '';
         const cacheKey = `img_${img.id}`;
         if (imageCache[cacheKey] === undefined) {
           imageCache[cacheKey] = await loadImageAsBase64(imgUrl);
@@ -912,9 +912,8 @@ export async function generatePatientPDF(
             doc.setLineWidth(0.25);
             drawRoundedRect(doc, imgX, y + yOffset, drawW, drawH, 1.5, "S");
             doc.addImage(base64, imageFormat, imgX + 0.3, y + yOffset + 0.3, drawW - 0.6, drawH - 0.6);
-            const linkFilename = (img.file_path || '').split('/').pop() || '';
-            const originalUrl = `https://api.derm247.ch/api/image/${encodeURIComponent(linkFilename)}`;
-            doc.link(imgX, y + yOffset, drawW, drawH, { url: originalUrl });
+            const originalUrl = api.resolveImageSrc(img);
+            if (originalUrl) doc.link(imgX, y + yOffset, drawW, drawH, { url: originalUrl });
           } catch {
             doc.setFillColor(...C.cardBg);
             drawRoundedRect(doc, imgX, y + yOffset, drawW, drawH, 1.5, "F");
