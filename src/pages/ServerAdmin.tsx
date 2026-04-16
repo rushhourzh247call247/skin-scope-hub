@@ -31,6 +31,7 @@ interface ServerStatus {
   php_version: string;
   nginx_status: string;
   fpm_status: string;
+  app_version?: string;
 }
 
 interface GitVersion {
@@ -288,6 +289,7 @@ const ServerAdmin = () => {
             <Server className="h-6 w-6 text-primary" />
             Server-Administration
             <Badge variant="outline" className="ml-2 text-[10px] border-primary/50 text-primary">Live-Server</Badge>
+            {status?.app_version && <Badge variant="outline" className="ml-1 text-[10px] border-muted-foreground/30 text-muted-foreground font-mono">v{status.app_version}</Badge>}
           </h1>
           <p className="text-sm text-muted-foreground mt-1">Live-Server (83.228.246.191) — Deployment, Backups & Service-Management</p>
         </div>

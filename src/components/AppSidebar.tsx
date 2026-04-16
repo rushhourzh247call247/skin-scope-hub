@@ -20,7 +20,7 @@ export function AppSidebar() {
   const isAdmin = user?.role === "admin";
   const isAccountant = user?.role === "accountant";
   const [unreadTickets, setUnreadTickets] = useState(0);
-  const [appVersion] = useState("1.3");
+  const [appVersion, setAppVersion] = useState<string | null>(null);
 
   const fetchUnread = useCallback(async () => {
     try {
@@ -37,6 +37,12 @@ export function AppSidebar() {
     return () => clearInterval(interval);
   }, [fetchUnread, isAccountant]);
 
+  useEffect(() => {
+    if (!isAdmin) return;
+    api.serverAdmin.getStatus().then((status: any) => {
+      if (status?.app_version) setAppVersion(status.app_version);
+    }).catch(() => {});
+  }, [isAdmin]);
 
   const financeNav = [
     { title: "Finanz-Dashboard", url: "/finance", icon: Landmark },
@@ -198,9 +204,11 @@ export function AppSidebar() {
             >
               designed by <span className="font-medium">techassist.ch</span>
             </a>
-            <p className="text-center text-[9px] text-sidebar-foreground/25 font-mono">
-              v{appVersion}
-            </p>
+            {appVersion && (
+              <p className="text-center text-[9px] text-sidebar-foreground/25 font-mono">
+                v{appVersion}
+              </p>
+            )}
           </div>
         )}
       </SidebarFooter>

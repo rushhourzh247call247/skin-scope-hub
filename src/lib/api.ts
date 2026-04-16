@@ -558,6 +558,7 @@ export const api = {
         php_version: string;
         nginx_status: string;
         fpm_status: string;
+        app_version?: string;
       }>('/server-admin/status'),
     getVersions: () =>
       request<{
