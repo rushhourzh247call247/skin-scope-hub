@@ -170,32 +170,45 @@ export const LoginDemoBodyMap = () => {
         const res = await fetch(`${DEMO_API_BASE}/demo/qr-status/${token}`);
         const data = await res.json().catch(() => ({}));
         if (cancelled) return;
+        console.log("[QR-Demo] poll status:", data.status, data.image_url);
         if (data.status === "completed" && data.image_url) {
+          // Polling SOFORT stoppen, damit kein Folge-Tick race verursacht
+          cancelled = true;
+          stopPolling();
           try {
             const imgRes = await fetch(data.image_url);
+            if (!imgRes.ok) throw new Error(`Image fetch failed: ${imgRes.status}`);
             const blob = await imgRes.blob();
+            console.log("[QR-Demo] blob loaded, size:", blob.size);
             const reader = new FileReader();
             reader.onload = (ev) => {
-              if (cancelled) return;
+              const dataUrl = ev.target?.result as string;
+              console.log("[QR-Demo] dataUrl set for spot", targetSpotId, "length:", dataUrl?.length);
               setSpots((prev) =>
                 prev.map((s) =>
-                  s.id === targetSpotId ? { ...s, photoDataUrl: ev.target?.result as string } : s,
+                  s.id === targetSpotId ? { ...s, photoDataUrl: dataUrl } : s,
                 ),
               );
+              setSelectedId(targetSpotId);
               setPhotoDialogSpotId(null);
               setQrSession(null);
-              stopPolling();
               // Bild ist sicher im Browser-RAM — Server-Datei sofort löschen
               fetch(`${DEMO_API_BASE}/demo/consume/${token}`, { method: "POST" }).catch(() => {});
             };
+            reader.onerror = () => {
+              console.error("[QR-Demo] FileReader error");
+              setQrError("Bild konnte nicht geladen werden.");
+            };
             reader.readAsDataURL(blob);
-          } catch {
+          } catch (err) {
+            console.error("[QR-Demo] image load failed:", err);
+            // Fallback: direkte URL als img src verwenden
             setSpots((prev) =>
               prev.map((s) => (s.id === targetSpotId ? { ...s, photoDataUrl: data.image_url } : s)),
             );
+            setSelectedId(targetSpotId);
             setPhotoDialogSpotId(null);
             setQrSession(null);
-            stopPolling();
           }
         } else if (data.status === "expired" || data.status === "invalid") {
           setQrError("QR-Code abgelaufen. Bitte neu generieren.");
@@ -529,7 +542,7 @@ export const LoginDemoBodyMap = () => {
               <div className="mt-3 flex items-center gap-1.5 rounded-md bg-muted/50 px-2.5 py-1.5">
                 <Check className="h-3 w-3 text-primary" />
                 <span className="text-[10px] text-muted-foreground">
-                  Demo-Server löscht alle Bilder automatisch nach 24h
+                  Bild wird nach Übertragung sofort vom Server gelöscht
                 </span>
               </div>
             )}
