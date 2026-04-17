@@ -31,6 +31,7 @@ interface Marker {
   height?: number;
   classification?: string;
   classificationColor?: string;
+  photoThumbnailUrl?: string;
 }
 
 interface ZoneOverlay {
@@ -172,10 +173,11 @@ type SpotMarkerProps = {
   findingCount?: number;
   classificationColor?: string;
   isHighRisk?: boolean;
+  photoThumbnailUrl?: string;
 };
 
 const SpotMarker = React.forwardRef<THREE.Group, SpotMarkerProps>(function SpotMarker(
-  { position, name, index, isSelected, onClick, imageCount, findingCount, classificationColor, isHighRisk },
+  { position, name, index, isSelected, onClick, imageCount, findingCount, classificationColor, isHighRisk, photoThumbnailUrl },
   forwardedRef,
 ) {
   const groupRef = useRef<THREE.Group>(null);
@@ -207,13 +209,8 @@ const SpotMarker = React.forwardRef<THREE.Group, SpotMarkerProps>(function SpotM
   const baseColor = classificationColor || "#64748b";
   const color = isSelected ? "#0ea5e9" : hovered ? baseColor : baseColor;
 
-  // Crosshair arm length and thickness
   const armLen = isSelected ? 0.022 : 0.016;
   const armThick = isSelected ? 0.003 : 0.002;
-
-  // Leader-line offset (badge floats above-right or above-left)
-  const labelOffsetX = 0.06;
-  const labelOffsetY = 0.06;
 
   return (
     <group ref={forwardedRef} position={position}>
@@ -227,18 +224,15 @@ const SpotMarker = React.forwardRef<THREE.Group, SpotMarkerProps>(function SpotM
         onPointerOver={() => setHovered(true)}
         onPointerOut={() => setHovered(false)}
       >
-        {/* Crosshair: horizontal bar */}
         <mesh>
           <planeGeometry args={[armLen * 2, armThick]} />
           <meshBasicMaterial color={color} transparent opacity={isSelected ? 1.0 : 0.85} side={THREE.DoubleSide} depthTest={false} />
         </mesh>
-        {/* Crosshair: vertical bar */}
         <mesh>
           <planeGeometry args={[armThick, armLen * 2]} />
           <meshBasicMaterial color={color} transparent opacity={isSelected ? 1.0 : 0.85} side={THREE.DoubleSide} depthTest={false} />
         </mesh>
 
-        {/* Selected: outer highlight circle (subtle) */}
         {isSelected && (
           <mesh>
             <ringGeometry args={[0.028, 0.032, 32]} />
@@ -246,7 +240,6 @@ const SpotMarker = React.forwardRef<THREE.Group, SpotMarkerProps>(function SpotM
           </mesh>
         )}
 
-        {/* High-risk outer glow */}
         {isHighRisk && !isSelected && (
           <mesh>
             <ringGeometry args={[0.020, 0.026, 32]} />
@@ -254,21 +247,18 @@ const SpotMarker = React.forwardRef<THREE.Group, SpotMarkerProps>(function SpotM
           </mesh>
         )}
 
-        {/* Invisible click target – large enough for touch */}
         <mesh>
           <circleGeometry args={[0.08, 16]} />
           <meshBasicMaterial transparent opacity={0} side={THREE.DoubleSide} depthTest={false} />
         </mesh>
       </group>
 
-      {/* Leader line + numbered badge (Html overlay) */}
       <Html position={[0, 0, 0]} center={false} style={{ pointerEvents: "auto" }}>
         <svg
           width="80" height="80"
           viewBox="-40 -40 80 80"
           style={{ position: "absolute", left: "-40px", top: "-40px", pointerEvents: "none", overflow: "visible" }}
         >
-          {/* Dashed leader line from center (crosshair) to badge */}
           <line
             x1="0" y1="0"
             x2="28" y2="-28"
@@ -278,6 +268,42 @@ const SpotMarker = React.forwardRef<THREE.Group, SpotMarkerProps>(function SpotM
             opacity={isSelected ? 0.9 : 0.6}
           />
         </svg>
+
+        {photoThumbnailUrl && (
+          <button
+            type="button"
+            aria-label="Spot-Foto öffnen"
+            style={{
+              position: "absolute",
+              left: "-8px",
+              top: "-66px",
+              pointerEvents: "auto",
+              cursor: "pointer",
+              padding: 0,
+              border: "none",
+              background: "transparent",
+            }}
+            onClick={(e) => {
+              e.stopPropagation();
+              onClick();
+            }}
+          >
+            <div
+              className={cn(
+                "overflow-hidden rounded-xl border-2 bg-card shadow-xl transition-transform",
+                isSelected ? "scale-105 border-primary" : "border-background/80 hover:scale-105",
+              )}
+              style={{ width: 46, height: 46 }}
+            >
+              <img
+                src={photoThumbnailUrl}
+                alt={name ? `${name} Foto` : "Spot Foto"}
+                className="h-full w-full object-cover"
+              />
+            </div>
+          </button>
+        )}
+
         <div
           style={{
             position: "absolute",
@@ -306,7 +332,6 @@ const SpotMarker = React.forwardRef<THREE.Group, SpotMarkerProps>(function SpotM
         </div>
       </Html>
 
-      {/* Tooltip only on hover */}
       {hovered && (
         <Html position={[0, 0.065, 0]} center style={{ pointerEvents: "none" }}>
           <div className="rounded-lg border bg-popover px-3 py-2 shadow-xl whitespace-nowrap backdrop-blur-sm min-w-[120px]">
@@ -1059,6 +1084,7 @@ function Scene({ markers, selectedLocationId, onMapClick, onMarkerClick, classif
               findingCount={m.findingCount}
               classificationColor={m.classificationColor}
               isHighRisk={isHighRisk}
+              photoThumbnailUrl={m.photoThumbnailUrl}
             />
           </SurfaceProjectedGroup>
         );
