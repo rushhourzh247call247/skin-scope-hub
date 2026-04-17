@@ -104,11 +104,15 @@ export const LoginDemoBodyMap = () => {
     setTimeout(() => setPhotoDialogSpotId(finalized.id), 200);
   };
 
-  const stopPolling = () => {
+  const clearPollingInterval = () => {
     if (pollIntervalRef.current) {
       window.clearInterval(pollIntervalRef.current);
       pollIntervalRef.current = null;
     }
+  };
+
+  const stopPolling = () => {
+    clearPollingInterval();
     setQrPolling(false);
   };
 
@@ -183,7 +187,7 @@ export const LoginDemoBodyMap = () => {
         console.log("[QR-Demo] poll status:", data.status, data.image_url);
         if (data.status === "completed" && data.image_url) {
           handlingCompletion = true;
-          stopPolling();
+          clearPollingInterval();
           try {
             const imgRes = await fetch(data.image_url, { cache: "no-store" });
             if (!imgRes.ok) throw new Error(`Image fetch failed: ${imgRes.status}`);
