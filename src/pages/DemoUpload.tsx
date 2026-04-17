@@ -43,6 +43,15 @@ const DemoUpload = () => {
 
   const upload = async (file: File) => {
     if (!token) return;
+
+    const fileName = file.name?.toLowerCase() || "";
+    const fileType = file.type?.toLowerCase() || "";
+    if (fileType.includes("heic") || fileType.includes("heif") || fileName.endsWith(".heic") || fileName.endsWith(".heif")) {
+      setErrorMsg("HEIC/HEIF wird hier noch nicht unterstützt. Bitte das Bild als JPG/PNG wählen oder direkt mit der Kamera aufnehmen.");
+      setStatus("error");
+      return;
+    }
+
     setStatus("uploading");
     setErrorMsg("");
     setPreview(URL.createObjectURL(file));
@@ -60,7 +69,7 @@ const DemoUpload = () => {
           setErrorMsg("Dieser QR-Code wurde bereits verwendet.");
           setStatus("error");
         } else {
-          setErrorMsg(data?.error || "Upload fehlgeschlagen.");
+          setErrorMsg(data?.error || "Upload fehlgeschlagen. Bitte JPG oder PNG verwenden.");
           setStatus("error");
         }
         return;
@@ -150,7 +159,7 @@ const DemoUpload = () => {
         <input
           ref={cameraRef}
           type="file"
-          accept="image/*"
+          accept="image/jpeg,image/png,image/webp"
           capture="environment"
           className="hidden"
           onChange={(e) => e.target.files?.[0] && upload(e.target.files[0])}
@@ -158,7 +167,7 @@ const DemoUpload = () => {
         <input
           ref={galleryRef}
           type="file"
-          accept="image/*"
+          accept="image/jpeg,image/png,image/webp"
           className="hidden"
           onChange={(e) => e.target.files?.[0] && upload(e.target.files[0])}
         />
