@@ -13,8 +13,8 @@ const DEMO_API_BASE =
     ? "https://api.derm247.ch/api"
     : "https://dev.derm247.ch/api";
 
-const FRONTEND_DEMO_DOMAIN =
-  typeof window !== "undefined" ? `${window.location.protocol}//${window.location.host}` : "https://derm247.ch";
+// QR-Link zeigt IMMER auf die offizielle Demo-Domain (auch wenn Demo woanders gehostet wird)
+const FRONTEND_DEMO_DOMAIN = "https://demo.derm247.ch";
 
 interface DemoSpot {
   id: number;
