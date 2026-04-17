@@ -52,9 +52,13 @@ export const LoginDemoBodyMap = () => {
   const [selectedId, setSelectedId] = useState<number | null>(null);
   const [pendingSpot, setPendingSpot] = useState<DemoSpot | null>(null);
   const [photoDialogSpotId, setPhotoDialogSpotId] = useState<number | null>(null);
-  const [qrSimulating, setQrSimulating] = useState(false);
+  const [qrSession, setQrSession] = useState<{ token: string; url: string } | null>(null);
+  const [qrLoading, setQrLoading] = useState(false);
+  const [qrError, setQrError] = useState<string | null>(null);
+  const [qrPolling, setQrPolling] = useState(false);
   const [hasInteracted, setHasInteracted] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const pollIntervalRef = useRef<number | null>(null);
 
   const handleMapClick = useCallback(
     (
