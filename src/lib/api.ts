@@ -32,9 +32,9 @@ function getApiBaseUrl() {
 }
 
 function getServerAdminApiBaseUrl() {
-  // Server-Admin nutzt dieselbe API wie der Rest (Live von proto/app, Dev sonst).
-  // Login-Token funktioniert daher direkt — kein zweites Auth-System nötig.
-  return getApiBaseUrl();
+  // Server-Admin läuft IMMER über den Dev-Server (dev.derm247.ch),
+  // der per SSH auf den Live-Server zugreift.
+  return DEV_API_BASE_URL;
 }
 
 function getStorageBaseUrl() {
