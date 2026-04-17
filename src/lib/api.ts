@@ -1,6 +1,8 @@
 import type { LesionClassification, Appointment, PatientDocument, Consultation } from '@/types/patient';
 
-const DEFAULT_API_BASE_URL = 'https://dev.derm247.ch/api';
+const DEV_API_BASE_URL = 'https://dev.derm247.ch/api';
+const LIVE_API_BASE_URL = 'https://api.derm247.ch/api';
+const LIVE_API_HOSTS = new Set(['proto.derm247.ch', 'app.derm247.ch', 'skin-scope-hub.lovable.app']);
 
 let authToken: string | null = null;
 
@@ -8,12 +10,17 @@ export function setToken(token: string | null) {
   authToken = token;
 }
 
+function getDefaultApiBaseUrl() {
+  if (typeof window === 'undefined') return DEV_API_BASE_URL;
+  return LIVE_API_HOSTS.has(window.location.hostname) ? LIVE_API_BASE_URL : DEV_API_BASE_URL;
+}
+
 function getApiBaseUrl() {
   const configuredUrl = import.meta.env.VITE_API_BASE_URL?.trim();
-  const normalizedUrl = (configuredUrl || DEFAULT_API_BASE_URL).replace(/\/$/, '');
+  const normalizedUrl = (configuredUrl || getDefaultApiBaseUrl()).replace(/\/$/, '');
 
   if (typeof window !== 'undefined' && window.location.protocol === 'https:' && normalizedUrl.startsWith('http://')) {
-    return DEFAULT_API_BASE_URL.replace(/\/$/, '');
+    return normalizedUrl.replace(/^http:\/\//, 'https://');
   }
 
   return normalizedUrl;
