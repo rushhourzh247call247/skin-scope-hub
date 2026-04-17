@@ -231,22 +231,6 @@ const Login = () => {
         </CardContent>
       </Card>
       </div>
-
-      {/* Right: Clean hero panel */}
-      <div className="relative hidden lg:flex flex-col items-center justify-center bg-gradient-to-br from-muted/30 via-background to-primary/5 border-l border-border px-12">
-        <div className="flex flex-col items-center text-center max-w-md">
-          <div className="flex h-20 w-20 items-center justify-center rounded-2xl bg-gradient-to-br from-primary to-primary/70 shadow-lg shadow-primary/20 mb-6">
-            <Stethoscope className="h-10 w-10 text-primary-foreground" />
-          </div>
-          <h2 className="text-2xl font-semibold tracking-tight text-foreground">
-            Klinische Hautdiagnostik
-          </h2>
-          <p className="mt-2 text-sm text-muted-foreground tracking-wide">
-            Präzise · Sicher · Schweizer Server
-          </p>
-        </div>
-      </div>
-
     </div>
   );
 };
