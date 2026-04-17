@@ -117,7 +117,7 @@ const Login = () => {
   };
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-background px-4 py-8">
+    <div className="flex min-h-screen flex-col items-center justify-center bg-background px-4 py-8">
       <div className="w-full max-w-sm">
         <Card className="w-full border-0 shadow-none sm:border sm:shadow-sm">
         <CardHeader className="text-center">
@@ -230,6 +230,16 @@ const Login = () => {
           </p>
         </CardContent>
       </Card>
+      </div>
+
+      {/* Tagline footer */}
+      <div className="mt-8 text-center">
+        <div className="text-xs font-semibold tracking-wide text-foreground/80">
+          Klinische Hautdiagnostik
+        </div>
+        <div className="text-[10px] text-muted-foreground tracking-wider">
+          Präzise · Sicher · Schweizer Server
+        </div>
       </div>
     </div>
   );
