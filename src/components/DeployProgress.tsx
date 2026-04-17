@@ -1,13 +1,18 @@
 import React, { useEffect, useState } from "react";
-import { Database, FolderSync, Package, ArrowUpToLine, GitBranch, Hammer, CheckCircle2, Loader2, Check, Clock } from "lucide-react";
+import { Database, FolderSync, Package, ArrowUpToLine, GitBranch, Hammer, CheckCircle2, Loader2, Check, Clock, Radio } from "lucide-react";
 import { Progress } from "@/components/ui/progress";
 import { cn } from "@/lib/utils";
+import { api } from "@/lib/api";
 
 /**
- * Visualisiert den Deploy-Fortschritt mit animierten Steps.
- * Da das Backend keine SSE-Streams sendet, simulieren wir die Schritte
- * basierend auf typischen Zeitfenstern (gemessen aus echten Deploys).
- * Sobald der Backend-Call fertig ist, springt die UI auf "fertig".
+ * Visualisiert den Deploy-Fortschritt.
+ *
+ * Zwei Modi:
+ * 1. LIVE: Backend schreibt /tmp/deploy-status.json — Frontend pollt alle 1.5s den
+ *    /server-admin/deploy/status Endpoint und zeigt den ECHTEN aktuellen Schritt.
+ * 2. FALLBACK (Schätzung): Falls der Status-Endpoint 404 oder leer liefert
+ *    (Backend noch nicht aktualisiert), läuft eine Schätzung basierend auf typischen
+ *    Zeitfenstern aus echten Deploys.
  */
 
 export interface DeployStep {
@@ -38,17 +43,23 @@ interface DeployProgressProps {
 export const DeployProgress: React.FC<DeployProgressProps> = ({ isRunning, isDone, hasFailed }) => {
   const [elapsed, setElapsed] = useState(0);
   const [startTime, setStartTime] = useState<number | null>(null);
+  const [liveStep, setLiveStep] = useState<number | null>(null); // echter Step vom Backend (1-basiert) oder null
+  const [liveSource, setLiveSource] = useState<"live" | "estimated">("estimated");
+  const [stepStartedAt, setStepStartedAt] = useState<number | null>(null);
 
   useEffect(() => {
     if (isRunning && startTime === null) {
       setStartTime(Date.now());
       setElapsed(0);
+      setLiveStep(null);
+      setStepStartedAt(null);
     }
     if (!isRunning) {
       setStartTime(null);
     }
   }, [isRunning, startTime]);
 
+  // Sekunden-Ticker
   useEffect(() => {
     if (!isRunning || startTime === null) return;
     const tick = () => setElapsed(Math.floor((Date.now() - startTime) / 1000));
@@ -56,34 +67,74 @@ export const DeployProgress: React.FC<DeployProgressProps> = ({ isRunning, isDon
     return () => clearInterval(interval);
   }, [isRunning, startTime]);
 
+  // Live-Polling: alle 1.5s den echten Backend-Status holen
+  useEffect(() => {
+    if (!isRunning) return;
+    let cancelled = false;
+
+    const poll = async () => {
+      try {
+        const status = await api.serverAdmin.getDeployStatus();
+        if (cancelled) return;
+        if (status && status.active && status.step > 0) {
+          setLiveStep(status.step);
+          setStepStartedAt(status.step_started_at * 1000); // backend liefert Unix-Sekunden
+          setLiveSource("live");
+        }
+      } catch {
+        // Endpoint nicht verfügbar (Backend nicht aktualisiert) → Fallback bleibt
+        if (!cancelled) setLiveSource("estimated");
+      }
+    };
+
+    poll();
+    const interval = setInterval(poll, 1500);
+    return () => {
+      cancelled = true;
+      clearInterval(interval);
+    };
+  }, [isRunning]);
+
   if (!isRunning && !isDone && !hasFailed) return null;
 
-  // Berechne aktiven Step
-  let activeIndex = 0;
-  let cumSeconds = 0;
-  for (let i = 0; i < DEPLOY_STEPS.length; i++) {
-    cumSeconds += DEPLOY_STEPS[i].estimatedSeconds;
-    if (elapsed < cumSeconds) {
-      activeIndex = i;
-      break;
+  // Aktiven Step bestimmen — bevorzugt LIVE, sonst Schätzung
+  let activeIndex: number;
+  if (liveStep !== null && liveSource === "live") {
+    activeIndex = liveStep - 1; // 1-basiert → 0-basiert
+  } else {
+    activeIndex = 0;
+    let cumSeconds = 0;
+    for (let i = 0; i < DEPLOY_STEPS.length; i++) {
+      cumSeconds += DEPLOY_STEPS[i].estimatedSeconds;
+      if (elapsed < cumSeconds) {
+        activeIndex = i;
+        break;
+      }
+      activeIndex = i + 1;
     }
-    activeIndex = i + 1;
   }
 
-  // Wenn fertig: alles abgeschlossen
   if (isDone) activeIndex = DEPLOY_STEPS.length;
 
-  // Gesamtfortschritt (cap bei 95% während running, 100% bei done)
-  const rawProgress = Math.min((elapsed / TOTAL_ESTIMATED) * 100, 95);
-  const progress = isDone ? 100 : hasFailed ? Math.min(rawProgress, 100) : rawProgress;
+  const rawProgress = liveSource === "live" && liveStep !== null
+    ? Math.min((liveStep / DEPLOY_STEPS.length) * 100, 95)
+    : Math.min((elapsed / TOTAL_ESTIMATED) * 100, 95);
+  const progress = isDone ? 100 : rawProgress;
 
   const remaining = Math.max(0, TOTAL_ESTIMATED - elapsed);
+
+  // Step-Dauer (nur bei live verfügbar)
+  const stepElapsed = stepStartedAt !== null && liveSource === "live"
+    ? Math.floor((Date.now() - stepStartedAt) / 1000)
+    : null;
 
   const formatTime = (s: number) => {
     const m = Math.floor(s / 60);
     const sec = s % 60;
     return m > 0 ? `${m}m ${sec}s` : `${sec}s`;
   };
+
+  const safeActiveIndex = Math.min(activeIndex, DEPLOY_STEPS.length - 1);
 
   return (
     <div className="rounded-lg border bg-card p-4 mb-4 space-y-4">
@@ -104,15 +155,36 @@ export const DeployProgress: React.FC<DeployProgressProps> = ({ isRunning, isDon
               <>
                 <Loader2 className="h-4 w-4 animate-spin text-primary" />
                 <span className="font-medium">
-                  Schritt {Math.min(activeIndex + 1, DEPLOY_STEPS.length)}/{DEPLOY_STEPS.length}: {DEPLOY_STEPS[Math.min(activeIndex, DEPLOY_STEPS.length - 1)].label}
+                  Schritt {Math.min(activeIndex + 1, DEPLOY_STEPS.length)}/{DEPLOY_STEPS.length}: {DEPLOY_STEPS[safeActiveIndex].label}
                 </span>
+                {stepElapsed !== null && (
+                  <span className="text-muted-foreground font-mono">({stepElapsed}s)</span>
+                )}
               </>
             )}
           </div>
-          <div className="flex items-center gap-1.5 text-muted-foreground font-mono">
-            <Clock className="h-3 w-3" />
-            <span>{formatTime(elapsed)}</span>
-            {!isDone && !hasFailed && <span className="opacity-60">/ ~{formatTime(remaining)} verbleibend</span>}
+          <div className="flex items-center gap-3 text-muted-foreground font-mono">
+            {isRunning && (
+              <span
+                className={cn(
+                  "flex items-center gap-1 text-[10px] px-1.5 py-0.5 rounded",
+                  liveSource === "live"
+                    ? "bg-emerald-500/15 text-emerald-700 dark:text-emerald-400"
+                    : "bg-muted text-muted-foreground",
+                )}
+                title={liveSource === "live" ? "Live-Daten vom Backend" : "Geschätzt – Backend liefert keinen Live-Status"}
+              >
+                <Radio className={cn("h-2.5 w-2.5", liveSource === "live" && "animate-pulse")} />
+                {liveSource === "live" ? "LIVE" : "geschätzt"}
+              </span>
+            )}
+            <div className="flex items-center gap-1.5">
+              <Clock className="h-3 w-3" />
+              <span>{formatTime(elapsed)}</span>
+              {!isDone && !hasFailed && liveSource === "estimated" && (
+                <span className="opacity-60">/ ~{formatTime(remaining)} verbleibend</span>
+              )}
+            </div>
           </div>
         </div>
         <Progress value={progress} className="h-2" />
