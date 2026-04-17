@@ -187,7 +187,7 @@ export const LoginDemoBodyMap = () => {
         console.log("[QR-Demo] poll status:", data.status, data.image_url);
         if (data.status === "completed" && data.image_url) {
           handlingCompletion = true;
-          stopPolling();
+          clearPollingInterval();
           try {
             const imgRes = await fetch(data.image_url, { cache: "no-store" });
             if (!imgRes.ok) throw new Error(`Image fetch failed: ${imgRes.status}`);
