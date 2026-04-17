@@ -253,6 +253,7 @@ export const LoginDemoBodyMap = () => {
     name: LESION_CLASSIFICATIONS[s.classification].label,
     imageCount: s.photoDataUrl ? 1 : 0,
     findingCount: 0,
+    photoThumbnailUrl: s.photoDataUrl,
   }));
 
   return (
