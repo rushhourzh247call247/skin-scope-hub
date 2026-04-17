@@ -282,18 +282,18 @@ const ServerAdmin = () => {
   const usageStatus = (pct: number): "ok" | "warn" | "error" => pct > 90 ? "error" : pct > 70 ? "warn" : "ok";
 
   return (
-    <div className="min-h-screen space-y-6 p-4 md:p-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold text-foreground flex items-center gap-2">
-            <Server className="h-6 w-6 text-primary" />
-            Server-Administration
-            <Badge variant="outline" className="ml-2 text-[10px] border-primary/50 text-primary">Live-Server</Badge>
-            {status?.app_version && <Badge variant="outline" className="ml-1 text-[10px] border-muted-foreground/30 text-muted-foreground font-mono">v{status.app_version}</Badge>}
+    <div className="min-h-screen space-y-4 sm:space-y-6 p-3 sm:p-4 md:p-6">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+        <div className="min-w-0">
+          <h1 className="text-lg sm:text-2xl font-bold text-foreground flex items-center gap-2 flex-wrap">
+            <Server className="h-5 w-5 sm:h-6 sm:w-6 text-primary shrink-0" />
+            <span>Server-Administration</span>
+            <Badge variant="outline" className="text-[10px] border-primary/50 text-primary">Live</Badge>
+            {status?.app_version && <Badge variant="outline" className="text-[10px] border-muted-foreground/30 text-muted-foreground font-mono">v{status.app_version}</Badge>}
           </h1>
-          <p className="text-sm text-muted-foreground mt-1">Live-Server (83.228.246.191) — Deployment, Backups & Service-Management</p>
+          <p className="text-xs sm:text-sm text-muted-foreground mt-1">Live-Server (83.228.246.191) — Deployment, Backups & Services</p>
         </div>
-        <Button variant="outline" size="sm" onClick={() => { refetchStatus(); refetchVersions(); refetchBackups(); refetchServices(); }}>
+        <Button variant="outline" size="sm" className="self-start sm:self-auto shrink-0" onClick={() => { refetchStatus(); refetchVersions(); refetchBackups(); refetchServices(); }}>
           <RefreshCw className="h-4 w-4 mr-1" /> Aktualisieren
         </Button>
       </div>
