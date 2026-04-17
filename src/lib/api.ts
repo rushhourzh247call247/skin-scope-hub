@@ -138,6 +138,11 @@ async function requestToBase<T>(baseUrl: string, path: string, options?: Request
       throw err;
     }
     if (res.status === 401) {
+      if (opts?.suppressAuthRedirect) {
+        const err = new Error('Nicht autorisiert');
+        (err as any).status = 401;
+        throw err;
+      }
       sessionStorage.removeItem('auth_token');
       sessionStorage.removeItem('auth_user');
       window.location.href = '/login';
