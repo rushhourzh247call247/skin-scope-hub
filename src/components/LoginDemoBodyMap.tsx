@@ -1,9 +1,9 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback, useRef } from "react";
 import BodyMap3D from "@/components/BodyMap3D";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { LESION_CLASSIFICATIONS, type LesionClassification } from "@/types/patient";
-import { RotateCcw, Sparkles, MousePointerClick } from "lucide-react";
+import { LESION_CLASSIFICATIONS, type LesionClassification, type Gender } from "@/types/patient";
+import { RotateCcw, Sparkles, MousePointerClick, Upload, QrCode, Camera, X, Image as ImageIcon, Check } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface DemoSpot {
@@ -18,11 +18,8 @@ interface DemoSpot {
   ny?: number;
   nz?: number;
   classification: LesionClassification;
+  photoDataUrl?: string;
 }
-
-const SEEDED_SPOTS: DemoSpot[] = [
-  // Skip seeded — let user explore from scratch for the strongest "wow" moment.
-];
 
 const SELECTABLE_CLASSIFICATIONS: LesionClassification[] = [
   "naevus",
@@ -32,11 +29,22 @@ const SELECTABLE_CLASSIFICATIONS: LesionClassification[] = [
   "other",
 ];
 
+// Sample demo photos (data URIs of small clinical-looking dermatology placeholders)
+const DEMO_PHOTOS = [
+  "data:image/svg+xml;utf8," + encodeURIComponent(`<svg xmlns='http://www.w3.org/2000/svg' width='200' height='200'><defs><radialGradient id='g' cx='50%' cy='50%' r='50%'><stop offset='0%' stop-color='#8b4513'/><stop offset='40%' stop-color='#5d2f0a'/><stop offset='100%' stop-color='#f5deb3'/></radialGradient></defs><rect width='200' height='200' fill='#f5deb3'/><ellipse cx='100' cy='100' rx='45' ry='38' fill='url(#g)'/><ellipse cx='90' cy='95' rx='8' ry='5' fill='#3d1a02' opacity='0.6'/></svg>`),
+  "data:image/svg+xml;utf8," + encodeURIComponent(`<svg xmlns='http://www.w3.org/2000/svg' width='200' height='200'><defs><radialGradient id='g2' cx='50%' cy='50%' r='50%'><stop offset='0%' stop-color='#2d1810'/><stop offset='30%' stop-color='#6b3410'/><stop offset='60%' stop-color='#a0522d'/><stop offset='100%' stop-color='#deb887'/></radialGradient></defs><rect width='200' height='200' fill='#deb887'/><ellipse cx='100' cy='100' rx='55' ry='48' fill='url(#g2)'/><circle cx='85' cy='90' r='6' fill='#1a0a02'/><circle cx='115' cy='110' r='4' fill='#2d1810'/></svg>`),
+  "data:image/svg+xml;utf8," + encodeURIComponent(`<svg xmlns='http://www.w3.org/2000/svg' width='200' height='200'><defs><radialGradient id='g3' cx='50%' cy='50%' r='50%'><stop offset='0%' stop-color='#4a2511'/><stop offset='100%' stop-color='#e8c39e'/></radialGradient></defs><rect width='200' height='200' fill='#e8c39e'/><circle cx='100' cy='100' r='32' fill='url(#g3)'/></svg>`),
+];
+
 export const LoginDemoBodyMap = () => {
-  const [spots, setSpots] = useState<DemoSpot[]>(SEEDED_SPOTS);
+  const [gender, setGender] = useState<Gender>("male");
+  const [spots, setSpots] = useState<DemoSpot[]>([]);
   const [selectedId, setSelectedId] = useState<number | null>(null);
   const [pendingSpot, setPendingSpot] = useState<DemoSpot | null>(null);
+  const [photoDialogSpotId, setPhotoDialogSpotId] = useState<number | null>(null);
+  const [qrSimulating, setQrSimulating] = useState(false);
   const [hasInteracted, setHasInteracted] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleMapClick = useCallback(
     (
@@ -72,13 +80,51 @@ export const LoginDemoBodyMap = () => {
     setSpots((prev) => [...prev, finalized]);
     setSelectedId(finalized.id);
     setPendingSpot(null);
+    // Auto-open photo dialog for the new spot
+    setTimeout(() => setPhotoDialogSpotId(finalized.id), 200);
   };
 
   const reset = () => {
     setSpots([]);
     setSelectedId(null);
     setPendingSpot(null);
+    setPhotoDialogSpotId(null);
   };
+
+  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || !photoDialogSpotId) return;
+    const reader = new FileReader();
+    reader.onload = (ev) => {
+      const dataUrl = ev.target?.result as string;
+      setSpots((prev) =>
+        prev.map((s) => (s.id === photoDialogSpotId ? { ...s, photoDataUrl: dataUrl } : s)),
+      );
+      setPhotoDialogSpotId(null);
+    };
+    reader.readAsDataURL(file);
+    if (fileInputRef.current) fileInputRef.current.value = "";
+  };
+
+  const simulateQrUpload = () => {
+    if (!photoDialogSpotId) return;
+    setQrSimulating(true);
+    // Simulate phone upload after delay
+    setTimeout(() => {
+      const randomPhoto = DEMO_PHOTOS[Math.floor(Math.random() * DEMO_PHOTOS.length)];
+      setSpots((prev) =>
+        prev.map((s) => (s.id === photoDialogSpotId ? { ...s, photoDataUrl: randomPhoto } : s)),
+      );
+      setQrSimulating(false);
+      setPhotoDialogSpotId(null);
+    }, 2200);
+  };
+
+  const removePhoto = (spotId: number) => {
+    setSpots((prev) => prev.map((s) => (s.id === spotId ? { ...s, photoDataUrl: undefined } : s)));
+  };
+
+  const selectedSpot = spots.find((s) => s.id === selectedId);
 
   const markers = spots.map((s) => ({
     id: s.id,
@@ -95,28 +141,57 @@ export const LoginDemoBodyMap = () => {
     classification: s.classification,
     classificationColor: LESION_CLASSIFICATIONS[s.classification].color,
     name: LESION_CLASSIFICATIONS[s.classification].label,
-    imageCount: 0,
+    imageCount: s.photoDataUrl ? 1 : 0,
     findingCount: 0,
   }));
 
   return (
-    <div className="relative h-full w-full overflow-hidden">
-      {/* Demo badge */}
-      <div className="absolute left-4 top-4 z-20 flex items-center gap-2 rounded-full border border-primary/20 bg-card/90 px-3 py-1.5 text-xs font-medium shadow-lg backdrop-blur-md">
-        <Sparkles className="h-3.5 w-3.5 text-primary" />
-        <span>Live Demo</span>
-      </div>
+    <div className="relative h-full w-full overflow-hidden flex flex-col">
+      {/* Top bar: Demo badge + Gender toggle + Reset */}
+      <div className="relative z-20 flex items-center justify-between gap-2 px-4 pt-4">
+        <div className="flex items-center gap-2 rounded-full border border-primary/20 bg-card/90 px-3 py-1.5 text-xs font-medium shadow-sm backdrop-blur-md">
+          <Sparkles className="h-3.5 w-3.5 text-primary" />
+          <span>Live Demo</span>
+        </div>
 
-      {/* Reset button */}
-      {spots.length > 0 && (
-        <button
-          onClick={reset}
-          className="absolute right-4 top-4 z-20 flex items-center gap-1.5 rounded-full border border-border bg-card/90 px-3 py-1.5 text-xs font-medium shadow-lg backdrop-blur-md transition-colors hover:bg-card"
-        >
-          <RotateCcw className="h-3.5 w-3.5" />
-          Zurücksetzen
-        </button>
-      )}
+        {/* Gender toggle */}
+        <div className="flex items-center rounded-full border border-border bg-card/90 p-0.5 shadow-sm backdrop-blur-md">
+          <button
+            onClick={() => setGender("male")}
+            className={cn(
+              "rounded-full px-3 py-1 text-xs font-medium transition-all",
+              gender === "male"
+                ? "bg-primary text-primary-foreground shadow-sm"
+                : "text-muted-foreground hover:text-foreground",
+            )}
+          >
+            ♂ Männlich
+          </button>
+          <button
+            onClick={() => setGender("female")}
+            className={cn(
+              "rounded-full px-3 py-1 text-xs font-medium transition-all",
+              gender === "female"
+                ? "bg-primary text-primary-foreground shadow-sm"
+                : "text-muted-foreground hover:text-foreground",
+            )}
+          >
+            ♀ Weiblich
+          </button>
+        </div>
+
+        {spots.length > 0 ? (
+          <button
+            onClick={reset}
+            className="flex items-center gap-1.5 rounded-full border border-border bg-card/90 px-3 py-1.5 text-xs font-medium shadow-sm backdrop-blur-md transition-colors hover:bg-card"
+          >
+            <RotateCcw className="h-3.5 w-3.5" />
+            Reset
+          </button>
+        ) : (
+          <div className="w-[68px]" />
+        )}
+      </div>
 
       {/* Onboarding hint */}
       {!hasInteracted && spots.length === 0 && (
@@ -126,26 +201,100 @@ export const LoginDemoBodyMap = () => {
         </div>
       )}
 
-      {/* Spots counter */}
-      {spots.length > 0 && (
-        <div className="absolute bottom-4 left-4 z-20 rounded-lg border border-border bg-card/90 px-3 py-2 shadow-lg backdrop-blur-md">
-          <div className="text-[10px] uppercase tracking-wide text-muted-foreground">Markiert</div>
-          <div className="text-lg font-bold text-foreground">
-            {spots.length} {spots.length === 1 ? "Hautstelle" : "Hautstellen"}
+      {/* Body map (constrained, not full height) */}
+      <div className="relative flex-1 mx-auto w-full max-w-[520px] px-4">
+        <div className="h-full w-full" key={gender}>
+          <BodyMap3D
+            markers={markers}
+            selectedLocationId={selectedId}
+            gender={gender}
+            onMapClick={handleMapClick}
+            onMarkerClick={(id) => setSelectedId(id)}
+          />
+        </div>
+      </div>
+
+      {/* Selected spot card with photo */}
+      {selectedSpot && (
+        <div className="relative z-20 mx-4 mb-4 rounded-xl border border-border bg-card/95 p-3 shadow-lg backdrop-blur-md">
+          <div className="flex items-center gap-3">
+            {/* Photo or upload prompt */}
+            {selectedSpot.photoDataUrl ? (
+              <div className="relative h-16 w-16 flex-shrink-0 overflow-hidden rounded-lg border border-border">
+                <img
+                  src={selectedSpot.photoDataUrl}
+                  alt="Demo Foto"
+                  className="h-full w-full object-cover"
+                />
+                <button
+                  onClick={() => removePhoto(selectedSpot.id)}
+                  className="absolute right-0.5 top-0.5 flex h-4 w-4 items-center justify-center rounded-full bg-destructive text-destructive-foreground shadow"
+                >
+                  <X className="h-2.5 w-2.5" />
+                </button>
+              </div>
+            ) : (
+              <button
+                onClick={() => setPhotoDialogSpotId(selectedSpot.id)}
+                className="flex h-16 w-16 flex-shrink-0 flex-col items-center justify-center gap-0.5 rounded-lg border-2 border-dashed border-primary/40 bg-primary/5 text-primary transition-colors hover:border-primary hover:bg-primary/10"
+              >
+                <Camera className="h-5 w-5" />
+                <span className="text-[8px] font-medium">Foto</span>
+              </button>
+            )}
+
+            <div className="min-w-0 flex-1">
+              <div className="flex items-center gap-2">
+                <span
+                  className="inline-block h-2.5 w-2.5 rounded-full ring-2 ring-background"
+                  style={{ backgroundColor: LESION_CLASSIFICATIONS[selectedSpot.classification].color }}
+                />
+                <span className="truncate text-sm font-semibold text-foreground">
+                  {LESION_CLASSIFICATIONS[selectedSpot.classification].label}
+                </span>
+              </div>
+              <p className="mt-0.5 text-[10px] text-muted-foreground">
+                {selectedSpot.view === "front" ? "Vorderseite" : "Rückseite"} ·{" "}
+                {selectedSpot.photoDataUrl ? "Foto angehängt ✓" : "Demo: Foto hinzufügen"}
+              </p>
+            </div>
+
+            <button
+              onClick={() => setSelectedId(null)}
+              className="flex-shrink-0 rounded-full p-1 text-muted-foreground hover:bg-muted hover:text-foreground"
+            >
+              <X className="h-4 w-4" />
+            </button>
           </div>
         </div>
       )}
 
-      {/* The actual 3D body map */}
-      <div className="h-full w-full">
-        <BodyMap3D
-          markers={markers}
-          selectedLocationId={selectedId}
-          gender="male"
-          onMapClick={handleMapClick}
-          onMarkerClick={(id) => setSelectedId(id)}
-        />
-      </div>
+      {/* Spots counter (when no spot selected) */}
+      {spots.length > 0 && !selectedSpot && (
+        <div className="relative z-20 mx-4 mb-4 flex items-center justify-between rounded-lg border border-border bg-card/90 px-3 py-2 shadow-sm backdrop-blur-md">
+          <div>
+            <div className="text-[9px] uppercase tracking-wide text-muted-foreground">Markiert</div>
+            <div className="text-sm font-bold text-foreground">
+              {spots.length} {spots.length === 1 ? "Hautstelle" : "Hautstellen"}
+              {spots.filter((s) => s.photoDataUrl).length > 0 && (
+                <span className="ml-2 text-[10px] font-normal text-muted-foreground">
+                  · {spots.filter((s) => s.photoDataUrl).length} mit Foto
+                </span>
+              )}
+            </div>
+          </div>
+          <ImageIcon className="h-4 w-4 text-muted-foreground" />
+        </div>
+      )}
+
+      {/* Hidden file input */}
+      <input
+        ref={fileInputRef}
+        type="file"
+        accept="image/*"
+        onChange={handleFileUpload}
+        className="hidden"
+      />
 
       {/* Classification picker overlay */}
       {pendingSpot && (
@@ -170,9 +319,7 @@ export const LoginDemoBodyMap = () => {
                   <button
                     key={c}
                     onClick={() => confirmSpot(c)}
-                    className={cn(
-                      "flex items-center justify-between rounded-lg border border-border px-3 py-2.5 text-left text-sm transition-all hover:border-primary hover:bg-primary/5",
-                    )}
+                    className="flex items-center justify-between rounded-lg border border-border px-3 py-2.5 text-left text-sm transition-all hover:border-primary hover:bg-primary/5"
                   >
                     <div className="flex items-center gap-2.5">
                       <span
@@ -196,6 +343,91 @@ export const LoginDemoBodyMap = () => {
             >
               Abbrechen
             </Button>
+          </div>
+        </div>
+      )}
+
+      {/* Photo upload dialog */}
+      {photoDialogSpotId !== null && (
+        <div
+          className="absolute inset-0 z-30 flex items-center justify-center bg-background/40 backdrop-blur-sm"
+          onClick={() => !qrSimulating && setPhotoDialogSpotId(null)}
+        >
+          <div
+            className="w-[90%] max-w-sm rounded-2xl border border-border bg-card p-5 shadow-2xl"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="mb-1 text-sm font-semibold text-foreground">
+              Foto hinzufügen
+            </div>
+            <p className="mb-4 text-xs text-muted-foreground">
+              Demo-Modus — nur 1 Foto pro Hautstelle
+            </p>
+
+            {qrSimulating ? (
+              <div className="flex flex-col items-center gap-3 py-8">
+                <div className="relative">
+                  <div className="flex h-24 w-24 items-center justify-center rounded-xl border-2 border-primary bg-primary/5">
+                    <QrCode className="h-12 w-12 text-primary" />
+                  </div>
+                  <div className="absolute inset-0 rounded-xl border-2 border-primary animate-ping opacity-30" />
+                </div>
+                <div className="text-center">
+                  <div className="text-xs font-semibold text-foreground">Smartphone scannt...</div>
+                  <p className="mt-1 text-[10px] text-muted-foreground">
+                    Foto wird vom Telefon übertragen
+                  </p>
+                </div>
+              </div>
+            ) : (
+              <div className="grid grid-cols-2 gap-2">
+                <button
+                  onClick={() => fileInputRef.current?.click()}
+                  className="flex flex-col items-center gap-2 rounded-xl border-2 border-border p-4 text-center transition-all hover:border-primary hover:bg-primary/5"
+                >
+                  <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10">
+                    <Upload className="h-5 w-5 text-primary" />
+                  </div>
+                  <div>
+                    <div className="text-xs font-semibold text-foreground">Hochladen</div>
+                    <div className="text-[10px] text-muted-foreground">Vom Computer</div>
+                  </div>
+                </button>
+
+                <button
+                  onClick={simulateQrUpload}
+                  className="flex flex-col items-center gap-2 rounded-xl border-2 border-border p-4 text-center transition-all hover:border-primary hover:bg-primary/5"
+                >
+                  <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10">
+                    <QrCode className="h-5 w-5 text-primary" />
+                  </div>
+                  <div>
+                    <div className="text-xs font-semibold text-foreground">QR-Upload</div>
+                    <div className="text-[10px] text-muted-foreground">Per Smartphone</div>
+                  </div>
+                </button>
+              </div>
+            )}
+
+            {!qrSimulating && (
+              <div className="mt-3 flex items-center gap-1.5 rounded-md bg-muted/50 px-2.5 py-1.5">
+                <Check className="h-3 w-3 text-primary" />
+                <span className="text-[10px] text-muted-foreground">
+                  Fotos bleiben nur im Browser — nichts wird hochgeladen
+                </span>
+              </div>
+            )}
+
+            {!qrSimulating && (
+              <Button
+                variant="ghost"
+                size="sm"
+                className="mt-3 w-full text-xs text-muted-foreground"
+                onClick={() => setPhotoDialogSpotId(null)}
+              >
+                Abbrechen
+              </Button>
+            )}
           </div>
         </div>
       )}
