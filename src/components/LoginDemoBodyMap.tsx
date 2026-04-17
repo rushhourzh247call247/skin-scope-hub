@@ -185,6 +185,8 @@ export const LoginDemoBodyMap = () => {
               setPhotoDialogSpotId(null);
               setQrSession(null);
               stopPolling();
+              // Bild ist sicher im Browser-RAM — Server-Datei sofort löschen
+              fetch(`${DEMO_API_BASE}/demo/consume/${token}`, { method: "POST" }).catch(() => {});
             };
             reader.readAsDataURL(blob);
           } catch {
