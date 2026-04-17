@@ -14,6 +14,7 @@ import Login from "./pages/Login";
 import CompanyManagement from "./pages/CompanyManagement";
 import UserManagement from "./pages/UserManagement";
 import MobileUpload from "./pages/MobileUpload";
+import DemoUpload from "./pages/DemoUpload";
 import Settings from "./pages/Settings";
 import NotFound from "./pages/NotFound";
 import Snapshots from "./pages/Snapshots";
@@ -70,6 +71,7 @@ const App = () => (
           <Routes>
             <Route path="/login" element={<Login />} />
             <Route path="/upload" element={<MobileUpload />} />
+            <Route path="/demo-upload" element={<DemoUpload />} />
             <Route path="/calibrate" element={<Calibrate />} />
             <Route path="/" element={<ProtectedPage><AccountantRedirect><Dashboard /></AccountantRedirect></ProtectedPage>} />
             <Route path="/patients" element={<ProtectedPage><AccountantRedirect><PatientList /></AccountantRedirect></ProtectedPage>} />
