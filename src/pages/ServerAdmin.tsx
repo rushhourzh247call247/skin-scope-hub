@@ -18,6 +18,7 @@ import {
   Download, Trash2, Camera, Loader2, ChevronRight, AlertTriangle
 } from "lucide-react";
 import { toast } from "sonner";
+import { DeployProgress } from "@/components/DeployProgress";
 
 /* ── Types ─────────────────────────────────────────────── */
 
@@ -212,6 +213,7 @@ const ServerAdmin = () => {
   const { t } = useTranslation();
   const [terminalLines, setTerminalLines] = useState<TerminalLine[]>([]);
   const [isRunning, setIsRunning] = useState(false);
+  const [deployState, setDeployState] = useState<"idle" | "running" | "done" | "failed">("idle");
   const [actionPassword, setActionPassword] = useState("");
   const [passwordError, setPasswordError] = useState(false);
   const [confirmAction, setConfirmAction] = useState<{
@@ -281,6 +283,7 @@ const ServerAdmin = () => {
   const deployMutation = useMutation({
     mutationFn: async (password: string) => {
       setIsRunning(true);
+      setDeployState("running");
       setTerminalLines([]);
       addLine("═══ Deployment auf Live-Server gestartet ═══", "step");
       
@@ -296,9 +299,11 @@ const ServerAdmin = () => {
       return response;
     },
     onSuccess: () => {
+      setDeployState("done");
       refetchStatus();
     },
     onError: (err: Error) => {
+      setDeployState("failed");
       const parsed = appendServerActionError(err, "Deployment fehlgeschlagen");
       toast.error(parsed.message || "Deployment fehlgeschlagen");
     },
@@ -561,7 +566,7 @@ const ServerAdmin = () => {
                 <Button
                   variant="outline"
                   size="icon"
-                  onClick={() => setTerminalLines([])}
+                  onClick={() => { setTerminalLines([]); setDeployState("idle"); }}
                   disabled={isRunning}
                   title="Terminal leeren"
                   className="h-9 w-9 shrink-0"
@@ -572,6 +577,11 @@ const ServerAdmin = () => {
             </div>
           </CardHeader>
           <CardContent>
+            <DeployProgress
+              isRunning={isRunning}
+              isDone={deployState === "done"}
+              hasFailed={deployState === "failed"}
+            />
             <Terminal lines={terminalLines} isRunning={isRunning} />
           </CardContent>
         </Card>
