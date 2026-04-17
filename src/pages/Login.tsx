@@ -8,11 +8,12 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardDescription } from "@/components/ui/card";
 import { DermLogo } from "@/components/DermLogo";
-import { LogIn, Shield, Clock } from "lucide-react";
+import { LogIn, Shield, Clock, Stethoscope, Sparkles, ArrowRight } from "lucide-react";
 import { SUPPORTED_LANGUAGES } from "@/i18n";
 import { LanguageFlag } from "@/components/LanguageFlag";
 import { Link } from "react-router-dom";
-import { Stethoscope, Sparkles } from "lucide-react";
+
+
 
 const Login = () => {
   const { t, i18n } = useTranslation();
