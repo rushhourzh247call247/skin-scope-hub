@@ -1,10 +1,20 @@
-import { useState, useCallback, useRef } from "react";
+import { useState, useCallback, useRef, useEffect } from "react";
 import BodyMap3D from "@/components/BodyMap3D";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { LESION_CLASSIFICATIONS, type LesionClassification, type Gender } from "@/types/patient";
-import { RotateCcw, Sparkles, MousePointerClick, Upload, QrCode, Camera, X, Image as ImageIcon, Check } from "lucide-react";
+import { RotateCcw, Sparkles, MousePointerClick, Upload, QrCode, Camera, X, Image as ImageIcon, Check, Loader2, Smartphone } from "lucide-react";
+import { QRCodeSVG } from "qrcode.react";
 import { cn } from "@/lib/utils";
+
+const DEMO_API_BASE =
+  typeof window !== "undefined" &&
+  ["app.derm247.ch", "proto.derm247.ch", "skin-scope-hub.lovable.app"].includes(window.location.hostname)
+    ? "https://api.derm247.ch/api"
+    : "https://dev.derm247.ch/api";
+
+const FRONTEND_DEMO_DOMAIN =
+  typeof window !== "undefined" ? `${window.location.protocol}//${window.location.host}` : "https://derm247.ch";
 
 interface DemoSpot {
   id: number;
@@ -29,12 +39,6 @@ const SELECTABLE_CLASSIFICATIONS: LesionClassification[] = [
   "other",
 ];
 
-// Sample demo photos (data URIs of small clinical-looking dermatology placeholders)
-const DEMO_PHOTOS = [
-  "data:image/svg+xml;utf8," + encodeURIComponent(`<svg xmlns='http://www.w3.org/2000/svg' width='200' height='200'><defs><radialGradient id='g' cx='50%' cy='50%' r='50%'><stop offset='0%' stop-color='#8b4513'/><stop offset='40%' stop-color='#5d2f0a'/><stop offset='100%' stop-color='#f5deb3'/></radialGradient></defs><rect width='200' height='200' fill='#f5deb3'/><ellipse cx='100' cy='100' rx='45' ry='38' fill='url(#g)'/><ellipse cx='90' cy='95' rx='8' ry='5' fill='#3d1a02' opacity='0.6'/></svg>`),
-  "data:image/svg+xml;utf8," + encodeURIComponent(`<svg xmlns='http://www.w3.org/2000/svg' width='200' height='200'><defs><radialGradient id='g2' cx='50%' cy='50%' r='50%'><stop offset='0%' stop-color='#2d1810'/><stop offset='30%' stop-color='#6b3410'/><stop offset='60%' stop-color='#a0522d'/><stop offset='100%' stop-color='#deb887'/></radialGradient></defs><rect width='200' height='200' fill='#deb887'/><ellipse cx='100' cy='100' rx='55' ry='48' fill='url(#g2)'/><circle cx='85' cy='90' r='6' fill='#1a0a02'/><circle cx='115' cy='110' r='4' fill='#2d1810'/></svg>`),
-  "data:image/svg+xml;utf8," + encodeURIComponent(`<svg xmlns='http://www.w3.org/2000/svg' width='200' height='200'><defs><radialGradient id='g3' cx='50%' cy='50%' r='50%'><stop offset='0%' stop-color='#4a2511'/><stop offset='100%' stop-color='#e8c39e'/></radialGradient></defs><rect width='200' height='200' fill='#e8c39e'/><circle cx='100' cy='100' r='32' fill='url(#g3)'/></svg>`),
-];
 
 export const LoginDemoBodyMap = () => {
   const [gender, setGender] = useState<Gender>("male");
@@ -42,9 +46,13 @@ export const LoginDemoBodyMap = () => {
   const [selectedId, setSelectedId] = useState<number | null>(null);
   const [pendingSpot, setPendingSpot] = useState<DemoSpot | null>(null);
   const [photoDialogSpotId, setPhotoDialogSpotId] = useState<number | null>(null);
-  const [qrSimulating, setQrSimulating] = useState(false);
+  const [qrSession, setQrSession] = useState<{ token: string; url: string } | null>(null);
+  const [qrLoading, setQrLoading] = useState(false);
+  const [qrError, setQrError] = useState<string | null>(null);
+  const [qrPolling, setQrPolling] = useState(false);
   const [hasInteracted, setHasInteracted] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const pollIntervalRef = useRef<number | null>(null);
 
   const handleMapClick = useCallback(
     (
@@ -84,11 +92,22 @@ export const LoginDemoBodyMap = () => {
     setTimeout(() => setPhotoDialogSpotId(finalized.id), 200);
   };
 
+  const stopPolling = () => {
+    if (pollIntervalRef.current) {
+      window.clearInterval(pollIntervalRef.current);
+      pollIntervalRef.current = null;
+    }
+    setQrPolling(false);
+  };
+
   const reset = () => {
     setSpots([]);
     setSelectedId(null);
     setPendingSpot(null);
     setPhotoDialogSpotId(null);
+    setQrSession(null);
+    setQrError(null);
+    stopPolling();
   };
 
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -106,19 +125,83 @@ export const LoginDemoBodyMap = () => {
     if (fileInputRef.current) fileInputRef.current.value = "";
   };
 
-  const simulateQrUpload = () => {
+  const startQrUpload = async () => {
     if (!photoDialogSpotId) return;
-    setQrSimulating(true);
-    // Simulate phone upload after delay
-    setTimeout(() => {
-      const randomPhoto = DEMO_PHOTOS[Math.floor(Math.random() * DEMO_PHOTOS.length)];
-      setSpots((prev) =>
-        prev.map((s) => (s.id === photoDialogSpotId ? { ...s, photoDataUrl: randomPhoto } : s)),
-      );
-      setQrSimulating(false);
-      setPhotoDialogSpotId(null);
-    }, 2200);
+    setQrLoading(true);
+    setQrError(null);
+    try {
+      const res = await fetch(`${DEMO_API_BASE}/demo/qr-token`, { method: "POST" });
+      if (!res.ok) {
+        if (res.status === 429) throw new Error("Zu viele Anfragen — bitte später erneut versuchen.");
+        throw new Error("Konnte keinen QR-Code erstellen.");
+      }
+      const data = await res.json();
+      const url = `${FRONTEND_DEMO_DOMAIN}/demo-upload?token=${data.token}`;
+      setQrSession({ token: data.token, url });
+      setQrPolling(true);
+    } catch (e: any) {
+      setQrError(e?.message || "Fehler — Demo-Server nicht erreichbar.");
+    } finally {
+      setQrLoading(false);
+    }
   };
+
+  // Poll for upload completion
+  useEffect(() => {
+    if (!qrSession || !qrPolling || !photoDialogSpotId) return;
+    const targetSpotId = photoDialogSpotId;
+    const token = qrSession.token;
+    let cancelled = false;
+
+    const tick = async () => {
+      try {
+        const res = await fetch(`${DEMO_API_BASE}/demo/qr-status/${token}`);
+        const data = await res.json().catch(() => ({}));
+        if (cancelled) return;
+        if (data.status === "completed" && data.image_url) {
+          try {
+            const imgRes = await fetch(data.image_url);
+            const blob = await imgRes.blob();
+            const reader = new FileReader();
+            reader.onload = (ev) => {
+              if (cancelled) return;
+              setSpots((prev) =>
+                prev.map((s) =>
+                  s.id === targetSpotId ? { ...s, photoDataUrl: ev.target?.result as string } : s,
+                ),
+              );
+              setPhotoDialogSpotId(null);
+              setQrSession(null);
+              stopPolling();
+            };
+            reader.readAsDataURL(blob);
+          } catch {
+            setSpots((prev) =>
+              prev.map((s) => (s.id === targetSpotId ? { ...s, photoDataUrl: data.image_url } : s)),
+            );
+            setPhotoDialogSpotId(null);
+            setQrSession(null);
+            stopPolling();
+          }
+        } else if (data.status === "expired" || data.status === "invalid") {
+          setQrError("QR-Code abgelaufen. Bitte neu generieren.");
+          setQrSession(null);
+          stopPolling();
+        }
+      } catch {
+        // Network hiccup — keep polling
+      }
+    };
+
+    pollIntervalRef.current = window.setInterval(tick, 2500);
+    tick();
+    return () => {
+      cancelled = true;
+      if (pollIntervalRef.current) window.clearInterval(pollIntervalRef.current);
+    };
+  }, [qrSession, qrPolling, photoDialogSpotId]);
+
+  useEffect(() => () => stopPolling(), []);
 
   const removePhoto = (spotId: number) => {
     setSpots((prev) => prev.map((s) => (s.id === spotId ? { ...s, photoDataUrl: undefined } : s)));
@@ -351,7 +434,13 @@ export const LoginDemoBodyMap = () => {
       {photoDialogSpotId !== null && (
         <div
           className="absolute inset-0 z-30 flex items-center justify-center bg-background/40 backdrop-blur-sm"
-          onClick={() => !qrSimulating && setPhotoDialogSpotId(null)}
+          onClick={() => {
+            if (qrLoading) return;
+            setPhotoDialogSpotId(null);
+            setQrSession(null);
+            setQrError(null);
+            stopPolling();
+          }}
         >
           <div
             className="w-[90%] max-w-sm rounded-2xl border border-border bg-card p-5 shadow-2xl"
@@ -364,20 +453,27 @@ export const LoginDemoBodyMap = () => {
               Demo-Modus — nur 1 Foto pro Hautstelle
             </p>
 
-            {qrSimulating ? (
+            {qrSession ? (
+              // QR code shown — waiting for phone upload
+              <div className="flex flex-col items-center gap-3 py-2">
+                <div className="rounded-xl border-2 border-primary/20 bg-white p-3">
+                  <QRCodeSVG value={qrSession.url} size={180} level="M" includeMargin={false} />
+                </div>
+                <div className="flex items-center gap-2 text-xs text-primary">
+                  <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                  <span className="font-medium">Warte auf Foto vom Handy…</span>
+                </div>
+                <div className="flex items-start gap-1.5 rounded-md bg-muted/50 px-2.5 py-2 text-left">
+                  <Smartphone className="h-3 w-3 text-primary mt-0.5 flex-shrink-0" />
+                  <span className="text-[10px] text-muted-foreground leading-tight">
+                    Scannen Sie den Code mit Ihrer Handy-Kamera. Das Foto erscheint live an der markierten Stelle.
+                  </span>
+                </div>
+              </div>
+            ) : qrLoading ? (
               <div className="flex flex-col items-center gap-3 py-8">
-                <div className="relative">
-                  <div className="flex h-24 w-24 items-center justify-center rounded-xl border-2 border-primary bg-primary/5">
-                    <QrCode className="h-12 w-12 text-primary" />
-                  </div>
-                  <div className="absolute inset-0 rounded-xl border-2 border-primary animate-ping opacity-30" />
-                </div>
-                <div className="text-center">
-                  <div className="text-xs font-semibold text-foreground">Smartphone scannt...</div>
-                  <p className="mt-1 text-[10px] text-muted-foreground">
-                    Foto wird vom Telefon übertragen
-                  </p>
-                </div>
+                <Loader2 className="h-8 w-8 animate-spin text-primary" />
+                <p className="text-xs text-muted-foreground">QR-Code wird erstellt…</p>
               </div>
             ) : (
               <div className="grid grid-cols-2 gap-2">
@@ -395,7 +491,7 @@ export const LoginDemoBodyMap = () => {
                 </button>
 
                 <button
-                  onClick={simulateQrUpload}
+                  onClick={startQrUpload}
                   className="flex flex-col items-center gap-2 rounded-xl border-2 border-border p-4 text-center transition-all hover:border-primary hover:bg-primary/5"
                 >
                   <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10">
@@ -409,23 +505,34 @@ export const LoginDemoBodyMap = () => {
               </div>
             )}
 
-            {!qrSimulating && (
+            {qrError && (
+              <div className="mt-3 rounded-md border border-destructive/30 bg-destructive/5 px-2.5 py-2 text-[10px] text-destructive text-center">
+                {qrError}
+              </div>
+            )}
+
+            {!qrSession && !qrLoading && (
               <div className="mt-3 flex items-center gap-1.5 rounded-md bg-muted/50 px-2.5 py-1.5">
                 <Check className="h-3 w-3 text-primary" />
                 <span className="text-[10px] text-muted-foreground">
-                  Fotos bleiben nur im Browser — nichts wird hochgeladen
+                  Demo-Server löscht alle Bilder automatisch nach 24h
                 </span>
               </div>
             )}
 
-            {!qrSimulating && (
+            {!qrLoading && (
               <Button
                 variant="ghost"
                 size="sm"
                 className="mt-3 w-full text-xs text-muted-foreground"
-                onClick={() => setPhotoDialogSpotId(null)}
+                onClick={() => {
+                  setPhotoDialogSpotId(null);
+                  setQrSession(null);
+                  setQrError(null);
+                  stopPolling();
+                }}
               >
-                Abbrechen
+                {qrSession ? "Schließen" : "Abbrechen"}
               </Button>
             )}
           </div>
