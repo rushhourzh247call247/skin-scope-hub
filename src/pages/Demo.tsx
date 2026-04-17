@@ -25,10 +25,22 @@ const Demo = () => {
         </div>
       </header>
 
-      {/* Body map demo fills the rest */}
-      <div className="relative flex-1 overflow-hidden">
-        <LoginDemoBodyMap />
+      {/* Body map demo - centered, constrained width */}
+      <div className="relative flex-1 overflow-hidden flex items-center justify-center px-4 py-4">
+        <div className="relative w-full max-w-2xl h-full">
+          <LoginDemoBodyMap />
+        </div>
       </div>
+
+      {/* Footer tagline */}
+      <footer className="border-t border-border bg-card/30 backdrop-blur px-4 py-2.5 text-center">
+        <div className="text-xs font-semibold tracking-wide text-foreground/80">
+          Klinische Hautdiagnostik
+        </div>
+        <div className="text-[10px] text-muted-foreground tracking-wider">
+          Präzise · Sicher · Schweizer Server
+        </div>
+      </footer>
     </div>
   );
 };
