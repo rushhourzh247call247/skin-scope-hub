@@ -309,44 +309,44 @@ const ServerAdmin = () => {
         ) : status ? (
           <>
             <Card>
-              <CardContent className="p-4">
+              <CardContent className="p-3 sm:p-4">
                 <div className="flex items-center justify-between mb-2">
-                  <span className="text-xs text-muted-foreground flex items-center gap-1"><Cpu className="h-3 w-3" /> CPU</span>
+                  <span className="text-[10px] sm:text-xs text-muted-foreground flex items-center gap-1"><Cpu className="h-3 w-3" /> CPU</span>
                   <StatusDot status={usageStatus(status.cpu_usage)} />
                 </div>
-                <p className={`text-2xl font-bold ${usageColor(status.cpu_usage)}`}>{status.cpu_usage}%</p>
+                <p className={`text-xl sm:text-2xl font-bold ${usageColor(status.cpu_usage)}`}>{status.cpu_usage}%</p>
                 <Progress value={status.cpu_usage} className="mt-2 h-1.5" />
               </CardContent>
             </Card>
             <Card>
-              <CardContent className="p-4">
+              <CardContent className="p-3 sm:p-4">
                 <div className="flex items-center justify-between mb-2">
-                  <span className="text-xs text-muted-foreground flex items-center gap-1"><MemoryStick className="h-3 w-3" /> RAM</span>
+                  <span className="text-[10px] sm:text-xs text-muted-foreground flex items-center gap-1"><MemoryStick className="h-3 w-3" /> RAM</span>
                   <StatusDot status={usageStatus(status.memory_usage)} />
                 </div>
-                <p className={`text-2xl font-bold ${usageColor(status.memory_usage)}`}>{status.memory_usage}%</p>
-                <p className="text-[10px] text-muted-foreground mt-1">{status.memory_total}</p>
+                <p className={`text-xl sm:text-2xl font-bold ${usageColor(status.memory_usage)}`}>{status.memory_usage}%</p>
+                <p className="text-[10px] text-muted-foreground mt-1 truncate">{status.memory_total}</p>
                 <Progress value={status.memory_usage} className="mt-1 h-1.5" />
               </CardContent>
             </Card>
             <Card>
-              <CardContent className="p-4">
+              <CardContent className="p-3 sm:p-4">
                 <div className="flex items-center justify-between mb-2">
-                  <span className="text-xs text-muted-foreground flex items-center gap-1"><HardDrive className="h-3 w-3" /> Disk</span>
+                  <span className="text-[10px] sm:text-xs text-muted-foreground flex items-center gap-1"><HardDrive className="h-3 w-3" /> Disk</span>
                   <StatusDot status={usageStatus(status.disk_usage)} />
                 </div>
-                <p className={`text-2xl font-bold ${usageColor(status.disk_usage)}`}>{status.disk_usage}%</p>
-                <p className="text-[10px] text-muted-foreground mt-1">{status.disk_total}</p>
+                <p className={`text-xl sm:text-2xl font-bold ${usageColor(status.disk_usage)}`}>{status.disk_usage}%</p>
+                <p className="text-[10px] text-muted-foreground mt-1 truncate">{status.disk_total}</p>
                 <Progress value={status.disk_usage} className="mt-1 h-1.5" />
               </CardContent>
             </Card>
             <Card>
-              <CardContent className="p-4">
+              <CardContent className="p-3 sm:p-4">
                 <div className="flex items-center justify-between mb-2">
-                  <span className="text-xs text-muted-foreground flex items-center gap-1"><Activity className="h-3 w-3" /> Uptime</span>
+                  <span className="text-[10px] sm:text-xs text-muted-foreground flex items-center gap-1"><Activity className="h-3 w-3" /> Uptime</span>
                   <StatusDot status="ok" />
                 </div>
-                <p className="text-lg font-bold text-foreground">{status.uptime}</p>
+                <p className="text-xs sm:text-base font-bold text-foreground leading-tight break-words">{status.uptime}</p>
                 <p className="text-[10px] text-muted-foreground mt-1">PHP {status.php_version}</p>
               </CardContent>
             </Card>
