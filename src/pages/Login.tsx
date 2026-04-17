@@ -231,6 +231,16 @@ const Login = () => {
         </CardContent>
       </Card>
       </div>
+
+      {/* Tagline footer */}
+      <div className="mt-8 text-center">
+        <div className="text-xs font-semibold tracking-wide text-foreground/80">
+          Klinische Hautdiagnostik
+        </div>
+        <div className="text-[10px] text-muted-foreground tracking-wider">
+          Präzise · Sicher · Schweizer Server
+        </div>
+      </div>
     </div>
   );
 };
