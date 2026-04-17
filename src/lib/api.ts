@@ -32,16 +32,11 @@ function getApiBaseUrl() {
 }
 
 function getServerAdminApiBaseUrl() {
+  // Server-Admin läuft IMMER auf dem Dev-Server (dev.derm247.ch).
+  // Der Dev-Server liest Live-Daten per SSH aus. Live wird nie direkt angefasst.
   const configuredUrl = import.meta.env.VITE_SERVER_ADMIN_API_BASE_URL?.trim();
   if (configuredUrl) return normalizeApiBaseUrl(configuredUrl);
-  if (typeof window === 'undefined') return LIVE_API_BASE_URL;
-
-  const hostname = window.location.hostname;
-  const shouldUseLiveApi =
-    LIVE_API_HOSTS.has(hostname) ||
-    LIVE_SERVER_ADMIN_HOST_SUFFIXES.some((suffix) => hostname.endsWith(suffix));
-
-  return normalizeApiBaseUrl(shouldUseLiveApi ? LIVE_API_BASE_URL : getDefaultApiBaseUrl());
+  return normalizeApiBaseUrl(DEV_API_BASE_URL);
 }
 
 function getStorageBaseUrl() {
