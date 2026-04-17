@@ -262,11 +262,7 @@ const ServerAdmin = () => {
     refetchInterval: 30000,
   });
 
-  /* ── Versions ──────── */
-  const { data: versions = [], isLoading: versionsLoading, error: versionsError, refetch: refetchVersions } = useQuery({
-    queryKey: ["server-admin-versions"],
-    queryFn: api.serverAdmin.getVersions,
-  });
+  /* Versions-Query entfernt — Live-Server hat kein Git-Repo */
 
   /* ── Backups ──────── */
   const { data: backups = [], isLoading: backupsLoading, error: backupsError, refetch: refetchBackups } = useQuery({
