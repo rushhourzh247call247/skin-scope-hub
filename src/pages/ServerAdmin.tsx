@@ -296,7 +296,6 @@ const ServerAdmin = () => {
       return response;
     },
     onSuccess: () => {
-      refetchVersions();
       refetchStatus();
     },
     onError: (err: Error) => {
@@ -344,7 +343,6 @@ const ServerAdmin = () => {
       return res;
     },
     onSuccess: () => {
-      refetchVersions();
       refetchStatus();
     },
     onError: (err: Error) => {
@@ -429,7 +427,7 @@ const ServerAdmin = () => {
           </h1>
           <p className="text-xs sm:text-sm text-muted-foreground mt-1">Live-Server (83.228.246.191) — Deployment, Backups & Services</p>
         </div>
-        <Button variant="outline" size="sm" className="self-start sm:self-auto shrink-0" onClick={() => { refetchStatus(); refetchVersions(); refetchBackups(); refetchServices(); }}>
+        <Button variant="outline" size="sm" className="self-start sm:self-auto shrink-0" onClick={() => { refetchStatus(); refetchBackups(); refetchServices(); }}>
           <RefreshCw className="h-4 w-4 mr-1" /> Aktualisieren
         </Button>
       </div>
