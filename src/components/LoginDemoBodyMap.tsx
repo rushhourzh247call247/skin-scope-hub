@@ -8,7 +8,7 @@ import { QRCodeSVG } from "qrcode.react";
 import { cn } from "@/lib/utils";
 
 // API-Auswahl: Live-API nur wenn Demo unter demo.derm247.ch läuft.
-// Dev-Test (demo.dev.derm247.ch), Lovable Preview, localhost → Dev-API
+// Dev (proto.derm247.ch), Lovable Preview, localhost → Dev-API
 const DEMO_API_BASE = (() => {
   if (typeof window === "undefined") return "https://dev.derm247.ch/api";
   return window.location.hostname === "demo.derm247.ch"
@@ -16,15 +16,16 @@ const DEMO_API_BASE = (() => {
     : "https://dev.derm247.ch/api";
 })();
 
-// QR-Link: zeigt auf die gleiche Domain, von der die Demo geladen wurde,
-// damit Dev-Tests nicht versehentlich auf die Live-Demo verweisen.
+// QR-Link: zeigt auf eine vom Handy erreichbare HTTPS-Domain.
+// - demo.derm247.ch (Live)         → demo.derm247.ch
+// - proto.derm247.ch (Dev)         → proto.derm247.ch  (gleiche Domain wie aktuelles Frontend)
+// - Lovable Preview / localhost    → proto.derm247.ch  (Handy kann Preview-URL nicht erreichen)
 const FRONTEND_DEMO_DOMAIN = (() => {
   if (typeof window === "undefined") return "https://demo.derm247.ch";
   const host = window.location.hostname;
   if (host === "demo.derm247.ch") return "https://demo.derm247.ch";
-  if (host === "demo.dev.derm247.ch") return "https://demo.dev.derm247.ch";
-  // Lovable Preview / localhost → trotzdem Dev-Demo-URL für QR (damit Handy es öffnen kann)
-  return "https://demo.dev.derm247.ch";
+  if (host === "proto.derm247.ch") return "https://proto.derm247.ch";
+  return "https://proto.derm247.ch";
 })();
 
 interface DemoSpot {
