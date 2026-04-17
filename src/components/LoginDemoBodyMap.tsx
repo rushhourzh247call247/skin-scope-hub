@@ -7,14 +7,25 @@ import { RotateCcw, Sparkles, MousePointerClick, Upload, QrCode, Camera, X, Imag
 import { QRCodeSVG } from "qrcode.react";
 import { cn } from "@/lib/utils";
 
-const DEMO_API_BASE =
-  typeof window !== "undefined" &&
-  ["app.derm247.ch", "proto.derm247.ch", "skin-scope-hub.lovable.app"].includes(window.location.hostname)
+// API-Auswahl: Live-API nur wenn Demo unter demo.derm247.ch läuft.
+// Dev-Test (demo.dev.derm247.ch), Lovable Preview, localhost → Dev-API
+const DEMO_API_BASE = (() => {
+  if (typeof window === "undefined") return "https://dev.derm247.ch/api";
+  return window.location.hostname === "demo.derm247.ch"
     ? "https://api.derm247.ch/api"
     : "https://dev.derm247.ch/api";
+})();
 
-// QR-Link zeigt IMMER auf die offizielle Demo-Domain (auch wenn Demo woanders gehostet wird)
-const FRONTEND_DEMO_DOMAIN = "https://demo.derm247.ch";
+// QR-Link: zeigt auf die gleiche Domain, von der die Demo geladen wurde,
+// damit Dev-Tests nicht versehentlich auf die Live-Demo verweisen.
+const FRONTEND_DEMO_DOMAIN = (() => {
+  if (typeof window === "undefined") return "https://demo.derm247.ch";
+  const host = window.location.hostname;
+  if (host === "demo.derm247.ch") return "https://demo.derm247.ch";
+  if (host === "demo.dev.derm247.ch") return "https://demo.dev.derm247.ch";
+  // Lovable Preview / localhost → trotzdem Dev-Demo-URL für QR (damit Handy es öffnen kann)
+  return "https://demo.dev.derm247.ch";
+})();
 
 interface DemoSpot {
   id: number;
