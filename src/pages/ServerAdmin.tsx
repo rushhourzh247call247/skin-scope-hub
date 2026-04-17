@@ -216,9 +216,12 @@ const ServerAdmin = () => {
   const [deployState, setDeployState] = useState<"idle" | "running" | "done" | "failed">("idle");
   const [actionPassword, setActionPassword] = useState("");
   const [passwordError, setPasswordError] = useState(false);
+  const [restoreConfirmText, setRestoreConfirmText] = useState("");
   const [confirmAction, setConfirmAction] = useState<{
     title: string;
     description: string;
+    requireTypedConfirm?: boolean; // 🛡️ Bei Restore: zusätzlich "RESTORE" eintippen
+    destructive?: boolean;
     onConfirm: (password: string) => void;
   } | null>(null);
 
