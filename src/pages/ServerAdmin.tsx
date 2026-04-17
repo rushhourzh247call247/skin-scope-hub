@@ -84,7 +84,7 @@ function Terminal({ lines, isRunning }: { lines: TerminalLine[]; isRunning: bool
         <span className="ml-3 text-xs text-zinc-500 font-mono">server-admin — bash</span>
         {isRunning && <Loader2 className="ml-auto h-3.5 w-3.5 animate-spin text-sky-400" />}
       </div>
-      <div ref={ref} className="h-64 overflow-y-auto p-4 font-mono text-xs leading-5 scrollbar-thin">
+      <div ref={ref} className="h-48 sm:h-64 overflow-y-auto p-3 sm:p-4 font-mono text-[11px] sm:text-xs leading-5 scrollbar-thin">
         {lines.length === 0 && (
           <span className="text-zinc-600">Bereit für Befehle…</span>
         )}
@@ -282,18 +282,18 @@ const ServerAdmin = () => {
   const usageStatus = (pct: number): "ok" | "warn" | "error" => pct > 90 ? "error" : pct > 70 ? "warn" : "ok";
 
   return (
-    <div className="min-h-screen space-y-6 p-4 md:p-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold text-foreground flex items-center gap-2">
-            <Server className="h-6 w-6 text-primary" />
-            Server-Administration
-            <Badge variant="outline" className="ml-2 text-[10px] border-primary/50 text-primary">Live-Server</Badge>
-            {status?.app_version && <Badge variant="outline" className="ml-1 text-[10px] border-muted-foreground/30 text-muted-foreground font-mono">v{status.app_version}</Badge>}
+    <div className="min-h-screen space-y-4 sm:space-y-6 p-3 sm:p-4 md:p-6">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+        <div className="min-w-0">
+          <h1 className="text-lg sm:text-2xl font-bold text-foreground flex items-center gap-2 flex-wrap">
+            <Server className="h-5 w-5 sm:h-6 sm:w-6 text-primary shrink-0" />
+            <span>Server-Administration</span>
+            <Badge variant="outline" className="text-[10px] border-primary/50 text-primary">Live</Badge>
+            {status?.app_version && <Badge variant="outline" className="text-[10px] border-muted-foreground/30 text-muted-foreground font-mono">v{status.app_version}</Badge>}
           </h1>
-          <p className="text-sm text-muted-foreground mt-1">Live-Server (83.228.246.191) — Deployment, Backups & Service-Management</p>
+          <p className="text-xs sm:text-sm text-muted-foreground mt-1">Live-Server (83.228.246.191) — Deployment, Backups & Services</p>
         </div>
-        <Button variant="outline" size="sm" onClick={() => { refetchStatus(); refetchVersions(); refetchBackups(); refetchServices(); }}>
+        <Button variant="outline" size="sm" className="self-start sm:self-auto shrink-0" onClick={() => { refetchStatus(); refetchVersions(); refetchBackups(); refetchServices(); }}>
           <RefreshCw className="h-4 w-4 mr-1" /> Aktualisieren
         </Button>
       </div>
@@ -309,44 +309,44 @@ const ServerAdmin = () => {
         ) : status ? (
           <>
             <Card>
-              <CardContent className="p-4">
+              <CardContent className="p-3 sm:p-4">
                 <div className="flex items-center justify-between mb-2">
-                  <span className="text-xs text-muted-foreground flex items-center gap-1"><Cpu className="h-3 w-3" /> CPU</span>
+                  <span className="text-[10px] sm:text-xs text-muted-foreground flex items-center gap-1"><Cpu className="h-3 w-3" /> CPU</span>
                   <StatusDot status={usageStatus(status.cpu_usage)} />
                 </div>
-                <p className={`text-2xl font-bold ${usageColor(status.cpu_usage)}`}>{status.cpu_usage}%</p>
+                <p className={`text-xl sm:text-2xl font-bold ${usageColor(status.cpu_usage)}`}>{status.cpu_usage}%</p>
                 <Progress value={status.cpu_usage} className="mt-2 h-1.5" />
               </CardContent>
             </Card>
             <Card>
-              <CardContent className="p-4">
+              <CardContent className="p-3 sm:p-4">
                 <div className="flex items-center justify-between mb-2">
-                  <span className="text-xs text-muted-foreground flex items-center gap-1"><MemoryStick className="h-3 w-3" /> RAM</span>
+                  <span className="text-[10px] sm:text-xs text-muted-foreground flex items-center gap-1"><MemoryStick className="h-3 w-3" /> RAM</span>
                   <StatusDot status={usageStatus(status.memory_usage)} />
                 </div>
-                <p className={`text-2xl font-bold ${usageColor(status.memory_usage)}`}>{status.memory_usage}%</p>
-                <p className="text-[10px] text-muted-foreground mt-1">{status.memory_total}</p>
+                <p className={`text-xl sm:text-2xl font-bold ${usageColor(status.memory_usage)}`}>{status.memory_usage}%</p>
+                <p className="text-[10px] text-muted-foreground mt-1 truncate">{status.memory_total}</p>
                 <Progress value={status.memory_usage} className="mt-1 h-1.5" />
               </CardContent>
             </Card>
             <Card>
-              <CardContent className="p-4">
+              <CardContent className="p-3 sm:p-4">
                 <div className="flex items-center justify-between mb-2">
-                  <span className="text-xs text-muted-foreground flex items-center gap-1"><HardDrive className="h-3 w-3" /> Disk</span>
+                  <span className="text-[10px] sm:text-xs text-muted-foreground flex items-center gap-1"><HardDrive className="h-3 w-3" /> Disk</span>
                   <StatusDot status={usageStatus(status.disk_usage)} />
                 </div>
-                <p className={`text-2xl font-bold ${usageColor(status.disk_usage)}`}>{status.disk_usage}%</p>
-                <p className="text-[10px] text-muted-foreground mt-1">{status.disk_total}</p>
+                <p className={`text-xl sm:text-2xl font-bold ${usageColor(status.disk_usage)}`}>{status.disk_usage}%</p>
+                <p className="text-[10px] text-muted-foreground mt-1 truncate">{status.disk_total}</p>
                 <Progress value={status.disk_usage} className="mt-1 h-1.5" />
               </CardContent>
             </Card>
             <Card>
-              <CardContent className="p-4">
+              <CardContent className="p-3 sm:p-4">
                 <div className="flex items-center justify-between mb-2">
-                  <span className="text-xs text-muted-foreground flex items-center gap-1"><Activity className="h-3 w-3" /> Uptime</span>
+                  <span className="text-[10px] sm:text-xs text-muted-foreground flex items-center gap-1"><Activity className="h-3 w-3" /> Uptime</span>
                   <StatusDot status="ok" />
                 </div>
-                <p className="text-lg font-bold text-foreground">{status.uptime}</p>
+                <p className="text-xs sm:text-base font-bold text-foreground leading-tight break-words">{status.uptime}</p>
                 <p className="text-[10px] text-muted-foreground mt-1">PHP {status.php_version}</p>
               </CardContent>
             </Card>
@@ -393,12 +393,12 @@ const ServerAdmin = () => {
         {/* ── Deployment Panel ───────────────────── */}
         <Card className="lg:col-span-2">
           <CardHeader className="pb-3">
-            <div className="flex items-center justify-between">
-              <CardTitle className="flex items-center gap-2 text-lg">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+              <CardTitle className="flex items-center gap-2 text-base sm:text-lg">
                 <Rocket className="h-5 w-5 text-primary" />
                 Deployment
               </CardTitle>
-              <div className="flex gap-2">
+              <div className="flex gap-2 self-end sm:self-auto">
                 <Button
                   onClick={() => setConfirmAction({
                     title: "Deployment auf Live-Server starten?",
@@ -406,6 +406,7 @@ const ServerAdmin = () => {
                     onConfirm: (pw) => deployMutation.mutate(pw),
                   })}
                   disabled={isRunning}
+                  size="sm"
                   className="gap-1.5"
                 >
                   {isRunning ? <Loader2 className="h-4 w-4 animate-spin" /> : <Play className="h-4 w-4" />}
@@ -417,6 +418,7 @@ const ServerAdmin = () => {
                   onClick={() => setTerminalLines([])}
                   disabled={isRunning}
                   title="Terminal leeren"
+                  className="h-9 w-9 shrink-0"
                 >
                   <Trash2 className="h-4 w-4" />
                 </Button>
@@ -483,15 +485,16 @@ const ServerAdmin = () => {
         {/* ── Backups & Snapshots ───────────────────── */}
         <Card>
           <CardHeader className="pb-3">
-            <div className="flex items-center justify-between">
-              <CardTitle className="flex items-center gap-2 text-lg">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+              <CardTitle className="flex items-center gap-2 text-base sm:text-lg">
                 <Database className="h-5 w-5 text-primary" />
                 Backups & Snapshots
               </CardTitle>
-              <div className="flex gap-2">
+              <div className="flex gap-2 self-end sm:self-auto">
                 <Button
                   variant="outline"
                   size="sm"
+                  className="gap-1 text-xs"
                   onClick={() => setConfirmAction({
                     title: "Snapshot auf Live-Server erstellen?",
                     description: "Die aktuelle Live-Datenbank und Bilder werden als Snapshot gesichert.",
