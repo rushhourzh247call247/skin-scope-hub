@@ -440,7 +440,13 @@ export const LoginDemoBodyMap = () => {
       {photoDialogSpotId !== null && (
         <div
           className="absolute inset-0 z-30 flex items-center justify-center bg-background/40 backdrop-blur-sm"
-          onClick={() => !qrSimulating && setPhotoDialogSpotId(null)}
+          onClick={() => {
+            if (qrLoading) return;
+            setPhotoDialogSpotId(null);
+            setQrSession(null);
+            setQrError(null);
+            stopPolling();
+          }}
         >
           <div
             className="w-[90%] max-w-sm rounded-2xl border border-border bg-card p-5 shadow-2xl"
@@ -453,20 +459,27 @@ export const LoginDemoBodyMap = () => {
               Demo-Modus — nur 1 Foto pro Hautstelle
             </p>
 
-            {qrSimulating ? (
+            {qrSession ? (
+              // QR code shown — waiting for phone upload
+              <div className="flex flex-col items-center gap-3 py-2">
+                <div className="rounded-xl border-2 border-primary/20 bg-white p-3">
+                  <QRCodeSVG value={qrSession.url} size={180} level="M" includeMargin={false} />
+                </div>
+                <div className="flex items-center gap-2 text-xs text-primary">
+                  <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                  <span className="font-medium">Warte auf Foto vom Handy…</span>
+                </div>
+                <div className="flex items-start gap-1.5 rounded-md bg-muted/50 px-2.5 py-2 text-left">
+                  <Smartphone className="h-3 w-3 text-primary mt-0.5 flex-shrink-0" />
+                  <span className="text-[10px] text-muted-foreground leading-tight">
+                    Scannen Sie den Code mit Ihrer Handy-Kamera. Das Foto erscheint live an der markierten Stelle.
+                  </span>
+                </div>
+              </div>
+            ) : qrLoading ? (
               <div className="flex flex-col items-center gap-3 py-8">
-                <div className="relative">
-                  <div className="flex h-24 w-24 items-center justify-center rounded-xl border-2 border-primary bg-primary/5">
-                    <QrCode className="h-12 w-12 text-primary" />
-                  </div>
-                  <div className="absolute inset-0 rounded-xl border-2 border-primary animate-ping opacity-30" />
-                </div>
-                <div className="text-center">
-                  <div className="text-xs font-semibold text-foreground">Smartphone scannt...</div>
-                  <p className="mt-1 text-[10px] text-muted-foreground">
-                    Foto wird vom Telefon übertragen
-                  </p>
-                </div>
+                <Loader2 className="h-8 w-8 animate-spin text-primary" />
+                <p className="text-xs text-muted-foreground">QR-Code wird erstellt…</p>
               </div>
             ) : (
               <div className="grid grid-cols-2 gap-2">
@@ -484,7 +497,7 @@ export const LoginDemoBodyMap = () => {
                 </button>
 
                 <button
-                  onClick={simulateQrUpload}
+                  onClick={startQrUpload}
                   className="flex flex-col items-center gap-2 rounded-xl border-2 border-border p-4 text-center transition-all hover:border-primary hover:bg-primary/5"
                 >
                   <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10">
@@ -498,23 +511,34 @@ export const LoginDemoBodyMap = () => {
               </div>
             )}
 
-            {!qrSimulating && (
+            {qrError && (
+              <div className="mt-3 rounded-md border border-destructive/30 bg-destructive/5 px-2.5 py-2 text-[10px] text-destructive text-center">
+                {qrError}
+              </div>
+            )}
+
+            {!qrSession && !qrLoading && (
               <div className="mt-3 flex items-center gap-1.5 rounded-md bg-muted/50 px-2.5 py-1.5">
                 <Check className="h-3 w-3 text-primary" />
                 <span className="text-[10px] text-muted-foreground">
-                  Fotos bleiben nur im Browser — nichts wird hochgeladen
+                  Demo-Server löscht alle Bilder automatisch nach 24h
                 </span>
               </div>
             )}
 
-            {!qrSimulating && (
+            {!qrLoading && (
               <Button
                 variant="ghost"
                 size="sm"
                 className="mt-3 w-full text-xs text-muted-foreground"
-                onClick={() => setPhotoDialogSpotId(null)}
+                onClick={() => {
+                  setPhotoDialogSpotId(null);
+                  setQrSession(null);
+                  setQrError(null);
+                  stopPolling();
+                }}
               >
-                Abbrechen
+                {qrSession ? "Schließen" : "Abbrechen"}
               </Button>
             )}
           </div>
