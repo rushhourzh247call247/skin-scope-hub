@@ -423,6 +423,32 @@ const ServerAdmin = () => {
   const usageColor = (pct: number) => pct > 90 ? "text-red-500" : pct > 70 ? "text-amber-500" : "text-emerald-500";
   const usageStatus = (pct: number): "ok" | "warn" | "error" => pct > 90 ? "error" : pct > 70 ? "warn" : "ok";
 
+  /* ── Backup-Klassifizierung (Frontend-only, basiert auf Dateiname) ──────── */
+  // Backend benennt Pre-Deploy-Backups als "db_pre_deploy_*" oder "pre_deploy_*"
+  const isAutoBackup = (filename: string) =>
+    /pre[_-]?deploy/i.test(filename) || /auto/i.test(filename);
+
+  // Größe-Strings wie "292 KB" / "1.2 MB" zu Bytes parsen für Summen
+  const parseSizeToBytes = (size: string): number => {
+    const m = size.trim().match(/^([\d.,]+)\s*(B|KB|MB|GB|TB)$/i);
+    if (!m) return 0;
+    const num = parseFloat(m[1].replace(",", "."));
+    const unit = m[2].toUpperCase();
+    const mult = { B: 1, KB: 1024, MB: 1024 ** 2, GB: 1024 ** 3, TB: 1024 ** 4 }[unit] ?? 1;
+    return num * mult;
+  };
+
+  const formatBytes = (bytes: number): string => {
+    if (bytes < 1024) return `${bytes} B`;
+    if (bytes < 1024 ** 2) return `${(bytes / 1024).toFixed(1)} KB`;
+    if (bytes < 1024 ** 3) return `${(bytes / 1024 ** 2).toFixed(1)} MB`;
+    return `${(bytes / 1024 ** 3).toFixed(2)} GB`;
+  };
+
+  const totalBackupBytes = backups.reduce((sum: number, b: BackupEntry) => sum + parseSizeToBytes(b.size), 0);
+  const autoCount = backups.filter((b: BackupEntry) => isAutoBackup(b.filename)).length;
+  const manualCount = backups.length - autoCount;
+
   return (
     <div className="min-h-screen space-y-4 sm:space-y-6 p-3 sm:p-4 md:p-6 overflow-x-hidden max-w-full">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
