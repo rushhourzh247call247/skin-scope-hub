@@ -685,5 +685,14 @@ export const api = {
       requestServerAdmin<{ success: boolean; error?: string }>('/server-admin/services/restart', { method: 'POST', body: JSON.stringify({ service, action_password: actionPassword }) }),
     createSnapshot: (actionPassword: string) =>
       requestServerAdmin<{ success: boolean; filename?: string; error?: string }>('/server-admin/snapshot', { method: 'POST', body: JSON.stringify({ action_password: actionPassword }) }),
+    getDeployStatus: () =>
+      requestServerAdmin<{
+        active: boolean;
+        step: number;
+        total: number;
+        label: string;
+        started_at: number;
+        step_started_at: number;
+      } | null>('/server-admin/deploy/status'),
   },
 };
