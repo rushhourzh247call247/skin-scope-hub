@@ -1,10 +1,20 @@
-import { useState, useCallback, useRef } from "react";
+import { useState, useCallback, useRef, useEffect } from "react";
 import BodyMap3D from "@/components/BodyMap3D";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { LESION_CLASSIFICATIONS, type LesionClassification, type Gender } from "@/types/patient";
-import { RotateCcw, Sparkles, MousePointerClick, Upload, QrCode, Camera, X, Image as ImageIcon, Check } from "lucide-react";
+import { RotateCcw, Sparkles, MousePointerClick, Upload, QrCode, Camera, X, Image as ImageIcon, Check, Loader2, Smartphone } from "lucide-react";
+import { QRCodeSVG } from "qrcode.react";
 import { cn } from "@/lib/utils";
+
+const DEMO_API_BASE =
+  typeof window !== "undefined" &&
+  ["app.derm247.ch", "proto.derm247.ch", "skin-scope-hub.lovable.app"].includes(window.location.hostname)
+    ? "https://api.derm247.ch/api"
+    : "https://dev.derm247.ch/api";
+
+const FRONTEND_DEMO_DOMAIN =
+  typeof window !== "undefined" ? `${window.location.protocol}//${window.location.host}` : "https://derm247.ch";
 
 interface DemoSpot {
   id: number;
