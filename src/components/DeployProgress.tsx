@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { Database, FolderSync, Package, ArrowUpToLine, GitBranch, Hammer, CheckCircle2, Loader2, Check, Clock, Radio } from "lucide-react";
+import { Database, FolderSync, Package, ArrowUpToLine, GitBranch, Hammer, CheckCircle2, Loader2, Check, Clock, Radio, ShieldCheck } from "lucide-react";
 import { Progress } from "@/components/ui/progress";
 import { cn } from "@/lib/utils";
 import { api } from "@/lib/api";
@@ -23,6 +23,7 @@ export interface DeployStep {
 }
 
 const DEPLOY_STEPS: DeployStep[] = [
+  { id: "syscheck", label: "System-Pakete prüfen", estimatedSeconds: 5, icon: ShieldCheck },
   { id: "backup", label: "Datenbank-Backup", estimatedSeconds: 3, icon: Database },
   { id: "rsync", label: "Backend-Code synchronisieren", estimatedSeconds: 12, icon: FolderSync },
   { id: "composer", label: "Composer-Pakete installieren", estimatedSeconds: 25, icon: Package },
@@ -191,7 +192,7 @@ export const DeployProgress: React.FC<DeployProgressProps> = ({ isRunning, isDon
       </div>
 
       {/* Step-Liste */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-7 gap-2">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-8 gap-2">
         {DEPLOY_STEPS.map((step, i) => {
           const isComplete = i < activeIndex;
           const isActive = i === activeIndex && !isDone && !hasFailed;
