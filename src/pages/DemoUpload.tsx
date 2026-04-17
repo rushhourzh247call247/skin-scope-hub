@@ -3,10 +3,10 @@ import { useSearchParams } from "react-router-dom";
 import { Camera, Images, CheckCircle2, AlertCircle, Loader2, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
-// API-Auswahl basierend auf der Demo-Domain:
-// - demo.derm247.ch          → Live-API
-// - demo.dev.derm247.ch      → Dev-API
-// - alles andere (Lovable Preview, localhost) → Dev-API
+// API-Auswahl basierend auf der Hostname:
+// - demo.derm247.ch (Live-Demo)          → Live-API
+// - proto.derm247.ch (Dev-Frontend)      → Dev-API
+// - Lovable Preview / localhost          → Dev-API
 const API_BASE = (() => {
   if (typeof window === "undefined") return "https://dev.derm247.ch/api";
   return window.location.hostname === "demo.derm247.ch"
