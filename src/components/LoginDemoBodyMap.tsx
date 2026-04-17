@@ -165,6 +165,14 @@ export const LoginDemoBodyMap = () => {
     const token = qrSession.token;
     let cancelled = false;
 
+    const blobToDataUrl = (blob: Blob) =>
+      new Promise<string>((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(reader.result as string);
+        reader.onerror = () => reject(new Error("FileReader failed"));
+        reader.readAsDataURL(blob);
+      });
+
     const tick = async () => {
       try {
         const res = await fetch(`${DEMO_API_BASE}/demo/qr-status/${token}`);
@@ -172,42 +180,35 @@ export const LoginDemoBodyMap = () => {
         if (cancelled) return;
         console.log("[QR-Demo] poll status:", data.status, data.image_url);
         if (data.status === "completed" && data.image_url) {
-          // Polling SOFORT stoppen, damit kein Folge-Tick race verursacht
           cancelled = true;
           stopPolling();
           try {
-            const imgRes = await fetch(data.image_url);
+            const imgRes = await fetch(data.image_url, { cache: "no-store" });
             if (!imgRes.ok) throw new Error(`Image fetch failed: ${imgRes.status}`);
             const blob = await imgRes.blob();
-            console.log("[QR-Demo] blob loaded, size:", blob.size);
-            const reader = new FileReader();
-            reader.onload = (ev) => {
-              const dataUrl = ev.target?.result as string;
-              console.log("[QR-Demo] dataUrl set for spot", targetSpotId, "length:", dataUrl?.length);
-              setSpots((prev) =>
-                prev.map((s) =>
-                  s.id === targetSpotId ? { ...s, photoDataUrl: dataUrl } : s,
-                ),
-              );
-              setSelectedId(targetSpotId);
-              setPhotoDialogSpotId(null);
-              setQrSession(null);
-              // Bild ist sicher im Browser-RAM — Server-Datei sofort löschen
-              fetch(`${DEMO_API_BASE}/demo/consume/${token}`, { method: "POST" }).catch(() => {});
-            };
-            reader.onerror = () => {
-              console.error("[QR-Demo] FileReader error");
-              setQrError("Bild konnte nicht geladen werden.");
-            };
-            reader.readAsDataURL(blob);
-          } catch (err) {
-            console.error("[QR-Demo] image load failed:", err);
-            // Fallback: direkte URL als img src verwenden
+            console.log("[QR-Demo] blob loaded, size:", blob.size, "type:", blob.type);
+
+            let localImageUrl: string;
+            try {
+              localImageUrl = await blobToDataUrl(blob);
+            } catch {
+              localImageUrl = URL.createObjectURL(blob);
+            }
+
+            if (cancelled) return;
             setSpots((prev) =>
-              prev.map((s) => (s.id === targetSpotId ? { ...s, photoDataUrl: data.image_url } : s)),
+              prev.map((s) =>
+                s.id === targetSpotId ? { ...s, photoDataUrl: localImageUrl } : s,
+              ),
             );
             setSelectedId(targetSpotId);
             setPhotoDialogSpotId(null);
+            setQrSession(null);
+            setQrError(null);
+            fetch(`${DEMO_API_BASE}/demo/consume/${token}`, { method: "POST" }).catch(() => {});
+          } catch (err) {
+            console.error("[QR-Demo] image load failed:", err);
+            setQrError("Foto wurde hochgeladen, konnte aber am Desktop nicht geladen werden.");
             setQrSession(null);
           }
         } else if (data.status === "expired" || data.status === "invalid") {

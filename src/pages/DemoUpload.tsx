@@ -151,7 +151,7 @@ const DemoUpload = () => {
               Aus Galerie wählen
             </Button>
             <p className="text-center text-[11px] text-muted-foreground pt-2">
-              Bilder bleiben max. 24 Stunden gespeichert · keine Patientendaten · keine Anmeldung
+              Das Bild wird direkt an den Desktop übertragen und danach sofort vom Server gelöscht
             </p>
           </div>
         )}
