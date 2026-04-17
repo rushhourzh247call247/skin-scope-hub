@@ -48,6 +48,50 @@ function getStorageBaseUrl() {
   return getApiBaseUrl().replace(/\/api$/, '');
 }
 
+type ParsedErrorResponse = {
+  message: string;
+  payload?: any;
+  rawText: string;
+};
+
+async function parseErrorResponse(res: Response): Promise<ParsedErrorResponse> {
+  const rawText = await res.text().catch(() => '');
+
+  if (!rawText) {
+    return {
+      message: `API Error: ${res.status} ${res.statusText}`,
+      rawText: '',
+    };
+  }
+
+  try {
+    const payload = JSON.parse(rawText);
+    const message =
+      (typeof payload?.error === 'string' && payload.error.trim()) ||
+      (typeof payload?.message === 'string' && payload.message.trim()) ||
+      rawText;
+
+    return { message, payload, rawText };
+  } catch {
+    return { message: rawText, rawText };
+  }
+}
+
+function createApiError(res: Response, parsed: ParsedErrorResponse) {
+  const err = new Error(parsed.message || `API Error: ${res.status} ${res.statusText}`);
+  (err as any).status = res.status;
+
+  if (parsed.payload !== undefined) {
+    (err as any).payload = parsed.payload;
+  }
+
+  if (parsed.rawText) {
+    (err as any).rawText = parsed.rawText;
+  }
+
+  return err;
+}
+
 async function request<T>(path: string, options?: RequestInit): Promise<T> {
   return requestToBase<T>(getApiBaseUrl(), path, options);
 }
@@ -104,10 +148,21 @@ async function requestToBase<T>(baseUrl: string, path: string, options?: Request
       window.location.href = '/login';
       throw new Error('Sitzung abgelaufen');
     }
-    const errorBody = await res.text().catch(() => '');
-    const err = new Error(errorBody || `API Error: ${res.status} ${res.statusText}`);
-    (err as any).status = res.status;
-    throw err;
+
+    const parsedError = await parseErrorResponse(res);
+
+    if (res.status === 403) {
+      const body = parsedError.payload ?? {};
+      if (body.suspended) {
+        sessionStorage.removeItem('auth_token');
+        sessionStorage.removeItem('auth_user');
+        const err = createApiError(res, parsedError);
+        (err as any).suspended = true;
+        throw err;
+      }
+    }
+
+    throw createApiError(res, parsedError);
   }
 
   return res.json();
@@ -147,8 +202,9 @@ async function requestBlobToBase(baseUrl: string, path: string, options?: Reques
       window.location.href = '/login';
       throw new Error('Sitzung abgelaufen');
     }
-    const errorBody = await res.text().catch(() => '');
-    throw new Error(`API Error: ${res.status} ${res.statusText} ${errorBody}`);
+
+    const parsedError = await parseErrorResponse(res);
+    throw createApiError(res, parsedError);
   }
 
   return res.blob();

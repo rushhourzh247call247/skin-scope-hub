@@ -56,6 +56,92 @@ interface TerminalLine {
   timestamp: string;
 }
 
+interface ServerActionStep {
+  label: string;
+  success: boolean;
+  output?: string;
+}
+
+interface ServerActionResponse {
+  success: boolean;
+  error?: string;
+  filename?: string;
+  steps?: ServerActionStep[];
+}
+
+interface ParsedServerActionError {
+  message: string;
+  details: string[];
+  steps: ServerActionStep[];
+}
+
+function parseJsonObject(value: unknown) {
+  if (typeof value !== "string") return null;
+
+  try {
+    const parsed = JSON.parse(value);
+    return parsed && typeof parsed === "object" ? parsed : null;
+  } catch {
+    return null;
+  }
+}
+
+function createServerActionError(response: ServerActionResponse) {
+  const err = new Error(response.error || "Unbekannter Fehler");
+  (err as any).payload = response;
+  return err;
+}
+
+function parseServerActionError(error: unknown): ParsedServerActionError {
+  const fallbackMessage = error instanceof Error ? error.message : "Unbekannter Fehler";
+  const payloadCandidates = [
+    error && typeof error === "object" && "payload" in error ? (error as any).payload : null,
+    error && typeof error === "object" && "rawText" in error ? parseJsonObject((error as any).rawText) : null,
+    error instanceof Error ? parseJsonObject(error.message) : null,
+  ].filter(Boolean);
+
+  const payload = (payloadCandidates[0] as any) || null;
+  const details: string[] = [];
+  const seen = new Set<string>();
+
+  const pushDetail = (value: unknown) => {
+    if (typeof value !== "string") return;
+
+    for (const line of value.split(/\r?\n/)) {
+      const normalized = line.trimEnd();
+      const dedupeKey = normalized.trim();
+
+      if (!dedupeKey || seen.has(dedupeKey)) continue;
+      seen.add(dedupeKey);
+      details.push(normalized);
+    }
+  };
+
+  if (Array.isArray(payload?.details)) {
+    payload.details.forEach(pushDetail);
+  } else {
+    pushDetail(payload?.details);
+  }
+
+  pushDetail(payload?.output);
+
+  if (error && typeof error === "object" && "rawText" in error) {
+    const rawText = (error as any).rawText;
+    if (typeof rawText === "string" && !rawText.trim().startsWith("{")) {
+      pushDetail(rawText);
+    }
+  }
+
+  return {
+    message:
+      (typeof payload?.error === "string" && payload.error.trim()) ||
+      (typeof payload?.message === "string" && payload.message.trim()) ||
+      fallbackMessage,
+    details,
+    steps: Array.isArray(payload?.steps) ? payload.steps : [],
+  };
+}
+
 /* ── Terminal Component ────────────────────────────────── */
 
 function Terminal({ lines, isRunning }: { lines: TerminalLine[]; isRunning: boolean }) {
@@ -91,7 +177,7 @@ function Terminal({ lines, isRunning }: { lines: TerminalLine[]; isRunning: bool
         {lines.map((line, i) => (
           <div key={i} className="flex gap-2">
             <span className="shrink-0 text-zinc-600">{line.timestamp}</span>
-            <span className={colorClass(line.type)}>{line.text}</span>
+            <span className={`${colorClass(line.type)} whitespace-pre-wrap break-words`}>{line.text}</span>
           </div>
         ))}
         {isRunning && (
@@ -142,27 +228,54 @@ const ServerAdmin = () => {
     }]);
   }, []);
 
+  const addMultilineLine = useCallback((text: string, type: TerminalLine["type"] = "info") => {
+    text
+      .split(/\r?\n/)
+      .map((line) => line.trimEnd())
+      .filter((line) => line.trim().length > 0)
+      .forEach((line) => addLine(line, type));
+  }, [addLine]);
+
+  const appendServerActionSteps = useCallback((steps?: ServerActionStep[]) => {
+    steps?.forEach((step) => {
+      addLine(step.label, step.success ? "success" : "error");
+      if (step.output) {
+        addMultilineLine(step.output, step.success ? "info" : "warning");
+      }
+    });
+  }, [addLine, addMultilineLine]);
+
+  const appendServerActionError = useCallback((error: unknown, prefix: string) => {
+    const parsed = parseServerActionError(error);
+    appendServerActionSteps(parsed.steps);
+    parsed.details.forEach((detail) => addMultilineLine(detail, "warning"));
+    addLine(`${prefix}: ${parsed.message}`, "error");
+    return parsed;
+  }, [addLine, addMultilineLine, appendServerActionSteps]);
+
+  const getErrorMessage = useCallback((error: unknown) => parseServerActionError(error).message, []);
+
   /* ── Server Status ──────── */
-  const { data: status, isLoading: statusLoading, refetch: refetchStatus } = useQuery({
+  const { data: status, isLoading: statusLoading, error: statusError, refetch: refetchStatus } = useQuery({
     queryKey: ["server-admin-status"],
     queryFn: api.serverAdmin.getStatus,
     refetchInterval: 30000,
   });
 
   /* ── Versions ──────── */
-  const { data: versions = [], isLoading: versionsLoading, refetch: refetchVersions } = useQuery({
+  const { data: versions = [], isLoading: versionsLoading, error: versionsError, refetch: refetchVersions } = useQuery({
     queryKey: ["server-admin-versions"],
     queryFn: api.serverAdmin.getVersions,
   });
 
   /* ── Backups ──────── */
-  const { data: backups = [], isLoading: backupsLoading, refetch: refetchBackups } = useQuery({
+  const { data: backups = [], isLoading: backupsLoading, error: backupsError, refetch: refetchBackups } = useQuery({
     queryKey: ["server-admin-backups"],
     queryFn: api.serverAdmin.getBackups,
   });
 
   /* ── Services ──────── */
-  const { data: services, refetch: refetchServices } = useQuery({
+  const { data: services, error: servicesError, refetch: refetchServices } = useQuery({
     queryKey: ["server-admin-services"],
     queryFn: api.serverAdmin.getServices,
     refetchInterval: 30000,
@@ -176,19 +289,13 @@ const ServerAdmin = () => {
       addLine("═══ Deployment auf Live-Server gestartet ═══", "step");
       
       const response = await api.serverAdmin.deploy(password);
-      
-      if (response.steps) {
-        for (const step of response.steps) {
-          addLine(step.label, step.success ? "success" : "error");
-          if (step.output) addLine(step.output, "info");
-        }
+
+      if (!response.success) {
+        throw createServerActionError(response);
       }
-      
-      if (response.success) {
-        addLine("═══ Deployment erfolgreich abgeschlossen ═══", "success");
-      } else {
-        addLine(`═══ Deployment fehlgeschlagen: ${response.error || "Unbekannter Fehler"} ═══`, "error");
-      }
+
+      appendServerActionSteps(response.steps);
+      addLine("═══ Deployment erfolgreich abgeschlossen ═══", "success");
       
       return response;
     },
@@ -197,8 +304,8 @@ const ServerAdmin = () => {
       refetchStatus();
     },
     onError: (err: Error) => {
-      addLine(`FEHLER: ${err.message}`, "error");
-      toast.error("Deployment fehlgeschlagen");
+      const parsed = appendServerActionError(err, "Deployment fehlgeschlagen");
+      toast.error(parsed.message || "Deployment fehlgeschlagen");
     },
     onSettled: () => setIsRunning(false),
   });
@@ -208,6 +315,11 @@ const ServerAdmin = () => {
     mutationFn: async (password: string) => {
       addLine("Erstelle Datenbank-Backup auf Live-Server…", "step");
       const res = await api.serverAdmin.createBackup(password);
+
+      if (!res.success) {
+        throw createServerActionError(res);
+      }
+
       addLine(`Backup erstellt: ${res.filename}`, "success");
       return res;
     },
@@ -216,8 +328,8 @@ const ServerAdmin = () => {
       toast.success("Backup erstellt");
     },
     onError: (err: Error) => {
-      addLine(`Backup-Fehler: ${err.message}`, "error");
-      toast.error("Backup fehlgeschlagen");
+      const parsed = appendServerActionError(err, "Backup fehlgeschlagen");
+      toast.error(parsed.message || "Backup fehlgeschlagen");
     },
   });
 
@@ -227,18 +339,22 @@ const ServerAdmin = () => {
       setIsRunning(true);
       addLine(`Rollback auf Version ${hash.slice(0, 7)} (Live-Server)…`, "step");
       const res = await api.serverAdmin.rollback(hash, password);
-      if (res.success) {
-        addLine("Rollback erfolgreich", "success");
-      } else {
-        addLine(`Rollback fehlgeschlagen: ${res.error}`, "error");
+
+      if (!res.success) {
+        throw createServerActionError(res);
       }
+
+      addLine("Rollback erfolgreich", "success");
       return res;
     },
     onSuccess: () => {
       refetchVersions();
       refetchStatus();
     },
-    onError: (err: Error) => addLine(`Fehler: ${err.message}`, "error"),
+    onError: (err: Error) => {
+      const parsed = appendServerActionError(err, "Rollback fehlgeschlagen");
+      toast.error(parsed.message || "Rollback fehlgeschlagen");
+    },
     onSettled: () => setIsRunning(false),
   });
 
@@ -248,10 +364,18 @@ const ServerAdmin = () => {
       setIsRunning(true);
       addLine(`Stelle Backup wieder her auf Live-Server: ${filename}…`, "step");
       const res = await api.serverAdmin.restoreBackup(filename, password);
-      addLine(res.success ? "Wiederherstellung erfolgreich" : `Fehler: ${res.error}`, res.success ? "success" : "error");
+
+      if (!res.success) {
+        throw createServerActionError(res);
+      }
+
+      addLine("Wiederherstellung erfolgreich", "success");
       return res;
     },
-    onError: (err: Error) => addLine(`Fehler: ${err.message}`, "error"),
+    onError: (err: Error) => {
+      const parsed = appendServerActionError(err, "Restore fehlgeschlagen");
+      toast.error(parsed.message || "Restore fehlgeschlagen");
+    },
     onSettled: () => setIsRunning(false),
   });
 
@@ -260,11 +384,19 @@ const ServerAdmin = () => {
     mutationFn: async ({ service, password }: { service: string; password: string }) => {
       addLine(`Starte ${service} auf Live-Server neu…`, "step");
       const res = await api.serverAdmin.restartService(service, password);
-      addLine(res.success ? `${service} neugestartet` : `Fehler: ${res.error}`, res.success ? "success" : "error");
+
+      if (!res.success) {
+        throw createServerActionError(res);
+      }
+
+      addLine(`${service} neugestartet`, "success");
       return res;
     },
     onSuccess: () => refetchServices(),
-    onError: (err: Error) => addLine(`Fehler: ${err.message}`, "error"),
+    onError: (err: Error) => {
+      const parsed = appendServerActionError(err, "Service-Neustart fehlgeschlagen");
+      toast.error(parsed.message || "Service-Neustart fehlgeschlagen");
+    },
   });
 
   /* ── Snapshot ──────── */
@@ -272,10 +404,18 @@ const ServerAdmin = () => {
     mutationFn: async (password: string) => {
       addLine("Erstelle Snapshot auf Live-Server…", "step");
       const res = await api.serverAdmin.createSnapshot(password);
-      addLine(res.success ? `Snapshot erstellt: ${res.filename}` : `Fehler: ${res.error}`, res.success ? "success" : "error");
+
+      if (!res.success) {
+        throw createServerActionError(res);
+      }
+
+      addLine(`Snapshot erstellt: ${res.filename}`, "success");
       return res;
     },
-    onError: (err: Error) => addLine(`Fehler: ${err.message}`, "error"),
+    onError: (err: Error) => {
+      const parsed = appendServerActionError(err, "Snapshot fehlgeschlagen");
+      toast.error(parsed.message || "Snapshot fehlgeschlagen");
+    },
   });
 
   const usageColor = (pct: number) => pct > 90 ? "text-red-500" : pct > 70 ? "text-amber-500" : "text-emerald-500";
@@ -351,6 +491,14 @@ const ServerAdmin = () => {
               </CardContent>
             </Card>
           </>
+        ) : statusError ? (
+          <Card className="col-span-full">
+            <CardContent className="p-4 text-center">
+              <XCircle className="h-5 w-5 mx-auto mb-1 text-destructive" />
+              <p className="text-sm text-foreground">Serverstatus konnte nicht geladen werden</p>
+              <p className="mt-1 break-words text-xs text-muted-foreground">{getErrorMessage(statusError)}</p>
+            </CardContent>
+          </Card>
         ) : (
           <Card className="col-span-full">
             <CardContent className="p-4 text-center text-muted-foreground">
@@ -362,7 +510,11 @@ const ServerAdmin = () => {
       </div>
 
       {/* ── Services ───────────────────── */}
-      {services && (
+      {servicesError ? (
+        <div className="rounded-lg border border-destructive/30 bg-destructive/5 px-3 py-2 text-sm text-destructive">
+          Dienste konnten nicht geladen werden: {getErrorMessage(servicesError)}
+        </div>
+      ) : services && (
         <div className="flex flex-wrap gap-2">
           {Object.entries(services).map(([name, info]: [string, any]) => (
             <div key={name} className="flex items-center gap-2 rounded-lg border bg-card px-3 py-2">
@@ -441,6 +593,10 @@ const ServerAdmin = () => {
           <CardContent>
             {versionsLoading ? (
               <div className="flex justify-center py-8"><Loader2 className="h-5 w-5 animate-spin text-muted-foreground" /></div>
+            ) : versionsError ? (
+              <p className="break-words py-8 text-center text-sm text-destructive">
+                Versionen konnten nicht geladen werden: {getErrorMessage(versionsError)}
+              </p>
             ) : versions.length === 0 ? (
               <p className="text-sm text-muted-foreground text-center py-8">Keine Versionen gefunden</p>
             ) : (
@@ -522,6 +678,10 @@ const ServerAdmin = () => {
           <CardContent>
             {backupsLoading ? (
               <div className="flex justify-center py-8"><Loader2 className="h-5 w-5 animate-spin text-muted-foreground" /></div>
+            ) : backupsError ? (
+              <p className="break-words py-8 text-center text-sm text-destructive">
+                Backups konnten nicht geladen werden: {getErrorMessage(backupsError)}
+              </p>
             ) : backups.length === 0 ? (
               <p className="text-sm text-muted-foreground text-center py-8">Keine Backups vorhanden</p>
             ) : (
