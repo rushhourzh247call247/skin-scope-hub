@@ -91,7 +91,7 @@ const DemoUpload = () => {
         </div>
         <h1 className="mt-3 text-xl font-semibold text-foreground">Foto hochladen</h1>
         <p className="mt-1 text-xs text-muted-foreground">
-          Nur für die Demo · Bild wird nach 24h automatisch gelöscht
+          Nur für die Demo · Bild wird nach Übertragung sofort gelöscht
         </p>
       </header>
 
