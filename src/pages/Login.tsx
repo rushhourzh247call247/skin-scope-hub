@@ -8,10 +8,12 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardDescription } from "@/components/ui/card";
 import { DermLogo } from "@/components/DermLogo";
-import { LogIn, Shield, Clock } from "lucide-react";
+import { LogIn, Shield, Clock, Stethoscope, Sparkles, ArrowRight } from "lucide-react";
 import { SUPPORTED_LANGUAGES } from "@/i18n";
 import { LanguageFlag } from "@/components/LanguageFlag";
-import { LoginDemoBodyMap } from "@/components/LoginDemoBodyMap";
+import { Link } from "react-router-dom";
+
+
 
 const Login = () => {
   const { t, i18n } = useTranslation();
@@ -211,6 +213,16 @@ const Login = () => {
             ))}
           </div>
 
+          {/* Demo hint */}
+          <Link
+            to="/demo"
+            className="mt-4 flex items-center justify-center gap-1.5 rounded-md border border-dashed border-primary/30 bg-primary/5 px-3 py-2 text-xs text-primary hover:bg-primary/10 hover:border-primary/50 transition-colors"
+          >
+            <Sparkles className="h-3 w-3" />
+            <span>Live-Demo ohne Login testen</span>
+            <ArrowRight className="h-3 w-3" />
+          </Link>
+
           <p className="mt-3 text-center text-[9px] text-muted-foreground/50">
             designed by{" "}
             <a href="https://www.techassist.ch" target="_blank" rel="noopener noreferrer" className="font-medium hover:text-muted-foreground transition-colors">
@@ -221,23 +233,24 @@ const Login = () => {
       </Card>
       </div>
 
-      {/* Right: Live demo body map */}
-      <div className="relative hidden lg:block bg-gradient-to-br from-muted/30 via-background to-primary/5 border-l border-border">
-        <div className="absolute inset-0">
-          <LoginDemoBodyMap />
-        </div>
-        {/* Tagline footer */}
-        <div className="pointer-events-none absolute bottom-4 right-4 z-10 text-right">
-          <div className="text-xs font-semibold tracking-wide text-foreground/80">
+      {/* Right: Clean hero panel */}
+      <div className="relative hidden lg:flex flex-col items-center justify-center bg-gradient-to-br from-muted/30 via-background to-primary/5 border-l border-border px-12">
+        <div className="flex flex-col items-center text-center max-w-md">
+          <div className="flex h-20 w-20 items-center justify-center rounded-2xl bg-gradient-to-br from-primary to-primary/70 shadow-lg shadow-primary/20 mb-6">
+            <Stethoscope className="h-10 w-10 text-primary-foreground" />
+          </div>
+          <h2 className="text-2xl font-semibold tracking-tight text-foreground">
             Klinische Hautdiagnostik
-          </div>
-          <div className="text-[10px] text-muted-foreground">
+          </h2>
+          <p className="mt-2 text-sm text-muted-foreground tracking-wide">
             Präzise · Sicher · Schweizer Server
-          </div>
+          </p>
         </div>
       </div>
+
     </div>
   );
 };
 
 export default Login;
+
