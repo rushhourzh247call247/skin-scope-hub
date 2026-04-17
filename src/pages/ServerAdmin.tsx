@@ -485,15 +485,16 @@ const ServerAdmin = () => {
         {/* ── Backups & Snapshots ───────────────────── */}
         <Card>
           <CardHeader className="pb-3">
-            <div className="flex items-center justify-between">
-              <CardTitle className="flex items-center gap-2 text-lg">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+              <CardTitle className="flex items-center gap-2 text-base sm:text-lg">
                 <Database className="h-5 w-5 text-primary" />
                 Backups & Snapshots
               </CardTitle>
-              <div className="flex gap-2">
+              <div className="flex gap-2 self-end sm:self-auto">
                 <Button
                   variant="outline"
                   size="sm"
+                  className="gap-1 text-xs"
                   onClick={() => setConfirmAction({
                     title: "Snapshot auf Live-Server erstellen?",
                     description: "Die aktuelle Live-Datenbank und Bilder werden als Snapshot gesichert.",
