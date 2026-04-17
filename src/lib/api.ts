@@ -3,6 +3,7 @@ import type { LesionClassification, Appointment, PatientDocument, Consultation }
 const DEV_API_BASE_URL = 'https://dev.derm247.ch/api';
 const LIVE_API_BASE_URL = 'https://api.derm247.ch/api';
 const LIVE_API_HOSTS = new Set(['proto.derm247.ch', 'app.derm247.ch', 'skin-scope-hub.lovable.app']);
+const LIVE_SERVER_ADMIN_HOST_SUFFIXES = ['.lovable.app', '.lovableproject.com'];
 
 let authToken: string | null = null;
 
@@ -15,9 +16,8 @@ function getDefaultApiBaseUrl() {
   return LIVE_API_HOSTS.has(window.location.hostname) ? LIVE_API_BASE_URL : DEV_API_BASE_URL;
 }
 
-function getApiBaseUrl() {
-  const configuredUrl = import.meta.env.VITE_API_BASE_URL?.trim();
-  const normalizedUrl = (configuredUrl || getDefaultApiBaseUrl()).replace(/\/$/, '');
+function normalizeApiBaseUrl(url: string) {
+  const normalizedUrl = url.replace(/\/$/, '');
 
   if (typeof window !== 'undefined' && window.location.protocol === 'https:' && normalizedUrl.startsWith('http://')) {
     return normalizedUrl.replace(/^http:\/\//, 'https://');
@@ -26,11 +26,33 @@ function getApiBaseUrl() {
   return normalizedUrl;
 }
 
+function getApiBaseUrl() {
+  const configuredUrl = import.meta.env.VITE_API_BASE_URL?.trim();
+  return normalizeApiBaseUrl(configuredUrl || getDefaultApiBaseUrl());
+}
+
+function getServerAdminApiBaseUrl() {
+  const configuredUrl = import.meta.env.VITE_SERVER_ADMIN_API_BASE_URL?.trim();
+  if (configuredUrl) return normalizeApiBaseUrl(configuredUrl);
+  if (typeof window === 'undefined') return LIVE_API_BASE_URL;
+
+  const hostname = window.location.hostname;
+  const shouldUseLiveApi =
+    LIVE_API_HOSTS.has(hostname) ||
+    LIVE_SERVER_ADMIN_HOST_SUFFIXES.some((suffix) => hostname.endsWith(suffix));
+
+  return normalizeApiBaseUrl(shouldUseLiveApi ? LIVE_API_BASE_URL : getDefaultApiBaseUrl());
+}
+
 function getStorageBaseUrl() {
   return getApiBaseUrl().replace(/\/api$/, '');
 }
 
 async function request<T>(path: string, options?: RequestInit): Promise<T> {
+  return requestToBase<T>(getApiBaseUrl(), path, options);
+}
+
+async function requestToBase<T>(baseUrl: string, path: string, options?: RequestInit): Promise<T> {
   const headers: Record<string, string> = {
     Accept: 'application/json',
     ...(!options?.body || options.body instanceof FormData ? {} : { 'Content-Type': 'application/json' }),
@@ -42,7 +64,7 @@ async function request<T>(path: string, options?: RequestInit): Promise<T> {
 
   let res: Response;
   try {
-    res = await fetch(`${getApiBaseUrl()}${path}`, {
+    res = await fetch(`${baseUrl}${path}`, {
       ...options,
       headers: {
         ...headers,
@@ -92,6 +114,10 @@ async function request<T>(path: string, options?: RequestInit): Promise<T> {
 }
 
 async function requestBlob(path: string, options?: RequestInit): Promise<Blob> {
+  return requestBlobToBase(getApiBaseUrl(), path, options);
+}
+
+async function requestBlobToBase(baseUrl: string, path: string, options?: RequestInit): Promise<Blob> {
   const headers: Record<string, string> = {
     Accept: 'application/pdf, application/octet-stream, */*',
     ...(!options?.body || options.body instanceof FormData ? {} : { 'Content-Type': 'application/json' }),
@@ -103,7 +129,7 @@ async function requestBlob(path: string, options?: RequestInit): Promise<Blob> {
 
   let res: Response;
   try {
-    res = await fetch(`${getApiBaseUrl()}${path}`, {
+    res = await fetch(`${baseUrl}${path}`, {
       ...options,
       headers: {
         ...headers,
@@ -126,6 +152,10 @@ async function requestBlob(path: string, options?: RequestInit): Promise<Blob> {
   }
 
   return res.blob();
+}
+
+async function requestServerAdmin<T>(path: string, options?: RequestInit): Promise<T> {
+  return requestToBase<T>(getServerAdminApiBaseUrl(), path, options);
 }
 
 function isApiNotFoundError(error: unknown) {
@@ -555,7 +585,7 @@ export const api = {
   // Server Admin
   serverAdmin: {
     getStatus: () =>
-      request<{
+      requestServerAdmin<{
         uptime: string;
         cpu_usage: number;
         memory_usage: number;
@@ -568,7 +598,7 @@ export const api = {
         app_version?: string;
       }>('/server-admin/status'),
     getVersions: () =>
-      request<{
+      requestServerAdmin<{
         hash: string;
         short_hash: string;
         date: string;
@@ -577,29 +607,29 @@ export const api = {
         is_current: boolean;
       }[]>('/server-admin/versions'),
     getBackups: () =>
-      request<{
+      requestServerAdmin<{
         filename: string;
         size: string;
         date: string;
         age: string;
       }[]>('/server-admin/backups'),
     getServices: () =>
-      request<Record<string, { running: boolean; pid?: number }>>('/server-admin/services'),
+      requestServerAdmin<Record<string, { running: boolean; pid?: number }>>('/server-admin/services'),
     deploy: (actionPassword: string) =>
-      request<{
+      requestServerAdmin<{
         success: boolean;
         error?: string;
         steps?: { label: string; success: boolean; output?: string }[];
       }>('/server-admin/deploy', { method: 'POST', body: JSON.stringify({ action_password: actionPassword }) }),
     createBackup: (actionPassword: string) =>
-      request<{ success: boolean; filename: string; error?: string }>('/server-admin/backup', { method: 'POST', body: JSON.stringify({ action_password: actionPassword }) }),
+      requestServerAdmin<{ success: boolean; filename: string; error?: string }>('/server-admin/backup', { method: 'POST', body: JSON.stringify({ action_password: actionPassword }) }),
     rollback: (hash: string, actionPassword: string) =>
-      request<{ success: boolean; error?: string }>('/server-admin/rollback', { method: 'POST', body: JSON.stringify({ hash, action_password: actionPassword }) }),
+      requestServerAdmin<{ success: boolean; error?: string }>('/server-admin/rollback', { method: 'POST', body: JSON.stringify({ hash, action_password: actionPassword }) }),
     restoreBackup: (filename: string, actionPassword: string) =>
-      request<{ success: boolean; error?: string }>('/server-admin/backup/restore', { method: 'POST', body: JSON.stringify({ filename, action_password: actionPassword }) }),
+      requestServerAdmin<{ success: boolean; error?: string }>('/server-admin/backup/restore', { method: 'POST', body: JSON.stringify({ filename, action_password: actionPassword }) }),
     restartService: (service: string, actionPassword: string) =>
-      request<{ success: boolean; error?: string }>('/server-admin/services/restart', { method: 'POST', body: JSON.stringify({ service, action_password: actionPassword }) }),
+      requestServerAdmin<{ success: boolean; error?: string }>('/server-admin/services/restart', { method: 'POST', body: JSON.stringify({ service, action_password: actionPassword }) }),
     createSnapshot: (actionPassword: string) =>
-      request<{ success: boolean; filename?: string; error?: string }>('/server-admin/snapshot', { method: 'POST', body: JSON.stringify({ action_password: actionPassword }) }),
+      requestServerAdmin<{ success: boolean; filename?: string; error?: string }>('/server-admin/snapshot', { method: 'POST', body: JSON.stringify({ action_password: actionPassword }) }),
   },
 };
