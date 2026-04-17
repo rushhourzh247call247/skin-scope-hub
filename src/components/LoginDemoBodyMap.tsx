@@ -144,7 +144,7 @@ export const LoginDemoBodyMap = () => {
     try {
       const res = await fetch(`${DEMO_API_BASE}/demo/qr-token`, { method: "POST" });
       if (!res.ok) {
-        if (res.status === 429) throw new Error("Zu viele Anfragen — bitte später erneut versuchen.");
+        if (res.status === 429) throw new Error("Demo-Limit erreicht — bitte 1 Stunde warten oder IP-Limit auf dem Server erhöhen.");
         throw new Error("Konnte keinen QR-Code erstellen.");
       }
       const data = await res.json();
