@@ -84,7 +84,7 @@ function Terminal({ lines, isRunning }: { lines: TerminalLine[]; isRunning: bool
         <span className="ml-3 text-xs text-zinc-500 font-mono">server-admin — bash</span>
         {isRunning && <Loader2 className="ml-auto h-3.5 w-3.5 animate-spin text-sky-400" />}
       </div>
-      <div ref={ref} className="h-64 overflow-y-auto p-4 font-mono text-xs leading-5 scrollbar-thin">
+      <div ref={ref} className="h-48 sm:h-64 overflow-y-auto p-3 sm:p-4 font-mono text-[11px] sm:text-xs leading-5 scrollbar-thin">
         {lines.length === 0 && (
           <span className="text-zinc-600">Bereit für Befehle…</span>
         )}
