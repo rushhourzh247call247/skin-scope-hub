@@ -566,7 +566,7 @@ const ServerAdmin = () => {
                 <Button
                   variant="outline"
                   size="icon"
-                  onClick={() => setTerminalLines([])}
+                  onClick={() => { setTerminalLines([]); setDeployState("idle"); }}
                   disabled={isRunning}
                   title="Terminal leeren"
                   className="h-9 w-9 shrink-0"
@@ -577,6 +577,11 @@ const ServerAdmin = () => {
             </div>
           </CardHeader>
           <CardContent>
+            <DeployProgress
+              isRunning={isRunning}
+              isDone={deployState === "done"}
+              hasFailed={deployState === "failed"}
+            />
             <Terminal lines={terminalLines} isRunning={isRunning} />
           </CardContent>
         </Card>
