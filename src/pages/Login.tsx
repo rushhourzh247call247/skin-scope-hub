@@ -117,10 +117,9 @@ const Login = () => {
   };
 
   return (
-    <div className="grid min-h-screen grid-cols-1 lg:grid-cols-[minmax(380px,440px)_1fr] bg-background">
-      {/* Left: Login form */}
-      <div className="flex items-center justify-center px-4 py-8 lg:px-8">
-        <Card className="w-full max-w-sm border-0 shadow-none lg:border lg:shadow-sm">
+    <div className="flex min-h-screen items-center justify-center bg-background px-4 py-8">
+      <div className="w-full max-w-sm">
+        <Card className="w-full border-0 shadow-none sm:border sm:shadow-sm">
         <CardHeader className="text-center">
           <DermLogo size="lg" className="justify-center" />
           <CardDescription className="mt-2">
@@ -232,22 +231,6 @@ const Login = () => {
         </CardContent>
       </Card>
       </div>
-
-      {/* Right: Clean hero panel */}
-      <div className="relative hidden lg:flex flex-col items-center justify-center bg-gradient-to-br from-muted/30 via-background to-primary/5 border-l border-border px-12">
-        <div className="flex flex-col items-center text-center max-w-md">
-          <div className="flex h-20 w-20 items-center justify-center rounded-2xl bg-gradient-to-br from-primary to-primary/70 shadow-lg shadow-primary/20 mb-6">
-            <Stethoscope className="h-10 w-10 text-primary-foreground" />
-          </div>
-          <h2 className="text-2xl font-semibold tracking-tight text-foreground">
-            Klinische Hautdiagnostik
-          </h2>
-          <p className="mt-2 text-sm text-muted-foreground tracking-wide">
-            Präzise · Sicher · Schweizer Server
-          </p>
-        </div>
-      </div>
-
     </div>
   );
 };
