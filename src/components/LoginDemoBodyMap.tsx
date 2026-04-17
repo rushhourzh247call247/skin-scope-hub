@@ -98,11 +98,22 @@ export const LoginDemoBodyMap = () => {
     setTimeout(() => setPhotoDialogSpotId(finalized.id), 200);
   };
 
+  const stopPolling = () => {
+    if (pollIntervalRef.current) {
+      window.clearInterval(pollIntervalRef.current);
+      pollIntervalRef.current = null;
+    }
+    setQrPolling(false);
+  };
+
   const reset = () => {
     setSpots([]);
     setSelectedId(null);
     setPendingSpot(null);
     setPhotoDialogSpotId(null);
+    setQrSession(null);
+    setQrError(null);
+    stopPolling();
   };
 
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -120,19 +131,83 @@ export const LoginDemoBodyMap = () => {
     if (fileInputRef.current) fileInputRef.current.value = "";
   };
 
-  const simulateQrUpload = () => {
+  const startQrUpload = async () => {
     if (!photoDialogSpotId) return;
-    setQrSimulating(true);
-    // Simulate phone upload after delay
-    setTimeout(() => {
-      const randomPhoto = DEMO_PHOTOS[Math.floor(Math.random() * DEMO_PHOTOS.length)];
-      setSpots((prev) =>
-        prev.map((s) => (s.id === photoDialogSpotId ? { ...s, photoDataUrl: randomPhoto } : s)),
-      );
-      setQrSimulating(false);
-      setPhotoDialogSpotId(null);
-    }, 2200);
+    setQrLoading(true);
+    setQrError(null);
+    try {
+      const res = await fetch(`${DEMO_API_BASE}/demo/qr-token`, { method: "POST" });
+      if (!res.ok) {
+        if (res.status === 429) throw new Error("Zu viele Anfragen — bitte später erneut versuchen.");
+        throw new Error("Konnte keinen QR-Code erstellen.");
+      }
+      const data = await res.json();
+      const url = `${FRONTEND_DEMO_DOMAIN}/demo-upload?token=${data.token}`;
+      setQrSession({ token: data.token, url });
+      setQrPolling(true);
+    } catch (e: any) {
+      setQrError(e?.message || "Fehler — Demo-Server nicht erreichbar.");
+    } finally {
+      setQrLoading(false);
+    }
   };
+
+  // Poll for upload completion
+  useEffect(() => {
+    if (!qrSession || !qrPolling || !photoDialogSpotId) return;
+    const targetSpotId = photoDialogSpotId;
+    const token = qrSession.token;
+    let cancelled = false;
+
+    const tick = async () => {
+      try {
+        const res = await fetch(`${DEMO_API_BASE}/demo/qr-status/${token}`);
+        const data = await res.json().catch(() => ({}));
+        if (cancelled) return;
+        if (data.status === "completed" && data.image_url) {
+          try {
+            const imgRes = await fetch(data.image_url);
+            const blob = await imgRes.blob();
+            const reader = new FileReader();
+            reader.onload = (ev) => {
+              if (cancelled) return;
+              setSpots((prev) =>
+                prev.map((s) =>
+                  s.id === targetSpotId ? { ...s, photoDataUrl: ev.target?.result as string } : s,
+                ),
+              );
+              setPhotoDialogSpotId(null);
+              setQrSession(null);
+              stopPolling();
+            };
+            reader.readAsDataURL(blob);
+          } catch {
+            setSpots((prev) =>
+              prev.map((s) => (s.id === targetSpotId ? { ...s, photoDataUrl: data.image_url } : s)),
+            );
+            setPhotoDialogSpotId(null);
+            setQrSession(null);
+            stopPolling();
+          }
+        } else if (data.status === "expired" || data.status === "invalid") {
+          setQrError("QR-Code abgelaufen. Bitte neu generieren.");
+          setQrSession(null);
+          stopPolling();
+        }
+      } catch {
+        // Network hiccup — keep polling
+      }
+    };
+
+    pollIntervalRef.current = window.setInterval(tick, 2500);
+    tick();
+    return () => {
+      cancelled = true;
+      if (pollIntervalRef.current) window.clearInterval(pollIntervalRef.current);
+    };
+  }, [qrSession, qrPolling, photoDialogSpotId]);
+
+  useEffect(() => () => stopPolling(), []);
 
   const removePhoto = (spotId: number) => {
     setSpots((prev) => prev.map((s) => (s.id === spotId ? { ...s, photoDataUrl: undefined } : s)));
