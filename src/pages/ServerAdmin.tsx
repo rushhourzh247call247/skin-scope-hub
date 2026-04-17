@@ -728,15 +728,46 @@ const ServerAdmin = () => {
       </div>
 
       {/* ── Confirm Dialog ───────────────────── */}
-      <AlertDialog open={!!confirmAction} onOpenChange={(o) => { if (!o) { setConfirmAction(null); setActionPassword(""); setPasswordError(false); } }}>
+      <AlertDialog
+        open={!!confirmAction}
+        onOpenChange={(o) => {
+          if (!o) {
+            setConfirmAction(null);
+            setActionPassword("");
+            setRestoreConfirmText("");
+            setPasswordError(false);
+          }
+        }}
+      >
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle className="flex items-center gap-2">
-              <AlertTriangle className="h-5 w-5 text-amber-500" />
+              <AlertTriangle className={`h-5 w-5 ${confirmAction?.destructive ? "text-destructive" : "text-amber-500"}`} />
               {confirmAction?.title}
             </AlertDialogTitle>
             <AlertDialogDescription>{confirmAction?.description}</AlertDialogDescription>
           </AlertDialogHeader>
+
+          {/* 🛡️ Extra-Schutz für destruktive Aktionen: "RESTORE" eintippen */}
+          {confirmAction?.requireTypedConfirm && (
+            <div className="space-y-2 rounded-md border border-destructive/30 bg-destructive/5 p-3">
+              <label className="text-xs font-semibold text-destructive flex items-center gap-1.5">
+                <AlertTriangle className="h-3.5 w-3.5" />
+                Zur Bestätigung exakt eintippen: <code className="font-mono bg-destructive/10 px-1 rounded">RESTORE</code>
+              </label>
+              <Input
+                placeholder="RESTORE"
+                value={restoreConfirmText}
+                onChange={(e) => setRestoreConfirmText(e.target.value)}
+                className="font-mono"
+                autoComplete="off"
+                autoCapitalize="characters"
+                autoCorrect="off"
+                spellCheck={false}
+              />
+            </div>
+          )}
+
           <div className="space-y-2 py-2">
             <label className="text-sm font-medium text-foreground">Aktions-Passwort eingeben:</label>
             <Input
@@ -745,10 +776,12 @@ const ServerAdmin = () => {
               value={actionPassword}
               onChange={(e) => { setActionPassword(e.target.value); setPasswordError(false); }}
               onKeyDown={(e) => {
-                if (e.key === "Enter" && actionPassword.length > 0) {
+                const typedOk = !confirmAction?.requireTypedConfirm || restoreConfirmText.trim() === "RESTORE";
+                if (e.key === "Enter" && actionPassword.length > 0 && typedOk) {
                   confirmAction?.onConfirm(actionPassword);
                   setConfirmAction(null);
                   setActionPassword("");
+                  setRestoreConfirmText("");
                 }
               }}
               className={passwordError ? "border-destructive" : ""}
@@ -756,21 +789,26 @@ const ServerAdmin = () => {
               autoCapitalize="none"
               autoCorrect="off"
               spellCheck={false}
-              autoFocus
+              autoFocus={!confirmAction?.requireTypedConfirm}
             />
             {passwordError && <p className="text-xs text-destructive">Falsches Passwort</p>}
           </div>
           <AlertDialogFooter>
             <AlertDialogCancel>Abbrechen</AlertDialogCancel>
             <AlertDialogAction
-              disabled={actionPassword.length === 0}
+              disabled={
+                actionPassword.length === 0 ||
+                (confirmAction?.requireTypedConfirm && restoreConfirmText.trim() !== "RESTORE")
+              }
+              className={confirmAction?.destructive ? "bg-destructive text-destructive-foreground hover:bg-destructive/90" : ""}
               onClick={() => {
                 confirmAction?.onConfirm(actionPassword);
                 setConfirmAction(null);
                 setActionPassword("");
+                setRestoreConfirmText("");
               }}
             >
-              Bestätigen
+              {confirmAction?.destructive ? "Endgültig wiederherstellen" : "Bestätigen"}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
