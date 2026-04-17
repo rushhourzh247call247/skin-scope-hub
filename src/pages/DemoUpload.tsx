@@ -44,10 +44,13 @@ const DemoUpload = () => {
   const upload = async (file: File) => {
     if (!token) return;
 
-    const fileName = file.name?.toLowerCase() || "";
-    const fileType = file.type?.toLowerCase() || "";
+    const fileName = file.name?.toLowerCase() || "(kein Name)";
+    const fileType = file.type?.toLowerCase() || "(kein Typ)";
+    const fileSize = file.size;
+    const diagPrefix = `[${fileType} · ${(fileSize / 1024).toFixed(0)}KB · ${fileName.slice(-20)}]`;
+
     if (fileType.includes("heic") || fileType.includes("heif") || fileName.endsWith(".heic") || fileName.endsWith(".heif")) {
-      setErrorMsg("HEIC/HEIF wird hier noch nicht unterstützt. Bitte das Bild als JPG/PNG wählen oder direkt mit der Kamera aufnehmen.");
+      setErrorMsg(`HEIC/HEIF wird nicht unterstützt. ${diagPrefix} Bitte iPhone-Einstellungen → Kamera → Formate → 'Maximale Kompatibilität' wählen.`);
       setStatus("error");
       return;
     }
@@ -62,21 +65,26 @@ const DemoUpload = () => {
         method: "POST",
         body: fd,
       });
-      const data = await res.json().catch(() => ({}));
+      const rawText = await res.text();
+      let data: any = {};
+      try { data = JSON.parse(rawText); } catch { /* not json */ }
+
       if (!res.ok) {
-        if (res.status === 410) setStatus("expired");
-        else if (res.status === 409) {
-          setErrorMsg("Dieser QR-Code wurde bereits verwendet.");
+        if (res.status === 410) {
+          setStatus("expired");
+        } else if (res.status === 409) {
+          setErrorMsg(`Dieser QR-Code wurde bereits verwendet. ${diagPrefix}`);
           setStatus("error");
         } else {
-          setErrorMsg(data?.error || "Upload fehlgeschlagen. Bitte JPG oder PNG verwenden.");
+          const serverMsg = data?.error || data?.message || rawText.slice(0, 120) || "(leere Antwort)";
+          setErrorMsg(`HTTP ${res.status} · ${serverMsg} ${diagPrefix} → ${API_BASE}`);
           setStatus("error");
         }
         return;
       }
       setStatus("done");
     } catch (e: any) {
-      setErrorMsg(e?.message || "Netzwerkfehler.");
+      setErrorMsg(`Netzwerkfehler: ${e?.message || "unbekannt"} ${diagPrefix} → ${API_BASE}`);
       setStatus("error");
     }
   };
