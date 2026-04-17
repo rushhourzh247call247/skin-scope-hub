@@ -39,12 +39,6 @@ const SELECTABLE_CLASSIFICATIONS: LesionClassification[] = [
   "other",
 ];
 
-// Sample demo photos (data URIs of small clinical-looking dermatology placeholders)
-const DEMO_PHOTOS = [
-  "data:image/svg+xml;utf8," + encodeURIComponent(`<svg xmlns='http://www.w3.org/2000/svg' width='200' height='200'><defs><radialGradient id='g' cx='50%' cy='50%' r='50%'><stop offset='0%' stop-color='#8b4513'/><stop offset='40%' stop-color='#5d2f0a'/><stop offset='100%' stop-color='#f5deb3'/></radialGradient></defs><rect width='200' height='200' fill='#f5deb3'/><ellipse cx='100' cy='100' rx='45' ry='38' fill='url(#g)'/><ellipse cx='90' cy='95' rx='8' ry='5' fill='#3d1a02' opacity='0.6'/></svg>`),
-  "data:image/svg+xml;utf8," + encodeURIComponent(`<svg xmlns='http://www.w3.org/2000/svg' width='200' height='200'><defs><radialGradient id='g2' cx='50%' cy='50%' r='50%'><stop offset='0%' stop-color='#2d1810'/><stop offset='30%' stop-color='#6b3410'/><stop offset='60%' stop-color='#a0522d'/><stop offset='100%' stop-color='#deb887'/></radialGradient></defs><rect width='200' height='200' fill='#deb887'/><ellipse cx='100' cy='100' rx='55' ry='48' fill='url(#g2)'/><circle cx='85' cy='90' r='6' fill='#1a0a02'/><circle cx='115' cy='110' r='4' fill='#2d1810'/></svg>`),
-  "data:image/svg+xml;utf8," + encodeURIComponent(`<svg xmlns='http://www.w3.org/2000/svg' width='200' height='200'><defs><radialGradient id='g3' cx='50%' cy='50%' r='50%'><stop offset='0%' stop-color='#4a2511'/><stop offset='100%' stop-color='#e8c39e'/></radialGradient></defs><rect width='200' height='200' fill='#e8c39e'/><circle cx='100' cy='100' r='32' fill='url(#g3)'/></svg>`),
-];
 
 export const LoginDemoBodyMap = () => {
   const [gender, setGender] = useState<Gender>("male");
