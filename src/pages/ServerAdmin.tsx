@@ -578,6 +578,10 @@ const ServerAdmin = () => {
                 }
               }}
               className={passwordError ? "border-destructive" : ""}
+              autoComplete="current-password"
+              autoCapitalize="none"
+              autoCorrect="off"
+              spellCheck={false}
               autoFocus
             />
             {passwordError && <p className="text-xs text-destructive">Falsches Passwort</p>}
