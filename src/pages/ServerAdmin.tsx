@@ -655,6 +655,23 @@ const ServerAdmin = () => {
             </div>
           </CardHeader>
           <CardContent>
+            {/* 📊 Übersicht */}
+            {!backupsLoading && !backupsError && backups.length > 0 && (
+              <div className="mb-3 flex flex-wrap items-center gap-x-4 gap-y-1 text-[11px] text-muted-foreground">
+                <span><strong className="text-foreground">{backups.length}</strong> Backups</span>
+                <span>•</span>
+                <span><strong className="text-foreground">{formatBytes(totalBackupBytes)}</strong> gesamt</span>
+                <span>•</span>
+                <span className="flex items-center gap-1">
+                  <span className="inline-block h-1.5 w-1.5 rounded-full bg-sky-500" />
+                  {autoCount} Auto
+                </span>
+                <span className="flex items-center gap-1">
+                  <span className="inline-block h-1.5 w-1.5 rounded-full bg-emerald-500" />
+                  {manualCount} Manuell
+                </span>
+              </div>
+            )}
             {backupsLoading ? (
               <div className="flex justify-center py-8"><Loader2 className="h-5 w-5 animate-spin text-muted-foreground" /></div>
             ) : backupsError ? (
@@ -665,27 +682,45 @@ const ServerAdmin = () => {
               <p className="text-sm text-muted-foreground text-center py-8">Keine Backups vorhanden</p>
             ) : (
               <div className="max-h-80 overflow-y-auto space-y-1.5">
-                {backups.map((b: BackupEntry) => (
-                  <div key={b.filename} className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 rounded-lg bg-muted/50 px-3 py-2 hover:bg-muted">
-                    <div className="min-w-0 flex-1">
-                      <p className="text-xs sm:text-sm font-mono break-all">{b.filename}</p>
-                      <p className="text-[10px] text-muted-foreground">{b.date} — {b.size} — {b.age}</p>
+                {backups.map((b: BackupEntry) => {
+                  const auto = isAutoBackup(b.filename);
+                  return (
+                    <div key={b.filename} className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 rounded-lg bg-muted/50 px-3 py-2 hover:bg-muted">
+                      <div className="min-w-0 flex-1">
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <Badge
+                            variant="outline"
+                            className={
+                              auto
+                                ? "text-[9px] h-4 px-1.5 border-sky-500/40 text-sky-600 dark:text-sky-400 bg-sky-500/10"
+                                : "text-[9px] h-4 px-1.5 border-emerald-500/40 text-emerald-600 dark:text-emerald-400 bg-emerald-500/10"
+                            }
+                            title={auto ? "Automatisch vor einem Deploy erstellt" : "Manuell über den Backup-Button erstellt"}
+                          >
+                            {auto ? "AUTO" : "MANUELL"}
+                          </Badge>
+                          <p className="text-xs sm:text-sm font-mono break-all">{b.filename}</p>
+                        </div>
+                        <p className="text-[10px] text-muted-foreground mt-0.5">{b.date} — {b.size} — {b.age}</p>
+                      </div>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="self-end sm:self-auto text-xs h-7 shrink-0 text-destructive hover:text-destructive hover:bg-destructive/10"
+                        disabled={isRunning}
+                        onClick={() => setConfirmAction({
+                          title: "Backup auf Live-Server wiederherstellen?",
+                          description: `Die aktuelle Live-Datenbank wird mit "${b.filename}" überschrieben. Ein Sicherungs-Backup wird vorher erstellt.`,
+                          requireTypedConfirm: true,
+                          destructive: true,
+                          onConfirm: (pw) => restoreMutation.mutate({ filename: b.filename, password: pw }),
+                        })}
+                      >
+                        <RotateCcw className="h-3.5 w-3.5 mr-1" /> Restore
+                      </Button>
                     </div>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      className="self-end sm:self-auto text-xs h-7 shrink-0"
-                      disabled={isRunning}
-                      onClick={() => setConfirmAction({
-                        title: "Backup auf Live-Server wiederherstellen?",
-                        description: `Die aktuelle Live-Datenbank wird mit "${b.filename}" überschrieben. Ein Sicherungs-Backup wird vorher erstellt.`,
-                        onConfirm: (pw) => restoreMutation.mutate({ filename: b.filename, password: pw }),
-                      })}
-                    >
-                      <RotateCcw className="h-3.5 w-3.5 mr-1" /> Restore
-                    </Button>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             )}
           </CardContent>
