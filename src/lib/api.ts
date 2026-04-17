@@ -211,7 +211,7 @@ async function requestBlobToBase(baseUrl: string, path: string, options?: Reques
 }
 
 async function requestServerAdmin<T>(path: string, options?: RequestInit): Promise<T> {
-  return requestToBase<T>(getServerAdminApiBaseUrl(), path, options);
+  return requestToBase<T>(getServerAdminApiBaseUrl(), path, options, { suppressAuthRedirect: true });
 }
 
 function isApiNotFoundError(error: unknown) {
