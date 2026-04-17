@@ -216,9 +216,12 @@ const ServerAdmin = () => {
   const [deployState, setDeployState] = useState<"idle" | "running" | "done" | "failed">("idle");
   const [actionPassword, setActionPassword] = useState("");
   const [passwordError, setPasswordError] = useState(false);
+  const [restoreConfirmText, setRestoreConfirmText] = useState("");
   const [confirmAction, setConfirmAction] = useState<{
     title: string;
     description: string;
+    requireTypedConfirm?: boolean; // 🛡️ Bei Restore: zusätzlich "RESTORE" eintippen
+    destructive?: boolean;
     onConfirm: (password: string) => void;
   } | null>(null);
 
@@ -419,6 +422,32 @@ const ServerAdmin = () => {
 
   const usageColor = (pct: number) => pct > 90 ? "text-red-500" : pct > 70 ? "text-amber-500" : "text-emerald-500";
   const usageStatus = (pct: number): "ok" | "warn" | "error" => pct > 90 ? "error" : pct > 70 ? "warn" : "ok";
+
+  /* ── Backup-Klassifizierung (Frontend-only, basiert auf Dateiname) ──────── */
+  // Backend benennt Pre-Deploy-Backups als "db_pre_deploy_*" oder "pre_deploy_*"
+  const isAutoBackup = (filename: string) =>
+    /pre[_-]?deploy/i.test(filename) || /auto/i.test(filename);
+
+  // Größe-Strings wie "292 KB" / "1.2 MB" zu Bytes parsen für Summen
+  const parseSizeToBytes = (size: string): number => {
+    const m = size.trim().match(/^([\d.,]+)\s*(B|KB|MB|GB|TB)$/i);
+    if (!m) return 0;
+    const num = parseFloat(m[1].replace(",", "."));
+    const unit = m[2].toUpperCase();
+    const mult = { B: 1, KB: 1024, MB: 1024 ** 2, GB: 1024 ** 3, TB: 1024 ** 4 }[unit] ?? 1;
+    return num * mult;
+  };
+
+  const formatBytes = (bytes: number): string => {
+    if (bytes < 1024) return `${bytes} B`;
+    if (bytes < 1024 ** 2) return `${(bytes / 1024).toFixed(1)} KB`;
+    if (bytes < 1024 ** 3) return `${(bytes / 1024 ** 2).toFixed(1)} MB`;
+    return `${(bytes / 1024 ** 3).toFixed(2)} GB`;
+  };
+
+  const totalBackupBytes = backups.reduce((sum: number, b: BackupEntry) => sum + parseSizeToBytes(b.size), 0);
+  const autoCount = backups.filter((b: BackupEntry) => isAutoBackup(b.filename)).length;
+  const manualCount = backups.length - autoCount;
 
   return (
     <div className="min-h-screen space-y-4 sm:space-y-6 p-3 sm:p-4 md:p-6 overflow-x-hidden max-w-full">
@@ -626,6 +655,23 @@ const ServerAdmin = () => {
             </div>
           </CardHeader>
           <CardContent>
+            {/* 📊 Übersicht */}
+            {!backupsLoading && !backupsError && backups.length > 0 && (
+              <div className="mb-3 flex flex-wrap items-center gap-x-4 gap-y-1 text-[11px] text-muted-foreground">
+                <span><strong className="text-foreground">{backups.length}</strong> Backups</span>
+                <span>•</span>
+                <span><strong className="text-foreground">{formatBytes(totalBackupBytes)}</strong> gesamt</span>
+                <span>•</span>
+                <span className="flex items-center gap-1">
+                  <span className="inline-block h-1.5 w-1.5 rounded-full bg-sky-500" />
+                  {autoCount} Auto
+                </span>
+                <span className="flex items-center gap-1">
+                  <span className="inline-block h-1.5 w-1.5 rounded-full bg-emerald-500" />
+                  {manualCount} Manuell
+                </span>
+              </div>
+            )}
             {backupsLoading ? (
               <div className="flex justify-center py-8"><Loader2 className="h-5 w-5 animate-spin text-muted-foreground" /></div>
             ) : backupsError ? (
@@ -636,27 +682,45 @@ const ServerAdmin = () => {
               <p className="text-sm text-muted-foreground text-center py-8">Keine Backups vorhanden</p>
             ) : (
               <div className="max-h-80 overflow-y-auto space-y-1.5">
-                {backups.map((b: BackupEntry) => (
-                  <div key={b.filename} className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 rounded-lg bg-muted/50 px-3 py-2 hover:bg-muted">
-                    <div className="min-w-0 flex-1">
-                      <p className="text-xs sm:text-sm font-mono break-all">{b.filename}</p>
-                      <p className="text-[10px] text-muted-foreground">{b.date} — {b.size} — {b.age}</p>
+                {backups.map((b: BackupEntry) => {
+                  const auto = isAutoBackup(b.filename);
+                  return (
+                    <div key={b.filename} className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 rounded-lg bg-muted/50 px-3 py-2 hover:bg-muted">
+                      <div className="min-w-0 flex-1">
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <Badge
+                            variant="outline"
+                            className={
+                              auto
+                                ? "text-[9px] h-4 px-1.5 border-sky-500/40 text-sky-600 dark:text-sky-400 bg-sky-500/10"
+                                : "text-[9px] h-4 px-1.5 border-emerald-500/40 text-emerald-600 dark:text-emerald-400 bg-emerald-500/10"
+                            }
+                            title={auto ? "Automatisch vor einem Deploy erstellt" : "Manuell über den Backup-Button erstellt"}
+                          >
+                            {auto ? "AUTO" : "MANUELL"}
+                          </Badge>
+                          <p className="text-xs sm:text-sm font-mono break-all">{b.filename}</p>
+                        </div>
+                        <p className="text-[10px] text-muted-foreground mt-0.5">{b.date} — {b.size} — {b.age}</p>
+                      </div>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="self-end sm:self-auto text-xs h-7 shrink-0 text-destructive hover:text-destructive hover:bg-destructive/10"
+                        disabled={isRunning}
+                        onClick={() => setConfirmAction({
+                          title: "Backup auf Live-Server wiederherstellen?",
+                          description: `Die aktuelle Live-Datenbank wird mit "${b.filename}" überschrieben. Ein Sicherungs-Backup wird vorher erstellt.`,
+                          requireTypedConfirm: true,
+                          destructive: true,
+                          onConfirm: (pw) => restoreMutation.mutate({ filename: b.filename, password: pw }),
+                        })}
+                      >
+                        <RotateCcw className="h-3.5 w-3.5 mr-1" /> Restore
+                      </Button>
                     </div>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      className="self-end sm:self-auto text-xs h-7 shrink-0"
-                      disabled={isRunning}
-                      onClick={() => setConfirmAction({
-                        title: "Backup auf Live-Server wiederherstellen?",
-                        description: `Die aktuelle Live-Datenbank wird mit "${b.filename}" überschrieben. Ein Sicherungs-Backup wird vorher erstellt.`,
-                        onConfirm: (pw) => restoreMutation.mutate({ filename: b.filename, password: pw }),
-                      })}
-                    >
-                      <RotateCcw className="h-3.5 w-3.5 mr-1" /> Restore
-                    </Button>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             )}
           </CardContent>
@@ -664,15 +728,46 @@ const ServerAdmin = () => {
       </div>
 
       {/* ── Confirm Dialog ───────────────────── */}
-      <AlertDialog open={!!confirmAction} onOpenChange={(o) => { if (!o) { setConfirmAction(null); setActionPassword(""); setPasswordError(false); } }}>
+      <AlertDialog
+        open={!!confirmAction}
+        onOpenChange={(o) => {
+          if (!o) {
+            setConfirmAction(null);
+            setActionPassword("");
+            setRestoreConfirmText("");
+            setPasswordError(false);
+          }
+        }}
+      >
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle className="flex items-center gap-2">
-              <AlertTriangle className="h-5 w-5 text-amber-500" />
+              <AlertTriangle className={`h-5 w-5 ${confirmAction?.destructive ? "text-destructive" : "text-amber-500"}`} />
               {confirmAction?.title}
             </AlertDialogTitle>
             <AlertDialogDescription>{confirmAction?.description}</AlertDialogDescription>
           </AlertDialogHeader>
+
+          {/* 🛡️ Extra-Schutz für destruktive Aktionen: "RESTORE" eintippen */}
+          {confirmAction?.requireTypedConfirm && (
+            <div className="space-y-2 rounded-md border border-destructive/30 bg-destructive/5 p-3">
+              <label className="text-xs font-semibold text-destructive flex items-center gap-1.5">
+                <AlertTriangle className="h-3.5 w-3.5" />
+                Zur Bestätigung exakt eintippen: <code className="font-mono bg-destructive/10 px-1 rounded">RESTORE</code>
+              </label>
+              <Input
+                placeholder="RESTORE"
+                value={restoreConfirmText}
+                onChange={(e) => setRestoreConfirmText(e.target.value)}
+                className="font-mono"
+                autoComplete="off"
+                autoCapitalize="characters"
+                autoCorrect="off"
+                spellCheck={false}
+              />
+            </div>
+          )}
+
           <div className="space-y-2 py-2">
             <label className="text-sm font-medium text-foreground">Aktions-Passwort eingeben:</label>
             <Input
@@ -681,10 +776,12 @@ const ServerAdmin = () => {
               value={actionPassword}
               onChange={(e) => { setActionPassword(e.target.value); setPasswordError(false); }}
               onKeyDown={(e) => {
-                if (e.key === "Enter" && actionPassword.length > 0) {
+                const typedOk = !confirmAction?.requireTypedConfirm || restoreConfirmText.trim() === "RESTORE";
+                if (e.key === "Enter" && actionPassword.length > 0 && typedOk) {
                   confirmAction?.onConfirm(actionPassword);
                   setConfirmAction(null);
                   setActionPassword("");
+                  setRestoreConfirmText("");
                 }
               }}
               className={passwordError ? "border-destructive" : ""}
@@ -692,21 +789,26 @@ const ServerAdmin = () => {
               autoCapitalize="none"
               autoCorrect="off"
               spellCheck={false}
-              autoFocus
+              autoFocus={!confirmAction?.requireTypedConfirm}
             />
             {passwordError && <p className="text-xs text-destructive">Falsches Passwort</p>}
           </div>
           <AlertDialogFooter>
             <AlertDialogCancel>Abbrechen</AlertDialogCancel>
             <AlertDialogAction
-              disabled={actionPassword.length === 0}
+              disabled={
+                actionPassword.length === 0 ||
+                (confirmAction?.requireTypedConfirm && restoreConfirmText.trim() !== "RESTORE")
+              }
+              className={confirmAction?.destructive ? "bg-destructive text-destructive-foreground hover:bg-destructive/90" : ""}
               onClick={() => {
                 confirmAction?.onConfirm(actionPassword);
                 setConfirmAction(null);
                 setActionPassword("");
+                setRestoreConfirmText("");
               }}
             >
-              Bestätigen
+              {confirmAction?.destructive ? "Endgültig wiederherstellen" : "Bestätigen"}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
