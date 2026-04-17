@@ -91,7 +91,7 @@ async function request<T>(path: string, options?: RequestInit): Promise<T> {
   return requestToBase<T>(getApiBaseUrl(), path, options);
 }
 
-async function requestToBase<T>(baseUrl: string, path: string, options?: RequestInit): Promise<T> {
+async function requestToBase<T>(baseUrl: string, path: string, options?: RequestInit, opts?: { suppressAuthRedirect?: boolean }): Promise<T> {
   const headers: Record<string, string> = {
     Accept: 'application/json',
     ...(!options?.body || options.body instanceof FormData ? {} : { 'Content-Type': 'application/json' }),
