@@ -248,21 +248,12 @@ const Login = () => {
         </div>
       </div>
 
-      {/* Right: Live demo body map */}
-      <div className="relative hidden lg:block bg-gradient-to-br from-muted/30 via-background to-primary/5 border-l border-border">
-        <div className="absolute inset-0">
-          <LoginDemoBodyMap />
-        </div>
-        {/* Tagline footer */}
-        <div className="pointer-events-none absolute bottom-4 right-4 z-10 text-right">
-          <div className="text-xs font-semibold tracking-wide text-foreground/80">
-            Klinische Hautdiagnostik
-          </div>
-          <div className="text-[10px] text-muted-foreground">
-            Präzise · Sicher · Schweizer Server
-          </div>
-        </div>
-      </div>
+    </div>
+  );
+};
+
+export default Login;
+
     </div>
   );
 };
