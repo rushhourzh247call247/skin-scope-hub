@@ -11,7 +11,8 @@ import { DermLogo } from "@/components/DermLogo";
 import { LogIn, Shield, Clock } from "lucide-react";
 import { SUPPORTED_LANGUAGES } from "@/i18n";
 import { LanguageFlag } from "@/components/LanguageFlag";
-import { LoginDemoBodyMap } from "@/components/LoginDemoBodyMap";
+import { Link } from "react-router-dom";
+import { Stethoscope, Sparkles } from "lucide-react";
 
 const Login = () => {
   const { t, i18n } = useTranslation();
