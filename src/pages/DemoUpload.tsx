@@ -89,7 +89,7 @@ const DemoUpload = () => {
         )}
 
         {status === "expired" && (
-          <Card icon={<AlertCircle className="h-8 w-8 text-warning" />} title="Link abgelaufen">
+          <Card icon={<AlertCircle className="h-8 w-8 text-clinical-warning" />} title="Link abgelaufen">
             Der QR-Code ist abgelaufen (15 min). Bitte einen neuen QR-Code in der Demo generieren.
           </Card>
         )}
