@@ -2,7 +2,7 @@ import type { LesionClassification, Appointment, PatientDocument, Consultation }
 
 const DEV_API_BASE_URL = 'https://dev.derm247.ch/api';
 const LIVE_API_BASE_URL = 'https://api.derm247.ch/api';
-const LIVE_API_HOSTS = new Set(['app.derm247.ch', 'skin-scope-hub.lovable.app']);
+const LIVE_API_HOSTS = new Set(['app.derm247.ch', 'proto.derm247.ch', 'skin-scope-hub.lovable.app']);
 const LIVE_SERVER_ADMIN_HOST_SUFFIXES = ['.lovable.app', '.lovableproject.com'];
 
 let authToken: string | null = null;
