@@ -18,6 +18,7 @@ import {
   Download, Trash2, Camera, Loader2, ChevronRight, AlertTriangle
 } from "lucide-react";
 import { toast } from "sonner";
+import { DeployProgress } from "@/components/DeployProgress";
 
 /* ── Types ─────────────────────────────────────────────── */
 
