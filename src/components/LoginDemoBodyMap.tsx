@@ -196,15 +196,19 @@ export const LoginDemoBodyMap = () => {
             }
 
             if (cancelled) return;
-            setSpots((prev) =>
-              prev.map((s) =>
+            console.log("[QR-Demo] applying photo to spot", targetSpotId, "url length:", localImageUrl.length);
+            setSpots((prev) => {
+              const exists = prev.some((s) => s.id === targetSpotId);
+              console.log("[QR-Demo] spot exists in state?", exists, "current spots:", prev.map((s) => s.id));
+              return prev.map((s) =>
                 s.id === targetSpotId ? { ...s, photoDataUrl: localImageUrl } : s,
-              ),
-            );
+              );
+            });
             setSelectedId(targetSpotId);
             setPhotoDialogSpotId(null);
             setQrSession(null);
             setQrError(null);
+            // Server-Cleanup im Hintergrund (Bild ist bereits als Data-URL lokal)
             fetch(`${DEMO_API_BASE}/demo/consume/${token}`, { method: "POST" }).catch(() => {});
           } catch (err) {
             console.error("[QR-Demo] image load failed:", err);
