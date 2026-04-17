@@ -89,13 +89,13 @@ const DemoUpload = () => {
         )}
 
         {status === "expired" && (
-          <Card icon={<AlertCircle className="h-8 w-8 text-amber-500" />} title="Link abgelaufen">
+          <Card icon={<AlertCircle className="h-8 w-8 text-warning" />} title="Link abgelaufen">
             Der QR-Code ist abgelaufen (15 min). Bitte einen neuen QR-Code in der Demo generieren.
           </Card>
         )}
 
         {status === "done" && (
-          <Card icon={<CheckCircle2 className="h-8 w-8 text-emerald-500" />} title="Foto erfolgreich übertragen">
+          <Card icon={<CheckCircle2 className="h-8 w-8 text-clinical-success" />} title="Foto erfolgreich übertragen">
             Sie können jetzt zum Computer zurückkehren — das Bild erscheint dort in wenigen Sekunden.
             {preview && (
               <img src={preview} alt="Hochgeladen" className="mt-4 mx-auto max-h-48 rounded-lg border border-border" />
