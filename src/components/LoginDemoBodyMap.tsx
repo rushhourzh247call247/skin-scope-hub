@@ -104,11 +104,15 @@ export const LoginDemoBodyMap = () => {
     setTimeout(() => setPhotoDialogSpotId(finalized.id), 200);
   };
 
-  const stopPolling = () => {
+  const clearPollingInterval = () => {
     if (pollIntervalRef.current) {
       window.clearInterval(pollIntervalRef.current);
       pollIntervalRef.current = null;
     }
+  };
+
+  const stopPolling = () => {
+    clearPollingInterval();
     setQrPolling(false);
   };
 
