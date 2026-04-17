@@ -393,12 +393,12 @@ const ServerAdmin = () => {
         {/* ── Deployment Panel ───────────────────── */}
         <Card className="lg:col-span-2">
           <CardHeader className="pb-3">
-            <div className="flex items-center justify-between">
-              <CardTitle className="flex items-center gap-2 text-lg">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+              <CardTitle className="flex items-center gap-2 text-base sm:text-lg">
                 <Rocket className="h-5 w-5 text-primary" />
                 Deployment
               </CardTitle>
-              <div className="flex gap-2">
+              <div className="flex gap-2 self-end sm:self-auto">
                 <Button
                   onClick={() => setConfirmAction({
                     title: "Deployment auf Live-Server starten?",
@@ -406,6 +406,7 @@ const ServerAdmin = () => {
                     onConfirm: (pw) => deployMutation.mutate(pw),
                   })}
                   disabled={isRunning}
+                  size="sm"
                   className="gap-1.5"
                 >
                   {isRunning ? <Loader2 className="h-4 w-4 animate-spin" /> : <Play className="h-4 w-4" />}
@@ -417,6 +418,7 @@ const ServerAdmin = () => {
                   onClick={() => setTerminalLines([])}
                   disabled={isRunning}
                   title="Terminal leeren"
+                  className="h-9 w-9 shrink-0"
                 >
                   <Trash2 className="h-4 w-4" />
                 </Button>
