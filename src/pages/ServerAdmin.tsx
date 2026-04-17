@@ -282,7 +282,7 @@ const ServerAdmin = () => {
   const usageStatus = (pct: number): "ok" | "warn" | "error" => pct > 90 ? "error" : pct > 70 ? "warn" : "ok";
 
   return (
-    <div className="min-h-screen space-y-4 sm:space-y-6 p-3 sm:p-4 md:p-6">
+    <div className="min-h-screen space-y-4 sm:space-y-6 p-3 sm:p-4 md:p-6 overflow-x-hidden max-w-full">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
         <div className="min-w-0">
           <h1 className="text-lg sm:text-2xl font-bold text-foreground flex items-center gap-2 flex-wrap">
@@ -389,9 +389,9 @@ const ServerAdmin = () => {
         </div>
       )}
 
-      <div className="grid gap-6 lg:grid-cols-2">
+      <div className="grid gap-4 sm:gap-6 lg:grid-cols-2">
         {/* ── Deployment Panel ───────────────────── */}
-        <Card className="lg:col-span-2">
+        <Card className="lg:col-span-2 overflow-hidden">
           <CardHeader className="pb-3">
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
               <CardTitle className="flex items-center gap-2 text-base sm:text-lg">
@@ -431,7 +431,7 @@ const ServerAdmin = () => {
         </Card>
 
         {/* ── Versions ───────────────────── */}
-        <Card>
+        <Card className="overflow-hidden">
           <CardHeader className="pb-3">
             <CardTitle className="flex items-center gap-2 text-lg">
               <GitBranch className="h-5 w-5 text-primary" />
@@ -448,7 +448,7 @@ const ServerAdmin = () => {
                 {versions.map((v: GitVersion) => (
                   <div
                     key={v.hash}
-                    className={`flex items-center justify-between rounded-lg px-3 py-2 text-sm ${
+                    className={`flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 rounded-lg px-3 py-2 text-sm ${
                       v.is_current ? "bg-primary/10 border border-primary/30" : "bg-muted/50 hover:bg-muted"
                     }`}
                   >
@@ -457,14 +457,14 @@ const ServerAdmin = () => {
                         <code className="text-xs font-mono text-muted-foreground">{v.short_hash}</code>
                         {v.is_current && <Badge variant="default" className="text-[10px]">Aktiv</Badge>}
                       </div>
-                      <p className="truncate text-sm mt-0.5">{v.message}</p>
+                      <p className="break-words text-sm mt-0.5">{v.message}</p>
                       <p className="text-[10px] text-muted-foreground">{v.date} — {v.author}</p>
                     </div>
                     {!v.is_current && (
                       <Button
                         variant="ghost"
                         size="sm"
-                        className="ml-2 shrink-0 text-xs"
+                        className="self-end sm:self-auto sm:ml-2 shrink-0 text-xs h-7"
                         disabled={isRunning}
                       onClick={() => setConfirmAction({
                         title: `Rollback auf ${v.short_hash}?`,
@@ -483,7 +483,7 @@ const ServerAdmin = () => {
         </Card>
 
         {/* ── Backups & Snapshots ───────────────────── */}
-        <Card>
+        <Card className="overflow-hidden">
           <CardHeader className="pb-3">
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
               <CardTitle className="flex items-center gap-2 text-base sm:text-lg">
@@ -527,15 +527,15 @@ const ServerAdmin = () => {
             ) : (
               <div className="max-h-80 overflow-y-auto space-y-1.5">
                 {backups.map((b: BackupEntry) => (
-                  <div key={b.filename} className="flex items-center justify-between rounded-lg bg-muted/50 px-3 py-2 hover:bg-muted">
-                    <div>
-                      <p className="text-sm font-mono">{b.filename}</p>
+                  <div key={b.filename} className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 rounded-lg bg-muted/50 px-3 py-2 hover:bg-muted">
+                    <div className="min-w-0 flex-1">
+                      <p className="text-xs sm:text-sm font-mono break-all">{b.filename}</p>
                       <p className="text-[10px] text-muted-foreground">{b.date} — {b.size} — {b.age}</p>
                     </div>
                     <Button
                       variant="ghost"
                       size="sm"
-                      className="text-xs"
+                      className="self-end sm:self-auto text-xs h-7 shrink-0"
                       disabled={isRunning}
                       onClick={() => setConfirmAction({
                         title: "Backup auf Live-Server wiederherstellen?",
