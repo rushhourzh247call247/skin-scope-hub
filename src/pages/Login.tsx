@@ -11,6 +11,7 @@ import { DermLogo } from "@/components/DermLogo";
 import { LogIn, Shield, Clock } from "lucide-react";
 import { SUPPORTED_LANGUAGES } from "@/i18n";
 import { LanguageFlag } from "@/components/LanguageFlag";
+import { LoginDemoBodyMap } from "@/components/LoginDemoBodyMap";
 
 const Login = () => {
   const { t, i18n } = useTranslation();
@@ -114,8 +115,10 @@ const Login = () => {
   };
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-background px-4">
-      <Card className="w-full max-w-sm">
+    <div className="grid min-h-screen grid-cols-1 lg:grid-cols-[minmax(380px,440px)_1fr] bg-background">
+      {/* Left: Login form */}
+      <div className="flex items-center justify-center px-4 py-8 lg:px-8">
+        <Card className="w-full max-w-sm border-0 shadow-none lg:border lg:shadow-sm">
         <CardHeader className="text-center">
           <DermLogo size="lg" className="justify-center" />
           <CardDescription className="mt-2">
