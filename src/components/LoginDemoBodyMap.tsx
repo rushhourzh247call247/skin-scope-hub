@@ -164,6 +164,7 @@ export const LoginDemoBodyMap = () => {
     const targetSpotId = photoDialogSpotId;
     const token = qrSession.token;
     let cancelled = false;
+    let handlingCompletion = false;
 
     const blobToDataUrl = (blob: Blob) =>
       new Promise<string>((resolve, reject) => {
@@ -174,13 +175,14 @@ export const LoginDemoBodyMap = () => {
       });
 
     const tick = async () => {
+      if (cancelled || handlingCompletion) return;
       try {
         const res = await fetch(`${DEMO_API_BASE}/demo/qr-status/${token}`);
         const data = await res.json().catch(() => ({}));
         if (cancelled) return;
         console.log("[QR-Demo] poll status:", data.status, data.image_url);
         if (data.status === "completed" && data.image_url) {
-          cancelled = true;
+          handlingCompletion = true;
           stopPolling();
           try {
             const imgRes = await fetch(data.image_url, { cache: "no-store" });
@@ -208,12 +210,12 @@ export const LoginDemoBodyMap = () => {
             setPhotoDialogSpotId(null);
             setQrSession(null);
             setQrError(null);
-            // Server-Cleanup im Hintergrund (Bild ist bereits als Data-URL lokal)
             fetch(`${DEMO_API_BASE}/demo/consume/${token}`, { method: "POST" }).catch(() => {});
           } catch (err) {
             console.error("[QR-Demo] image load failed:", err);
             setQrError("Foto wurde hochgeladen, konnte aber am Desktop nicht geladen werden.");
             setQrSession(null);
+            handlingCompletion = false;
           }
         } else if (data.status === "expired" || data.status === "invalid") {
           setQrError("QR-Code abgelaufen. Bitte neu generieren.");
