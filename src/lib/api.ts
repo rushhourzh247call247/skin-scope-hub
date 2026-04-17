@@ -91,7 +91,7 @@ async function request<T>(path: string, options?: RequestInit): Promise<T> {
   return requestToBase<T>(getApiBaseUrl(), path, options);
 }
 
-async function requestToBase<T>(baseUrl: string, path: string, options?: RequestInit): Promise<T> {
+async function requestToBase<T>(baseUrl: string, path: string, options?: RequestInit, opts?: { suppressAuthRedirect?: boolean }): Promise<T> {
   const headers: Record<string, string> = {
     Accept: 'application/json',
     ...(!options?.body || options.body instanceof FormData ? {} : { 'Content-Type': 'application/json' }),
@@ -138,6 +138,11 @@ async function requestToBase<T>(baseUrl: string, path: string, options?: Request
       throw err;
     }
     if (res.status === 401) {
+      if (opts?.suppressAuthRedirect) {
+        const err = new Error('Nicht autorisiert');
+        (err as any).status = 401;
+        throw err;
+      }
       sessionStorage.removeItem('auth_token');
       sessionStorage.removeItem('auth_user');
       window.location.href = '/login';
@@ -206,7 +211,7 @@ async function requestBlobToBase(baseUrl: string, path: string, options?: Reques
 }
 
 async function requestServerAdmin<T>(path: string, options?: RequestInit): Promise<T> {
-  return requestToBase<T>(getServerAdminApiBaseUrl(), path, options);
+  return requestToBase<T>(getServerAdminApiBaseUrl(), path, options, { suppressAuthRedirect: true });
 }
 
 function isApiNotFoundError(error: unknown) {
