@@ -3,11 +3,16 @@ import { useSearchParams } from "react-router-dom";
 import { Camera, Images, CheckCircle2, AlertCircle, Loader2, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
-const API_BASE =
-  typeof window !== "undefined" &&
-  ["app.derm247.ch", "proto.derm247.ch", "skin-scope-hub.lovable.app"].includes(window.location.hostname)
+// API-Auswahl basierend auf der Demo-Domain:
+// - demo.derm247.ch          → Live-API
+// - demo.dev.derm247.ch      → Dev-API
+// - alles andere (Lovable Preview, localhost) → Dev-API
+const API_BASE = (() => {
+  if (typeof window === "undefined") return "https://dev.derm247.ch/api";
+  return window.location.hostname === "demo.derm247.ch"
     ? "https://api.derm247.ch/api"
     : "https://dev.derm247.ch/api";
+})();
 
 type Status = "idle" | "uploading" | "done" | "error" | "expired" | "invalid";
 
