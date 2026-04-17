@@ -582,61 +582,7 @@ const ServerAdmin = () => {
           </CardContent>
         </Card>
 
-        {/* ── Versions ───────────────────── */}
-        <Card className="overflow-hidden">
-          <CardHeader className="pb-3">
-            <CardTitle className="flex items-center gap-2 text-lg">
-              <GitBranch className="h-5 w-5 text-primary" />
-              Versionen
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            {versionsLoading ? (
-              <div className="flex justify-center py-8"><Loader2 className="h-5 w-5 animate-spin text-muted-foreground" /></div>
-            ) : versionsError ? (
-              <p className="break-words py-8 text-center text-sm text-destructive">
-                Versionen konnten nicht geladen werden: {getErrorMessage(versionsError)}
-              </p>
-            ) : versions.length === 0 ? (
-              <p className="text-sm text-muted-foreground text-center py-8">Keine Versionen gefunden</p>
-            ) : (
-              <div className="max-h-80 overflow-y-auto space-y-1.5">
-                {versions.map((v: GitVersion) => (
-                  <div
-                    key={v.hash}
-                    className={`flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 rounded-lg px-3 py-2 text-sm ${
-                      v.is_current ? "bg-primary/10 border border-primary/30" : "bg-muted/50 hover:bg-muted"
-                    }`}
-                  >
-                    <div className="min-w-0 flex-1">
-                      <div className="flex items-center gap-2">
-                        <code className="text-xs font-mono text-muted-foreground">{v.short_hash}</code>
-                        {v.is_current && <Badge variant="default" className="text-[10px]">Aktiv</Badge>}
-                      </div>
-                      <p className="break-words text-sm mt-0.5">{v.message}</p>
-                      <p className="text-[10px] text-muted-foreground">{v.date} — {v.author}</p>
-                    </div>
-                    {!v.is_current && (
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        className="self-end sm:self-auto sm:ml-2 shrink-0 text-xs h-7"
-                        disabled={isRunning}
-                      onClick={() => setConfirmAction({
-                        title: `Rollback auf ${v.short_hash}?`,
-                        description: `Der Live-Server wird auf den Commit "${v.message}" zurückgesetzt. Ein Backup wird vorher erstellt.`,
-                        onConfirm: (pw) => rollbackMutation.mutate({ hash: v.hash, password: pw }),
-                      })}
-                      >
-                        <RotateCcw className="h-3.5 w-3.5 mr-1" /> Rollback
-                      </Button>
-                    )}
-                  </div>
-                ))}
-              </div>
-            )}
-          </CardContent>
-        </Card>
+        {/* Versionen-Box entfernt — Live-Server nutzt kein Git-Repo (Deploy via rsync) */}
 
         {/* ── Backups & Snapshots ───────────────────── */}
         <Card className="overflow-hidden">
