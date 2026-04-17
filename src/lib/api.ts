@@ -32,11 +32,9 @@ function getApiBaseUrl() {
 }
 
 function getServerAdminApiBaseUrl() {
-  // Server-Admin läuft IMMER auf dem Dev-Server (dev.derm247.ch).
-  // Der Dev-Server liest Live-Daten per SSH aus. Live wird nie direkt angefasst.
-  const configuredUrl = import.meta.env.VITE_SERVER_ADMIN_API_BASE_URL?.trim();
-  if (configuredUrl) return normalizeApiBaseUrl(configuredUrl);
-  return normalizeApiBaseUrl(DEV_API_BASE_URL);
+  // Server-Admin nutzt dieselbe API wie der Rest (Live von proto/app, Dev sonst).
+  // Login-Token funktioniert daher direkt — kein zweites Auth-System nötig.
+  return getApiBaseUrl();
 }
 
 function getStorageBaseUrl() {
