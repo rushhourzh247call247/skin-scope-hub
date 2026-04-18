@@ -18,6 +18,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import {
   ArrowLeft, Building2, ScrollText, Receipt, CheckCircle, FileDown, Send,
   CalendarClock, Pencil, Plus, XCircle, RotateCcw, AlertTriangle, Mail, Phone, MapPin,
+  Lock, Archive, Power,
 } from "lucide-react";
 import { format, addMonths, differenceInDays } from "date-fns";
 import { de } from "date-fns/locale";
