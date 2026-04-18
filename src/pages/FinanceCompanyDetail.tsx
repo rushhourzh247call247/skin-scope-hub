@@ -1,0 +1,570 @@
+import { useMemo, useState } from "react";
+import { useParams, useNavigate } from "react-router-dom";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { api } from "@/lib/api";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+  Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter,
+} from "@/components/ui/dialog";
+import {
+  AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
+  AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import {
+  ArrowLeft, Building2, ScrollText, Receipt, CheckCircle, FileDown, Send,
+  CalendarClock, Pencil, Plus, XCircle, RotateCcw, AlertTriangle, Mail, Phone, MapPin,
+} from "lucide-react";
+import { format, addMonths, differenceInDays } from "date-fns";
+import { de } from "date-fns/locale";
+import { toast } from "sonner";
+import { downloadInvoicePdf } from "@/lib/invoicePdf";
+
+export default function FinanceCompanyDetail() {
+  const { id } = useParams<{ id: string }>();
+  const companyId = Number(id);
+  const navigate = useNavigate();
+  const queryClient = useQueryClient();
+
+  const [editContractOpen, setEditContractOpen] = useState(false);
+  const [terminateOpen, setTerminateOpen] = useState(false);
+  const [dunningInvoice, setDunningInvoice] = useState<any | null>(null);
+
+  const { data: companies = [] } = useQuery({ queryKey: ["companies"], queryFn: () => api.getCompanies() });
+  const { data: contracts = [], isLoading: loadingContracts } = useQuery({
+    queryKey: ["company-contracts", companyId],
+    queryFn: () => api.getContracts(companyId),
+    enabled: !!companyId,
+  });
+  const { data: invoices = [], isLoading: loadingInvoices } = useQuery({
+    queryKey: ["invoices"],
+    queryFn: () => api.getInvoices().catch(() => []),
+  });
+
+  const company = companies.find((c: any) => c.id === companyId);
+  const activeContract = contracts.find((c: any) => c.status === "active");
+  const pastContracts = contracts.filter((c: any) => c.status !== "active");
+  const companyInvoices = useMemo(
+    () => invoices
+      .filter((i: any) => i.company_id === companyId)
+      .sort((a: any, b: any) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()),
+    [invoices, companyId]
+  );
+
+  const openInvs = companyInvoices.filter((i: any) => i.status === "open" || i.status === "overdue");
+  const overdueInvs = companyInvoices.filter((i: any) => i.status === "overdue");
+  const totalOpen = openInvs.reduce((sum: number, i: any) => sum + (Number(i.amount) || 0), 0);
+  const totalOverdue = overdueInvs.reduce((sum: number, i: any) => sum + (Number(i.amount) || 0), 0);
+  const lastPayment = companyInvoices
+    .filter((i: any) => i.status === "paid" && i.paid_at)
+    .sort((a: any, b: any) => new Date(b.paid_at).getTime() - new Date(a.paid_at).getTime())[0];
+
+  // Next invoice projection
+  const nextInvoice = useMemo(() => {
+    if (!activeContract) return null;
+    const lastInv = companyInvoices.find((i: any) => i.contract_id === activeContract.id);
+    const baseDate = lastInv?.created_at ? new Date(lastInv.created_at) : new Date(activeContract.start_date);
+    const next = addMonths(baseDate, 1);
+    const today = new Date();
+    if (next < today) return { date: today, amount: Number(activeContract.monthly_price) || 0, daysUntil: 0 };
+    return {
+      date: next,
+      amount: Number(activeContract.monthly_price) || 0,
+      daysUntil: differenceInDays(next, today),
+    };
+  }, [activeContract, companyInvoices]);
+
+  const contractDaysLeft = activeContract?.end_date
+    ? differenceInDays(new Date(activeContract.end_date), new Date())
+    : null;
+
+  // Mutations
+  const updateContractMutation = useMutation({
+    mutationFn: (data: Record<string, any>) => api.updateContract(activeContract!.id, data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["company-contracts", companyId] });
+      queryClient.invalidateQueries({ queryKey: ["all-contracts"] });
+      setEditContractOpen(false);
+      toast.success("Vertrag aktualisiert");
+    },
+    onError: (e: any) => toast.error(e?.message || "Fehler beim Speichern"),
+  });
+
+  const terminateMutation = useMutation({
+    mutationFn: () => api.terminateContract(activeContract!.id, "provider"),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["company-contracts", companyId] });
+      queryClient.invalidateQueries({ queryKey: ["all-contracts"] });
+      setTerminateOpen(false);
+      toast.success("Vertrag gekündigt");
+    },
+    onError: (e: any) => toast.error(e?.message || "Kündigung fehlgeschlagen"),
+  });
+
+  const markPaidMutation = useMutation({
+    mutationFn: (invoiceId: number) => api.markInvoicePaid(invoiceId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["invoices"] });
+      toast.success("Bezahlt markiert");
+    },
+    onError: () => toast.error("Fehler"),
+  });
+
+  const dunningMutation = useMutation({
+    mutationFn: ({ invoiceId, level }: { invoiceId: number; level: number }) =>
+      api.sendDunning(invoiceId, level),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["invoices"] });
+      setDunningInvoice(null);
+      toast.success("Mahnstufe aktualisiert");
+    },
+    onError: () => toast.error("Fehler"),
+  });
+
+  if (!company) {
+    return (
+      <div className="p-6 space-y-4">
+        <Button variant="ghost" size="sm" onClick={() => navigate("/finance/companies")}>
+          <ArrowLeft className="mr-1 h-4 w-4" /> Zurück
+        </Button>
+        <Card>
+          <CardContent className="py-12 text-center text-muted-foreground">
+            <Building2 className="h-10 w-10 mx-auto mb-2 opacity-30" />
+            <p className="text-sm">Firma nicht gefunden</p>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
+  const dunningBadge = (level: number) => {
+    if (level >= 3) return <Badge variant="destructive">3. Mahnung</Badge>;
+    if (level === 2) return <Badge className="bg-orange-500/10 text-orange-600 border-orange-200">2. Mahnung</Badge>;
+    if (level === 1) return <Badge className="bg-amber-500/10 text-amber-600 border-amber-200">1. Mahnung</Badge>;
+    return null;
+  };
+
+  const statusBadge = (status: string, dunningLevel: number) => {
+    if (status === "paid") return <Badge className="bg-emerald-500/10 text-emerald-600 border-emerald-200">Bezahlt</Badge>;
+    if (status === "cancelled") return <Badge variant="secondary">Storniert</Badge>;
+    if (status === "overdue") return dunningBadge(dunningLevel) || <Badge className="bg-red-500/10 text-red-600 border-red-200">Überfällig</Badge>;
+    return <Badge className="bg-blue-500/10 text-blue-600 border-blue-200">Offen</Badge>;
+  };
+
+  const downloadPdf = (inv: any) => {
+    try {
+      downloadInvoicePdf({
+        ...inv,
+        contract_number: activeContract?.contract_number,
+        licenses: activeContract?.licenses,
+        package_name: activeContract?.package_name,
+      });
+      toast.success("PDF heruntergeladen");
+    } catch {
+      toast.error("PDF-Erstellung fehlgeschlagen");
+    }
+  };
+
+  return (
+    <div className="p-6 space-y-6 max-w-7xl">
+      {/* Header */}
+      <div className="flex items-start justify-between gap-4">
+        <div className="flex items-start gap-3 min-w-0">
+          <Button variant="ghost" size="sm" onClick={() => navigate("/finance/companies")} className="shrink-0 mt-0.5">
+            <ArrowLeft className="h-4 w-4" />
+          </Button>
+          <div className="min-w-0">
+            <h1 className="text-2xl font-bold tracking-tight truncate">{company.name}</h1>
+            <div className="flex flex-wrap gap-3 mt-1 text-xs text-muted-foreground">
+              {company.email && <span className="flex items-center gap-1"><Mail className="h-3 w-3" />{company.email}</span>}
+              {company.phone && <span className="flex items-center gap-1"><Phone className="h-3 w-3" />{company.phone}</span>}
+              {company.address && <span className="flex items-center gap-1"><MapPin className="h-3 w-3" />{company.address}</span>}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* KPI Strip */}
+      <div className="grid gap-3 grid-cols-2 lg:grid-cols-4">
+        <Card className={overdueInvs.length > 0 ? "border-destructive/40" : ""}>
+          <CardContent className="pt-5 pb-4">
+            <p className="text-xs text-muted-foreground font-medium">Offene Posten</p>
+            <p className={`text-2xl font-bold ${totalOpen > 0 ? "text-amber-600" : ""}`}>
+              CHF {totalOpen.toLocaleString("de-CH")}
+            </p>
+            <p className="text-xs text-muted-foreground mt-0.5">{openInvs.length} Rechnung{openInvs.length === 1 ? "" : "en"}</p>
+          </CardContent>
+        </Card>
+        <Card className={totalOverdue > 0 ? "border-destructive/40" : ""}>
+          <CardContent className="pt-5 pb-4">
+            <p className="text-xs text-muted-foreground font-medium">Überfällig</p>
+            <p className={`text-2xl font-bold ${totalOverdue > 0 ? "text-destructive" : ""}`}>
+              CHF {totalOverdue.toLocaleString("de-CH")}
+            </p>
+            <p className="text-xs text-muted-foreground mt-0.5">{overdueInvs.length} überfällig</p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="pt-5 pb-4">
+            <p className="text-xs text-muted-foreground font-medium flex items-center gap-1">
+              <CalendarClock className="h-3 w-3" /> Nächste Rechnung
+            </p>
+            {nextInvoice ? (
+              <>
+                <p className="text-2xl font-bold">CHF {nextInvoice.amount.toLocaleString("de-CH")}</p>
+                <p className="text-xs text-muted-foreground mt-0.5">
+                  {nextInvoice.daysUntil === 0 ? "Heute fällig" : `in ${nextInvoice.daysUntil} Tagen · ${format(nextInvoice.date, "dd.MM.yy")}`}
+                </p>
+              </>
+            ) : (
+              <p className="text-sm text-muted-foreground mt-2">Kein aktiver Vertrag</p>
+            )}
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="pt-5 pb-4">
+            <p className="text-xs text-muted-foreground font-medium">Letzte Zahlung</p>
+            {lastPayment ? (
+              <>
+                <p className="text-2xl font-bold">{format(new Date(lastPayment.paid_at), "dd.MM.yy")}</p>
+                <p className="text-xs text-muted-foreground mt-0.5">CHF {Number(lastPayment.amount).toLocaleString("de-CH")}</p>
+              </>
+            ) : (
+              <p className="text-sm text-muted-foreground mt-2">Noch keine</p>
+            )}
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Active Contract */}
+      <Card>
+        <CardHeader className="pb-3 flex flex-row items-center justify-between gap-2">
+          <CardTitle className="text-base flex items-center gap-2">
+            <ScrollText className="h-4 w-4" />
+            Aktueller Vertrag
+            {activeContract && contractDaysLeft !== null && contractDaysLeft <= 30 && (
+              <Badge variant={contractDaysLeft <= 14 ? "destructive" : undefined} className={contractDaysLeft > 14 ? "bg-amber-500/10 text-amber-600 border-amber-200" : ""}>
+                {contractDaysLeft <= 0 ? "Abgelaufen" : `noch ${contractDaysLeft} Tage`}
+              </Badge>
+            )}
+          </CardTitle>
+          <div className="flex gap-2">
+            {activeContract ? (
+              <>
+                <Button size="sm" variant="outline" onClick={() => setEditContractOpen(true)}>
+                  <Pencil className="mr-1 h-3.5 w-3.5" /> Bearbeiten
+                </Button>
+                <Button size="sm" variant="outline" className="text-destructive border-destructive/40 hover:bg-destructive/10" onClick={() => setTerminateOpen(true)}>
+                  <XCircle className="mr-1 h-3.5 w-3.5" /> Kündigen
+                </Button>
+              </>
+            ) : (
+              <Button size="sm" onClick={() => navigate(`/contracts?company=${companyId}`)}>
+                <Plus className="mr-1 h-3.5 w-3.5" /> Neuer Vertrag
+              </Button>
+            )}
+          </div>
+        </CardHeader>
+        <CardContent>
+          {loadingContracts ? (
+            <div className="py-6 flex justify-center">
+              <div className="h-5 w-5 animate-spin rounded-full border-2 border-primary border-t-transparent" />
+            </div>
+          ) : activeContract ? (
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 text-sm">
+              <Field label="Vertragsnr." value={<span className="font-mono">{activeContract.contract_number || "–"}</span>} />
+              <Field label="Paket" value={activeContract.package_name} />
+              <Field
+                label="Lizenzen"
+                value={
+                  <>
+                    {activeContract.licenses}
+                    {activeContract.bonus_licenses > 0 && <span className="text-primary"> +{activeContract.bonus_licenses}</span>}
+                  </>
+                }
+              />
+              <Field label="Monatspreis" value={`CHF ${Number(activeContract.monthly_price).toLocaleString("de-CH")}`} />
+              <Field label="Beginn" value={activeContract.start_date ? format(new Date(activeContract.start_date), "dd.MM.yyyy") : "–"} />
+              <Field
+                label="Ende"
+                value={activeContract.end_date ? format(new Date(activeContract.end_date), "dd.MM.yyyy") : "–"}
+                highlight={contractDaysLeft !== null && contractDaysLeft <= 30}
+              />
+              <Field label="Kündigungsfrist" value={`${activeContract.notice_period_days || 60} Tage`} />
+              <Field label="Jahresumsatz" value={`CHF ${(Number(activeContract.monthly_price) * 12).toLocaleString("de-CH")}`} />
+            </div>
+          ) : (
+            <p className="py-6 text-center text-sm text-muted-foreground">Kein aktiver Vertrag vorhanden</p>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* Invoices */}
+      <Card>
+        <CardHeader className="pb-3 flex flex-row items-center justify-between">
+          <CardTitle className="text-base flex items-center gap-2">
+            <Receipt className="h-4 w-4" />
+            Rechnungen
+            <Badge variant="secondary" className="ml-1">{companyInvoices.length}</Badge>
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="p-0">
+          {loadingInvoices ? (
+            <div className="py-12 flex justify-center">
+              <div className="h-5 w-5 animate-spin rounded-full border-2 border-primary border-t-transparent" />
+            </div>
+          ) : companyInvoices.length === 0 ? (
+            <div className="text-center py-10 text-muted-foreground">
+              <Receipt className="h-10 w-10 mx-auto mb-2 opacity-30" />
+              <p className="text-sm">Noch keine Rechnungen</p>
+            </div>
+          ) : (
+            <div className="overflow-x-auto">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Nr.</TableHead>
+                    <TableHead className="text-right">Betrag</TableHead>
+                    <TableHead>Fällig</TableHead>
+                    <TableHead>Status</TableHead>
+                    <TableHead className="text-right">Aktionen</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {companyInvoices.map((inv: any) => (
+                    <TableRow key={inv.id}>
+                      <TableCell className="font-mono text-xs">{inv.invoice_number}</TableCell>
+                      <TableCell className="text-right font-medium">CHF {Number(inv.amount).toLocaleString("de-CH")}</TableCell>
+                      <TableCell className="text-sm">{format(new Date(inv.due_date), "dd.MM.yyyy")}</TableCell>
+                      <TableCell>{statusBadge(inv.status, inv.dunning_level)}</TableCell>
+                      <TableCell>
+                        <div className="flex items-center justify-end gap-1">
+                          {(inv.status === "open" || inv.status === "overdue") && (
+                            <>
+                              <Button
+                                size="icon"
+                                variant="ghost"
+                                className="h-7 w-7"
+                                title="Als bezahlt markieren"
+                                onClick={() => markPaidMutation.mutate(inv.id)}
+                                disabled={markPaidMutation.isPending}
+                              >
+                                <CheckCircle className="h-4 w-4 text-emerald-600" />
+                              </Button>
+                              <Button
+                                size="icon"
+                                variant="ghost"
+                                className="h-7 w-7"
+                                title="Mahnstufe"
+                                onClick={() => setDunningInvoice(inv)}
+                              >
+                                <Send className="h-4 w-4 text-amber-600" />
+                              </Button>
+                            </>
+                          )}
+                          <Button
+                            size="icon"
+                            variant="ghost"
+                            className="h-7 w-7"
+                            title="PDF"
+                            onClick={() => downloadPdf(inv)}
+                          >
+                            <FileDown className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* Past contracts (collapsed) */}
+      {pastContracts.length > 0 && (
+        <Card>
+          <CardHeader className="pb-3">
+            <CardTitle className="text-base text-muted-foreground">
+              Frühere Verträge ({pastContracts.length})
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-2">
+              {pastContracts.map((c: any) => (
+                <div key={c.id} className="flex items-center justify-between py-2 px-3 rounded-md bg-muted/40 text-sm">
+                  <div className="flex items-center gap-3 min-w-0">
+                    <span className="font-mono text-xs text-muted-foreground">{c.contract_number}</span>
+                    <span className="truncate">{c.package_name}</span>
+                  </div>
+                  <div className="flex items-center gap-3 shrink-0 text-xs text-muted-foreground">
+                    <span>
+                      {c.start_date ? format(new Date(c.start_date), "dd.MM.yy") : "–"} →{" "}
+                      {c.end_date ? format(new Date(c.end_date), "dd.MM.yy") : "–"}
+                    </span>
+                    <Badge variant="secondary" className="text-[10px]">{c.status}</Badge>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Edit Contract Dialog */}
+      {activeContract && (
+        <EditContractDialog
+          open={editContractOpen}
+          onClose={() => setEditContractOpen(false)}
+          contract={activeContract}
+          isPending={updateContractMutation.isPending}
+          onSave={(data) => updateContractMutation.mutate(data)}
+        />
+      )}
+
+      {/* Terminate Dialog */}
+      <AlertDialog open={terminateOpen} onOpenChange={setTerminateOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Vertrag kündigen?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Der Vertrag wird auf den Status „gekündigt" gesetzt. Die Firma wechselt nach
+              Vertragsende automatisch in den Read-Only-Modus.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={terminateMutation.isPending}>Abbrechen</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={(e) => { e.preventDefault(); terminateMutation.mutate(); }}
+              disabled={terminateMutation.isPending}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              Kündigen
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Dunning Dialog */}
+      <Dialog open={!!dunningInvoice} onOpenChange={(o) => !o && setDunningInvoice(null)}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Mahnstufe setzen</DialogTitle>
+          </DialogHeader>
+          {dunningInvoice && (
+            <div className="space-y-3">
+              <div className="rounded-lg bg-muted/50 p-3 text-sm space-y-1">
+                <p><span className="text-muted-foreground">Rechnung:</span> {dunningInvoice.invoice_number}</p>
+                <p><span className="text-muted-foreground">Betrag:</span> CHF {Number(dunningInvoice.amount).toLocaleString("de-CH")}</p>
+                <p><span className="text-muted-foreground">Aktuelle Stufe:</span> {dunningInvoice.dunning_level || "Keine"}</p>
+              </div>
+              <div className="space-y-2">
+                {[
+                  { lvl: 1, label: "Stufe 1 – Zahlungserinnerung", cls: "border-amber-200 text-amber-700 hover:bg-amber-50" },
+                  { lvl: 2, label: "Stufe 2 – 1. Mahnung", cls: "border-orange-200 text-orange-700 hover:bg-orange-50" },
+                  { lvl: 3, label: "Stufe 3 – 2. Mahnung + Sperrwarnung", cls: "border-destructive text-destructive hover:bg-destructive/10" },
+                ].map(({ lvl, label, cls }) => (
+                  <Button
+                    key={lvl}
+                    variant="outline"
+                    className={`w-full justify-start ${cls}`}
+                    onClick={() => dunningMutation.mutate({ invoiceId: dunningInvoice.id, level: lvl })}
+                    disabled={dunningMutation.isPending}
+                  >
+                    <AlertTriangle className="mr-2 h-4 w-4" /> {label}
+                  </Button>
+                ))}
+                {dunningInvoice.dunning_level > 0 && (
+                  <Button
+                    variant="ghost"
+                    className="w-full justify-start"
+                    onClick={() => dunningMutation.mutate({ invoiceId: dunningInvoice.id, level: 0 })}
+                    disabled={dunningMutation.isPending}
+                  >
+                    <RotateCcw className="mr-2 h-4 w-4" /> Mahnung zurücksetzen
+                  </Button>
+                )}
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
+    </div>
+  );
+}
+
+function Field({ label, value, highlight }: { label: string; value: React.ReactNode; highlight?: boolean }) {
+  return (
+    <div>
+      <p className="text-xs text-muted-foreground">{label}</p>
+      <p className={`font-medium ${highlight ? "text-destructive" : ""}`}>{value}</p>
+    </div>
+  );
+}
+
+function EditContractDialog({
+  open, onClose, contract, isPending, onSave,
+}: {
+  open: boolean;
+  onClose: () => void;
+  contract: any;
+  isPending: boolean;
+  onSave: (data: Record<string, any>) => void;
+}) {
+  const [licenses, setLicenses] = useState<number>(contract.licenses);
+  const [bonus, setBonus] = useState<number>(contract.bonus_licenses || 0);
+  const [monthlyPrice, setMonthlyPrice] = useState<number>(Number(contract.monthly_price) || 0);
+  const [endDate, setEndDate] = useState<string>(contract.end_date?.slice(0, 10) || "");
+
+  const extendOneYear = () => {
+    const base = endDate ? new Date(endDate) : new Date();
+    setEndDate(format(addMonths(base, 12), "yyyy-MM-dd"));
+  };
+
+  return (
+    <Dialog open={open} onOpenChange={(o) => !o && onClose()}>
+      <DialogContent className="max-w-md">
+        <DialogHeader>
+          <DialogTitle>Vertrag bearbeiten</DialogTitle>
+        </DialogHeader>
+        <div className="space-y-3">
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <Label className="text-xs">Lizenzen</Label>
+              <Input type="number" min={0} value={licenses} onChange={(e) => setLicenses(Math.max(0, Number(e.target.value)))} />
+            </div>
+            <div>
+              <Label className="text-xs">Bonus-Lizenzen</Label>
+              <Input type="number" min={0} value={bonus} onChange={(e) => setBonus(Math.max(0, Number(e.target.value)))} />
+            </div>
+          </div>
+          <div>
+            <Label className="text-xs">Monatspreis (CHF)</Label>
+            <Input type="number" min={0} step="0.01" value={monthlyPrice} onChange={(e) => setMonthlyPrice(Math.max(0, Number(e.target.value)))} />
+          </div>
+          <div>
+            <Label className="text-xs flex items-center justify-between">
+              <span>Vertragsende</span>
+              <button type="button" className="text-xs text-primary hover:underline" onClick={extendOneYear}>+ 12 Monate</button>
+            </Label>
+            <Input type="date" value={endDate} onChange={(e) => setEndDate(e.target.value)} />
+          </div>
+        </div>
+        <DialogFooter>
+          <Button variant="outline" onClick={onClose} disabled={isPending}>Abbrechen</Button>
+          <Button
+            onClick={() => onSave({ licenses, bonus_licenses: bonus, monthly_price: monthlyPrice, end_date: endDate })}
+            disabled={isPending}
+          >
+            Speichern
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+}
