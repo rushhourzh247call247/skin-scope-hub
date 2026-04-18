@@ -3,9 +3,11 @@ import { Users, UserPlus, LogOut, Building2, UserCog, LayoutDashboard, Settings,
 import { NavLink } from "@/components/NavLink";
 import { useLocation } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
+import { useLifecycle } from "@/hooks/use-lifecycle";
 import { DermLogo } from "@/components/DermLogo";
 import { useTranslation } from "react-i18next";
 import { api } from "@/lib/api";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import {
   Sidebar, SidebarContent, SidebarGroup, SidebarGroupContent, SidebarGroupLabel,
   SidebarMenu, SidebarMenuButton, SidebarMenuItem, SidebarFooter, useSidebar,
