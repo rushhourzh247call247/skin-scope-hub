@@ -46,6 +46,11 @@ export function LifecycleBanner() {
     | number
     | undefined;
 
+  // Nur Firmen-Admins dürfen Lifecycle-Entscheidungen (Archivieren/Löschen/Kündigen) treffen.
+  // Normale Ärzte (role=user) sehen ausschließlich den Hinweis-Banner.
+  const role = (user as any)?.role as string | undefined;
+  const canManageLifecycle = role === "admin";
+
   const readOnlyUntil = ((user as any)?.company_read_only_until ??
     (user as any)?.company?.read_only_until) as string | undefined;
   const archiveUntil = ((user as any)?.company_archive_until ??
@@ -116,7 +121,7 @@ export function LifecycleBanner() {
                 ) : null}
               </span>
             </div>
-            {companyId && (
+            {companyId && canManageLifecycle && (
               <div className="flex flex-wrap gap-2">
                 <Button
                   size="sm"
@@ -237,7 +242,7 @@ export function LifecycleBanner() {
                 )}
               </span>
             </div>
-            {companyId && !cancellationPending && (
+            {companyId && canManageLifecycle && !cancellationPending && (
               <Button
                 size="sm"
                 variant="outline"
