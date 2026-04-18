@@ -129,6 +129,8 @@ const Dashboard = () => {
         <p className="text-sm text-muted-foreground">{t("dashboard.subtitle")}</p>
       </div>
 
+      <MedicalDisclaimer />
+
       {!isAdmin && (
         <div>
           <h2 className="mb-3 text-sm font-medium text-muted-foreground uppercase tracking-wider">{t("dashboard.riskOverview")}</h2>
