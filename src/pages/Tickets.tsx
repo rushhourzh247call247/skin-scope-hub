@@ -239,9 +239,14 @@ export default function Tickets() {
             <h2 className="text-lg font-semibold">
               {isAdmin ? t("tickets.supportTickets") : t("tickets.support")}
             </h2>
-            <Dialog open={createOpen} onOpenChange={setCreateOpen}>
+            <Dialog open={createOpen} onOpenChange={(open) => { if (!isReadOnly) setCreateOpen(open); }}>
               <DialogTrigger asChild>
-                <Button size="sm" className="h-8 gap-1.5">
+                <Button
+                  size="sm"
+                  className="h-8 gap-1.5"
+                  disabled={isReadOnly}
+                  title={isReadOnly ? readOnlyTooltip : undefined}
+                >
                   <Plus className="h-3.5 w-3.5" /> {t("tickets.newTicket")}
                 </Button>
               </DialogTrigger>
@@ -496,37 +501,45 @@ export default function Tickets() {
 
               {/* Input bar */}
               {selected.status !== "closed" ? (
-                <div className="border-t border-border bg-card px-2 sm:px-3 py-2 shrink-0">
-                  <div className="flex items-end gap-2">
-                    <textarea
-                      ref={textareaRef}
-                      value={replyText}
-                      onChange={handleTextareaChange}
-                      placeholder={t("tickets.writePlaceholder")}
-                      rows={1}
-                      className="flex-1 resize-none rounded-2xl border border-input bg-muted/30 px-3 sm:px-4 py-2 text-sm leading-relaxed
-                        placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring
-                        max-h-[120px] min-h-[40px]"
-                      onKeyDown={e => {
-                        if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); handleReply(); }
-                      }}
-                    />
-                    <Button
-                      size="icon"
-                      onClick={handleReply}
-                      disabled={!replyText.trim() || sending}
-                      className="h-10 w-10 rounded-full shrink-0"
-                    >
-                      <Send className="h-4 w-4" />
-                    </Button>
+                isReadOnly ? (
+                  <div className="border-t border-border bg-muted/30 px-4 py-3 text-center shrink-0">
+                    <p className="text-sm text-muted-foreground">{readOnlyTooltip}</p>
                   </div>
-                </div>
+                ) : (
+                  <div className="border-t border-border bg-card px-2 sm:px-3 py-2 shrink-0">
+                    <div className="flex items-end gap-2">
+                      <textarea
+                        ref={textareaRef}
+                        value={replyText}
+                        onChange={handleTextareaChange}
+                        placeholder={t("tickets.writePlaceholder")}
+                        rows={1}
+                        className="flex-1 resize-none rounded-2xl border border-input bg-muted/30 px-3 sm:px-4 py-2 text-sm leading-relaxed
+                          placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring
+                          max-h-[120px] min-h-[40px]"
+                        onKeyDown={e => {
+                          if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); handleReply(); }
+                        }}
+                      />
+                      <Button
+                        size="icon"
+                        onClick={handleReply}
+                        disabled={!replyText.trim() || sending}
+                        className="h-10 w-10 rounded-full shrink-0"
+                      >
+                        <Send className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  </div>
+                )
               ) : (
                 <div className="border-t border-border bg-muted/30 px-4 py-3 text-center shrink-0">
                   <p className="text-sm text-muted-foreground">{t("tickets.ticketIsClosed")}</p>
-                  <Button variant="link" size="sm" onClick={() => handleReopen(selected.id)} className="mt-1">
-                    <RotateCcw className="h-3.5 w-3.5 mr-1" /> {t("tickets.reopen")}
-                  </Button>
+                  {!isReadOnly && (
+                    <Button variant="link" size="sm" onClick={() => handleReopen(selected.id)} className="mt-1">
+                      <RotateCcw className="h-3.5 w-3.5 mr-1" /> {t("tickets.reopen")}
+                    </Button>
+                  )}
                 </div>
               )}
             </>
