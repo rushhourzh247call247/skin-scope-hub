@@ -318,6 +318,27 @@ export const api = {
       { method: 'POST', body: JSON.stringify(payload) }
     ),
 
+  // Lifecycle: Kunde wählt Archivierung (CHF 50/Mt, 60 Tage Kündigung, keine Mindestlaufzeit)
+  archiveOptIn: (companyId: number) =>
+    request<{ success: boolean; company: any; contract?: any }>(
+      `/companies/${companyId}/archive-opt-in`,
+      { method: 'POST' }
+    ),
+
+  // Lifecycle: Kunde kündigt Archiv mit 60 Tagen Frist
+  archiveCancel: (companyId: number) =>
+    request<{ success: boolean; company: any; archive_until: string }>(
+      `/companies/${companyId}/archive-cancel`,
+      { method: 'POST' }
+    ),
+
+  // Lifecycle: Kunde fordert sofortige Löschung an
+  requestCompanyDeletion: (companyId: number) =>
+    request<{ success: boolean; company: any }>(
+      `/companies/${companyId}/request-deletion`,
+      { method: 'POST' }
+    ),
+
   // Patients
   getPatients: () => request<any[]>('/patients'),
   createPatient: (data: { name: string; birth_date: string; gender?: string; email?: string; phone?: string; insurance_number?: string; patient_number?: string; notes?: string }) =>
