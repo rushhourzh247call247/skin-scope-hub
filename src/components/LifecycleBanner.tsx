@@ -121,7 +121,7 @@ export function LifecycleBanner() {
                 ) : null}
               </span>
             </div>
-            {companyId && (
+            {companyId && canManageLifecycle && (
               <div className="flex flex-wrap gap-2">
                 <Button
                   size="sm"
