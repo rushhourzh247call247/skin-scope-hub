@@ -4,7 +4,8 @@ import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import {
   Server, Database, Shield, Globe, HardDrive, Lock, Network,
-  FileText, Clock, RefreshCw, Monitor, Cpu, Key, Eye, Mail, GitBranch, Cloud
+  FileText, Clock, RefreshCw, Monitor, Cpu, Key, Eye, Mail, GitBranch, Cloud,
+  Sparkles, QrCode
 } from "lucide-react";
 
 const Section = ({ icon: Icon, title, children }: { icon: any; title: string; children: React.ReactNode }) => (
