@@ -118,21 +118,43 @@ export function AppSidebar() {
               <SidebarGroupLabel className="text-sidebar-foreground/50 text-[10px] uppercase tracking-widest">{t("nav.navigation")}</SidebarGroupLabel>
               <SidebarGroupContent>
                 <SidebarMenu>
-                  {mainNav.map((item) => (
-                    <SidebarMenuItem key={item.url}>
-                      <SidebarMenuButton asChild isActive={isActive(item.url)}>
-                        <NavLink to={item.url} end className="hover:bg-sidebar-accent relative" activeClassName="bg-sidebar-accent text-primary font-medium">
-                          <item.icon className="mr-2 h-4 w-4" />
-                          {!collapsed && <span>{item.title}</span>}
-                          {item.url === "/tickets" && unreadTickets > 0 && (
-                            <span className="ml-auto flex h-5 min-w-5 items-center justify-center rounded-full bg-destructive text-[10px] font-bold text-destructive-foreground px-1">
-                              {unreadTickets}
-                            </span>
+                  {mainNav.map((item) => {
+                    const isWriteAction = item.url === "/new-patient";
+                    const disabled = isWriteAction && isReadOnly;
+                    return (
+                      <SidebarMenuItem key={item.url}>
+                        <SidebarMenuButton asChild isActive={isActive(item.url)}>
+                          {disabled ? (
+                            <TooltipProvider delayDuration={150}>
+                              <Tooltip>
+                                <TooltipTrigger asChild>
+                                  <span
+                                    aria-disabled="true"
+                                    className="flex items-center opacity-50 cursor-not-allowed select-none"
+                                    onClick={(e) => e.preventDefault()}
+                                  >
+                                    <item.icon className="mr-2 h-4 w-4" />
+                                    {!collapsed && <span>{item.title}</span>}
+                                  </span>
+                                </TooltipTrigger>
+                                <TooltipContent side="right">{readOnlyTooltip}</TooltipContent>
+                              </Tooltip>
+                            </TooltipProvider>
+                          ) : (
+                            <NavLink to={item.url} end className="hover:bg-sidebar-accent relative" activeClassName="bg-sidebar-accent text-primary font-medium">
+                              <item.icon className="mr-2 h-4 w-4" />
+                              {!collapsed && <span>{item.title}</span>}
+                              {item.url === "/tickets" && unreadTickets > 0 && (
+                                <span className="ml-auto flex h-5 min-w-5 items-center justify-center rounded-full bg-destructive text-[10px] font-bold text-destructive-foreground px-1">
+                                  {unreadTickets}
+                                </span>
+                              )}
+                            </NavLink>
                           )}
-                        </NavLink>
-                      </SidebarMenuButton>
-                    </SidebarMenuItem>
-                  ))}
+                        </SidebarMenuButton>
+                      </SidebarMenuItem>
+                    );
+                  })}
                 </SidebarMenu>
               </SidebarGroupContent>
             </SidebarGroup>
