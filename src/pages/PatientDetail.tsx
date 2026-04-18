@@ -325,6 +325,10 @@ const PatientDetail = () => {
     point3d?: [number, number, number],
     normal3d?: [number, number, number],
   ) => {
+    if (isReadOnly) {
+      toast.error(readOnlyTooltip);
+      return;
+    }
     setSpotX(x);
     setSpotY(y);
     setRegionWidth(40);
@@ -375,6 +379,10 @@ const PatientDetail = () => {
 
   const handleCreateLocation = () => {
     if (!mapClickDialog) return;
+    if (isReadOnly) {
+      toast.error(readOnlyTooltip);
+      return;
+    }
     const isRegion = mapClickDialog.markType === "region";
     const isZone = mapClickDialog.markType === "zone";
 
