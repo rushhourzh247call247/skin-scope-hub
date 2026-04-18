@@ -46,6 +46,11 @@ export function LifecycleBanner() {
     | number
     | undefined;
 
+  // Nur Firmen-Admins dürfen Lifecycle-Entscheidungen (Archivieren/Löschen/Kündigen) treffen.
+  // Normale Ärzte (role=user) sehen ausschließlich den Hinweis-Banner.
+  const role = (user as any)?.role as string | undefined;
+  const canManageLifecycle = role === "admin";
+
   const readOnlyUntil = ((user as any)?.company_read_only_until ??
     (user as any)?.company?.read_only_until) as string | undefined;
   const archiveUntil = ((user as any)?.company_archive_until ??
