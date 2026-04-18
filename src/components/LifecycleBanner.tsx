@@ -242,7 +242,7 @@ export function LifecycleBanner() {
                 )}
               </span>
             </div>
-            {companyId && !cancellationPending && (
+            {companyId && canManageLifecycle && !cancellationPending && (
               <Button
                 size="sm"
                 variant="outline"
