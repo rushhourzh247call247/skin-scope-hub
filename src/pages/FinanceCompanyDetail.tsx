@@ -39,6 +39,7 @@ export default function FinanceCompanyDetail() {
   const [editContractOpen, setEditContractOpen] = useState(false);
   const [terminateOpen, setTerminateOpen] = useState(false);
   const [dunningInvoice, setDunningInvoice] = useState<any | null>(null);
+  const [lifecycleAction, setLifecycleAction] = useState<null | "read_only" | "archived" | "active">(null);
 
   const { data: companies = [] } = useQuery({ queryKey: ["companies"], queryFn: () => api.getCompanies() });
   const { data: contracts = [], isLoading: loadingContracts } = useQuery({
