@@ -547,7 +547,21 @@ const PatientAkte = ({ patient, onNavigateToSpot }: PatientAkteProps) => {
                 {t("common.cancel")}
               </Button>
             </div>
-...
+          </div>
+        )}
+
+        {consultationsLoading ? (
+          <p className="text-xs text-muted-foreground">{t("common.loading")}</p>
+        ) : consultations.length === 0 ? (
+          <p className="text-xs text-muted-foreground italic">{t("akte.noConsultations")}</p>
+        ) : (
+          <div className="space-y-2">
+            {[...consultations]
+              .sort((a, b) => new Date(b.created_at ?? 0).getTime() - new Date(a.created_at ?? 0).getTime())
+              .map((c) => (
+                <div key={c.id} className="rounded-md border border-border bg-muted/30 p-3 group">
+                  {editingConsultationId === c.id ? (
+                    <div className="space-y-2">
                       <Textarea
                         value={editingConsultationText}
                         onChange={(e) => setEditingConsultationText(e.target.value)}
