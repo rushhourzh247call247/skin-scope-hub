@@ -14,7 +14,7 @@ import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Progress } from "@/components/ui/progress";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
-import { Building2, Plus, Trash2, Shield, Download, Loader2, Ban, CheckCircle, ChevronDown, FileText } from "lucide-react";
+import { Building2, Plus, Trash2, Shield, Download, Loader2, Ban, CheckCircle, ChevronDown, FileText, RotateCcw, Lock, Archive, AlertOctagon } from "lucide-react";
 import { toast } from "sonner";
 import ContractPanel from "@/components/ContractPanel";
 
@@ -81,6 +81,43 @@ const CompanyManagement = () => {
     onError: () => toast.error(t("companies.unsuspendError")),
   });
 
+  const reactivateLifecycleMutation = useMutation({
+    mutationFn: (id: number) => api.reactivateCompanyLifecycle(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["companies"] });
+      toast.success("Firma reaktiviert — Schreibzugriff wieder freigegeben");
+    },
+    onError: (e: any) => toast.error(e?.message || "Reaktivierung fehlgeschlagen"),
+  });
+
+  const renderLifecycleBadge = (c: any) => {
+    const status = c.lifecycle_status as string | undefined;
+    if (!status || status === "active") return null;
+    if (status === "read_only") {
+      const until = c.read_only_until ? new Date(c.read_only_until).toLocaleDateString("de-CH") : null;
+      return (
+        <Badge variant="outline" className="gap-1 border-amber-500/50 bg-amber-500/10 text-amber-700 text-xs">
+          <Lock className="h-3 w-3" /> Read-Only{until ? ` bis ${until}` : ""}
+        </Badge>
+      );
+    }
+    if (status === "archived") {
+      return (
+        <Badge variant="outline" className="gap-1 border-blue-500/50 bg-blue-500/10 text-blue-700 text-xs">
+          <Archive className="h-3 w-3" /> Archiviert
+        </Badge>
+      );
+    }
+    if (status === "pending_deletion") {
+      return (
+        <Badge variant="outline" className="gap-1 border-destructive/50 bg-destructive/10 text-destructive text-xs">
+          <AlertOctagon className="h-3 w-3" /> Löschung ausstehend
+        </Badge>
+      );
+    }
+    return null;
+  };
+
   const canSuspend = (c: any) => c.name?.toLowerCase() !== PROTECTED_COMPANY_NAME;
 
   const handleExport = async (companyId: number, companyName: string) => {
@@ -113,7 +150,7 @@ const CompanyManagement = () => {
       >
         <div className="border rounded-lg bg-card">
           <div className="flex items-center justify-between p-4">
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-3 flex-wrap">
               <span className="font-mono text-xs text-muted-foreground w-8">{c.id}</span>
               <span className="font-medium">{c.name}</span>
               {isProtected && (
@@ -121,9 +158,22 @@ const CompanyManagement = () => {
                   <Shield className="h-3 w-3" /> {t("common.protected")}
                 </Badge>
               )}
+              {renderLifecycleBadge(c)}
             </div>
 
             <div className="flex items-center gap-1">
+              {!isSuspendedTab && (c.lifecycle_status === "read_only" || c.lifecycle_status === "archived") && (
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  title="Lifecycle reaktivieren (zurück auf active)"
+                  onClick={() => reactivateLifecycleMutation.mutate(c.id)}
+                  disabled={reactivateLifecycleMutation.isPending}
+                  className="text-emerald-600 hover:text-emerald-700"
+                >
+                  <RotateCcw className="h-4 w-4" />
+                </Button>
+              )}
               {isSuspendedTab ? (
                 <Button
                   variant="ghost"
