@@ -102,6 +102,51 @@ const CompanyManagement = () => {
     onError: (e: any) => toast.error(e?.message || "Reaktivierung fehlgeschlagen"),
   });
 
+  const setLifecycleMutation = useMutation({
+    mutationFn: (payload: {
+      id: number;
+      lifecycle_status: "active" | "read_only" | "archived" | "pending_deletion";
+      read_only_until?: string | null;
+      archive_until?: string | null;
+    }) => api.setCompanyLifecycle(payload.id, payload),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["companies"] });
+      toast.success("Lifecycle-Status aktualisiert");
+      setLifecycleDialog(null);
+      setLifecycleDate(undefined);
+    },
+    onError: (e: any) => toast.error(e?.message || "Status-Änderung fehlgeschlagen"),
+  });
+
+  const openLifecycleDialog = (company: any, target: "read_only" | "archived" | "pending_deletion") => {
+    setLifecycleDialog({ company, target });
+    if (target === "read_only") {
+      // Default: heute + 30 Tage
+      const d = new Date();
+      d.setDate(d.getDate() + 30);
+      setLifecycleDate(d);
+    } else if (target === "archived") {
+      // Default: heute + 1 Jahr
+      const d = new Date();
+      d.setFullYear(d.getFullYear() + 1);
+      setLifecycleDate(d);
+    } else {
+      setLifecycleDate(undefined);
+    }
+  };
+
+  const confirmLifecycleChange = () => {
+    if (!lifecycleDialog) return;
+    const { company, target } = lifecycleDialog;
+    const iso = lifecycleDate ? format(lifecycleDate, "yyyy-MM-dd HH:mm:ss") : null;
+    setLifecycleMutation.mutate({
+      id: company.id,
+      lifecycle_status: target,
+      read_only_until: target === "read_only" ? iso : null,
+      archive_until: target === "archived" ? iso : null,
+    });
+  };
+
   const renderLifecycleBadge = (c: any) => {
     const status = c.lifecycle_status as string | undefined;
     if (!status || status === "active") return null;
