@@ -99,6 +99,8 @@ function buildContractSections(vars: ContractVars): { title?: string; lines: str
         `${t.packageLabel}: ${translatedPaket}`,
         ...(isIndividual ? [] : [`${t.doctorCountLabel}: ${vars.anzahlAerzte}`]),
         `${t.monthlyFeeLabel}: CHF ${vars.preis} / ${monthWord}${mwstHinweis}`,
+        "",
+        t.section2LimitText,
       ],
     },
     {
@@ -107,6 +109,9 @@ function buildContractSections(vars: ContractVars): { title?: string; lines: str
         t.section3Text1(vars.vertragsbeginn),
         "",
         t.section3Text2,
+        "",
+        t.section3PostTitle,
+        ...t.section3PostBullets.map(b => `  •  ${b}`),
       ],
     },
     {
@@ -134,6 +139,10 @@ function buildContractSections(vars: ContractVars): { title?: string; lines: str
       lines: [
         t.section6Text1,
         "",
+        t.section6OperationsText,
+        "",
+        t.section6LiabilityCap,
+        "",
         t.section6NoLiability,
         ...t.section6Bullets.map(b => `  •  ${b}`),
         "",
@@ -142,11 +151,27 @@ function buildContractSections(vars: ContractVars): { title?: string; lines: str
     },
     {
       title: t.section7Title,
-      lines: [t.section7Text],
+      lines: [
+        t.section7Text,
+        "",
+        ...t.section7Bullets.map(b => `  •  ${b}`),
+      ],
     },
     {
       title: t.section8Title,
-      lines: [t.section8Text],
+      lines: [
+        t.section8Text,
+        "",
+        ...t.section8Bullets.map(b => `  •  ${b}`),
+      ],
+    },
+    {
+      title: t.section9Title,
+      lines: [t.section9Text],
+    },
+    {
+      title: t.section10Title,
+      lines: [t.section10Text],
     },
     {
       lines: [
