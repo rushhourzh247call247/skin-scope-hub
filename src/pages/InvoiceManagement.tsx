@@ -1,8 +1,8 @@
 import { useState } from "react";
-import { useSearchParams } from "react-router-dom";
+import { useSearchParams, useNavigate } from "react-router-dom";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { api } from "@/lib/api";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -10,7 +10,6 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
-import { Textarea } from "@/components/ui/textarea";
 import { Search, Plus, CheckCircle, AlertTriangle, FileDown, RotateCcw, Send, Receipt } from "lucide-react";
 import { downloadInvoicePdf } from "@/lib/invoicePdf";
 import { format } from "date-fns";
@@ -33,14 +32,13 @@ interface Invoice {
 
 export default function InvoiceManagement() {
   const queryClient = useQueryClient();
+  const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const initialStatus = searchParams.get("status") || "all";
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>(initialStatus);
-  const [payDialog, setPayDialog] = useState<Invoice | null>(null);
   const [dunningDialog, setDunningDialog] = useState<Invoice | null>(null);
   const [generateDialog, setGenerateDialog] = useState(false);
-  const [paymentNote, setPaymentNote] = useState("");
 
   const { data: invoices = [], isLoading } = useQuery({
     queryKey: ["invoices"],
@@ -53,13 +51,10 @@ export default function InvoiceManagement() {
   });
 
   const markPaidMutation = useMutation({
-    mutationFn: (data: { invoiceId: number; notes?: string }) =>
-      api.markInvoicePaid(data.invoiceId, data.notes),
+    mutationFn: (invoiceId: number) => api.markInvoicePaid(invoiceId),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["invoices"] });
-      setPayDialog(null);
-      setPaymentNote("");
-      toast.success("Rechnung als bezahlt markiert");
+      toast.success("Bezahlt markiert");
     },
     onError: () => toast.error("Fehler beim Aktualisieren"),
   });
