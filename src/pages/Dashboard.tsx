@@ -6,7 +6,7 @@ import { useTranslation } from "react-i18next";
 import { Users, MapPin, ImageIcon, Building2, ArrowRight, ShieldAlert, Eye, ShieldCheck, UsersRound } from "lucide-react";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import StorageOverview from "@/components/StorageOverview";
-import MedicalDisclaimer from "@/components/MedicalDisclaimer";
+
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { formatDate } from "@/lib/dateUtils";
@@ -129,7 +129,7 @@ const Dashboard = () => {
         <p className="text-sm text-muted-foreground">{t("dashboard.subtitle")}</p>
       </div>
 
-      <MedicalDisclaimer />
+      
 
       {!isAdmin && (
         <div>
