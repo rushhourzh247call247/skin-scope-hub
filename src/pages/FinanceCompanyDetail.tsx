@@ -489,6 +489,33 @@ export default function FinanceCompanyDetail() {
         />
       )}
 
+      {/* Lifecycle Confirm Dialog */}
+      <AlertDialog open={!!lifecycleAction} onOpenChange={(o) => !o && setLifecycleAction(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>
+              {lifecycleAction === "read_only" && "Read-Only setzen?"}
+              {lifecycleAction === "archived" && "Archivieren?"}
+              {lifecycleAction === "active" && "Wieder aktivieren?"}
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              {lifecycleAction === "read_only" && "Die Firma kann sich weiterhin einloggen, aber keine Daten mehr ändern oder hinzufügen. Bestehende Daten bleiben sichtbar."}
+              {lifecycleAction === "archived" && "Die Firma wechselt in den Archiv-Modus (CHF 50.–/Mt., nur Lesezugriff). Schreiboperationen werden gesperrt."}
+              {lifecycleAction === "active" && "Die Firma erhält wieder vollen Zugriff. Alle Schreiboperationen werden freigegeben."}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={lifecycleMutation.isPending}>Abbrechen</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={(e) => { e.preventDefault(); if (lifecycleAction) lifecycleMutation.mutate(lifecycleAction); }}
+              disabled={lifecycleMutation.isPending}
+            >
+              Bestätigen
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
       {/* Terminate Dialog */}
       <AlertDialog open={terminateOpen} onOpenChange={setTerminateOpen}>
         <AlertDialogContent>
