@@ -258,6 +258,15 @@ function drawPage2(doc: jsPDF, lang: PdfLang) {
   doc.text(t.contactLine3, LEFT + 8, contactY + 26);
 }
 
+// ── Public API ─────────────────────────────────────────────────
+
+export function drawBrochureFooters(doc: jsPDF, fromPage: number, toPage: number, totalPages: number, lang: PdfLang = "de") {
+  for (let i = fromPage; i <= toPage; i++) {
+    doc.setPage(i);
+    drawFooter(doc, i, totalPages, lang);
+  }
+}
+
 export function buildBrochurePdf(lang: PdfLang = "de"): jsPDF {
   const doc = new jsPDF({ unit: "mm", format: "a4" });
   drawPage1(doc, lang);
