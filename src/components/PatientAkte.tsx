@@ -19,6 +19,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
+import { useLifecycle } from "@/hooks/use-lifecycle";
 import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
@@ -31,6 +32,7 @@ interface PatientAkteProps {
 
 const PatientAkte = ({ patient, onNavigateToSpot }: PatientAkteProps) => {
   const { t } = useTranslation();
+  const { isReadOnly, readOnlyTooltip } = useLifecycle();
   const queryClient = useQueryClient();
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -394,6 +396,8 @@ const PatientAkte = ({ patient, onNavigateToSpot }: PatientAkteProps) => {
             variant="outline"
             size="sm"
             className="h-7 text-xs gap-1"
+            disabled={isReadOnly}
+            title={isReadOnly ? readOnlyTooltip : undefined}
             onClick={() => setShowAppointmentForm(!showAppointmentForm)}
           >
             <Plus className="h-3 w-3" />
@@ -481,8 +485,10 @@ const PatientAkte = ({ patient, onNavigateToSpot }: PatientAkteProps) => {
                       {apt.notes && <p className="text-[10px] text-muted-foreground truncate mt-0.5">{apt.notes}</p>}
                     </div>
                     <button
+                      disabled={isReadOnly}
                       onClick={() => deleteAppointmentMutation.mutate(apt.id)}
-                      className="shrink-0 p-1 rounded opacity-0 group-hover:opacity-100 transition-opacity hover:bg-destructive/10 text-muted-foreground hover:text-destructive"
+                      className="shrink-0 p-1 rounded opacity-0 group-hover:opacity-100 transition-opacity hover:bg-destructive/10 text-muted-foreground hover:text-destructive disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:bg-transparent"
+                      title={isReadOnly ? readOnlyTooltip : undefined}
                     >
                       <Trash2 className="h-3 w-3" />
                     </button>
@@ -504,6 +510,8 @@ const PatientAkte = ({ patient, onNavigateToSpot }: PatientAkteProps) => {
             variant="outline"
             size="sm"
             className="h-7 text-xs gap-1"
+            disabled={isReadOnly}
+            title={isReadOnly ? readOnlyTooltip : undefined}
             onClick={() => setShowConsultationForm(!showConsultationForm)}
           >
             <Plus className="h-3 w-3" />
@@ -581,14 +589,18 @@ const PatientAkte = ({ patient, onNavigateToSpot }: PatientAkteProps) => {
                         </div>
                         <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                           <button
+                            disabled={isReadOnly}
                             onClick={() => { setEditingConsultationId(c.id); setEditingConsultationText(c.notes); }}
-                            className="p-1 rounded hover:bg-primary/10 text-muted-foreground hover:text-primary transition-colors"
+                            className="p-1 rounded hover:bg-primary/10 text-muted-foreground hover:text-primary transition-colors disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:bg-transparent"
+                            title={isReadOnly ? readOnlyTooltip : undefined}
                           >
                             <Pencil className="h-3 w-3" />
                           </button>
                           <button
+                            disabled={isReadOnly}
                             onClick={() => deleteConsultationMutation.mutate(c.id)}
-                            className="p-1 rounded hover:bg-destructive/10 text-muted-foreground hover:text-destructive transition-colors"
+                            className="p-1 rounded hover:bg-destructive/10 text-muted-foreground hover:text-destructive transition-colors disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:bg-transparent"
+                            title={isReadOnly ? readOnlyTooltip : undefined}
                           >
                             <Trash2 className="h-3 w-3" />
                           </button>
@@ -614,7 +626,8 @@ const PatientAkte = ({ patient, onNavigateToSpot }: PatientAkteProps) => {
             size="sm"
             className="h-7 text-xs gap-1"
             onClick={() => fileInputRef.current?.click()}
-            disabled={uploadDocumentMutation.isPending}
+            disabled={isReadOnly || uploadDocumentMutation.isPending}
+            title={isReadOnly ? readOnlyTooltip : undefined}
           >
             <FileUp className="h-3 w-3" />
             {uploadDocumentMutation.isPending ? t("common.loading") : t("akte.uploadDocument")}
@@ -698,8 +711,10 @@ const PatientAkte = ({ patient, onNavigateToSpot }: PatientAkteProps) => {
                     <Download className="h-3.5 w-3.5" />
                   </button>
                   <button
+                    disabled={isReadOnly}
                     onClick={() => deleteDocumentMutation.mutate(doc.id)}
-                    className="p-1 rounded opacity-0 group-hover:opacity-100 transition-opacity hover:bg-destructive/10 text-muted-foreground hover:text-destructive"
+                    className="p-1 rounded opacity-0 group-hover:opacity-100 transition-opacity hover:bg-destructive/10 text-muted-foreground hover:text-destructive disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:bg-transparent"
+                    title={isReadOnly ? readOnlyTooltip : undefined}
                   >
                     <Trash2 className="h-3 w-3" />
                   </button>

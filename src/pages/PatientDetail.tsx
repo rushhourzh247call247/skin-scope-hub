@@ -10,8 +10,9 @@ import { LESION_CLASSIFICATIONS } from "@/types/patient";
 import { getClassificationLabel } from "@/lib/classificationTranslation";
 import { useState, useRef, useEffect } from "react";
 import { useAuth } from "@/contexts/AuthContext";
+import { useLifecycle } from "@/hooks/use-lifecycle";
 import type { LesionClassification as LesionClassificationType } from "@/types/patient";
-import { ArrowLeft, MapPin, Plus, Calendar, ImageIcon, User, Hash, Activity, Mail, Phone, Pencil, Trash2, Save, X, Square, GitCompareArrows, Move, Camera, Tag, QrCode, Undo2, AlertTriangle, FileDown, Loader2, Eye, ChevronDown, Upload, ClipboardList } from "lucide-react";
+import { ArrowLeft, MapPin, Plus, Calendar, ImageIcon, User, Hash, Activity, Mail, Phone, Pencil, Trash2, Save, X, Square, GitCompareArrows, Move, Camera, Tag, QrCode, Undo2, AlertTriangle, FileDown, Loader2, Eye, ChevronDown, Upload, ClipboardList, Lock } from "lucide-react";
 import PatientAkte from "@/components/PatientAkte";
 import PatientHeader from "@/components/patient-detail/PatientHeader";
 import MobileBottomNav from "@/components/patient-detail/MobileBottomNav";
@@ -55,6 +56,7 @@ import {
 const PatientDetail = () => {
   const { t } = useTranslation();
   const { user } = useAuth();
+  const { isReadOnly, readOnlyTooltip } = useLifecycle();
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
@@ -323,6 +325,10 @@ const PatientDetail = () => {
     point3d?: [number, number, number],
     normal3d?: [number, number, number],
   ) => {
+    if (isReadOnly) {
+      toast.error(readOnlyTooltip);
+      return;
+    }
     setSpotX(x);
     setSpotY(y);
     setRegionWidth(40);
@@ -373,6 +379,10 @@ const PatientDetail = () => {
 
   const handleCreateLocation = () => {
     if (!mapClickDialog) return;
+    if (isReadOnly) {
+      toast.error(readOnlyTooltip);
+      return;
+    }
     const isRegion = mapClickDialog.markType === "region";
     const isZone = mapClickDialog.markType === "zone";
 
@@ -614,9 +624,9 @@ const PatientDetail = () => {
                         <span className="text-[10px] text-muted-foreground shrink-0">{imgCount} {imgCount === 1 ? t('common.image') : t('common.images')}</span>
                       </button>
                       <div className="flex items-center gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity shrink-0">
-                        <button onClick={(e) => { e.stopPropagation(); setZoneUploadTargetId(loc.id); setTimeout(() => zoneFileRef.current?.click(), 0); }} className="h-5 w-5 rounded flex items-center justify-center hover:bg-muted-foreground/10 text-muted-foreground hover:text-foreground" title={t('imageGallery.uploadImage')}><Upload className="h-3 w-3" /></button>
-                        <button onClick={(e) => { e.stopPropagation(); setQrLocationId(loc.id); setQrDialogOpen(true); }} className="h-5 w-5 rounded flex items-center justify-center hover:bg-muted-foreground/10 text-muted-foreground hover:text-foreground" title={t('patientDetail.uploadFromPhone')}><QrCode className="h-3 w-3" /></button>
-                        <button onClick={(e) => { e.stopPropagation(); setDeleteConfirmId(loc.id); }} className="h-5 w-5 rounded flex items-center justify-center hover:bg-destructive/10 text-muted-foreground hover:text-destructive" title={t('common.delete')}><Trash2 className="h-3 w-3" /></button>
+                        <button disabled={isReadOnly} onClick={(e) => { e.stopPropagation(); setZoneUploadTargetId(loc.id); setTimeout(() => zoneFileRef.current?.click(), 0); }} className="h-5 w-5 rounded flex items-center justify-center hover:bg-muted-foreground/10 text-muted-foreground hover:text-foreground disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:bg-transparent" title={isReadOnly ? readOnlyTooltip : t('imageGallery.uploadImage')}><Upload className="h-3 w-3" /></button>
+                        <button disabled={isReadOnly} onClick={(e) => { e.stopPropagation(); setQrLocationId(loc.id); setQrDialogOpen(true); }} className="h-5 w-5 rounded flex items-center justify-center hover:bg-muted-foreground/10 text-muted-foreground hover:text-foreground disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:bg-transparent" title={isReadOnly ? readOnlyTooltip : t('patientDetail.uploadFromPhone')}><QrCode className="h-3 w-3" /></button>
+                        <button disabled={isReadOnly} onClick={(e) => { e.stopPropagation(); setDeleteConfirmId(loc.id); }} className="h-5 w-5 rounded flex items-center justify-center hover:bg-destructive/10 text-muted-foreground hover:text-destructive disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:bg-transparent" title={isReadOnly ? readOnlyTooltip : t('common.delete')}><Trash2 className="h-3 w-3" /></button>
                       </div>
                     </div>
                   );
@@ -720,9 +730,10 @@ const PatientDetail = () => {
                   </div>
                 </button>
                 <button
+                  disabled={isReadOnly}
                   onClick={(e) => { e.stopPropagation(); setDeleteConfirmId(loc.id); }}
-                  className="shrink-0 p-1 rounded opacity-0 group-hover:opacity-100 transition-opacity hover:bg-destructive/10 text-muted-foreground hover:text-destructive"
-                  title={t('patientDetail.moveToTrash')}
+                  className="shrink-0 p-1 rounded opacity-0 group-hover:opacity-100 transition-opacity hover:bg-destructive/10 text-muted-foreground hover:text-destructive disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:bg-transparent"
+                  title={isReadOnly ? readOnlyTooltip : t('patientDetail.moveToTrash')}
                 >
                   <Trash2 className="h-3.5 w-3.5" />
                 </button>
@@ -803,16 +814,18 @@ const PatientDetail = () => {
                           <p className="text-[10px]">{images.length} {t('common.images')}</p>
                         </button>
                         <button
+                          disabled={isReadOnly}
                           onClick={() => restoreMutation.mutate(loc.id)}
-                          className="shrink-0 p-1 rounded hover:bg-primary/10 text-muted-foreground hover:text-primary transition-colors"
-                          title={t('patientDetail.restoreFromTrash')}
+                          className="shrink-0 p-1 rounded hover:bg-primary/10 text-muted-foreground hover:text-primary transition-colors disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:bg-transparent"
+                          title={isReadOnly ? readOnlyTooltip : t('patientDetail.restoreFromTrash')}
                         >
                           <Undo2 className="h-3.5 w-3.5" />
                         </button>
                         <button
+                          disabled={isReadOnly}
                           onClick={() => setPermanentDeleteId(loc.id)}
-                          className="shrink-0 p-1 rounded hover:bg-destructive/10 text-muted-foreground hover:text-destructive transition-colors"
-                          title={t('patientDetail.permanentlyDelete')}
+                          className="shrink-0 p-1 rounded hover:bg-destructive/10 text-muted-foreground hover:text-destructive transition-colors disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:bg-transparent"
+                          title={isReadOnly ? readOnlyTooltip : t('patientDetail.permanentlyDelete')}
                         >
                           <X className="h-3.5 w-3.5" />
                         </button>
@@ -1328,10 +1341,10 @@ const PatientDetail = () => {
                             </p>
                           </div>
                           <div className="flex gap-1 shrink-0 ml-2">
-                            <button onClick={() => { setEditingFindingId(f.id); setEditingFindingText(f.description || ""); }} className="p-1 rounded hover:bg-muted text-muted-foreground hover:text-foreground">
+                            <button disabled={isReadOnly} onClick={() => { setEditingFindingId(f.id); setEditingFindingText(f.description || ""); }} className="p-1 rounded hover:bg-muted text-muted-foreground hover:text-foreground disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:bg-transparent" title={isReadOnly ? readOnlyTooltip : undefined}>
                               <Pencil className="h-3.5 w-3.5" />
                             </button>
-                            <button onClick={() => deleteFindingMutation.mutate(f.id)} className="p-1 rounded hover:bg-destructive/10 text-muted-foreground hover:text-destructive">
+                            <button disabled={isReadOnly} onClick={() => deleteFindingMutation.mutate(f.id)} className="p-1 rounded hover:bg-destructive/10 text-muted-foreground hover:text-destructive disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:bg-transparent" title={isReadOnly ? readOnlyTooltip : undefined}>
                               <Trash2 className="h-3.5 w-3.5" />
                             </button>
                           </div>
@@ -1351,7 +1364,8 @@ const PatientDetail = () => {
                     />
                     <Button
                       size="sm"
-                      disabled={!newFindingText.trim() || createFindingMutation.isPending}
+                      disabled={isReadOnly || !newFindingText.trim() || createFindingMutation.isPending}
+                      title={isReadOnly ? readOnlyTooltip : undefined}
                       onClick={() => createFindingMutation.mutate({ locationId: selectedLocation.id, description: newFindingText.trim() })}
                     >
                       <Plus className="mr-1 h-3 w-3" /> {t('patientDetail.addFinding')}
