@@ -17,7 +17,7 @@ import { Link } from "react-router-dom";
 
 const Login = () => {
   const { t, i18n } = useTranslation();
-  const { setSession } = useAuth();
+  const { setSession, login } = useAuth();
   const navigate = useNavigate();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -62,7 +62,7 @@ const Login = () => {
     setError("");
     setLoading(true);
     try {
-      const res = await api.login({ email, password });
+      const res = await login(email, password);
       if (res.user?.two_factor_enabled) {
         setPendingUser(res.user);
         setPendingToken(res.token);

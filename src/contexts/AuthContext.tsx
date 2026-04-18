@@ -10,6 +10,11 @@ interface User {
   company_id?: number;
   role?: string;
   two_factor_enabled?: boolean;
+  company_name?: string;
+  company_lifecycle_status?: "active" | "read_only" | "archived" | "pending_deletion";
+  company_read_only_until?: string | null;
+  company_archive_opt_in?: boolean;
+  company_archive_until?: string | null;
 }
 
 interface AuthContextType {
@@ -23,6 +28,10 @@ interface AuthContextType {
 }
 
 const AuthContext = createContext<AuthContextType | null>(null);
+
+const hasLifecycleData = (user: User | null) => Boolean(
+  user && (user.company_lifecycle_status || user.company_read_only_until || typeof user.company_archive_opt_in === "boolean")
+);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
@@ -48,6 +57,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }, INACTIVITY_TIMEOUT_MS);
   }, [performLogout]);
 
+  const syncCurrentUser = useCallback(async () => {
+    const res = await api.me();
+    setUser(res.user);
+    sessionStorage.setItem("auth_user", JSON.stringify(res.user));
+    return res.user;
+  }, []);
+
   // Listen for user activity
   useEffect(() => {
     if (!token) return;
@@ -71,15 +87,41 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [token, resetInactivityTimer]);
 
   useEffect(() => {
-    const savedToken = sessionStorage.getItem("auth_token");
-    const savedUser = sessionStorage.getItem("auth_user");
-    if (savedToken && savedUser) {
-      setToken(savedToken);
-      setUser(JSON.parse(savedUser));
-      api.setToken(savedToken);
-    }
-    setIsLoading(false);
-  }, []);
+    let cancelled = false;
+
+    const restoreSession = async () => {
+      const savedToken = sessionStorage.getItem("auth_token");
+      const savedUser = sessionStorage.getItem("auth_user");
+
+      if (!savedToken || !savedUser) {
+        setIsLoading(false);
+        return;
+      }
+
+      try {
+        const parsedUser = JSON.parse(savedUser) as User;
+        setToken(savedToken);
+        setUser(parsedUser);
+        api.setToken(savedToken);
+
+        if (!hasLifecycleData(parsedUser)) {
+          const freshUser = await syncCurrentUser();
+          if (cancelled) return;
+          setUser(freshUser);
+        }
+      } catch {
+        if (!cancelled) performLogout();
+      } finally {
+        if (!cancelled) setIsLoading(false);
+      }
+    };
+
+    void restoreSession();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [performLogout, syncCurrentUser]);
 
   const setSession = useCallback((u: User, t: string) => {
     setUser(u);
@@ -87,7 +129,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     api.setToken(t);
     sessionStorage.setItem("auth_token", t);
     sessionStorage.setItem("auth_user", JSON.stringify(u));
-  }, []);
+
+    if (!hasLifecycleData(u)) {
+      void syncCurrentUser().catch(() => undefined);
+    }
+  }, [syncCurrentUser]);
 
   const login = useCallback(async (email: string, password: string) => {
     const res = await api.login({ email, password });
