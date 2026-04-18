@@ -10,8 +10,9 @@ import { LESION_CLASSIFICATIONS } from "@/types/patient";
 import { getClassificationLabel } from "@/lib/classificationTranslation";
 import { useState, useRef, useEffect } from "react";
 import { useAuth } from "@/contexts/AuthContext";
+import { useLifecycle } from "@/hooks/use-lifecycle";
 import type { LesionClassification as LesionClassificationType } from "@/types/patient";
-import { ArrowLeft, MapPin, Plus, Calendar, ImageIcon, User, Hash, Activity, Mail, Phone, Pencil, Trash2, Save, X, Square, GitCompareArrows, Move, Camera, Tag, QrCode, Undo2, AlertTriangle, FileDown, Loader2, Eye, ChevronDown, Upload, ClipboardList } from "lucide-react";
+import { ArrowLeft, MapPin, Plus, Calendar, ImageIcon, User, Hash, Activity, Mail, Phone, Pencil, Trash2, Save, X, Square, GitCompareArrows, Move, Camera, Tag, QrCode, Undo2, AlertTriangle, FileDown, Loader2, Eye, ChevronDown, Upload, ClipboardList, Lock } from "lucide-react";
 import PatientAkte from "@/components/PatientAkte";
 import PatientHeader from "@/components/patient-detail/PatientHeader";
 import MobileBottomNav from "@/components/patient-detail/MobileBottomNav";
@@ -55,6 +56,7 @@ import {
 const PatientDetail = () => {
   const { t } = useTranslation();
   const { user } = useAuth();
+  const { isReadOnly, readOnlyTooltip } = useLifecycle();
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
