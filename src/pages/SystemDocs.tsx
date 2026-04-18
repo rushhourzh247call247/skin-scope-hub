@@ -73,6 +73,19 @@ const SystemDocs = () => {
         <InfoRow label={t('systemDocs.protocol')} value={t('systemDocs.protocolVal')} />
       </Section>
 
+      {/* ── Lovable / Frontend-Hosting ── */}
+      <Section icon={GitBranch} title="Frontend-Hosting & Domains">
+        <p className="text-foreground font-medium text-xs uppercase tracking-wider mb-1">Lovable Preview & Publish</p>
+        <InfoRow label="Editor / Preview" value="lovable.dev (Cloudflare R2)" badge="Internal" />
+        <InfoRow label="Published URL" value="skin-scope-hub.lovable.app" />
+        <InfoRow label="Custom Domain" value="proto.derm247.ch" badge="Frontend (Lovable)" />
+        <Separator className="my-2" />
+        <p className="text-foreground font-medium text-xs uppercase tracking-wider mb-1">API-Routing nach Hostname</p>
+        <InfoRow label="proto.derm247.ch" value="→ dev.derm247.ch/api (Hetzner DEV)" />
+        <InfoRow label="demo.derm247.ch" value="→ api.derm247.ch/api (Infomaniak LIVE)" />
+        <InfoRow label="lovableproject.com / localhost" value="→ dev.derm247.ch/api" />
+      </Section>
+
       <Section icon={Monitor} title={t('systemDocs.webserver')}>
         <InfoRow label={t('systemDocs.software')} value="Nginx 1.24.0" badge={t('systemDocs.autoStartLabel')} />
         <InfoRow label={t('systemDocs.frontend')} value="/var/www/app.derm247.ch/" />
