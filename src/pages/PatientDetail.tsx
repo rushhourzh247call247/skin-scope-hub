@@ -1309,7 +1309,6 @@ const PatientDetail = () => {
                       );
                     })()}
                   </div>
-                )}
 
                 {/* Findings */}
                 <div className="rounded-lg border bg-card p-4 space-y-3">
