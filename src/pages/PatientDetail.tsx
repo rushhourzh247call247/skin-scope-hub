@@ -1126,7 +1126,6 @@ const PatientDetail = () => {
                 transition={{ duration: 0.15 }}
                 className="space-y-6"
               >
-                {/* Location Header */}
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-3">
                     <div className={cn(
@@ -1151,7 +1150,6 @@ const PatientDetail = () => {
                       </p>
                     </div>
                   </div>
-                  {/* QR Upload Button – nur für Spots, nicht für Regionen */}
                   {selectedLocation.type !== "region" && (
                     <Button
                       variant="outline"
@@ -1165,50 +1163,90 @@ const PatientDetail = () => {
                     </Button>
                   )}
                 </div>
-...
+
+                {selectedLocation.type !== "region" && (() => {
+                  const currentCls = (selectedLocation as any).classification as LesionClassification || "unclassified";
+                  const currentInfo = LESION_CLASSIFICATIONS[currentCls];
+                  return (
+                    <>
+                      <Collapsible className="rounded-lg border bg-card">
+                        <CollapsibleTrigger className="flex w-full items-center justify-between px-4 py-2.5 hover:bg-muted/50 transition-colors">
+                          <div className="flex items-center gap-2">
+                            <Tag className="h-3.5 w-3.5 text-muted-foreground" />
+                            <span className="text-xs font-semibold text-foreground/70 uppercase tracking-wider">{t('patientDetail.classification')}</span>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <span className="flex items-center gap-1.5 text-[11px] font-medium text-foreground/80">
+                              <span className="h-2 w-2 rounded-full shrink-0" style={{ backgroundColor: currentInfo?.color || 'hsl(var(--muted-foreground))' }} />
+                              {getClassificationLabel(currentCls)}
+                            </span>
+                            <ChevronDown className="h-3.5 w-3.5 text-muted-foreground transition-transform duration-200 [[data-state=open]>&]:rotate-180" />
+                          </div>
+                        </CollapsibleTrigger>
+                        <CollapsibleContent>
+                          <div className="flex flex-wrap gap-1.5 px-4 pb-3 pt-1">
+                            {(Object.entries(LESION_CLASSIFICATIONS) as [LesionClassification, { label: string; color: string; shortLabel: string }][]).map(([key, cls]) => {
+                              const isActive = currentCls === key;
+                              return (
+                                <button
+                                  key={key}
+                                  onClick={() => classifyMutation.mutate({ locationId: selectedLocation.id, classification: key })}
+                                  disabled={isReadOnly}
+                                  title={isReadOnly ? readOnlyTooltip : undefined}
+                                  className={cn(
+                                    "flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[11px] font-medium border transition-all",
+                                    isActive ? "ring-1 ring-offset-1 ring-offset-background shadow-sm" : "opacity-50 hover:opacity-90 border-border text-foreground/70"
+                                  )}
+                                  style={isActive ? { borderColor: cls.color, backgroundColor: `${cls.color}15`, color: cls.color } : {}}
+                                >
+                                  <span className="h-2 w-2 rounded-full shrink-0" style={{ backgroundColor: isActive ? cls.color : `${cls.color}60` }} />
+                                  {getClassificationLabel(key)}
+                                </button>
+                              );
+                            })}
+                          </div>
+                        </CollapsibleContent>
+                      </Collapsible>
+
+                      <div className="rounded-lg border bg-card p-4 space-y-3">
+                        <h4 className="text-xs font-semibold text-foreground uppercase tracking-wider flex items-center gap-2">
+                          <Activity className="h-3.5 w-3.5 text-primary" />
+                          {t('patientDetail.clinicalStatus')}
+                        </h4>
+                        <div className="flex gap-1.5">
+                          {([
+                            { key: "none", label: t('patientDetail.noStatus') },
+                            { key: "praesens", label: t('patientDetail.statusPraesens') },
+                            { key: "post", label: t('patientDetail.statusPost') },
+                          ] as const).map((opt) => {
+                            const current = (selectedLocation as any).op_status || "none";
+                            const isActive = current === opt.key;
+                            return (
                               <button
-                                key={key}
-                                onClick={() => classifyMutation.mutate({ locationId: selectedLocation.id, classification: key })}
+                                key={opt.key}
+                                onClick={() => opStatusMutation.mutate({ locationId: selectedLocation.id, op_status: opt.key })}
                                 disabled={isReadOnly}
                                 title={isReadOnly ? readOnlyTooltip : undefined}
                                 className={cn(
-                                  "flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[11px] font-medium border transition-all",
+                                  "flex items-center gap-1.5 rounded-full px-3 py-1.5 text-[11px] font-medium border transition-all",
                                   isActive
-                                    ? "ring-1 ring-offset-1 ring-offset-background shadow-sm"
-                                    : "opacity-50 hover:opacity-90 border-border text-foreground/70"
+                                    ? opt.key === "praesens"
+                                      ? "bg-sky-500/10 text-sky-600 border-sky-300 ring-1 ring-sky-300 dark:border-sky-700 dark:ring-sky-700"
+                                      : opt.key === "post"
+                                        ? "bg-emerald-500/10 text-emerald-600 border-emerald-300 ring-1 ring-emerald-300 dark:border-emerald-700 dark:ring-emerald-700"
+                                        : "bg-muted text-foreground border-border ring-1 ring-border"
+                                    : "opacity-60 hover:opacity-100 border-border text-muted-foreground"
                                 )}
-                                style={isActive ? {
-                                  borderColor: cls.color,
-                                  backgroundColor: `${cls.color}15`,
-                                  color: cls.color,
-                                } : {}}
                               >
-...
-                          <button
-                            key={opt.key}
-                            onClick={() => opStatusMutation.mutate({ locationId: selectedLocation.id, op_status: opt.key })}
-                            disabled={isReadOnly}
-                            title={isReadOnly ? readOnlyTooltip : undefined}
-                            className={cn(
-                              "flex items-center gap-1.5 rounded-full px-3 py-1.5 text-[11px] font-medium border transition-all",
-                              isActive
-                                ? opt.key === "praesens"
-                                  ? "bg-sky-500/10 text-sky-600 border-sky-300 ring-1 ring-sky-300 dark:border-sky-700 dark:ring-sky-700"
-                                  : opt.key === "post"
-                                    ? "bg-emerald-500/10 text-emerald-600 border-emerald-300 ring-1 ring-emerald-300 dark:border-emerald-700 dark:ring-emerald-700"
-                                    : "bg-muted text-foreground border-border ring-1 ring-border"
-                                : "opacity-60 hover:opacity-100 border-border text-muted-foreground"
-                            )}
-                          >
-                            {opt.label}
-                          </button>
-                        );
-                      })}
-                    </div>
-                  </div>
-                )}
-
-                {selectedLocation.type === "region" && (selectedLocation.images?.length ?? 0) >= 2 && (
+                                {opt.label}
+                              </button>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    </>
+                  );
+                })()}
                   <div className="rounded-lg border bg-card p-4 space-y-4">
                     <h4 className="text-xs font-semibold text-foreground uppercase tracking-wider flex items-center gap-2">
                       <GitCompareArrows className="h-3.5 w-3.5 text-amber-500" />
@@ -1288,9 +1326,10 @@ const PatientDetail = () => {
                             onChange={(e) => setEditingFindingText(e.target.value)}
                             rows={2}
                             className="text-sm"
+                            disabled={isReadOnly}
                           />
                           <div className="flex gap-1.5">
-                            <Button size="sm" variant="default" onClick={() => updateFindingMutation.mutate({ findingId: f.id, description: editingFindingText })} disabled={updateFindingMutation.isPending}>
+                            <Button size="sm" variant="default" onClick={() => updateFindingMutation.mutate({ findingId: f.id, description: editingFindingText })} disabled={isReadOnly || updateFindingMutation.isPending} title={isReadOnly ? readOnlyTooltip : undefined}>
                               <Save className="mr-1 h-3 w-3" /> {t('common.save')}
                             </Button>
                             <Button size="sm" variant="ghost" onClick={() => { setEditingFindingId(null); setEditingFindingText(""); }}>
@@ -1321,7 +1360,6 @@ const PatientDetail = () => {
                     </div>
                   ))}
 
-                  {/* Add new finding */}
                   <div className="space-y-2 pt-2 border-t">
                     <Textarea
                       placeholder={t('patientDetail.newFindingPlaceholder')}
@@ -1329,6 +1367,7 @@ const PatientDetail = () => {
                       onChange={(e) => setNewFindingText(e.target.value)}
                       rows={2}
                       className="text-sm"
+                      disabled={isReadOnly}
                     />
                     <Button
                       size="sm"
@@ -1341,7 +1380,6 @@ const PatientDetail = () => {
                   </div>
                 </div>
 
-                {/* Risk Progression */}
                 {(selectedLocation.images?.length ?? 0) > 0 && (
                   <RiskProgression
                     images={selectedLocation.images ?? []}
@@ -1349,7 +1387,6 @@ const PatientDetail = () => {
                   />
                 )}
 
-                {/* Image Gallery */}
                 <ImageGallery
                   locationId={selectedLocation.id}
                   patientId={patientId}
@@ -1378,7 +1415,6 @@ const PatientDetail = () => {
         </div>
       </div>
 
-      {/* Global QR Upload Dialog */}
       {qrLocationId && (
         <QrUploadDialog
           open={qrDialogOpen}
@@ -1390,7 +1426,6 @@ const PatientDetail = () => {
         />
       )}
 
-      {/* Soft Delete Confirmation */}
       <AlertDialog open={deleteConfirmId !== null} onOpenChange={(open) => !open && setDeleteConfirmId(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>
@@ -1415,6 +1450,7 @@ const PatientDetail = () => {
             <AlertDialogAction
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
               onClick={() => deleteConfirmId && softDeleteMutation.mutate(deleteConfirmId)}
+              disabled={isReadOnly}
             >
               <Trash2 className="mr-1.5 h-4 w-4" />
               {t('patientDetail.moveToTrashBtn')}
@@ -1423,7 +1459,6 @@ const PatientDetail = () => {
         </AlertDialogContent>
       </AlertDialog>
 
-      {/* Permanent Delete Confirmation */}
       <AlertDialog open={permanentDeleteId !== null} onOpenChange={(open) => !open && setPermanentDeleteId(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>
@@ -1448,6 +1483,7 @@ const PatientDetail = () => {
             <AlertDialogAction
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
               onClick={() => permanentDeleteId && permanentDeleteMutation.mutate(permanentDeleteId)}
+              disabled={isReadOnly}
             >
               {t('patientDetail.permanentlyDelete')}
             </AlertDialogAction>
@@ -1455,13 +1491,12 @@ const PatientDetail = () => {
         </AlertDialogContent>
       </AlertDialog>
 
-      {/* PDF Preview Dialog */}
       <Dialog open={!!pdfPreviewUrl} onOpenChange={(open) => { if (!open) { if (pdfPreviewUrl) URL.revokeObjectURL(pdfPreviewUrl); setPdfPreviewUrl(null); } }}>
         <DialogContent className="max-w-3xl h-[85vh] flex flex-col p-0">
           <DialogHeader className="px-4 pt-4 pb-2">
             <DialogTitle className="flex items-center justify-between">
                <span className="text-sm">{t('patientDetail.pdfPreviewTitle')}</span>
-               <Button size="sm" onClick={handlePdfDownload} className="gap-1.5">
+               <Button size="sm" onClick={handlePdfDownload} className="gap-1.5" disabled={isReadOnly} title={isReadOnly ? readOnlyTooltip : undefined}>
                  <FileDown className="h-3.5 w-3.5" /> {t('common.download')}
               </Button>
             </DialogTitle>
@@ -1475,7 +1510,7 @@ const PatientDetail = () => {
               >
                 <div className="flex flex-col items-center justify-center h-full gap-3 text-muted-foreground">
                    <p className="text-sm">{t('patientDetail.pdfNotSupported')}</p>
-                   <Button size="sm" onClick={handlePdfDownload} className="gap-1.5">
+                   <Button size="sm" onClick={handlePdfDownload} className="gap-1.5" disabled={isReadOnly} title={isReadOnly ? readOnlyTooltip : undefined}>
                      <FileDown className="h-3.5 w-3.5" /> {t('patientDetail.directDownload')}
                   </Button>
                 </div>
@@ -1485,7 +1520,6 @@ const PatientDetail = () => {
         </DialogContent>
       </Dialog>
 
-      {/* PDF Export Dialog */}
       <PdfExportDialog
         open={pdfDialogOpen}
         onOpenChange={setPdfDialogOpen}
