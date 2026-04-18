@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useAuth } from "@/contexts/AuthContext";
+import { useLifecycle } from "@/hooks/use-lifecycle";
 import { api } from "@/lib/api";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -15,6 +16,7 @@ import { LanguageFlag } from "@/components/LanguageFlag";
 const Settings = () => {
   const { t, i18n } = useTranslation();
   const { user } = useAuth();
+  const { isReadOnly, readOnlyTooltip } = useLifecycle();
   const [twoFactorEnabled, setTwoFactorEnabled] = useState(user?.two_factor_enabled ?? false);
 
   const [setupOpen, setSetupOpen] = useState(false);
@@ -152,7 +154,7 @@ const Settings = () => {
                   <p className="text-sm text-muted-foreground">{t("settings.twoFactor.activeDescription")}</p>
                 </div>
               </div>
-              <Button variant="outline" size="sm" onClick={handleDisable2FA} className="text-destructive hover:bg-destructive/10">
+              <Button variant="outline" size="sm" onClick={handleDisable2FA} disabled={isReadOnly} title={isReadOnly ? readOnlyTooltip : undefined} className="text-destructive hover:bg-destructive/10">
                 <ShieldOff className="mr-2 h-4 w-4" />
                 {t("settings.twoFactor.disable")}
               </Button>
@@ -166,7 +168,7 @@ const Settings = () => {
                   <p className="text-sm text-muted-foreground">{t("settings.twoFactor.inactiveDescription")}</p>
                 </div>
               </div>
-              <Button onClick={handleEnable2FA} disabled={setupLoading} size="sm">
+              <Button onClick={handleEnable2FA} disabled={isReadOnly || setupLoading} title={isReadOnly ? readOnlyTooltip : undefined} size="sm">
                 <Lock className="mr-2 h-4 w-4" />
                 {setupLoading ? t("settings.twoFactor.enableLoading") : t("settings.twoFactor.enable")}
               </Button>
@@ -187,17 +189,17 @@ const Settings = () => {
           <form onSubmit={handleChangePassword} className="space-y-4 max-w-md">
             <div className="space-y-2">
               <Label htmlFor="current-pw">{t("settings.password.current")}</Label>
-              <Input id="current-pw" type="password" value={currentPassword} onChange={(e) => setCurrentPassword(e.target.value)} required />
+              <Input id="current-pw" type="password" value={currentPassword} onChange={(e) => setCurrentPassword(e.target.value)} required disabled={isReadOnly} />
             </div>
             <div className="space-y-2">
               <Label htmlFor="new-pw">{t("settings.password.new")}</Label>
-              <Input id="new-pw" type="password" value={newPassword} onChange={(e) => setNewPassword(e.target.value)} required minLength={8} />
+              <Input id="new-pw" type="password" value={newPassword} onChange={(e) => setNewPassword(e.target.value)} required minLength={8} disabled={isReadOnly} />
             </div>
             <div className="space-y-2">
               <Label htmlFor="confirm-pw">{t("settings.password.confirm")}</Label>
-              <Input id="confirm-pw" type="password" value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} required />
+              <Input id="confirm-pw" type="password" value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} required disabled={isReadOnly} />
             </div>
-            <Button type="submit" disabled={passwordLoading}>
+            <Button type="submit" disabled={isReadOnly || passwordLoading} title={isReadOnly ? readOnlyTooltip : undefined}>
               {passwordLoading ? t("settings.password.submitting") : t("settings.password.submit")}
             </Button>
           </form>
