@@ -11,12 +11,14 @@ import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
 import type { Gender } from "@/types/patient";
-import { User } from "lucide-react";
+import { User, Lock } from "lucide-react";
+import { useLifecycle } from "@/hooks/use-lifecycle";
 
 const NewPatient = () => {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const { t } = useTranslation();
+  const { isReadOnly, readOnlyTooltip } = useLifecycle();
 
   const [name, setName] = useState("");
   const [birthDate, setBirthDate] = useState("");
@@ -68,6 +70,12 @@ const NewPatient = () => {
           <CardDescription>{t("newPatient.subtitle")}</CardDescription>
         </CardHeader>
         <CardContent>
+          {isReadOnly && (
+            <div className="mb-4 flex items-start gap-2 rounded-md border border-destructive/20 bg-destructive/5 p-3 text-xs text-destructive">
+              <Lock className="h-4 w-4 shrink-0 mt-0.5" />
+              <span>{readOnlyTooltip}</span>
+            </div>
+          )}
           <form onSubmit={handleSubmit} className="space-y-5">
             <div className="space-y-2">
               <Label>{t("common.gender")}</Label>
@@ -135,7 +143,7 @@ const NewPatient = () => {
             )}
 
             <div className="flex gap-3 pt-2">
-              <Button type="submit" disabled={createMutation.isPending || !name.trim() || !birthDate}>
+              <Button type="submit" disabled={isReadOnly || createMutation.isPending || !name.trim() || !birthDate} title={isReadOnly ? readOnlyTooltip : undefined}>
                 {createMutation.isPending ? t("common.creating") : t("newPatient.submit")}
               </Button>
               <Button type="button" variant="outline" onClick={() => navigate("/patients")}>

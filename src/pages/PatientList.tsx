@@ -22,10 +22,12 @@ import {
 } from "@/components/ui/alert-dialog";
 import { toast } from "sonner";
 import { formatDate } from "@/lib/dateUtils";
+import { useLifecycle } from "@/hooks/use-lifecycle";
 
 const PatientList = () => {
   const { user } = useAuth();
   const { t } = useTranslation();
+  const { isReadOnly, readOnlyTooltip } = useLifecycle();
   const isAdmin = user?.role === "admin";
   const navigate = useNavigate();
   const queryClient = useQueryClient();
@@ -214,6 +216,8 @@ const PatientList = () => {
                             size="sm"
                             variant="outline"
                             className="h-7 gap-1 text-xs"
+                            disabled={isReadOnly || activateMutation.isPending}
+                            title={isReadOnly ? readOnlyTooltip : undefined}
                             onClick={(e) => { e.stopPropagation(); activateMutation.mutate(patient.id); }}
                           >
                             <Power className="h-3 w-3" /> <span className="hidden sm:inline">{t("common.activate")}</span>
@@ -223,6 +227,8 @@ const PatientList = () => {
                             size="sm"
                             variant="ghost"
                             className="h-7 sm:gap-1 text-xs text-muted-foreground hover:text-destructive"
+                            disabled={isReadOnly || deactivateMutation.isPending}
+                            title={isReadOnly ? readOnlyTooltip : undefined}
                             onClick={(e) => { e.stopPropagation(); deactivateMutation.mutate(patient.id); }}
                           >
                             <PowerOff className="h-3 w-3" /> <span className="hidden sm:inline">{t("common.deactivate")}</span>
@@ -233,6 +239,8 @@ const PatientList = () => {
                             size="sm"
                             variant="ghost"
                             className="h-7 w-7 p-0 text-muted-foreground hover:text-destructive"
+                            disabled={isReadOnly}
+                            title={isReadOnly ? readOnlyTooltip : undefined}
                             onClick={(e) => { e.stopPropagation(); setDeletePatientId(patient.id); }}
                           >
                             <Trash2 className="h-3 w-3" />
