@@ -1,8 +1,8 @@
 import { useState } from "react";
-import { useSearchParams } from "react-router-dom";
+import { useSearchParams, useNavigate } from "react-router-dom";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { api } from "@/lib/api";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -10,7 +10,6 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
-import { Textarea } from "@/components/ui/textarea";
 import { Search, Plus, CheckCircle, AlertTriangle, FileDown, RotateCcw, Send, Receipt } from "lucide-react";
 import { downloadInvoicePdf } from "@/lib/invoicePdf";
 import { format } from "date-fns";
@@ -33,14 +32,13 @@ interface Invoice {
 
 export default function InvoiceManagement() {
   const queryClient = useQueryClient();
+  const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const initialStatus = searchParams.get("status") || "all";
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>(initialStatus);
-  const [payDialog, setPayDialog] = useState<Invoice | null>(null);
   const [dunningDialog, setDunningDialog] = useState<Invoice | null>(null);
   const [generateDialog, setGenerateDialog] = useState(false);
-  const [paymentNote, setPaymentNote] = useState("");
 
   const { data: invoices = [], isLoading } = useQuery({
     queryKey: ["invoices"],
@@ -53,13 +51,10 @@ export default function InvoiceManagement() {
   });
 
   const markPaidMutation = useMutation({
-    mutationFn: (data: { invoiceId: number; notes?: string }) =>
-      api.markInvoicePaid(data.invoiceId, data.notes),
+    mutationFn: (invoiceId: number) => api.markInvoicePaid(invoiceId),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["invoices"] });
-      setPayDialog(null);
-      setPaymentNote("");
-      toast.success("Rechnung als bezahlt markiert");
+      toast.success("Bezahlt markiert");
     },
     onError: () => toast.error("Fehler beim Aktualisieren"),
   });
@@ -172,25 +167,40 @@ export default function InvoiceManagement() {
                 </TableHeader>
                 <TableBody>
                   {filtered.map((inv: Invoice) => (
-                    <TableRow key={inv.id}>
+                    <TableRow
+                      key={inv.id}
+                      className="cursor-pointer hover:bg-muted/50"
+                      onClick={() => navigate(`/finance/companies/${inv.company_id}`)}
+                    >
                       <TableCell className="font-mono text-xs">{inv.invoice_number}</TableCell>
                       <TableCell className="font-medium max-w-[150px] truncate">{inv.company_name}</TableCell>
                       <TableCell className="text-right font-medium">CHF {inv.amount.toLocaleString("de-CH")}</TableCell>
                       <TableCell className="text-sm">{format(new Date(inv.due_date), "dd.MM.yyyy")}</TableCell>
                       <TableCell>{statusBadge(inv.status, inv.dunning_level)}</TableCell>
-                      <TableCell>
+                      <TableCell onClick={(e) => e.stopPropagation()}>
                         <div className="flex items-center justify-end gap-1">
                           {(inv.status === "open" || inv.status === "overdue") && (
                             <>
-                              <Button size="icon" variant="ghost" className="h-8 w-8" title="Als bezahlt markieren" onClick={() => setPayDialog(inv)}>
+                              <Button
+                                size="icon"
+                                variant="ghost"
+                                className="h-8 w-8"
+                                title="Als bezahlt markieren"
+                                onClick={() => markPaidMutation.mutate(inv.id)}
+                                disabled={markPaidMutation.isPending}
+                              >
                                 <CheckCircle className="h-4 w-4 text-emerald-600" />
                               </Button>
-                              <Button size="icon" variant="ghost" className="h-8 w-8" title="Mahnung senden" onClick={() => setDunningDialog(inv)}>
+                              <Button size="icon" variant="ghost" className="h-8 w-8" title="Mahnstufe" onClick={() => setDunningDialog(inv)}>
                                 <Send className="h-4 w-4 text-amber-600" />
                               </Button>
                             </>
                           )}
-                          <Button size="icon" variant="ghost" className="h-8 w-8" title="PDF herunterladen"
+                          <Button
+                            size="icon"
+                            variant="ghost"
+                            className="h-8 w-8"
+                            title="PDF herunterladen"
                             onClick={() => {
                               try {
                                 const contract = contracts.find((c: any) => c.id === inv.contract_id);
@@ -204,7 +214,8 @@ export default function InvoiceManagement() {
                               } catch {
                                 toast.error("PDF-Erstellung fehlgeschlagen");
                               }
-                            }}>
+                            }}
+                          >
                             <FileDown className="h-4 w-4" />
                           </Button>
                         </div>
@@ -217,42 +228,6 @@ export default function InvoiceManagement() {
           )}
         </CardContent>
       </Card>
-
-      {/* Mark Paid Dialog */}
-      <Dialog open={!!payDialog} onOpenChange={() => setPayDialog(null)}>
-        <DialogContent className="max-w-md">
-          <DialogHeader>
-            <DialogTitle>Rechnung als bezahlt markieren</DialogTitle>
-          </DialogHeader>
-          {payDialog && (
-            <div className="space-y-4">
-              <div className="rounded-lg bg-muted/50 p-3 space-y-1 text-sm">
-                <p><span className="text-muted-foreground">Rechnung:</span> {payDialog.invoice_number}</p>
-                <p><span className="text-muted-foreground">Firma:</span> {payDialog.company_name}</p>
-                <p><span className="text-muted-foreground">Betrag:</span> CHF {payDialog.amount.toLocaleString("de-CH")}</p>
-              </div>
-              <div>
-                <label className="text-sm font-medium">Notiz (optional)</label>
-                <Textarea
-                  placeholder="z.B. Zahlungsreferenz, Teilzahlung..."
-                  value={paymentNote}
-                  onChange={(e) => setPaymentNote(e.target.value)}
-                  className="mt-1"
-                />
-              </div>
-              <div className="flex justify-end gap-2">
-                <Button variant="outline" onClick={() => setPayDialog(null)}>Abbrechen</Button>
-                <Button
-                  onClick={() => markPaidMutation.mutate({ invoiceId: payDialog.id, notes: paymentNote })}
-                  disabled={markPaidMutation.isPending}
-                >
-                  <CheckCircle className="mr-1 h-4 w-4" /> Als bezahlt markieren
-                </Button>
-              </div>
-            </div>
-          )}
-        </DialogContent>
-      </Dialog>
 
       {/* Dunning Dialog */}
       <Dialog open={!!dunningDialog} onOpenChange={() => setDunningDialog(null)}>

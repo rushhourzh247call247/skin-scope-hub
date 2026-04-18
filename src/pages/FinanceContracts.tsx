@@ -1,5 +1,6 @@
 import { useState, useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
+import { useNavigate } from "react-router-dom";
 import { api } from "@/lib/api";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -10,6 +11,7 @@ import { Search, ScrollText, CheckCircle, AlertTriangle, XCircle } from "lucide-
 import { format, differenceInDays } from "date-fns";
 
 export default function FinanceContracts() {
+  const navigate = useNavigate();
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
 
@@ -143,7 +145,11 @@ export default function FinanceContracts() {
                 </TableHeader>
                 <TableBody>
                   {filtered.map((c: any) => (
-                    <TableRow key={c.id} className={c.daysLeft !== null && c.daysLeft <= 14 && c.status === "active" ? "bg-destructive/5" : ""}>
+                    <TableRow
+                      key={c.id}
+                      onClick={() => navigate(`/finance/companies/${c.company_id}`)}
+                      className={`cursor-pointer hover:bg-muted/50 ${c.daysLeft !== null && c.daysLeft <= 14 && c.status === "active" ? "bg-destructive/5" : ""}`}
+                    >
                       <TableCell className="font-mono text-xs">{c.contract_number}</TableCell>
                       <TableCell className="font-medium max-w-[150px] truncate">{c.companyName}</TableCell>
                       <TableCell className="text-sm">{c.package_name}</TableCell>

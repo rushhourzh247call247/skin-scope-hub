@@ -48,10 +48,11 @@ export function AppSidebar() {
   }, [isAdmin]);
 
   const financeNav = [
-    { title: "Finanz-Dashboard", url: "/finance", icon: Landmark },
+    { title: "Dashboard", url: "/finance", icon: Landmark },
+    { title: "Firmen", url: "/finance/companies", icon: Building2 },
     { title: "Rechnungen", url: "/finance/invoices", icon: Receipt },
-    { title: "Firmen-Zahlungen", url: "/finance/companies", icon: CreditCard },
-    { title: "Vertragsverwaltung", url: "/contracts", icon: FileText },
+    { title: "Verträge (alle)", url: "/finance/contracts", icon: ScrollText },
+    { title: "Neuer Vertrag", url: "/contracts", icon: FileText },
     { title: t("nav.settings"), url: "/settings", icon: Settings },
   ];
 
@@ -73,9 +74,9 @@ export function AppSidebar() {
   ];
 
   const adminFinanceNav = [
-    { title: "Finanz-Dashboard", url: "/finance", icon: Landmark },
+    { title: "Dashboard", url: "/finance", icon: Landmark },
+    { title: "Firmen", url: "/finance/companies", icon: CreditCard },
     { title: "Rechnungen", url: "/finance/invoices", icon: Receipt },
-    { title: "Firmen-Zahlungen", url: "/finance/companies", icon: CreditCard },
     { title: "Verträge", url: "/finance/contracts", icon: ScrollText },
   ];
 
