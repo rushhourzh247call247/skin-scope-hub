@@ -132,6 +132,29 @@ export default function FinanceCompanyDetail() {
     onError: () => toast.error("Fehler"),
   });
 
+  const lifecycleMutation = useMutation({
+    mutationFn: (status: "active" | "read_only" | "archived") => {
+      if (status === "active") {
+        return api.reactivateCompanyLifecycle(companyId);
+      }
+      return api.setCompanyLifecycle(companyId, { lifecycle_status: status });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["companies"] });
+      setLifecycleAction(null);
+      toast.success("Status aktualisiert");
+    },
+    onError: (e: any) => toast.error(e?.message || "Fehler beim Aktualisieren"),
+  });
+
+  const lifecycleStatus = (company?.lifecycle_status as string) || "active";
+  const lifecycleLabels: Record<string, string> = {
+    active: "Aktiv",
+    read_only: "Read-Only",
+    archived: "Archiviert",
+    pending_deletion: "Löschung beantragt",
+  };
+
   if (!company) {
     return (
       <div className="p-6 space-y-4">
