@@ -19,6 +19,7 @@ export function AppSidebar() {
   const collapsed = state === "collapsed";
   const location = useLocation();
   const { user, logout } = useAuth();
+  const { isReadOnly, readOnlyTooltip } = useLifecycle();
   const isAdmin = user?.role === "admin";
   const isAccountant = user?.role === "accountant";
   const [unreadTickets, setUnreadTickets] = useState(0);
