@@ -1364,7 +1364,8 @@ const PatientDetail = () => {
                     />
                     <Button
                       size="sm"
-                      disabled={!newFindingText.trim() || createFindingMutation.isPending}
+                      disabled={isReadOnly || !newFindingText.trim() || createFindingMutation.isPending}
+                      title={isReadOnly ? readOnlyTooltip : undefined}
                       onClick={() => createFindingMutation.mutate({ locationId: selectedLocation.id, description: newFindingText.trim() })}
                     >
                       <Plus className="mr-1 h-3 w-3" /> {t('patientDetail.addFinding')}
