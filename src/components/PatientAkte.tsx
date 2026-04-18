@@ -658,7 +658,45 @@ const PatientAkte = ({ patient, onNavigateToSpot }: PatientAkteProps) => {
             disabled={isReadOnly}
           />
         </div>
-...
+
+        {documentsLoading ? (
+          <p className="text-xs text-muted-foreground">{t("common.loading")}</p>
+        ) : documents.length === 0 ? (
+          <p className="text-xs text-muted-foreground italic">{t("akte.noDocuments")}</p>
+        ) : (
+          <div className="space-y-1.5">
+            {documents.map((doc) => (
+              <div
+                key={doc.id}
+                className="flex items-center gap-2.5 rounded-md px-3 py-2 text-xs border border-border bg-muted/30 group"
+              >
+                <FileText className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
+                <div className="flex-1 min-w-0">
+                  <p className="font-medium text-foreground truncate">{doc.original_name}</p>
+                  <div className="flex items-center gap-2 text-[10px] text-muted-foreground">
+                    {doc.created_at && <span className="tabular-nums">{formatDate(doc.created_at, "dd.MM.yyyy")}</span>}
+                    {doc.notes && <span className="truncate">· {doc.notes}</span>}
+                  </div>
+                </div>
+                <div className="flex items-center gap-1 shrink-0">
+                  <button
+                    onClick={() => {
+                      const baseUrl = api.getDocumentDownloadUrl(doc.id);
+                      const separator = baseUrl.includes("?") ? "&" : "?";
+                      const previewWindow = window.open(
+                        `${baseUrl}${separator}inline=1`,
+                        "_blank",
+                        "noopener,noreferrer"
+                      );
+                      if (!previewWindow) {
+                        toast.error(t("akte.previewError", "Vorschau konnte nicht geladen werden"));
+                      }
+                    }}
+                    className="p-1 rounded hover:bg-primary/10 text-muted-foreground hover:text-primary transition-colors"
+                    title={t("akte.preview", "Vorschau")}
+                  >
+                    <Eye className="h-3.5 w-3.5" />
+                  </button>
                   <button
                     disabled={isReadOnly}
                     onClick={async () => {
