@@ -297,6 +297,13 @@ export const api = {
   unsuspendCompany: (companyId: number) =>
     request<{ success: boolean }>(`/companies/${companyId}/unsuspend`, { method: 'PUT' }),
 
+  // Lifecycle: manuell aus read_only/archived zurück auf active setzen
+  reactivateCompanyLifecycle: (companyId: number) =>
+    request<{ success: boolean; lifecycle_status: string }>(
+      `/companies/${companyId}/reactivate`,
+      { method: 'POST' }
+    ),
+
   // Patients
   getPatients: () => request<any[]>('/patients'),
   createPatient: (data: { name: string; birth_date: string; gender?: string; email?: string; phone?: string; insurance_number?: string; patient_number?: string; notes?: string }) =>
