@@ -129,7 +129,7 @@ const Dashboard = () => {
         <p className="text-sm text-muted-foreground">{t("dashboard.subtitle")}</p>
       </div>
 
-      <MedicalDisclaimer />
+      
 
       {!isAdmin && (
         <div>
