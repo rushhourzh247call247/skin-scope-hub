@@ -12,6 +12,7 @@ import type { FullPatient, PdfExportOptions } from "@/types/patient";
 import { generatePatientPDF, getPatientPdfFilename } from "@/lib/pdfExport";
 import { saveReport, getDefaultPdfOptions, saveDefaultPdfOptions } from "@/lib/pdfReportStorage";
 import PdfPreviewPages from "@/components/PdfPreviewPages";
+import { useLifecycle } from "@/hooks/use-lifecycle";
 
 interface PdfExportDialogProps {
   open: boolean;
@@ -22,6 +23,7 @@ interface PdfExportDialogProps {
 
 export default function PdfExportDialog({ open, onOpenChange, patient, doctorName }: PdfExportDialogProps) {
   const { t } = useTranslation();
+  const { isReadOnly, readOnlyTooltip } = useLifecycle();
   const defaults = getDefaultPdfOptions();
   const [reportType, setReportType] = useState<"lastVisit" | "fullHistory">(defaults.reportType);
   const [showClassification, setShowClassification] = useState(defaults.showClassification);
@@ -74,6 +76,11 @@ export default function PdfExportDialog({ open, onOpenChange, patient, doctorNam
   };
 
   const handleSaveAndDownload = async () => {
+    if (isReadOnly) {
+      toast.error(readOnlyTooltip);
+      return;
+    }
+
     setLoading(true);
     try {
       const options = buildOptions();
@@ -126,7 +133,6 @@ export default function PdfExportDialog({ open, onOpenChange, patient, doctorNam
         toast.error(t('pdfExport.downloadedNotSaved'));
       }
 
-      // Close dialog after save & download
       setTimeout(() => {
         URL.revokeObjectURL(blobUrl);
         URL.revokeObjectURL(downloadUrl);
@@ -275,7 +281,7 @@ export default function PdfExportDialog({ open, onOpenChange, patient, doctorNam
                 <Settings2 className="h-4 w-4" />
                 {t('pdfExport.options')}
               </Button>
-              <Button onClick={handleSaveAndDownload} disabled={loading} className="flex-1 gap-1.5">
+              <Button onClick={handleSaveAndDownload} disabled={loading || isReadOnly} title={isReadOnly ? readOnlyTooltip : undefined} className="flex-1 gap-1.5">
                 {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
                 {t('pdfExport.saveAndDownload')}
               </Button>
