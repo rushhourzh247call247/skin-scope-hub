@@ -40,6 +40,7 @@ export default function FinanceCompanyDetail() {
   const [terminateOpen, setTerminateOpen] = useState(false);
   const [dunningInvoice, setDunningInvoice] = useState<any | null>(null);
   const [lifecycleAction, setLifecycleAction] = useState<null | "read_only" | "archived" | "active">(null);
+  const [archiveMode, setArchiveMode] = useState<"offer" | "status">("offer");
 
   const { data: companies = [] } = useQuery({ queryKey: ["companies"], queryFn: () => api.getCompanies() });
   const { data: contracts = [], isLoading: loadingContracts } = useQuery({
@@ -133,15 +134,21 @@ export default function FinanceCompanyDetail() {
   });
 
   const lifecycleMutation = useMutation({
-    mutationFn: async (status: "active" | "read_only" | "archived") => {
+    mutationFn: async (params: { status: "active" | "read_only" | "archived"; mode?: "offer" | "status" }) => {
+      const { status, mode } = params;
       if (status === "active") {
         await api.reactivateCompanyLifecycle(companyId);
+      } else if (status === "archived" && mode === "offer") {
+        // Archiv-Angebot: legt Archiv-Vertrag an (CHF 50.–/Mt., 60 Tage Kündigung) + setzt Lifecycle
+        await api.archiveOptIn(companyId);
       } else {
         await api.setCompanyLifecycle(companyId, { lifecycle_status: status });
       }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["companies"] });
+      queryClient.invalidateQueries({ queryKey: ["company-contracts", companyId] });
+      queryClient.invalidateQueries({ queryKey: ["all-contracts"] });
       setLifecycleAction(null);
       toast.success("Status aktualisiert");
     },
@@ -495,26 +502,67 @@ export default function FinanceCompanyDetail() {
           <AlertDialogHeader>
             <AlertDialogTitle>
               {lifecycleAction === "read_only" && "Read-Only setzen?"}
-              {lifecycleAction === "archived" && "Archivieren?"}
+              {lifecycleAction === "archived" && "Archivieren"}
               {lifecycleAction === "active" && "Wieder aktivieren?"}
             </AlertDialogTitle>
             <AlertDialogDescription>
               {lifecycleAction === "read_only" && "Die Firma kann sich weiterhin einloggen, aber keine Daten mehr ändern oder hinzufügen. Bestehende Daten bleiben sichtbar."}
-              {lifecycleAction === "archived" && "Die Firma wechselt in den Archiv-Modus (CHF 50.–/Mt., nur Lesezugriff). Schreiboperationen werden gesperrt."}
               {lifecycleAction === "active" && "Die Firma erhält wieder vollen Zugriff. Alle Schreiboperationen werden freigegeben."}
+              {lifecycleAction === "archived" && "Wähle wie archiviert werden soll:"}
             </AlertDialogDescription>
           </AlertDialogHeader>
+
+          {lifecycleAction === "archived" && (
+            <div className="space-y-2 my-2">
+              <button
+                type="button"
+                onClick={() => setArchiveMode("offer")}
+                className={`w-full text-left rounded-lg border p-3 transition ${
+                  archiveMode === "offer" ? "border-primary bg-primary/5 ring-1 ring-primary" : "border-border hover:bg-muted/50"
+                }`}
+              >
+                <div className="flex items-start justify-between gap-2">
+                  <div className="font-medium text-sm">Archiv-Angebot (empfohlen)</div>
+                  <Badge className="bg-primary/10 text-primary border-primary/30">CHF 50.–/Mt.</Badge>
+                </div>
+                <p className="text-xs text-muted-foreground mt-1">
+                  Legt einen Archiv-Vertrag an: 60 Tage Kündigung, keine Mindestlaufzeit, nur Lesezugriff. Aktueller Vertrag wird durch Archiv-Vertrag ersetzt.
+                </p>
+              </button>
+              <button
+                type="button"
+                onClick={() => setArchiveMode("status")}
+                className={`w-full text-left rounded-lg border p-3 transition ${
+                  archiveMode === "status" ? "border-primary bg-primary/5 ring-1 ring-primary" : "border-border hover:bg-muted/50"
+                }`}
+              >
+                <div className="font-medium text-sm">Nur Status archivieren</div>
+                <p className="text-xs text-muted-foreground mt-1">
+                  Setzt nur den Lifecycle-Status auf „archiviert" (Read-Only) ohne neuen Archiv-Vertrag oder Verrechnung.
+                </p>
+              </button>
+            </div>
+          )}
+
           <AlertDialogFooter>
             <AlertDialogCancel disabled={lifecycleMutation.isPending}>Abbrechen</AlertDialogCancel>
             <AlertDialogAction
-              onClick={(e) => { e.preventDefault(); if (lifecycleAction) lifecycleMutation.mutate(lifecycleAction); }}
+              onClick={(e) => {
+                e.preventDefault();
+                if (!lifecycleAction) return;
+                lifecycleMutation.mutate({
+                  status: lifecycleAction,
+                  mode: lifecycleAction === "archived" ? archiveMode : undefined,
+                });
+              }}
               disabled={lifecycleMutation.isPending}
             >
-              Bestätigen
+              {lifecycleAction === "archived" && archiveMode === "offer" ? "Archiv-Vertrag anlegen" : "Bestätigen"}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
 
       {/* Terminate Dialog */}
       <AlertDialog open={terminateOpen} onOpenChange={setTerminateOpen}>
