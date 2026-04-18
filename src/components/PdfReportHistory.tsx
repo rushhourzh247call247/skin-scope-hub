@@ -18,6 +18,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import PdfPreviewPages from "@/components/PdfPreviewPages";
+import { useLifecycle } from "@/hooks/use-lifecycle";
 
 interface PdfReportHistoryProps {
   patientId: number;
@@ -26,6 +27,7 @@ interface PdfReportHistoryProps {
 
 export default function PdfReportHistory({ patientId, patientName }: PdfReportHistoryProps) {
   const { t } = useTranslation();
+  const { isReadOnly, readOnlyTooltip } = useLifecycle();
   const [reports, setReports] = useState<PdfReport[] | null>(null);
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
@@ -58,6 +60,11 @@ export default function PdfReportHistory({ patientId, patientName }: PdfReportHi
   }, [previewUrl]);
 
   const handleDownload = (report: PdfReport) => {
+    if (isReadOnly) {
+      toast.error(readOnlyTooltip);
+      return;
+    }
+
     const link = document.createElement("a");
     link.href = report.pdfBase64;
     link.download = `Derm247_${patientName.replace(/\s+/g, "_")}_${formatDate(report.createdAt, "yyyy-MM-dd")}.pdf`;
@@ -86,6 +93,11 @@ export default function PdfReportHistory({ patientId, patientName }: PdfReportHi
   };
 
   const handleDelete = async () => {
+    if (isReadOnly) {
+      toast.error(readOnlyTooltip);
+      return;
+    }
+
     if (!deleteId) return;
     await deleteReport(deleteId);
     await loadReports();
@@ -157,10 +169,10 @@ export default function PdfReportHistory({ patientId, patientName }: PdfReportHi
             <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => handlePreview(report)} title={t('common.preview')}>
               <Eye className="h-3.5 w-3.5" />
             </Button>
-            <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => handleDownload(report)} title={t('common.download')}>
+            <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => handleDownload(report)} title={isReadOnly ? readOnlyTooltip : t('common.download')} disabled={isReadOnly}>
               <FileDown className="h-3.5 w-3.5" />
             </Button>
-            <Button variant="ghost" size="icon" className="h-7 w-7 text-destructive hover:text-destructive" onClick={() => setDeleteId(report.id)} title={t('common.delete')}>
+            <Button variant="ghost" size="icon" className="h-7 w-7 text-destructive hover:text-destructive" onClick={() => setDeleteId(report.id)} title={isReadOnly ? readOnlyTooltip : t('common.delete')} disabled={isReadOnly}>
               <Trash2 className="h-3.5 w-3.5" />
             </Button>
           </div>
@@ -177,7 +189,7 @@ export default function PdfReportHistory({ patientId, patientName }: PdfReportHi
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>{t('common.cancel')}</AlertDialogCancel>
-            <AlertDialogAction onClick={handleDelete} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+            <AlertDialogAction onClick={handleDelete} className="bg-destructive text-destructive-foreground hover:bg-destructive/90" disabled={isReadOnly}>
               {t('common.delete')}
             </AlertDialogAction>
           </AlertDialogFooter>

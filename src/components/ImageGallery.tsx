@@ -10,6 +10,7 @@ import { formatDate } from "@/lib/dateUtils";
 import ImageCompare from "@/components/ImageCompare";
 import AbcdeForm from "@/components/AbcdeForm";
 import { toast } from "sonner";
+import { useLifecycle } from "@/hooks/use-lifecycle";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -34,6 +35,7 @@ interface ImageGalleryProps {
 const ImageGallery = ({ locationId, patientId, images, locationName, locationType = "spot", patientName, patientBirthDate }: ImageGalleryProps) => {
   const { t } = useTranslation();
   const queryClient = useQueryClient();
+  const { isReadOnly, readOnlyTooltip } = useLifecycle();
   const fileRef = useRef<HTMLInputElement>(null);
   const [uploading, setUploading] = useState(false);
   const [compareMode, setCompareMode] = useState(false);
@@ -68,6 +70,12 @@ const ImageGallery = ({ locationId, patientId, images, locationName, locationTyp
   });
 
   const handleUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (isReadOnly) {
+      toast.error(readOnlyTooltip);
+      e.target.value = "";
+      return;
+    }
+
     const file = e.target.files?.[0];
     if (!file) return;
     setUploading(true);
@@ -88,6 +96,8 @@ const ImageGallery = ({ locationId, patientId, images, locationName, locationTyp
   });
 
   const handleNoteChange = useCallback((imageId: number, value: string) => {
+    if (isReadOnly) return;
+
     setNoteValues(prev => ({ ...prev, [imageId]: value }));
     if (debounceTimers.current[imageId]) clearTimeout(debounceTimers.current[imageId]);
     debounceTimers.current[imageId] = setTimeout(async () => {
@@ -99,9 +109,14 @@ const ImageGallery = ({ locationId, patientId, images, locationName, locationTyp
         toast.error(t('imageGallery.noteError'));
       }
     }, 800);
-  }, [patientId, queryClient, t]);
+  }, [isReadOnly, patientId, queryClient, t]);
 
   const handleImageExport = useCallback((img: LocationImage) => {
+    if (isReadOnly) {
+      toast.error(readOnlyTooltip);
+      return;
+    }
+
     const imgEl = new Image();
     imgEl.crossOrigin = "anonymous";
     imgEl.onload = () => {
@@ -159,7 +174,7 @@ const ImageGallery = ({ locationId, patientId, images, locationName, locationTyp
     };
     imgEl.onerror = () => toast.error(t('imageGallery.loadError'));
     imgEl.src = api.resolveImageSrc(img);
-  }, [patientName, patientBirthDate, locationName, t]);
+  }, [isReadOnly, locationName, patientBirthDate, patientName, readOnlyTooltip, t]);
 
   if (compareMode && images.length >= 2) {
     return (
@@ -185,8 +200,8 @@ const ImageGallery = ({ locationId, patientId, images, locationName, locationTyp
               <GitCompareArrows className="mr-1.5 h-3.5 w-3.5" /> {t('imageGallery.compare')}
             </Button>
           )}
-          <input ref={fileRef} type="file" accept="image/*" className="hidden" onChange={handleUpload} />
-          <Button size="sm" variant="outline" onClick={() => fileRef.current?.click()} disabled={uploading}>
+          <input ref={fileRef} type="file" accept="image/*" className="hidden" onChange={handleUpload} disabled={isReadOnly || uploading} />
+          <Button size="sm" variant="outline" onClick={() => fileRef.current?.click()} disabled={uploading || isReadOnly} title={isReadOnly ? readOnlyTooltip : undefined}>
             <Upload className="mr-1.5 h-3.5 w-3.5" />
             {uploading ? t('imageGallery.uploading') : t('imageGallery.uploadImage')}
           </Button>
@@ -208,7 +223,8 @@ const ImageGallery = ({ locationId, patientId, images, locationName, locationTyp
                   variant="secondary"
                   className="h-8 w-8 rounded-full shadow-md opacity-80 hover:opacity-100"
                   onClick={() => handleImageExport(img)}
-                  title={t('common.export')}
+                  disabled={isReadOnly}
+                  title={isReadOnly ? readOnlyTooltip : t('common.export')}
                 >
                   <Download className="h-4 w-4" />
                 </Button>
@@ -217,6 +233,8 @@ const ImageGallery = ({ locationId, patientId, images, locationName, locationTyp
                   variant="destructive"
                   className="h-8 w-8 rounded-full shadow-md opacity-80 hover:opacity-100"
                   onClick={() => setDeleteTarget(img.id)}
+                  disabled={isReadOnly}
+                  title={isReadOnly ? readOnlyTooltip : t('common.delete')}
                 >
                   <Trash2 className="h-4 w-4" />
                 </Button>
@@ -260,6 +278,8 @@ const ImageGallery = ({ locationId, patientId, images, locationName, locationTyp
                 value={noteValues[img.id] ?? ""}
                 onChange={(e) => handleNoteChange(img.id, e.target.value)}
                 rows={1}
+                disabled={isReadOnly}
+                title={isReadOnly ? readOnlyTooltip : undefined}
               />
 
               <AbcdeForm
@@ -274,6 +294,7 @@ const ImageGallery = ({ locationId, patientId, images, locationName, locationTyp
                   risk_score: img.risk_score ?? undefined,
                   risk_level: img.risk_level ?? undefined,
                 }}
+                disabled={isReadOnly}
               />
             </div>
           ))}
@@ -292,7 +313,7 @@ const ImageGallery = ({ locationId, patientId, images, locationName, locationTyp
             <AlertDialogAction
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
               onClick={() => deleteTarget && deleteMutation.mutate(deleteTarget)}
-              disabled={deleteMutation.isPending}
+              disabled={isReadOnly || deleteMutation.isPending}
             >
               {deleteMutation.isPending ? t('imageGallery.deleting') : t('common.delete')}
             </AlertDialogAction>
