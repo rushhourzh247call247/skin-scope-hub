@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { useAuth } from "@/contexts/AuthContext";
+import { useLifecycle } from "@/hooks/use-lifecycle";
 import { api } from "@/lib/api";
 import { useToast } from "@/hooks/use-toast";
 import type { Ticket, TicketMessage, TicketPriority } from "@/types/ticket";
@@ -73,6 +74,7 @@ function ReadTicks({ msg, isAdmin }: { msg: TicketMessage; isAdmin: boolean }) {
 export default function Tickets() {
   const { t } = useTranslation();
   const { user } = useAuth();
+  const { isReadOnly, readOnlyTooltip } = useLifecycle();
   const { toast } = useToast();
   const isAdmin = user?.role === "admin";
 
