@@ -22,10 +22,12 @@ import {
 } from "@/components/ui/alert-dialog";
 import { toast } from "sonner";
 import { formatDate } from "@/lib/dateUtils";
+import { useLifecycle } from "@/hooks/use-lifecycle";
 
 const PatientList = () => {
   const { user } = useAuth();
   const { t } = useTranslation();
+  const { isReadOnly, readOnlyTooltip } = useLifecycle();
   const isAdmin = user?.role === "admin";
   const navigate = useNavigate();
   const queryClient = useQueryClient();
