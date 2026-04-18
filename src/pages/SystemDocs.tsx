@@ -230,7 +230,38 @@ const SystemDocs = () => {
         </div>
       </Section>
 
-      <Section icon={Eye} title={t('systemDocs.importantNotes')}>
+      {/* ── Demo & QR-Upload ── */}
+      <Section icon={Sparkles} title="Demo-Modus & QR-Upload">
+        <p className="text-foreground font-medium text-xs uppercase tracking-wider mb-1">Öffentliche Demo (ohne Login)</p>
+        <InfoRow label="Route Frontend" value="/demo (interaktive 3D-BodyMap)" />
+        <InfoRow label="Mobile-Upload" value="/demo-upload?token=… (HTTPS, kein Login)" />
+        <InfoRow label="Eingang Login" value="Dezenter Hinweis-Link auf /login" />
+        <Separator className="my-2" />
+        <p className="text-foreground font-medium text-xs uppercase tracking-wider mb-1">QR-Workflow (Backend-Endpoints)</p>
+        <InfoRow label="POST /api/demo/qr-token" value="Erstellt Token (15 min Gültigkeit)" />
+        <InfoRow label="GET /api/demo/qr-status/{t}" value="Frontend-Polling alle 2–3 s" />
+        <InfoRow label="POST /api/demo/upload/{t}" value="Multipart 'photo', JPG/PNG/WebP" />
+        <InfoRow label="GET /api/demo/image/{t}" value="Auslieferung an Desktop, danach Auto-Delete" />
+        <Separator className="my-2" />
+        <p className="text-foreground font-medium text-xs uppercase tracking-wider mb-1">Datenschutz Demo</p>
+        <InfoRow label="Speicherort" value="storage/app/demo/ (separat von Patientendaten)" />
+        <InfoRow label="Persistenz" value="0 — Bild wird nach Übertragung gelöscht" badge="✓" />
+        <InfoRow label="Token-Reuse" value="Einmalig (HTTP 409 bei Wiederverwendung)" />
+        <InfoRow label="HEIC-Handling" value="Frontend lehnt HEIC/HEIF ab (iOS-Hinweis)" />
+      </Section>
+
+      {/* ── Letzte Änderungen ── */}
+      <Section icon={GitBranch} title="Letzte Änderungen (April 2026)">
+        <ul className="list-disc list-inside space-y-1 text-xs">
+          <li>Login-Seite wieder als zentrierte Karte (kein Split-Screen mehr)</li>
+          <li>Neue öffentliche Route <code className="text-primary">/demo</code> mit Live-3D-BodyMap zum Anklicken</li>
+          <li>QR-Upload-Workflow für Demo-Patient ohne Login (15 min Token, Auto-Delete)</li>
+          <li>iPhone-Upload: erweiterte Diagnose-Fehlertexte (HTTP-Status, Datei-Typ, Größe, API-URL)</li>
+          <li>Frontend-Tagline „Klinische Hautdiagnostik · Präzise · Sicher · Schweizer Server" als Footer</li>
+          <li>Neue Sub-Domain <code className="text-primary">proto.derm247.ch</code> = Lovable-Frontend → Hetzner-DEV-API</li>
+        </ul>
+      </Section>
+
         <div className="space-y-2 text-xs">
           <div className="rounded-lg border border-primary/20 bg-primary/5 p-3">
             <p className="font-medium text-foreground mb-1">{t('systemDocs.privacyTitle')}</p>
