@@ -262,6 +262,7 @@ const SystemDocs = () => {
         </ul>
       </Section>
 
+      <Section icon={Eye} title={t('systemDocs.importantNotes')}>
         <div className="space-y-2 text-xs">
           <div className="rounded-lg border border-primary/20 bg-primary/5 p-3">
             <p className="font-medium text-foreground mb-1">{t('systemDocs.privacyTitle')}</p>
