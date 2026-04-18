@@ -146,6 +146,35 @@ async function requestToBase<T>(baseUrl: string, path: string, options?: Request
       window.location.href = '/login';
       throw new Error('Sitzung abgelaufen');
     }
+    // 423 Locked = Account ist im Read-Only-Modus (Lifecycle: read_only / archived)
+    if (res.status === 423) {
+      const body = await res.json().catch(() => ({} as any));
+      const err = new Error(body.message || 'Account ist im Read-Only-Modus. Nur Ansehen und Export möglich.');
+      (err as any).status = 423;
+      (err as any).readOnly = true;
+      (err as any).lifecycleStatus = body.lifecycle_status;
+      (err as any).readOnlyUntil = body.read_only_until;
+      // Globaler Toast (lazy import um Zirkular-Dep zu vermeiden)
+      import('@/hooks/use-toast').then(({ toast }) => {
+        toast({
+          title: 'Read-Only-Modus',
+          description: err.message,
+          variant: 'destructive',
+        });
+      }).catch(() => {});
+      throw err;
+    }
+    // 410 Gone = Account terminiert (pending_deletion)
+    if (res.status === 410) {
+      const body = await res.json().catch(() => ({} as any));
+      sessionStorage.removeItem('auth_token');
+      sessionStorage.removeItem('auth_user');
+      const err = new Error(body.message || 'Dieser Account wurde terminiert.');
+      (err as any).status = 410;
+      (err as any).terminated = true;
+      window.location.href = '/login';
+      throw err;
+    }
 
     const parsedError = await parseErrorResponse(res);
 
