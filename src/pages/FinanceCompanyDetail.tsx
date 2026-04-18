@@ -23,6 +23,11 @@ import { format, addMonths, differenceInDays } from "date-fns";
 import { de } from "date-fns/locale";
 import { toast } from "sonner";
 import { downloadInvoicePdf } from "@/lib/invoicePdf";
+import { PACKAGES, calcPrice } from "@/lib/contractPdf";
+import {
+  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
+} from "@/components/ui/select";
+import { Textarea } from "@/components/ui/textarea";
 
 export default function FinanceCompanyDetail() {
   const { id } = useParams<{ id: string }>();
