@@ -11,12 +11,14 @@ import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
 import type { Gender } from "@/types/patient";
-import { User } from "lucide-react";
+import { User, Lock } from "lucide-react";
+import { useLifecycle } from "@/hooks/use-lifecycle";
 
 const NewPatient = () => {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const { t } = useTranslation();
+  const { isReadOnly, readOnlyTooltip } = useLifecycle();
 
   const [name, setName] = useState("");
   const [birthDate, setBirthDate] = useState("");
