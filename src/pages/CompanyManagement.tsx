@@ -219,17 +219,51 @@ const CompanyManagement = () => {
             </div>
 
             <div className="flex items-center gap-1">
-              {!isSuspendedTab && (c.lifecycle_status === "read_only" || c.lifecycle_status === "archived") && (
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  title="Lifecycle reaktivieren (zurück auf active)"
-                  onClick={() => reactivateLifecycleMutation.mutate(c.id)}
-                  disabled={reactivateLifecycleMutation.isPending}
-                  className="text-emerald-600 hover:text-emerald-700"
-                >
-                  <RotateCcw className="h-4 w-4" />
-                </Button>
+              {!isSuspendedTab && !isProtected && (
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="ghost" size="icon" title="Lifecycle-Status ändern">
+                      <Settings2 className="h-4 w-4" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end" className="w-56 bg-popover">
+                    <DropdownMenuLabel>Lifecycle-Status</DropdownMenuLabel>
+                    <DropdownMenuSeparator />
+                    {(c.lifecycle_status === "read_only" || c.lifecycle_status === "archived" || c.lifecycle_status === "pending_deletion") && (
+                      <DropdownMenuItem
+                        onClick={() => reactivateLifecycleMutation.mutate(c.id)}
+                        disabled={reactivateLifecycleMutation.isPending}
+                      >
+                        <RotateCcw className="mr-2 h-4 w-4 text-emerald-600" />
+                        Auf "Aktiv" setzen
+                      </DropdownMenuItem>
+                    )}
+                    {c.lifecycle_status !== "read_only" && (
+                      <DropdownMenuItem onClick={() => openLifecycleDialog(c, "read_only")}>
+                        <Lock className="mr-2 h-4 w-4 text-amber-600" />
+                        Read-Only setzen…
+                      </DropdownMenuItem>
+                    )}
+                    {c.lifecycle_status !== "archived" && (
+                      <DropdownMenuItem onClick={() => openLifecycleDialog(c, "archived")}>
+                        <Archive className="mr-2 h-4 w-4 text-blue-600" />
+                        Archivieren…
+                      </DropdownMenuItem>
+                    )}
+                    {c.lifecycle_status !== "pending_deletion" && (
+                      <>
+                        <DropdownMenuSeparator />
+                        <DropdownMenuItem
+                          onClick={() => openLifecycleDialog(c, "pending_deletion")}
+                          className="text-destructive focus:text-destructive"
+                        >
+                          <AlertOctagon className="mr-2 h-4 w-4" />
+                          Sofort-Löschung anfordern
+                        </DropdownMenuItem>
+                      </>
+                    )}
+                  </DropdownMenuContent>
+                </DropdownMenu>
               )}
               {isSuspendedTab ? (
                 <Button
