@@ -219,23 +219,43 @@ function drawPage2(doc: jsPDF, lang: PdfLang) {
     doc.text(s, LEFT + 7, y);
     y += 6;
   }
-  y += 6;
+  y += 4;
+
+  // Legal notice (NEW): not a medical device + post-termination data policy
+  const legalBoxHeight = 10 + t.legalNoticeBullets.length * 5;
+  doc.setFillColor(255, 247, 235); // soft amber background
+  doc.setDrawColor(217, 119, 6); // amber border
+  doc.setLineWidth(0.4);
+  doc.roundedRect(LEFT, y, W, legalBoxHeight, 2, 2, "FD");
+  doc.setFont("helvetica", "bold");
+  doc.setFontSize(9);
+  doc.setTextColor(146, 64, 14); // amber-900
+  doc.text(t.legalNoticeTitle, LEFT + 4, y + 6);
+  doc.setFont("helvetica", "normal");
+  doc.setFontSize(8);
+  doc.setTextColor(120, 53, 15);
+  let ly = y + 11;
+  for (const b of t.legalNoticeBullets) {
+    doc.text("•  " + b, LEFT + 4, ly);
+    ly += 5;
+  }
+  y += legalBoxHeight + 6;
 
   // Position contact box to fill remaining space nicely (end ~10mm above footer at 282)
-  const contactBoxHeight = 34;
-  const contactY = Math.max(y, 272 - contactBoxHeight - 10);
+  const contactBoxHeight = 30;
+  const contactY = Math.max(y, 272 - contactBoxHeight - 4);
 
   doc.setFillColor(...BRAND);
   doc.roundedRect(LEFT, contactY, W, contactBoxHeight, 3, 3, "F");
   doc.setFont("helvetica", "bold");
-  doc.setFontSize(12);
+  doc.setFontSize(11);
   doc.setTextColor(...WHITE);
-  doc.text(t.contactTitle, LEFT + 8, contactY + 11);
+  doc.text(t.contactTitle, LEFT + 8, contactY + 9);
   doc.setFont("helvetica", "normal");
-  doc.setFontSize(9);
-  doc.text(t.contactLine1, LEFT + 8, contactY + 19);
-  doc.text(t.contactLine2, LEFT + 8, contactY + 25);
-  doc.text(t.contactLine3, LEFT + 8, contactY + 31);
+  doc.setFontSize(8.5);
+  doc.text(t.contactLine1, LEFT + 8, contactY + 16);
+  doc.text(t.contactLine2, LEFT + 8, contactY + 21);
+  doc.text(t.contactLine3, LEFT + 8, contactY + 26);
 }
 
 // ── Public API ─────────────────────────────────────────────────
