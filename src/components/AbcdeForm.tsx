@@ -7,6 +7,7 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
 import { Loader2, ShieldCheck, ShieldAlert, AlertTriangle, ChevronDown } from "lucide-react";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
+import { useLifecycle } from "@/hooks/use-lifecycle";
 
 interface AbcdeData {
   abc_asymmetry: boolean;
@@ -20,15 +21,18 @@ interface AbcdeFormProps {
   imageId: number;
   patientId: number;
   initialData?: Partial<AbcdeData & { risk_score?: number; risk_level?: string }>;
+  disabled?: boolean;
 }
 
-const AbcdeForm = ({ imageId, patientId, initialData }: AbcdeFormProps) => {
+const AbcdeForm = ({ imageId, patientId, initialData, disabled = false }: AbcdeFormProps) => {
   const { t } = useTranslation();
   const queryClient = useQueryClient();
+  const { isReadOnly } = useLifecycle();
   const [saving, setSaving] = useState(false);
   const [riskScore, setRiskScore] = useState<number | null>(initialData?.risk_score ?? null);
   const [riskLevel, setRiskLevel] = useState<string | null>(initialData?.risk_level ?? null);
   const debounceRef = useRef<ReturnType<typeof setTimeout>>();
+  const isFormLocked = disabled || isReadOnly;
 
   const CRITERIA = [
     {
@@ -106,6 +110,8 @@ const AbcdeForm = ({ imageId, patientId, initialData }: AbcdeFormProps) => {
   }, [initialData?.risk_score, initialData?.risk_level, initialData?.abc_asymmetry, initialData?.abc_border, initialData?.abc_color, initialData?.abc_diameter, initialData?.abc_evolution]);
 
   const handleChange = useCallback((key: string, value: string) => {
+    if (isFormLocked) return;
+
     setValues(prev => {
       const next = { ...prev, [key]: value };
 
@@ -137,7 +143,7 @@ const AbcdeForm = ({ imageId, patientId, initialData }: AbcdeFormProps) => {
 
       return next;
     });
-  }, [imageId, patientId, queryClient, t]);
+  }, [CRITERIA, imageId, isFormLocked, patientId, queryClient, t]);
 
   const hasData = riskLevel != null && riskScore != null;
 
@@ -185,10 +191,11 @@ const AbcdeForm = ({ imageId, patientId, initialData }: AbcdeFormProps) => {
                 value={values[c.key]}
                 onValueChange={(v) => handleChange(c.key, v)}
                 className="flex gap-3"
+                disabled={isFormLocked}
               >
                 {c.options.map(opt => (
                   <div key={opt.value} className="flex items-center gap-1">
-                    <RadioGroupItem value={opt.value} id={`${imageId}-${c.key}-${opt.value}`} className="h-3 w-3" />
+                    <RadioGroupItem value={opt.value} id={`${imageId}-${c.key}-${opt.value}`} className="h-3 w-3" disabled={isFormLocked} />
                     <Label htmlFor={`${imageId}-${c.key}-${opt.value}`} className="text-[10px] cursor-pointer">
                       {opt.label}
                     </Label>
