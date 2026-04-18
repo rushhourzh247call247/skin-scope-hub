@@ -133,11 +133,12 @@ export default function FinanceCompanyDetail() {
   });
 
   const lifecycleMutation = useMutation({
-    mutationFn: (status: "active" | "read_only" | "archived") => {
+    mutationFn: async (status: "active" | "read_only" | "archived") => {
       if (status === "active") {
-        return api.reactivateCompanyLifecycle(companyId);
+        await api.reactivateCompanyLifecycle(companyId);
+      } else {
+        await api.setCompanyLifecycle(companyId, { lifecycle_status: status });
       }
-      return api.setCompanyLifecycle(companyId, { lifecycle_status: status });
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["companies"] });
