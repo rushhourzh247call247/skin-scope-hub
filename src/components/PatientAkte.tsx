@@ -218,11 +218,14 @@ const PatientAkte = ({ patient, onNavigateToSpot }: PatientAkteProps) => {
                   onChange={(e) => setPatientNumberValue(e.target.value)}
                   className="h-7 text-sm w-28"
                   autoFocus
+                  disabled={isReadOnly}
                 />
                 <Button
                   size="icon"
                   variant="ghost"
                   className="h-6 w-6"
+                  disabled={isReadOnly}
+                  title={isReadOnly ? readOnlyTooltip : undefined}
                   onClick={() => {
                     if (patientNumberValue !== (patient.patient_number || "") && patient.patient_number) {
                       setShowPatientNumberConfirm(true);
@@ -249,7 +252,7 @@ const PatientAkte = ({ patient, onNavigateToSpot }: PatientAkteProps) => {
                 </Button>
               </div>
             ) : (
-              <p className="font-medium text-foreground flex items-center gap-1 cursor-pointer group" onClick={() => setEditingPatientNumber(true)}>
+              <p className={cn("font-medium text-foreground flex items-center gap-1 group", !isReadOnly && "cursor-pointer")} onClick={() => { if (!isReadOnly) setEditingPatientNumber(true); }} title={isReadOnly ? readOnlyTooltip : undefined}>
                 {patient.patient_number || "–"}
                 <Pencil className="h-3 w-3 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity" />
               </p>
@@ -527,12 +530,13 @@ const PatientAkte = ({ patient, onNavigateToSpot }: PatientAkteProps) => {
               placeholder={t("akte.consultationPlaceholder")}
               rows={4}
               className="text-xs"
+              disabled={isReadOnly}
             />
             <div className="flex gap-1.5">
               <Button
                 size="sm"
                 className="h-7 text-xs"
-                disabled={!consultationText.trim() || createConsultationMutation.isPending}
+                disabled={isReadOnly || !consultationText.trim() || createConsultationMutation.isPending}
                 onClick={() => createConsultationMutation.mutate(consultationText.trim())}
               >
                 <Save className="h-3 w-3 mr-1" />
@@ -543,32 +547,19 @@ const PatientAkte = ({ patient, onNavigateToSpot }: PatientAkteProps) => {
                 {t("common.cancel")}
               </Button>
             </div>
-          </div>
-        )}
-
-        {consultationsLoading ? (
-          <p className="text-xs text-muted-foreground">{t("common.loading")}</p>
-        ) : consultations.length === 0 ? (
-          <p className="text-xs text-muted-foreground italic">{t("akte.noConsultations")}</p>
-        ) : (
-          <div className="space-y-2">
-            {[...consultations]
-              .sort((a, b) => new Date(b.created_at ?? 0).getTime() - new Date(a.created_at ?? 0).getTime())
-              .map((c) => (
-                <div key={c.id} className="rounded-md border border-border bg-muted/30 p-3 group">
-                  {editingConsultationId === c.id ? (
-                    <div className="space-y-2">
+...
                       <Textarea
                         value={editingConsultationText}
                         onChange={(e) => setEditingConsultationText(e.target.value)}
                         rows={4}
                         className="text-xs"
+                        disabled={isReadOnly}
                       />
                       <div className="flex gap-1.5">
                         <Button
                           size="sm"
                           className="h-6 text-[10px]"
-                          disabled={!editingConsultationText.trim() || updateConsultationMutation.isPending}
+                          disabled={isReadOnly || !editingConsultationText.trim() || updateConsultationMutation.isPending}
                           onClick={() => updateConsultationMutation.mutate({ id: c.id, notes: editingConsultationText.trim() })}
                         >
                           <Save className="h-3 w-3 mr-1" />
@@ -640,6 +631,7 @@ const PatientAkte = ({ patient, onNavigateToSpot }: PatientAkteProps) => {
           accept=".pdf,.jpg,.jpeg,.png,.doc,.docx"
           className="hidden"
           onChange={handleDocumentUpload}
+          disabled={isReadOnly}
         />
 
         <div className="space-y-1">
@@ -649,49 +641,12 @@ const PatientAkte = ({ patient, onNavigateToSpot }: PatientAkteProps) => {
             onChange={(e) => setDocumentNotes(e.target.value)}
             placeholder={t("akte.documentNotesPlaceholder")}
             className="h-8 text-xs"
+            disabled={isReadOnly}
           />
         </div>
-
-        {documentsLoading ? (
-          <p className="text-xs text-muted-foreground">{t("common.loading")}</p>
-        ) : documents.length === 0 ? (
-          <p className="text-xs text-muted-foreground italic">{t("akte.noDocuments")}</p>
-        ) : (
-          <div className="space-y-1.5">
-            {documents.map((doc) => (
-              <div
-                key={doc.id}
-                className="flex items-center gap-2.5 rounded-md px-3 py-2 text-xs border border-border bg-muted/30 group"
-              >
-                <FileText className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
-                <div className="flex-1 min-w-0">
-                  <p className="font-medium text-foreground truncate">{doc.original_name}</p>
-                  <div className="flex items-center gap-2 text-[10px] text-muted-foreground">
-                    {doc.created_at && <span className="tabular-nums">{formatDate(doc.created_at, "dd.MM.yyyy")}</span>}
-                    {doc.notes && <span className="truncate">· {doc.notes}</span>}
-                  </div>
-                </div>
-                <div className="flex items-center gap-1 shrink-0">
+...
                   <button
-                    onClick={() => {
-                      const baseUrl = api.getDocumentDownloadUrl(doc.id);
-                      const separator = baseUrl.includes("?") ? "&" : "?";
-                      const previewWindow = window.open(
-                        `${baseUrl}${separator}inline=1`,
-                        "_blank",
-                        "noopener,noreferrer"
-                      );
-
-                      if (!previewWindow) {
-                        toast.error(t("akte.previewError", "Vorschau konnte nicht geladen werden"));
-                      }
-                    }}
-                    className="p-1 rounded hover:bg-primary/10 text-muted-foreground hover:text-primary transition-colors"
-                    title={t("akte.preview", "Vorschau")}
-                  >
-                    <Eye className="h-3.5 w-3.5" />
-                  </button>
-                  <button
+                    disabled={isReadOnly}
                     onClick={async () => {
                       try {
                         const blob = await api.downloadDocumentBlob(doc.id);
@@ -705,8 +660,8 @@ const PatientAkte = ({ patient, onNavigateToSpot }: PatientAkteProps) => {
                         toast.error(t("common.downloadError", "Download fehlgeschlagen"));
                       }
                     }}
-                    className="p-1 rounded hover:bg-primary/10 text-muted-foreground hover:text-primary transition-colors"
-                    title={t("common.download")}
+                    className="p-1 rounded hover:bg-primary/10 text-muted-foreground hover:text-primary transition-colors disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:bg-transparent"
+                    title={isReadOnly ? readOnlyTooltip : t("common.download")}
                   >
                     <Download className="h-3.5 w-3.5" />
                   </button>
@@ -736,7 +691,7 @@ const PatientAkte = ({ patient, onNavigateToSpot }: PatientAkteProps) => {
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>{t("common.cancel")}</AlertDialogCancel>
-            <AlertDialogAction onClick={() => {
+            <AlertDialogAction disabled={isReadOnly} onClick={() => {
               api.updatePatientNumber(patient.id, patientNumberValue).then(() => {
                 queryClient.invalidateQueries({ queryKey: ["full-patient", patient.id] });
                 toast.success(t("common.save"));

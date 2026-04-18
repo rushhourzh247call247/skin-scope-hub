@@ -101,6 +101,12 @@ const PatientDetail = () => {
   const [zoneUploadTargetId, setZoneUploadTargetId] = useState<number | null>(null);
 
   const handleZoneSidebarUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (isReadOnly) {
+      toast.error(readOnlyTooltip);
+      e.target.value = "";
+      return;
+    }
+
     const file = e.target.files?.[0];
     if (!file || !zoneUploadTargetId) return;
     api.uploadImage(zoneUploadTargetId, file).then(() => {
@@ -126,6 +132,11 @@ const PatientDetail = () => {
   }, [newlyCreatedZoneId, activeTab]);
 
   const handlePdfExport = async () => {
+    if (isReadOnly) {
+      toast.error(readOnlyTooltip);
+      return;
+    }
+
     if (!patient) return;
     setPdfLoading(true);
     try {
@@ -155,6 +166,11 @@ const PatientDetail = () => {
   };
 
   const handlePdfDownload = () => {
+    if (isReadOnly) {
+      toast.error(readOnlyTooltip);
+      return;
+    }
+
     if (!pdfPreviewUrl || !patient) return;
     const link = document.createElement("a");
     link.href = pdfPreviewUrl;
@@ -163,7 +179,6 @@ const PatientDetail = () => {
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
-    // Mobile fallback
     if (/Mobi|Android|iPhone|iPad/i.test(navigator.userAgent)) {
       window.open(pdfPreviewUrl, "_blank");
     }
@@ -1095,7 +1110,7 @@ const PatientDetail = () => {
               >
                 <div className="flex items-center justify-between">
                   <h2 className="text-lg font-semibold text-foreground">{t('patientDetail.reports')}</h2>
-                  <Button onClick={() => setPdfDialogOpen(true)} size="sm" className="gap-1.5">
+                  <Button onClick={() => setPdfDialogOpen(true)} size="sm" className="gap-1.5" disabled={isReadOnly} title={isReadOnly ? readOnlyTooltip : undefined}>
                     <FileDown className="h-3.5 w-3.5" />
                     {t('patientDetail.newReport')}
                   </Button>
@@ -1142,40 +1157,20 @@ const PatientDetail = () => {
                       variant="outline"
                       size="sm"
                       className="gap-1.5 text-xs"
-                      onClick={() => { setQrLocationId(selectedLocation.id); setQrDialogOpen(true); }}
+                      onClick={() => { if (!isReadOnly) { setQrLocationId(selectedLocation.id); setQrDialogOpen(true); } }}
+                      disabled={isReadOnly}
+                      title={isReadOnly ? readOnlyTooltip : undefined}
                     >
                       <QrCode className="h-3.5 w-3.5" /> QR Upload
                     </Button>
                   )}
                 </div>
-
-                {/* Lesion Classification – compact collapsible */}
-                {selectedLocation.type !== "region" && (() => {
-                  const currentCls = (selectedLocation as any).classification as LesionClassification || "unclassified";
-                  const currentInfo = LESION_CLASSIFICATIONS[currentCls];
-                  return (
-                    <Collapsible className="rounded-lg border bg-card">
-                      <CollapsibleTrigger className="flex w-full items-center justify-between px-4 py-2.5 hover:bg-muted/50 transition-colors">
-                        <div className="flex items-center gap-2">
-                          <Tag className="h-3.5 w-3.5 text-muted-foreground" />
-                          <span className="text-xs font-semibold text-foreground/70 uppercase tracking-wider">{t('patientDetail.classification')}</span>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <span className="flex items-center gap-1.5 text-[11px] font-medium text-foreground/80">
-                            <span className="h-2 w-2 rounded-full shrink-0" style={{ backgroundColor: currentInfo?.color || 'hsl(var(--muted-foreground))' }} />
-                            {getClassificationLabel(currentCls)}
-                          </span>
-                          <ChevronDown className="h-3.5 w-3.5 text-muted-foreground transition-transform duration-200 [[data-state=open]>&]:rotate-180" />
-                        </div>
-                      </CollapsibleTrigger>
-                      <CollapsibleContent>
-                        <div className="flex flex-wrap gap-1.5 px-4 pb-3 pt-1">
-                          {(Object.entries(LESION_CLASSIFICATIONS) as [LesionClassification, { label: string; color: string; shortLabel: string }][]).map(([key, cls]) => {
-                            const isActive = currentCls === key;
-                            return (
+...
                               <button
                                 key={key}
                                 onClick={() => classifyMutation.mutate({ locationId: selectedLocation.id, classification: key })}
+                                disabled={isReadOnly}
+                                title={isReadOnly ? readOnlyTooltip : undefined}
                                 className={cn(
                                   "flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[11px] font-medium border transition-all",
                                   isActive
@@ -1188,39 +1183,12 @@ const PatientDetail = () => {
                                   color: cls.color,
                                 } : {}}
                               >
-                                <span
-                                  className="h-2 w-2 rounded-full shrink-0"
-                                  style={{ backgroundColor: isActive ? cls.color : `${cls.color}60` }}
-                                />
-                                {getClassificationLabel(key)}
-                              </button>
-                            );
-                          })}
-                        </div>
-                      </CollapsibleContent>
-                    </Collapsible>
-                  );
-                })()}
-
-                {/* OP Status */}
-                {selectedLocation.type !== "region" && (
-                  <div className="rounded-lg border bg-card p-4 space-y-3">
-                    <h4 className="text-xs font-semibold text-foreground uppercase tracking-wider flex items-center gap-2">
-                      <Activity className="h-3.5 w-3.5 text-primary" />
-                      {t('patientDetail.clinicalStatus')}
-                    </h4>
-                    <div className="flex gap-1.5">
-                      {([
-                        { key: "none", label: t('patientDetail.noStatus'), icon: "–" },
-                        { key: "praesens", label: t('patientDetail.statusPraesens'), icon: "Sp" },
-                        { key: "post", label: t('patientDetail.statusPost'), icon: "St.p." },
-                      ] as const).map((opt) => {
-                        const current = (selectedLocation as any).op_status || "none";
-                        const isActive = current === opt.key;
-                        return (
+...
                           <button
                             key={opt.key}
                             onClick={() => opStatusMutation.mutate({ locationId: selectedLocation.id, op_status: opt.key })}
+                            disabled={isReadOnly}
+                            title={isReadOnly ? readOnlyTooltip : undefined}
                             className={cn(
                               "flex items-center gap-1.5 rounded-full px-3 py-1.5 text-[11px] font-medium border transition-all",
                               isActive
