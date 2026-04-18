@@ -260,6 +260,7 @@ export const api = {
   // Auth
   login: (data: { email: string; password: string }) =>
     request<{ user: any; token: string }>('/login', { method: 'POST', body: JSON.stringify(data) }),
+  me: () => request<{ user: any }>('/me'),
 
   // Admin: Companies
   getCompanies: () => request<any[]>('/companies'),

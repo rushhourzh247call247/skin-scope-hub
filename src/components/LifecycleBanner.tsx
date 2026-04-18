@@ -5,12 +5,12 @@ import { useAuth } from "@/contexts/AuthContext";
  * Globaler Lifecycle-Banner — wird oberhalb der App gezeigt, wenn die Firma
  * im Read-Only- oder Archiv-Modus ist (nach Vertragsende).
  *
- * Daten kommen aus user.company.lifecycle_status (Backend muss /api/auth/me
- * bzw. /api/login Response um company.lifecycle_status erweitern).
+ * Unterstützt sowohl die aktuelle flache API-Form
+ * (`user.company_lifecycle_status`) als auch die ältere verschachtelte Form.
  */
 export function LifecycleBanner() {
   const { user } = useAuth();
-  const status = (user as any)?.company?.lifecycle_status as
+  const status = ((user as any)?.company_lifecycle_status ?? (user as any)?.company?.lifecycle_status) as
     | "active"
     | "read_only"
     | "archived"
@@ -19,7 +19,8 @@ export function LifecycleBanner() {
 
   if (!status || status === "active") return null;
 
-  const readOnlyUntil = (user as any)?.company?.read_only_until as string | undefined;
+  const readOnlyUntil = ((user as any)?.company_read_only_until ??
+    (user as any)?.company?.read_only_until) as string | undefined;
   const formattedUntil = readOnlyUntil
     ? new Date(readOnlyUntil).toLocaleDateString("de-CH")
     : null;
