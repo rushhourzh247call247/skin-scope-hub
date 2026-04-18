@@ -36,6 +36,13 @@ const CompanyManagement = () => {
   const [exportProgress, setExportProgress] = useState<{ phase: string; pct: number } | null>(null);
   const [expandedCompanyId, setExpandedCompanyId] = useState<number | null>(null);
 
+  // Lifecycle-Dialog State
+  const [lifecycleDialog, setLifecycleDialog] = useState<{
+    company: any;
+    target: "read_only" | "archived" | "pending_deletion";
+  } | null>(null);
+  const [lifecycleDate, setLifecycleDate] = useState<Date | undefined>(undefined);
+
   const isAdmin = user?.role === "admin";
 
   const { data: companies = [], isLoading } = useQuery({
