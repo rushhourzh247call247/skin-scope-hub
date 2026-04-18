@@ -521,53 +521,187 @@ function EditContractDialog({
   isPending: boolean;
   onSave: (data: Record<string, any>) => void;
 }) {
+  // Map back from German label to package id
+  const pkgFromLabel = (label: string) => PACKAGES.find(p => p.label === label)?.id || "individual";
+
+  const [packageId, setPackageId] = useState<string>(contract.package_id || pkgFromLabel(contract.package_name || ""));
   const [licenses, setLicenses] = useState<number>(contract.licenses);
   const [bonus, setBonus] = useState<number>(contract.bonus_licenses || 0);
   const [monthlyPrice, setMonthlyPrice] = useState<number>(Number(contract.monthly_price) || 0);
+  const [startDate, setStartDate] = useState<string>(contract.start_date?.slice(0, 10) || "");
   const [endDate, setEndDate] = useState<string>(contract.end_date?.slice(0, 10) || "");
+  const [noticeDays, setNoticeDays] = useState<number>(contract.notice_period_days || 60);
+  const [status, setStatus] = useState<string>(contract.status || "active");
+  const [notes, setNotes] = useState<string>(contract.notes || "");
+  const [autoPrice, setAutoPrice] = useState<boolean>(true);
+
+  const pkg = PACKAGES.find(p => p.id === packageId);
+
+  const handlePackageChange = (val: string) => {
+    setPackageId(val);
+    const p = PACKAGES.find(pk => pk.id === val);
+    if (!p) return;
+    if (!p.perDoctor) {
+      setLicenses(p.minDocs);
+      if (autoPrice) setMonthlyPrice(p.priceNum);
+    } else if (autoPrice) {
+      setMonthlyPrice(calcPrice(val, licenses).total);
+    }
+  };
+
+  const handleLicensesChange = (n: number) => {
+    const v = Math.max(0, n);
+    setLicenses(v);
+    if (autoPrice && pkg?.perDoctor) setMonthlyPrice(calcPrice(packageId, v).total);
+  };
 
   const extendOneYear = () => {
     const base = endDate ? new Date(endDate) : new Date();
     setEndDate(format(addMonths(base, 12), "yyyy-MM-dd"));
   };
 
+  const extendStartOneYear = () => {
+    const base = endDate ? new Date(endDate) : new Date();
+    setEndDate(format(addMonths(base, 12), "yyyy-MM-dd"));
+  };
+
+  const handleSave = () => {
+    onSave({
+      package_id: packageId,
+      package_name: pkg?.label || contract.package_name,
+      licenses,
+      bonus_licenses: bonus,
+      monthly_price: monthlyPrice,
+      start_date: startDate,
+      end_date: endDate,
+      notice_period_days: noticeDays,
+      status,
+      notes,
+    });
+  };
+
   return (
     <Dialog open={open} onOpenChange={(o) => !o && onClose()}>
-      <DialogContent className="max-w-md">
+      <DialogContent className="max-w-lg max-h-[90dvh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Vertrag bearbeiten</DialogTitle>
         </DialogHeader>
-        <div className="space-y-3">
+        <div className="space-y-4">
+          {/* Paket */}
+          <div>
+            <Label className="text-xs">Paket</Label>
+            <Select value={packageId} onValueChange={handlePackageChange}>
+              <SelectTrigger><SelectValue /></SelectTrigger>
+              <SelectContent>
+                {PACKAGES.map(p => (
+                  <SelectItem key={p.id} value={p.id}>
+                    {p.label} — {p.perDoctor ? `CHF ${p.price} pro Arzt` : `CHF ${p.price} / Mt.`}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            {pkg && <p className="text-xs text-muted-foreground mt-1">{pkg.desc}</p>}
+          </div>
+
+          {/* Lizenzen */}
           <div className="grid grid-cols-2 gap-3">
             <div>
               <Label className="text-xs">Lizenzen</Label>
-              <Input type="number" min={0} value={licenses} onChange={(e) => setLicenses(Math.max(0, Number(e.target.value)))} />
+              <Input
+                type="number"
+                min={0}
+                value={licenses}
+                onChange={(e) => handleLicensesChange(Number(e.target.value))}
+                disabled={!!pkg && !pkg.perDoctor}
+              />
             </div>
             <div>
               <Label className="text-xs">Bonus-Lizenzen</Label>
               <Input type="number" min={0} value={bonus} onChange={(e) => setBonus(Math.max(0, Number(e.target.value)))} />
             </div>
           </div>
-          <div>
-            <Label className="text-xs">Monatspreis (CHF)</Label>
-            <Input type="number" min={0} step="0.01" value={monthlyPrice} onChange={(e) => setMonthlyPrice(Math.max(0, Number(e.target.value)))} />
-          </div>
+
+          {/* Preis */}
           <div>
             <Label className="text-xs flex items-center justify-between">
-              <span>Vertragsende</span>
-              <button type="button" className="text-xs text-primary hover:underline" onClick={extendOneYear}>+ 12 Monate</button>
+              <span>Monatspreis (CHF)</span>
+              <label className="flex items-center gap-1 text-[11px] font-normal text-muted-foreground cursor-pointer">
+                <input type="checkbox" checked={autoPrice} onChange={(e) => setAutoPrice(e.target.checked)} className="h-3 w-3" />
+                Auto
+              </label>
             </Label>
-            <Input type="date" value={endDate} onChange={(e) => setEndDate(e.target.value)} />
+            <Input
+              type="number"
+              min={0}
+              step="0.01"
+              value={monthlyPrice}
+              onChange={(e) => { setAutoPrice(false); setMonthlyPrice(Math.max(0, Number(e.target.value))); }}
+            />
+          </div>
+
+          {/* Dates */}
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <Label className="text-xs">Vertragsbeginn</Label>
+              <Input type="date" value={startDate} onChange={(e) => setStartDate(e.target.value)} />
+            </div>
+            <div>
+              <Label className="text-xs flex items-center justify-between">
+                <span>Vertragsende</span>
+                <button type="button" className="text-xs text-primary hover:underline" onClick={extendOneYear}>+ 12 Mt.</button>
+              </Label>
+              <Input type="date" value={endDate} onChange={(e) => setEndDate(e.target.value)} />
+            </div>
+          </div>
+
+          {/* Notice + Status */}
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <Label className="text-xs">Kündigungsfrist (Tage)</Label>
+              <Select value={String(noticeDays)} onValueChange={(v) => setNoticeDays(Number(v))}>
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="30">30 Tage</SelectItem>
+                  <SelectItem value="60">60 Tage</SelectItem>
+                  <SelectItem value="90">90 Tage</SelectItem>
+                  <SelectItem value="180">180 Tage</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div>
+              <Label className="text-xs">Status</Label>
+              <Select value={status} onValueChange={setStatus}>
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="active">Aktiv</SelectItem>
+                  <SelectItem value="suspended">Pausiert</SelectItem>
+                  <SelectItem value="cancelled">Gekündigt</SelectItem>
+                  <SelectItem value="expired">Abgelaufen</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+
+          {/* Notes */}
+          <div>
+            <Label className="text-xs">Interne Notizen</Label>
+            <Textarea
+              rows={2}
+              value={notes}
+              onChange={(e) => setNotes(e.target.value)}
+              placeholder="Optional – nur intern sichtbar"
+            />
+          </div>
+
+          {/* Summary */}
+          <div className="rounded-md bg-muted/40 p-3 text-xs space-y-1">
+            <div className="flex justify-between"><span className="text-muted-foreground">Jahresumsatz</span><span className="font-medium">CHF {(monthlyPrice * 12).toLocaleString("de-CH")}</span></div>
+            <div className="flex justify-between"><span className="text-muted-foreground">Lizenzen total</span><span className="font-medium">{licenses + bonus} ({licenses} + {bonus} Bonus)</span></div>
           </div>
         </div>
         <DialogFooter>
           <Button variant="outline" onClick={onClose} disabled={isPending}>Abbrechen</Button>
-          <Button
-            onClick={() => onSave({ licenses, bonus_licenses: bonus, monthly_price: monthlyPrice, end_date: endDate })}
-            disabled={isPending}
-          >
-            Speichern
-          </Button>
+          <Button onClick={handleSave} disabled={isPending}>Speichern</Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>
