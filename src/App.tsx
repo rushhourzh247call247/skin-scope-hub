@@ -26,6 +26,7 @@ import Tickets from "./pages/Tickets";
 import FinanceDashboard from "./pages/FinanceDashboard";
 import InvoiceManagement from "./pages/InvoiceManagement";
 import FinanceCompanies from "./pages/FinanceCompanies";
+import FinanceCompanyDetail from "./pages/FinanceCompanyDetail";
 import FinanceContracts from "./pages/FinanceContracts";
 import ServerAdmin from "./pages/ServerAdmin";
 
@@ -90,6 +91,7 @@ const App = () => (
             <Route path="/finance" element={<ProtectedPage><FinanceRoute><FinanceDashboard /></FinanceRoute></ProtectedPage>} />
             <Route path="/finance/invoices" element={<ProtectedPage><FinanceRoute><InvoiceManagement /></FinanceRoute></ProtectedPage>} />
             <Route path="/finance/companies" element={<ProtectedPage><FinanceRoute><FinanceCompanies /></FinanceRoute></ProtectedPage>} />
+            <Route path="/finance/companies/:id" element={<ProtectedPage><FinanceRoute><FinanceCompanyDetail /></FinanceRoute></ProtectedPage>} />
             <Route path="/finance/contracts" element={<ProtectedPage><FinanceRoute><FinanceContracts /></FinanceRoute></ProtectedPage>} />
             <Route path="/server-admin" element={<ProtectedPage><AdminRoute><ServerAdmin /></AdminRoute></ProtectedPage>} />
             <Route path="*" element={<NotFound />} />
