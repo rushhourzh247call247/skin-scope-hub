@@ -70,6 +70,12 @@ const NewPatient = () => {
           <CardDescription>{t("newPatient.subtitle")}</CardDescription>
         </CardHeader>
         <CardContent>
+          {isReadOnly && (
+            <div className="mb-4 flex items-start gap-2 rounded-md border border-amber-500/30 bg-amber-500/5 p-3 text-xs text-amber-700">
+              <Lock className="h-4 w-4 shrink-0 mt-0.5" />
+              <span>{readOnlyTooltip}</span>
+            </div>
+          )}
           <form onSubmit={handleSubmit} className="space-y-5">
             <div className="space-y-2">
               <Label>{t("common.gender")}</Label>
@@ -137,7 +143,7 @@ const NewPatient = () => {
             )}
 
             <div className="flex gap-3 pt-2">
-              <Button type="submit" disabled={createMutation.isPending || !name.trim() || !birthDate}>
+              <Button type="submit" disabled={isReadOnly || createMutation.isPending || !name.trim() || !birthDate} title={isReadOnly ? readOnlyTooltip : undefined}>
                 {createMutation.isPending ? t("common.creating") : t("newPatient.submit")}
               </Button>
               <Button type="button" variant="outline" onClick={() => navigate("/patients")}>
