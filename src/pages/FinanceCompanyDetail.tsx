@@ -134,15 +134,21 @@ export default function FinanceCompanyDetail() {
   });
 
   const lifecycleMutation = useMutation({
-    mutationFn: async (status: "active" | "read_only" | "archived") => {
+    mutationFn: async (params: { status: "active" | "read_only" | "archived"; mode?: "offer" | "status" }) => {
+      const { status, mode } = params;
       if (status === "active") {
         await api.reactivateCompanyLifecycle(companyId);
+      } else if (status === "archived" && mode === "offer") {
+        // Archiv-Angebot: legt Archiv-Vertrag an (CHF 50.–/Mt., 60 Tage Kündigung) + setzt Lifecycle
+        await api.archiveOptIn(companyId);
       } else {
         await api.setCompanyLifecycle(companyId, { lifecycle_status: status });
       }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["companies"] });
+      queryClient.invalidateQueries({ queryKey: ["company-contracts", companyId] });
+      queryClient.invalidateQueries({ queryKey: ["all-contracts"] });
       setLifecycleAction(null);
       toast.success("Status aktualisiert");
     },
