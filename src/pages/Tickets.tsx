@@ -405,7 +405,7 @@ export default function Tickets() {
                     </Button>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="end">
-                    {selected.status === "closed" ? (
+                    {selected.status === "closed" && !isReadOnly ? (
                       <DropdownMenuItem onClick={() => handleReopen(selected.id)}>
                         <RotateCcw className="h-4 w-4 mr-2" /> {t("tickets.reopen")}
                       </DropdownMenuItem>
