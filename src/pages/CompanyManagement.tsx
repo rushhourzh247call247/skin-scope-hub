@@ -425,6 +425,73 @@ const CompanyManagement = () => {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* Lifecycle-Status Dialog (Read-Only / Archiv / Sofort-Löschung) */}
+      <Dialog open={!!lifecycleDialog} onOpenChange={(open) => { if (!open) { setLifecycleDialog(null); setLifecycleDate(undefined); } }}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>
+              {lifecycleDialog?.target === "read_only" && "Read-Only setzen"}
+              {lifecycleDialog?.target === "archived" && "Firma archivieren"}
+              {lifecycleDialog?.target === "pending_deletion" && "Sofort-Löschung anfordern"}
+            </DialogTitle>
+            <DialogDescription>
+              {lifecycleDialog?.target === "read_only" && (
+                <>Firma <strong>{lifecycleDialog.company.name}</strong> wird auf Read-Only gesetzt. Schreibzugriffe werden mit HTTP 423 blockiert.</>
+              )}
+              {lifecycleDialog?.target === "archived" && (
+                <>Firma <strong>{lifecycleDialog?.company.name}</strong> wird archiviert (CHF 50/Mt). Nur lesender Zugriff.</>
+              )}
+              {lifecycleDialog?.target === "pending_deletion" && (
+                <>⚠️ Firma <strong>{lifecycleDialog?.company.name}</strong> wird zur physischen Löschung markiert. Beim nächsten Cron-Lauf (02:30) werden alle Daten unwiderruflich gelöscht.</>
+              )}
+            </DialogDescription>
+          </DialogHeader>
+
+          {(lifecycleDialog?.target === "read_only" || lifecycleDialog?.target === "archived") && (
+            <div className="space-y-2">
+              <Label>
+                {lifecycleDialog.target === "read_only" ? "Read-Only bis" : "Archiviert bis"}
+              </Label>
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant="outline"
+                    className={cn("w-full justify-start text-left font-normal", !lifecycleDate && "text-muted-foreground")}
+                  >
+                    <CalendarIcon className="mr-2 h-4 w-4" />
+                    {lifecycleDate ? format(lifecycleDate, "dd.MM.yyyy") : "Datum wählen"}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0 bg-popover" align="start">
+                  <Calendar
+                    mode="single"
+                    selected={lifecycleDate}
+                    onSelect={setLifecycleDate}
+                    disabled={(date) => date < new Date(new Date().setHours(0, 0, 0, 0))}
+                    initialFocus
+                    className={cn("p-3 pointer-events-auto")}
+                  />
+                </PopoverContent>
+              </Popover>
+            </div>
+          )}
+
+          <DialogFooter>
+            <Button variant="outline" onClick={() => { setLifecycleDialog(null); setLifecycleDate(undefined); }}>
+              Abbrechen
+            </Button>
+            <Button
+              onClick={confirmLifecycleChange}
+              disabled={setLifecycleMutation.isPending || ((lifecycleDialog?.target === "read_only" || lifecycleDialog?.target === "archived") && !lifecycleDate)}
+              className={lifecycleDialog?.target === "pending_deletion" ? "bg-destructive text-destructive-foreground hover:bg-destructive/90" : ""}
+            >
+              {setLifecycleMutation.isPending ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
+              Bestätigen
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
