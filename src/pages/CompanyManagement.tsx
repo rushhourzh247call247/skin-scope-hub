@@ -8,13 +8,18 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter, DialogDescription } from "@/components/ui/dialog";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Progress } from "@/components/ui/progress";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
-import { Building2, Plus, Trash2, Shield, Download, Loader2, Ban, CheckCircle, ChevronDown, FileText, RotateCcw, Lock, Archive, AlertOctagon } from "lucide-react";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { Calendar } from "@/components/ui/calendar";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { format } from "date-fns";
+import { Building2, Plus, Trash2, Shield, Download, Loader2, Ban, CheckCircle, ChevronDown, FileText, RotateCcw, Lock, Archive, AlertOctagon, MoreVertical, CalendarIcon, Settings2 } from "lucide-react";
+import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import ContractPanel from "@/components/ContractPanel";
 
@@ -30,6 +35,13 @@ const CompanyManagement = () => {
   const [exportingId, setExportingId] = useState<number | null>(null);
   const [exportProgress, setExportProgress] = useState<{ phase: string; pct: number } | null>(null);
   const [expandedCompanyId, setExpandedCompanyId] = useState<number | null>(null);
+
+  // Lifecycle-Dialog State
+  const [lifecycleDialog, setLifecycleDialog] = useState<{
+    company: any;
+    target: "read_only" | "archived" | "pending_deletion";
+  } | null>(null);
+  const [lifecycleDate, setLifecycleDate] = useState<Date | undefined>(undefined);
 
   const isAdmin = user?.role === "admin";
 
@@ -89,6 +101,51 @@ const CompanyManagement = () => {
     },
     onError: (e: any) => toast.error(e?.message || "Reaktivierung fehlgeschlagen"),
   });
+
+  const setLifecycleMutation = useMutation({
+    mutationFn: (payload: {
+      id: number;
+      lifecycle_status: "active" | "read_only" | "archived" | "pending_deletion";
+      read_only_until?: string | null;
+      archive_until?: string | null;
+    }) => api.setCompanyLifecycle(payload.id, payload),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["companies"] });
+      toast.success("Lifecycle-Status aktualisiert");
+      setLifecycleDialog(null);
+      setLifecycleDate(undefined);
+    },
+    onError: (e: any) => toast.error(e?.message || "Status-Änderung fehlgeschlagen"),
+  });
+
+  const openLifecycleDialog = (company: any, target: "read_only" | "archived" | "pending_deletion") => {
+    setLifecycleDialog({ company, target });
+    if (target === "read_only") {
+      // Default: heute + 30 Tage
+      const d = new Date();
+      d.setDate(d.getDate() + 30);
+      setLifecycleDate(d);
+    } else if (target === "archived") {
+      // Default: heute + 1 Jahr
+      const d = new Date();
+      d.setFullYear(d.getFullYear() + 1);
+      setLifecycleDate(d);
+    } else {
+      setLifecycleDate(undefined);
+    }
+  };
+
+  const confirmLifecycleChange = () => {
+    if (!lifecycleDialog) return;
+    const { company, target } = lifecycleDialog;
+    const iso = lifecycleDate ? format(lifecycleDate, "yyyy-MM-dd HH:mm:ss") : null;
+    setLifecycleMutation.mutate({
+      id: company.id,
+      lifecycle_status: target,
+      read_only_until: target === "read_only" ? iso : null,
+      archive_until: target === "archived" ? iso : null,
+    });
+  };
 
   const renderLifecycleBadge = (c: any) => {
     const status = c.lifecycle_status as string | undefined;
@@ -162,17 +219,51 @@ const CompanyManagement = () => {
             </div>
 
             <div className="flex items-center gap-1">
-              {!isSuspendedTab && (c.lifecycle_status === "read_only" || c.lifecycle_status === "archived") && (
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  title="Lifecycle reaktivieren (zurück auf active)"
-                  onClick={() => reactivateLifecycleMutation.mutate(c.id)}
-                  disabled={reactivateLifecycleMutation.isPending}
-                  className="text-emerald-600 hover:text-emerald-700"
-                >
-                  <RotateCcw className="h-4 w-4" />
-                </Button>
+              {!isSuspendedTab && !isProtected && (
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="ghost" size="icon" title="Lifecycle-Status ändern">
+                      <Settings2 className="h-4 w-4" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end" className="w-56 bg-popover">
+                    <DropdownMenuLabel>Lifecycle-Status</DropdownMenuLabel>
+                    <DropdownMenuSeparator />
+                    {(c.lifecycle_status === "read_only" || c.lifecycle_status === "archived" || c.lifecycle_status === "pending_deletion") && (
+                      <DropdownMenuItem
+                        onClick={() => reactivateLifecycleMutation.mutate(c.id)}
+                        disabled={reactivateLifecycleMutation.isPending}
+                      >
+                        <RotateCcw className="mr-2 h-4 w-4 text-emerald-600" />
+                        Auf "Aktiv" setzen
+                      </DropdownMenuItem>
+                    )}
+                    {c.lifecycle_status !== "read_only" && (
+                      <DropdownMenuItem onClick={() => openLifecycleDialog(c, "read_only")}>
+                        <Lock className="mr-2 h-4 w-4 text-amber-600" />
+                        Read-Only setzen…
+                      </DropdownMenuItem>
+                    )}
+                    {c.lifecycle_status !== "archived" && (
+                      <DropdownMenuItem onClick={() => openLifecycleDialog(c, "archived")}>
+                        <Archive className="mr-2 h-4 w-4 text-blue-600" />
+                        Archivieren…
+                      </DropdownMenuItem>
+                    )}
+                    {c.lifecycle_status !== "pending_deletion" && (
+                      <>
+                        <DropdownMenuSeparator />
+                        <DropdownMenuItem
+                          onClick={() => openLifecycleDialog(c, "pending_deletion")}
+                          className="text-destructive focus:text-destructive"
+                        >
+                          <AlertOctagon className="mr-2 h-4 w-4" />
+                          Sofort-Löschung anfordern
+                        </DropdownMenuItem>
+                      </>
+                    )}
+                  </DropdownMenuContent>
+                </DropdownMenu>
               )}
               {isSuspendedTab ? (
                 <Button
@@ -334,6 +425,73 @@ const CompanyManagement = () => {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* Lifecycle-Status Dialog (Read-Only / Archiv / Sofort-Löschung) */}
+      <Dialog open={!!lifecycleDialog} onOpenChange={(open) => { if (!open) { setLifecycleDialog(null); setLifecycleDate(undefined); } }}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>
+              {lifecycleDialog?.target === "read_only" && "Read-Only setzen"}
+              {lifecycleDialog?.target === "archived" && "Firma archivieren"}
+              {lifecycleDialog?.target === "pending_deletion" && "Sofort-Löschung anfordern"}
+            </DialogTitle>
+            <DialogDescription>
+              {lifecycleDialog?.target === "read_only" && (
+                <>Firma <strong>{lifecycleDialog.company.name}</strong> wird auf Read-Only gesetzt. Schreibzugriffe werden mit HTTP 423 blockiert.</>
+              )}
+              {lifecycleDialog?.target === "archived" && (
+                <>Firma <strong>{lifecycleDialog?.company.name}</strong> wird archiviert (CHF 50/Mt). Nur lesender Zugriff.</>
+              )}
+              {lifecycleDialog?.target === "pending_deletion" && (
+                <>⚠️ Firma <strong>{lifecycleDialog?.company.name}</strong> wird zur physischen Löschung markiert. Beim nächsten Cron-Lauf (02:30) werden alle Daten unwiderruflich gelöscht.</>
+              )}
+            </DialogDescription>
+          </DialogHeader>
+
+          {(lifecycleDialog?.target === "read_only" || lifecycleDialog?.target === "archived") && (
+            <div className="space-y-2">
+              <Label>
+                {lifecycleDialog.target === "read_only" ? "Read-Only bis" : "Archiviert bis"}
+              </Label>
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant="outline"
+                    className={cn("w-full justify-start text-left font-normal", !lifecycleDate && "text-muted-foreground")}
+                  >
+                    <CalendarIcon className="mr-2 h-4 w-4" />
+                    {lifecycleDate ? format(lifecycleDate, "dd.MM.yyyy") : "Datum wählen"}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0 bg-popover" align="start">
+                  <Calendar
+                    mode="single"
+                    selected={lifecycleDate}
+                    onSelect={setLifecycleDate}
+                    disabled={(date) => date < new Date(new Date().setHours(0, 0, 0, 0))}
+                    initialFocus
+                    className={cn("p-3 pointer-events-auto")}
+                  />
+                </PopoverContent>
+              </Popover>
+            </div>
+          )}
+
+          <DialogFooter>
+            <Button variant="outline" onClick={() => { setLifecycleDialog(null); setLifecycleDate(undefined); }}>
+              Abbrechen
+            </Button>
+            <Button
+              onClick={confirmLifecycleChange}
+              disabled={setLifecycleMutation.isPending || ((lifecycleDialog?.target === "read_only" || lifecycleDialog?.target === "archived") && !lifecycleDate)}
+              className={lifecycleDialog?.target === "pending_deletion" ? "bg-destructive text-destructive-foreground hover:bg-destructive/90" : ""}
+            >
+              {setLifecycleMutation.isPending ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
+              Bestätigen
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

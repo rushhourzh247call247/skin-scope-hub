@@ -304,6 +304,20 @@ export const api = {
       { method: 'POST' }
     ),
 
+  // Lifecycle: Status manuell setzen (admin only)
+  setCompanyLifecycle: (
+    companyId: number,
+    payload: {
+      lifecycle_status: 'active' | 'read_only' | 'archived' | 'pending_deletion';
+      read_only_until?: string | null;
+      archive_until?: string | null;
+    }
+  ) =>
+    request<{ success: boolean; company: any }>(
+      `/companies/${companyId}/lifecycle`,
+      { method: 'POST', body: JSON.stringify(payload) }
+    ),
+
   // Patients
   getPatients: () => request<any[]>('/patients'),
   createPatient: (data: { name: string; birth_date: string; gender?: string; email?: string; phone?: string; insurance_number?: string; patient_number?: string; notes?: string }) =>
