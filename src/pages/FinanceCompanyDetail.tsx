@@ -18,6 +18,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import {
   ArrowLeft, Building2, ScrollText, Receipt, CheckCircle, FileDown, Send,
   CalendarClock, Pencil, Plus, XCircle, RotateCcw, AlertTriangle, Mail, Phone, MapPin,
+  Lock, Archive, Power,
 } from "lucide-react";
 import { format, addMonths, differenceInDays } from "date-fns";
 import { de } from "date-fns/locale";
@@ -38,6 +39,7 @@ export default function FinanceCompanyDetail() {
   const [editContractOpen, setEditContractOpen] = useState(false);
   const [terminateOpen, setTerminateOpen] = useState(false);
   const [dunningInvoice, setDunningInvoice] = useState<any | null>(null);
+  const [lifecycleAction, setLifecycleAction] = useState<null | "read_only" | "archived" | "active">(null);
 
   const { data: companies = [] } = useQuery({ queryKey: ["companies"], queryFn: () => api.getCompanies() });
   const { data: contracts = [], isLoading: loadingContracts } = useQuery({
@@ -130,6 +132,30 @@ export default function FinanceCompanyDetail() {
     onError: () => toast.error("Fehler"),
   });
 
+  const lifecycleMutation = useMutation({
+    mutationFn: async (status: "active" | "read_only" | "archived") => {
+      if (status === "active") {
+        await api.reactivateCompanyLifecycle(companyId);
+      } else {
+        await api.setCompanyLifecycle(companyId, { lifecycle_status: status });
+      }
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["companies"] });
+      setLifecycleAction(null);
+      toast.success("Status aktualisiert");
+    },
+    onError: (e: any) => toast.error(e?.message || "Fehler beim Aktualisieren"),
+  });
+
+  const lifecycleStatus = (company?.lifecycle_status as string) || "active";
+  const lifecycleLabels: Record<string, string> = {
+    active: "Aktiv",
+    read_only: "Read-Only",
+    archived: "Archiviert",
+    pending_deletion: "Löschung beantragt",
+  };
+
   if (!company) {
     return (
       <div className="p-6 space-y-4">
@@ -183,13 +209,44 @@ export default function FinanceCompanyDetail() {
             <ArrowLeft className="h-4 w-4" />
           </Button>
           <div className="min-w-0">
-            <h1 className="text-2xl font-bold tracking-tight truncate">{company.name}</h1>
+            <div className="flex items-center gap-2 flex-wrap">
+              <h1 className="text-2xl font-bold tracking-tight truncate">{company.name}</h1>
+              {lifecycleStatus !== "active" && (
+                <Badge
+                  variant={lifecycleStatus === "pending_deletion" ? "destructive" : undefined}
+                  className={
+                    lifecycleStatus === "read_only" ? "bg-amber-500/10 text-amber-600 border-amber-200" :
+                    lifecycleStatus === "archived" ? "bg-slate-500/10 text-slate-600 border-slate-200" : ""
+                  }
+                >
+                  {lifecycleLabels[lifecycleStatus]}
+                </Badge>
+              )}
+            </div>
             <div className="flex flex-wrap gap-3 mt-1 text-xs text-muted-foreground">
               {company.email && <span className="flex items-center gap-1"><Mail className="h-3 w-3" />{company.email}</span>}
               {company.phone && <span className="flex items-center gap-1"><Phone className="h-3 w-3" />{company.phone}</span>}
               {company.address && <span className="flex items-center gap-1"><MapPin className="h-3 w-3" />{company.address}</span>}
             </div>
           </div>
+        </div>
+        {/* Lifecycle Quick-Actions */}
+        <div className="flex flex-wrap gap-2 shrink-0">
+          {lifecycleStatus === "active" && (
+            <>
+              <Button size="sm" variant="outline" onClick={() => setLifecycleAction("read_only")}>
+                <Lock className="mr-1 h-3.5 w-3.5" /> Read-Only
+              </Button>
+              <Button size="sm" variant="outline" onClick={() => setLifecycleAction("archived")}>
+                <Archive className="mr-1 h-3.5 w-3.5" /> Archivieren
+              </Button>
+            </>
+          )}
+          {lifecycleStatus !== "active" && lifecycleStatus !== "pending_deletion" && (
+            <Button size="sm" variant="outline" className="text-emerald-700 border-emerald-300 hover:bg-emerald-50" onClick={() => setLifecycleAction("active")}>
+              <Power className="mr-1 h-3.5 w-3.5" /> Reaktivieren
+            </Button>
+          )}
         </div>
       </div>
 
@@ -431,6 +488,33 @@ export default function FinanceCompanyDetail() {
           onSave={(data) => updateContractMutation.mutate(data)}
         />
       )}
+
+      {/* Lifecycle Confirm Dialog */}
+      <AlertDialog open={!!lifecycleAction} onOpenChange={(o) => !o && setLifecycleAction(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>
+              {lifecycleAction === "read_only" && "Read-Only setzen?"}
+              {lifecycleAction === "archived" && "Archivieren?"}
+              {lifecycleAction === "active" && "Wieder aktivieren?"}
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              {lifecycleAction === "read_only" && "Die Firma kann sich weiterhin einloggen, aber keine Daten mehr ändern oder hinzufügen. Bestehende Daten bleiben sichtbar."}
+              {lifecycleAction === "archived" && "Die Firma wechselt in den Archiv-Modus (CHF 50.–/Mt., nur Lesezugriff). Schreiboperationen werden gesperrt."}
+              {lifecycleAction === "active" && "Die Firma erhält wieder vollen Zugriff. Alle Schreiboperationen werden freigegeben."}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={lifecycleMutation.isPending}>Abbrechen</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={(e) => { e.preventDefault(); if (lifecycleAction) lifecycleMutation.mutate(lifecycleAction); }}
+              disabled={lifecycleMutation.isPending}
+            >
+              Bestätigen
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
 
       {/* Terminate Dialog */}
       <AlertDialog open={terminateOpen} onOpenChange={setTerminateOpen}>
