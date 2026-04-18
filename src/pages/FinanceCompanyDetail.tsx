@@ -209,13 +209,44 @@ export default function FinanceCompanyDetail() {
             <ArrowLeft className="h-4 w-4" />
           </Button>
           <div className="min-w-0">
-            <h1 className="text-2xl font-bold tracking-tight truncate">{company.name}</h1>
+            <div className="flex items-center gap-2 flex-wrap">
+              <h1 className="text-2xl font-bold tracking-tight truncate">{company.name}</h1>
+              {lifecycleStatus !== "active" && (
+                <Badge
+                  variant={lifecycleStatus === "pending_deletion" ? "destructive" : undefined}
+                  className={
+                    lifecycleStatus === "read_only" ? "bg-amber-500/10 text-amber-600 border-amber-200" :
+                    lifecycleStatus === "archived" ? "bg-slate-500/10 text-slate-600 border-slate-200" : ""
+                  }
+                >
+                  {lifecycleLabels[lifecycleStatus]}
+                </Badge>
+              )}
+            </div>
             <div className="flex flex-wrap gap-3 mt-1 text-xs text-muted-foreground">
               {company.email && <span className="flex items-center gap-1"><Mail className="h-3 w-3" />{company.email}</span>}
               {company.phone && <span className="flex items-center gap-1"><Phone className="h-3 w-3" />{company.phone}</span>}
               {company.address && <span className="flex items-center gap-1"><MapPin className="h-3 w-3" />{company.address}</span>}
             </div>
           </div>
+        </div>
+        {/* Lifecycle Quick-Actions */}
+        <div className="flex flex-wrap gap-2 shrink-0">
+          {lifecycleStatus === "active" && (
+            <>
+              <Button size="sm" variant="outline" onClick={() => setLifecycleAction("read_only")}>
+                <Lock className="mr-1 h-3.5 w-3.5" /> Read-Only
+              </Button>
+              <Button size="sm" variant="outline" onClick={() => setLifecycleAction("archived")}>
+                <Archive className="mr-1 h-3.5 w-3.5" /> Archivieren
+              </Button>
+            </>
+          )}
+          {lifecycleStatus !== "active" && lifecycleStatus !== "pending_deletion" && (
+            <Button size="sm" variant="outline" className="text-emerald-700 border-emerald-300 hover:bg-emerald-50" onClick={() => setLifecycleAction("active")}>
+              <Power className="mr-1 h-3.5 w-3.5" /> Reaktivieren
+            </Button>
+          )}
         </div>
       </div>
 
