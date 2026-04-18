@@ -814,16 +814,18 @@ const PatientDetail = () => {
                           <p className="text-[10px]">{images.length} {t('common.images')}</p>
                         </button>
                         <button
+                          disabled={isReadOnly}
                           onClick={() => restoreMutation.mutate(loc.id)}
-                          className="shrink-0 p-1 rounded hover:bg-primary/10 text-muted-foreground hover:text-primary transition-colors"
-                          title={t('patientDetail.restoreFromTrash')}
+                          className="shrink-0 p-1 rounded hover:bg-primary/10 text-muted-foreground hover:text-primary transition-colors disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:bg-transparent"
+                          title={isReadOnly ? readOnlyTooltip : t('patientDetail.restoreFromTrash')}
                         >
                           <Undo2 className="h-3.5 w-3.5" />
                         </button>
                         <button
+                          disabled={isReadOnly}
                           onClick={() => setPermanentDeleteId(loc.id)}
-                          className="shrink-0 p-1 rounded hover:bg-destructive/10 text-muted-foreground hover:text-destructive transition-colors"
-                          title={t('patientDetail.permanentlyDelete')}
+                          className="shrink-0 p-1 rounded hover:bg-destructive/10 text-muted-foreground hover:text-destructive transition-colors disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:bg-transparent"
+                          title={isReadOnly ? readOnlyTooltip : t('patientDetail.permanentlyDelete')}
                         >
                           <X className="h-3.5 w-3.5" />
                         </button>
@@ -1339,10 +1341,10 @@ const PatientDetail = () => {
                             </p>
                           </div>
                           <div className="flex gap-1 shrink-0 ml-2">
-                            <button onClick={() => { setEditingFindingId(f.id); setEditingFindingText(f.description || ""); }} className="p-1 rounded hover:bg-muted text-muted-foreground hover:text-foreground">
+                            <button disabled={isReadOnly} onClick={() => { setEditingFindingId(f.id); setEditingFindingText(f.description || ""); }} className="p-1 rounded hover:bg-muted text-muted-foreground hover:text-foreground disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:bg-transparent" title={isReadOnly ? readOnlyTooltip : undefined}>
                               <Pencil className="h-3.5 w-3.5" />
                             </button>
-                            <button onClick={() => deleteFindingMutation.mutate(f.id)} className="p-1 rounded hover:bg-destructive/10 text-muted-foreground hover:text-destructive">
+                            <button disabled={isReadOnly} onClick={() => deleteFindingMutation.mutate(f.id)} className="p-1 rounded hover:bg-destructive/10 text-muted-foreground hover:text-destructive disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:bg-transparent" title={isReadOnly ? readOnlyTooltip : undefined}>
                               <Trash2 className="h-3.5 w-3.5" />
                             </button>
                           </div>
