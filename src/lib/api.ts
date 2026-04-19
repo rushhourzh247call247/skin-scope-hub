@@ -266,6 +266,17 @@ export const api = {
   getCompanies: () => request<any[]>('/companies'),
   createCompany: (data: { name: string }) =>
     request<any>('/companies', { method: 'POST', body: JSON.stringify(data) }),
+  updateCompany: (
+    id: number,
+    data: {
+      name?: string;
+      address?: string | null;
+      zip?: string | null;
+      city?: string | null;
+      email?: string | null;
+      phone?: string | null;
+    }
+  ) => request<any>(`/companies/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
   deleteCompany: (id: number) =>
     request<any>(`/companies/${id}`, { method: 'DELETE' }),
 

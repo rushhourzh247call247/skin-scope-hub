@@ -18,7 +18,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel,
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { format } from "date-fns";
-import { Building2, Plus, Trash2, Shield, Download, Loader2, Ban, CheckCircle, ChevronDown, FileText, RotateCcw, Lock, Archive, AlertOctagon, MoreVertical, CalendarIcon, Settings2 } from "lucide-react";
+import { Building2, Plus, Trash2, Shield, Download, Loader2, Ban, CheckCircle, ChevronDown, FileText, RotateCcw, Lock, Archive, AlertOctagon, MoreVertical, CalendarIcon, Settings2, Pencil, Info } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import ContractPanel from "@/components/ContractPanel";
@@ -35,6 +35,17 @@ const CompanyManagement = () => {
   const [exportingId, setExportingId] = useState<number | null>(null);
   const [exportProgress, setExportProgress] = useState<{ phase: string; pct: number } | null>(null);
   const [expandedCompanyId, setExpandedCompanyId] = useState<number | null>(null);
+
+  // Edit-Dialog State
+  const [editCompany, setEditCompany] = useState<any | null>(null);
+  const [editForm, setEditForm] = useState({
+    name: "",
+    address: "",
+    zip: "",
+    city: "",
+    email: "",
+    phone: "",
+  });
 
   // Lifecycle-Dialog State
   const [lifecycleDialog, setLifecycleDialog] = useState<{
@@ -62,6 +73,16 @@ const CompanyManagement = () => {
       setName("");
       setDialogOpen(false);
     },
+  });
+
+  const updateMutation = useMutation({
+    mutationFn: (payload: { id: number; data: any }) => api.updateCompany(payload.id, payload.data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["companies"] });
+      toast.success("Firmendaten aktualisiert");
+      setEditCompany(null);
+    },
+    onError: (e: any) => toast.error(e?.message || "Aktualisierung fehlgeschlagen"),
   });
 
   const deleteMutation = useMutation({
@@ -133,6 +154,34 @@ const CompanyManagement = () => {
     } else {
       setLifecycleDate(undefined);
     }
+  };
+
+  const openEditDialog = (company: any) => {
+    setEditCompany(company);
+    setEditForm({
+      name: company.name ?? "",
+      address: company.address ?? "",
+      zip: company.zip ?? "",
+      city: company.city ?? "",
+      email: company.email ?? "",
+      phone: company.phone ?? "",
+    });
+  };
+
+  const submitEdit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editCompany) return;
+    updateMutation.mutate({
+      id: editCompany.id,
+      data: {
+        name: editForm.name.trim(),
+        address: editForm.address.trim() || null,
+        zip: editForm.zip.trim() || null,
+        city: editForm.city.trim() || null,
+        email: editForm.email.trim() || null,
+        phone: editForm.phone.trim() || null,
+      },
+    });
   };
 
   const confirmLifecycleChange = () => {
@@ -219,6 +268,11 @@ const CompanyManagement = () => {
             </div>
 
             <div className="flex items-center gap-1">
+              {!isSuspendedTab && !isProtected && (
+                <Button variant="ghost" size="icon" title="Firmendaten bearbeiten" onClick={() => openEditDialog(c)}>
+                  <Pencil className="h-4 w-4" />
+                </Button>
+              )}
               {!isSuspendedTab && !isProtected && (
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
@@ -490,6 +544,99 @@ const CompanyManagement = () => {
               Bestätigen
             </Button>
           </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Edit-Dialog: Firmendaten bearbeiten */}
+      <Dialog open={!!editCompany} onOpenChange={(open) => { if (!open) setEditCompany(null); }}>
+        <DialogContent className="max-w-lg">
+          <DialogHeader>
+            <DialogTitle>Firma bearbeiten</DialogTitle>
+            <DialogDescription>
+              Stammdaten der Firma <strong>{editCompany?.name}</strong> aktualisieren.
+            </DialogDescription>
+          </DialogHeader>
+
+          <form onSubmit={submitEdit} className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="edit-name">Firmenname *</Label>
+              <Input
+                id="edit-name"
+                required
+                value={editForm.name}
+                onChange={(e) => setEditForm({ ...editForm, name: e.target.value })}
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="edit-address">Adresse</Label>
+              <Input
+                id="edit-address"
+                value={editForm.address}
+                onChange={(e) => setEditForm({ ...editForm, address: e.target.value })}
+                placeholder="Musterstrasse 12"
+              />
+            </div>
+
+            <div className="grid grid-cols-3 gap-3">
+              <div className="space-y-2">
+                <Label htmlFor="edit-zip">PLZ</Label>
+                <Input
+                  id="edit-zip"
+                  value={editForm.zip}
+                  onChange={(e) => setEditForm({ ...editForm, zip: e.target.value })}
+                  placeholder="8000"
+                />
+              </div>
+              <div className="space-y-2 col-span-2">
+                <Label htmlFor="edit-city">Ort</Label>
+                <Input
+                  id="edit-city"
+                  value={editForm.city}
+                  onChange={(e) => setEditForm({ ...editForm, city: e.target.value })}
+                  placeholder="Zürich"
+                />
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="edit-email">E-Mail</Label>
+              <Input
+                id="edit-email"
+                type="email"
+                value={editForm.email}
+                onChange={(e) => setEditForm({ ...editForm, email: e.target.value })}
+                placeholder="kontakt@firma.ch"
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="edit-phone">Telefon</Label>
+              <Input
+                id="edit-phone"
+                value={editForm.phone}
+                onChange={(e) => setEditForm({ ...editForm, phone: e.target.value })}
+                placeholder="+41 44 000 00 00"
+              />
+            </div>
+
+            <div className="flex items-start gap-2 rounded-md border border-amber-500/30 bg-amber-500/10 p-3 text-xs text-amber-900">
+              <Info className="h-4 w-4 shrink-0 mt-0.5" />
+              <div>
+                <strong>Hinweis:</strong> Bestehende Vertrags-PDFs werden nicht automatisch neu generiert. Falls die Adresse im Vertrag aktualisiert werden soll, generieren Sie das PDF neu über den Vertrags-Bereich der Firma.
+              </div>
+            </div>
+
+            <DialogFooter>
+              <Button type="button" variant="outline" onClick={() => setEditCompany(null)}>
+                Abbrechen
+              </Button>
+              <Button type="submit" disabled={updateMutation.isPending || !editForm.name.trim()}>
+                {updateMutation.isPending ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
+                Speichern
+              </Button>
+            </DialogFooter>
+          </form>
         </DialogContent>
       </Dialog>
     </div>
