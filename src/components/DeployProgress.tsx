@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { Database, FolderSync, Package, ArrowUpToLine, GitBranch, Hammer, CheckCircle2, Loader2, Check, Clock, Radio, ShieldCheck } from "lucide-react";
+import { Database, FolderSync, Package, ArrowUpToLine, GitBranch, Hammer, CheckCircle2, Loader2, Check, Clock, Radio, ShieldCheck, HeartPulse, FileKey, Activity } from "lucide-react";
 import { Progress } from "@/components/ui/progress";
 import { cn } from "@/lib/utils";
 import { api } from "@/lib/api";
