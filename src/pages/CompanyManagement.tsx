@@ -182,6 +182,9 @@ const CompanyManagement = () => {
         phone: editForm.phone.trim() || null,
       },
     });
+  };
+
+  const confirmLifecycleChange = () => {
     if (!lifecycleDialog) return;
     const { company, target } = lifecycleDialog;
     const iso = lifecycleDate ? format(lifecycleDate, "yyyy-MM-dd HH:mm:ss") : null;
