@@ -23,14 +23,16 @@ export interface DeployStep {
 }
 
 const DEPLOY_STEPS: DeployStep[] = [
+  { id: "preflight", label: "Pre-Flight Health-Check", estimatedSeconds: 3, icon: HeartPulse },
   { id: "syscheck", label: "System-Pakete prüfen", estimatedSeconds: 5, icon: ShieldCheck },
   { id: "backup", label: "Datenbank-Backup", estimatedSeconds: 3, icon: Database },
   { id: "rsync", label: "Backend-Code synchronisieren", estimatedSeconds: 12, icon: FolderSync },
+  { id: "envsync", label: ".env synchronisieren (geschützt)", estimatedSeconds: 4, icon: FileKey },
   { id: "composer", label: "Composer-Pakete installieren", estimatedSeconds: 25, icon: Package },
-  { id: "migrate", label: "Datenbank-Migrationen prüfen", estimatedSeconds: 4, icon: ArrowUpToLine },
+  { id: "migrate", label: "Datenbank-Migrationen", estimatedSeconds: 4, icon: ArrowUpToLine },
   { id: "git", label: "Frontend von GitHub klonen", estimatedSeconds: 8, icon: GitBranch },
-  { id: "build", label: "Frontend bauen (Vite)", estimatedSeconds: 60, icon: Hammer },
-  { id: "cache", label: "Caches neu aufbauen", estimatedSeconds: 4, icon: CheckCircle2 },
+  { id: "build", label: "Frontend bauen + deployen + Cache", estimatedSeconds: 65, icon: Hammer },
+  { id: "posthealth", label: "Post-Deploy Health-Check", estimatedSeconds: 5, icon: Activity },
 ];
 
 const TOTAL_ESTIMATED = DEPLOY_STEPS.reduce((sum, s) => sum + s.estimatedSeconds, 0);
