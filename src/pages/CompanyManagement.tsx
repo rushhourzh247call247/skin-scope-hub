@@ -75,6 +75,16 @@ const CompanyManagement = () => {
     },
   });
 
+  const updateMutation = useMutation({
+    mutationFn: (payload: { id: number; data: any }) => api.updateCompany(payload.id, payload.data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["companies"] });
+      toast.success("Firmendaten aktualisiert");
+      setEditCompany(null);
+    },
+    onError: (e: any) => toast.error(e?.message || "Aktualisierung fehlgeschlagen"),
+  });
+
   const deleteMutation = useMutation({
     mutationFn: api.deleteCompany,
     onSuccess: () => {
