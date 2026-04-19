@@ -156,7 +156,32 @@ const CompanyManagement = () => {
     }
   };
 
-  const confirmLifecycleChange = () => {
+  const openEditDialog = (company: any) => {
+    setEditCompany(company);
+    setEditForm({
+      name: company.name ?? "",
+      address: company.address ?? "",
+      zip: company.zip ?? "",
+      city: company.city ?? "",
+      email: company.email ?? "",
+      phone: company.phone ?? "",
+    });
+  };
+
+  const submitEdit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editCompany) return;
+    updateMutation.mutate({
+      id: editCompany.id,
+      data: {
+        name: editForm.name.trim(),
+        address: editForm.address.trim() || null,
+        zip: editForm.zip.trim() || null,
+        city: editForm.city.trim() || null,
+        email: editForm.email.trim() || null,
+        phone: editForm.phone.trim() || null,
+      },
+    });
     if (!lifecycleDialog) return;
     const { company, target } = lifecycleDialog;
     const iso = lifecycleDate ? format(lifecycleDate, "yyyy-MM-dd HH:mm:ss") : null;
