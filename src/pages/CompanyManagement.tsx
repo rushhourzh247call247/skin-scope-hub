@@ -269,6 +269,11 @@ const CompanyManagement = () => {
 
             <div className="flex items-center gap-1">
               {!isSuspendedTab && !isProtected && (
+                <Button variant="ghost" size="icon" title="Firmendaten bearbeiten" onClick={() => openEditDialog(c)}>
+                  <Pencil className="h-4 w-4" />
+                </Button>
+              )}
+              {!isSuspendedTab && !isProtected && (
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
                     <Button variant="ghost" size="icon" title="Lifecycle-Status ändern">
