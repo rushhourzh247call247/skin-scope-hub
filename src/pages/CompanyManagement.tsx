@@ -18,7 +18,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel,
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { format } from "date-fns";
-import { Building2, Plus, Trash2, Shield, Download, Loader2, Ban, CheckCircle, ChevronDown, FileText, RotateCcw, Lock, Archive, AlertOctagon, MoreVertical, CalendarIcon, Settings2 } from "lucide-react";
+import { Building2, Plus, Trash2, Shield, Download, Loader2, Ban, CheckCircle, ChevronDown, FileText, RotateCcw, Lock, Archive, AlertOctagon, MoreVertical, CalendarIcon, Settings2, Pencil, Info } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import ContractPanel from "@/components/ContractPanel";
@@ -35,6 +35,17 @@ const CompanyManagement = () => {
   const [exportingId, setExportingId] = useState<number | null>(null);
   const [exportProgress, setExportProgress] = useState<{ phase: string; pct: number } | null>(null);
   const [expandedCompanyId, setExpandedCompanyId] = useState<number | null>(null);
+
+  // Edit-Dialog State
+  const [editCompany, setEditCompany] = useState<any | null>(null);
+  const [editForm, setEditForm] = useState({
+    name: "",
+    address: "",
+    zip: "",
+    city: "",
+    email: "",
+    phone: "",
+  });
 
   // Lifecycle-Dialog State
   const [lifecycleDialog, setLifecycleDialog] = useState<{
