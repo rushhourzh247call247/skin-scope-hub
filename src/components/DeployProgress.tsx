@@ -194,7 +194,7 @@ export const DeployProgress: React.FC<DeployProgressProps> = ({ isRunning, isDon
       </div>
 
       {/* Step-Liste */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-8 gap-2">
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-5 lg:grid-cols-10 gap-2">
         {DEPLOY_STEPS.map((step, i) => {
           const isComplete = i < activeIndex;
           const isActive = i === activeIndex && !isDone && !hasFailed;
