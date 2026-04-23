@@ -3,14 +3,16 @@ import { api } from "@/lib/api";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { useTranslation } from "react-i18next";
-import { Users, MapPin, ImageIcon, Building2, ArrowRight, ShieldAlert, Eye, ShieldCheck, UsersRound } from "lucide-react";
+import { useState } from "react";
+import { Users, Building2, ArrowRight, UserPlus, Search, UsersRound } from "lucide-react";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import StorageOverview from "@/components/StorageOverview";
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { formatDate } from "@/lib/dateUtils";
-import { useState } from "react";
+import { useLifecycle } from "@/hooks/use-lifecycle";
 
 const StatCard = ({ title, value, icon: Icon, color, onClick }: { title: string; value: number; icon: any; color: string; onClick?: () => void }) => (
   <Card
@@ -29,87 +31,23 @@ const StatCard = ({ title, value, icon: Icon, color, onClick }: { title: string;
   </Card>
 );
 
-type RiskLevel = "high" | "medium" | "low" | null;
-
 const Dashboard = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
   const { t } = useTranslation();
+  const { isReadOnly, readOnlyTooltip } = useLifecycle();
   const isAdmin = user?.role === "admin";
-  const [riskFilter, setRiskFilter] = useState<RiskLevel>(null);
-
-  const riskConfig = {
-    high: {
-      label: t("dashboard.riskHigh"),
-      emoji: "\u{1F534}",
-      icon: ShieldAlert,
-      bgClass: "bg-[hsl(var(--risk-high-bg))] border-[hsl(var(--risk-high))]/20",
-      textClass: "text-[hsl(var(--risk-high))]",
-      countClass: "text-[hsl(var(--risk-high))]",
-    },
-    medium: {
-      label: t("dashboard.riskMedium"),
-      emoji: "\u{1F7E1}",
-      icon: Eye,
-      bgClass: "bg-[hsl(var(--risk-medium-bg))] border-[hsl(var(--risk-medium))]/20",
-      textClass: "text-[hsl(var(--risk-medium))]",
-      countClass: "text-[hsl(var(--risk-medium))]",
-    },
-    low: {
-      label: t("dashboard.riskLow"),
-      emoji: "\u{1F7E2}",
-      icon: ShieldCheck,
-      bgClass: "bg-[hsl(var(--risk-low-bg))] border-[hsl(var(--risk-low))]/20",
-      textClass: "text-[hsl(var(--risk-low))]",
-      countClass: "text-[hsl(var(--risk-low))]",
-    },
-  };
-
-  const RiskCard = ({
-    level,
-    count,
-    active,
-    onClick,
-  }: {
-    level: "high" | "medium" | "low";
-    count: number;
-    active: boolean;
-    onClick: () => void;
-  }) => {
-    const cfg = riskConfig[level];
-    return (
-      <button
-        onClick={onClick}
-        className={`rounded-lg border p-4 text-left transition-all ${cfg.bgClass} ${
-          count === 0 ? "opacity-40" : ""
-        } ${
-          active ? "ring-2 ring-ring shadow-md scale-[1.02]" : "hover:shadow-sm hover:scale-[1.01]"
-        }`}
-      >
-        <div className={`flex items-center gap-2 text-sm font-semibold ${cfg.textClass}`}>
-          <cfg.icon className="h-4 w-4" />
-          {cfg.emoji} {cfg.label}
-        </div>
-        <p className={`mt-1 text-3xl font-bold tabular-nums ${cfg.countClass}`}>{count}</p>
-        <p className="text-xs text-muted-foreground mt-0.5">
-          {count === 1 ? t("dashboard.spot") : t("dashboard.spotPlural")}
-        </p>
-      </button>
-    );
-  };
+  const [search, setSearch] = useState("");
 
   const { data, isLoading } = useQuery({
     queryKey: ["dashboard-stats"],
     queryFn: api.getDashboardStats,
   });
 
-  const { data: riskStats } = useQuery({
-    queryKey: ["dashboard-risk"],
-    queryFn: api.getRiskStats,
-  });
-
-  const toggleFilter = (level: RiskLevel) => {
-    setRiskFilter((prev) => (prev === level ? null : level));
+  const handleSearchSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    const q = search.trim();
+    navigate(q ? `/patients?q=${encodeURIComponent(q)}` : "/patients");
   };
 
   if (isLoading || !data) {
@@ -120,8 +58,6 @@ const Dashboard = () => {
     );
   }
 
-  const risk = riskStats ?? { low: 0, medium: 0, high: 0 };
-
   return (
     <div className="container py-8 space-y-8">
       <div>
@@ -129,32 +65,36 @@ const Dashboard = () => {
         <p className="text-sm text-muted-foreground">{t("dashboard.subtitle")}</p>
       </div>
 
-      
-
       {!isAdmin && (
-        <div>
-          <h2 className="mb-3 text-sm font-medium text-muted-foreground uppercase tracking-wider">{t("dashboard.riskOverview")}</h2>
-          <div className="grid grid-cols-3 gap-3">
-            <RiskCard level="high" count={risk.high} active={riskFilter === "high"} onClick={() => toggleFilter("high")} />
-            <RiskCard level="medium" count={risk.medium} active={riskFilter === "medium"} onClick={() => toggleFilter("medium")} />
-            <RiskCard level="low" count={risk.low} active={riskFilter === "low"} onClick={() => toggleFilter("low")} />
-          </div>
-          {riskFilter && (
-            <p className="mt-2 text-xs text-muted-foreground">
-              {t("dashboard.filterActive")}: <span className={`font-medium ${riskConfig[riskFilter].textClass}`}>{riskConfig[riskFilter].label}</span>
-              {" \u00B7 "}
-              <button onClick={() => setRiskFilter(null)} className="underline hover:text-foreground transition-colors">
-                {t("dashboard.resetFilter")}
-              </button>
-            </p>
-          )}
-        </div>
+        <Card className="border-primary/20 bg-gradient-to-br from-primary/5 to-transparent">
+          <CardContent className="p-4 lg:p-6">
+            <div className="flex flex-col lg:flex-row lg:items-center gap-4">
+              <Button
+                size="lg"
+                className="gap-2 lg:shrink-0"
+                onClick={() => navigate("/new-patient")}
+                disabled={isReadOnly}
+                title={isReadOnly ? readOnlyTooltip : undefined}
+              >
+                <UserPlus className="h-5 w-5" />
+                {t("nav.newPatient")}
+              </Button>
+              <form onSubmit={handleSearchSubmit} className="flex-1 relative">
+                <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground pointer-events-none" />
+                <Input
+                  placeholder={t("patients.searchPlaceholder")}
+                  value={search}
+                  onChange={(e) => setSearch(e.target.value)}
+                  className="pl-9 h-11 bg-background"
+                />
+              </form>
+            </div>
+          </CardContent>
+        </Card>
       )}
 
-      <div className={`grid gap-4 sm:grid-cols-2 ${isAdmin ? "lg:grid-cols-4" : "lg:grid-cols-3"}`}>
+      <div className={`grid gap-4 sm:grid-cols-2 ${isAdmin ? "lg:grid-cols-2" : "lg:grid-cols-1"}`}>
         <StatCard title={t("dashboard.patients")} value={data.totalPatients ?? 0} icon={Users} color="bg-primary/10 text-primary" onClick={() => navigate("/patients")} />
-        <StatCard title={t("dashboard.locations")} value={data.totalLocations ?? 0} icon={MapPin} color="bg-accent/10 text-accent" onClick={() => navigate("/patients")} />
-        <StatCard title={t("dashboard.recordings")} value={data.totalImages ?? 0} icon={ImageIcon} color="bg-[hsl(var(--clinical-warning))]/10 text-[hsl(var(--clinical-warning))]" onClick={() => navigate("/patients")} />
         {isAdmin && (
           <StatCard title={t("dashboard.companies")} value={data.totalCompanies ?? 0} icon={Building2} color="bg-secondary text-secondary-foreground" onClick={() => navigate("/companies")} />
         )}

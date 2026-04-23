@@ -3,7 +3,7 @@ import { useTranslation } from "react-i18next";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { api } from "@/lib/api";
 import type { LocationImage } from "@/types/patient";
-import { Upload, Calendar, ImageIcon, GitCompareArrows, Trash2, Download } from "lucide-react";
+import { Upload, Calendar, ImageIcon, GitCompareArrows, Trash2, Download, Camera, QrCode } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { formatDate } from "@/lib/dateUtils";
@@ -30,13 +30,15 @@ interface ImageGalleryProps {
   locationType?: "spot" | "region";
   patientName?: string;
   patientBirthDate?: string;
+  onQrUpload?: () => void;
 }
 
-const ImageGallery = ({ locationId, patientId, images, locationName, locationType = "spot", patientName, patientBirthDate }: ImageGalleryProps) => {
+const ImageGallery = ({ locationId, patientId, images, locationName, locationType = "spot", patientName, patientBirthDate, onQrUpload }: ImageGalleryProps) => {
   const { t } = useTranslation();
   const queryClient = useQueryClient();
   const { isReadOnly, readOnlyTooltip } = useLifecycle();
   const fileRef = useRef<HTMLInputElement>(null);
+  const cameraRef = useRef<HTMLInputElement>(null);
   const [uploading, setUploading] = useState(false);
   const [compareMode, setCompareMode] = useState(false);
   const [noteValues, setNoteValues] = useState<Record<number, string>>({});
@@ -192,19 +194,42 @@ const ImageGallery = ({ locationId, patientId, images, locationName, locationTyp
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between gap-2 flex-wrap">
         <h4 className="text-sm font-medium text-foreground">{t('imageGallery.title', { count: images.length })}</h4>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-1.5 flex-wrap">
           {images.length >= 2 && (
             <Button size="sm" variant="outline" onClick={() => setCompareMode(true)}>
               <GitCompareArrows className="mr-1.5 h-3.5 w-3.5" /> {t('imageGallery.compare')}
             </Button>
           )}
+          {/* Hidden file inputs */}
           <input ref={fileRef} type="file" accept="image/*" className="hidden" onChange={handleUpload} disabled={isReadOnly || uploading} />
-          <Button size="sm" variant="outline" onClick={() => fileRef.current?.click()} disabled={uploading || isReadOnly} title={isReadOnly ? readOnlyTooltip : undefined}>
-            <Upload className="mr-1.5 h-3.5 w-3.5" />
-            {uploading ? t('imageGallery.uploading') : t('imageGallery.uploadImage')}
+          <input ref={cameraRef} type="file" accept="image/*" capture="environment" className="hidden" onChange={handleUpload} disabled={isReadOnly || uploading} />
+
+          {/* Camera (mobile-friendly: opens phone camera directly) */}
+          <Button
+            size="sm"
+            variant="default"
+            onClick={() => cameraRef.current?.click()}
+            disabled={uploading || isReadOnly}
+            title={isReadOnly ? readOnlyTooltip : t('imageGallery.takePhoto') ?? 'Foto aufnehmen'}
+            className="gap-1.5"
+          >
+            <Camera className="h-3.5 w-3.5" />
+            <span>{t('imageGallery.takePhoto') ?? 'Foto'}</span>
           </Button>
+          {/* Upload from gallery / file system */}
+          <Button size="sm" variant="outline" onClick={() => fileRef.current?.click()} disabled={uploading || isReadOnly} title={isReadOnly ? readOnlyTooltip : undefined} className="gap-1.5">
+            <Upload className="h-3.5 w-3.5" />
+            <span>{uploading ? t('imageGallery.uploading') : t('imageGallery.uploadImage')}</span>
+          </Button>
+          {/* QR — for transferring from another device */}
+          {onQrUpload && locationType === "spot" && (
+            <Button size="sm" variant="outline" onClick={onQrUpload} disabled={isReadOnly} title={isReadOnly ? readOnlyTooltip : undefined} className="gap-1.5">
+              <QrCode className="h-3.5 w-3.5" />
+              <span>QR</span>
+            </Button>
+          )}
         </div>
       </div>
 
