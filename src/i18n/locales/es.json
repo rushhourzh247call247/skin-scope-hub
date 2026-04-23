@@ -479,7 +479,8 @@
     "deleting": "Eliminando…",
     "exported": "Imagen exportada",
     "loadError": "La imagen no pudo ser cargada",
-    "recording": "Registro"
+    "recording": "Registro",
+    "takePhoto": "Foto"
   },
   "imageCompare": {
     "title": "Comparación de progreso – {{location}}",

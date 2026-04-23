@@ -479,7 +479,8 @@
     "deleting": "Löscht…",
     "exported": "Bild exportiert",
     "loadError": "Bild konnte nicht geladen werden",
-    "recording": "Aufnahme"
+    "recording": "Aufnahme",
+    "takePhoto": "Foto"
   },
   "imageCompare": {
     "title": "Verlaufsvergleich – {{location}}",

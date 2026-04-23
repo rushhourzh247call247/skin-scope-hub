@@ -479,7 +479,8 @@
     "deleting": "Deleting…",
     "exported": "Image exported",
     "loadError": "Image could not be loaded",
-    "recording": "Recording"
+    "recording": "Recording",
+    "takePhoto": "Photo"
   },
   "imageCompare": {
     "title": "Progress Comparison – {{location}}",
