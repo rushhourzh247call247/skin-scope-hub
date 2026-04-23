@@ -538,6 +538,36 @@ const PatientDetail = () => {
                 )}
               </div>
 
+              {/* Workflow-Hinweis: Erst Übersichtsfoto, dann Spot — nur wenn neuer Spot UND noch keine Zone existiert */}
+              {mapClickDialog.markType === "spot" && overviewLocations.length === 0 && (
+                <div className="rounded-md border border-blue-200 bg-blue-50 dark:border-blue-900 dark:bg-blue-950/30 p-2.5 space-y-2">
+                  <div className="flex items-start gap-1.5 text-[11px] text-blue-900 dark:text-blue-200">
+                    <Camera className="h-3.5 w-3.5 mt-0.5 shrink-0" />
+                    <span>{t('patientDetail.overviewFirstHint')}</span>
+                  </div>
+                  <div className="flex gap-1.5">
+                    <Button
+                      type="button"
+                      size="sm"
+                      variant="default"
+                      className="h-7 text-[11px] flex-1"
+                      onClick={() => setMapClickDialog((prev) => prev ? { ...prev, markType: "zone" } : null)}
+                    >
+                      {t('patientDetail.overviewFirstAction')}
+                    </Button>
+                    <Button
+                      type="button"
+                      size="sm"
+                      variant="ghost"
+                      className="h-7 text-[11px] text-muted-foreground"
+                      onClick={() => { /* skip — keep current spot mode */ }}
+                    >
+                      {t('patientDetail.overviewFirstSkip')}
+                    </Button>
+                  </div>
+                </div>
+              )}
+
               {/* Region: Size adjustment with live preview */}
               {mapClickDialog.markType === "region" && (
                 <div className="space-y-2">
