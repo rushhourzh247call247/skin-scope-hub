@@ -261,7 +261,10 @@
     "stPost": "St. post",
     "recording": "Aufnahme",
     "spotCreated": "Spot \"{{name}}\" erstellt und verknüpft",
-    "spotCreateError": "Fehler beim Erstellen des Spots"
+    "spotCreateError": "Fehler beim Erstellen des Spots",
+    "overviewFirstHint": "Tipp: Erst ein Übersichtsfoto der Körperregion erfassen — danach lassen sich Spots besser zuordnen.",
+    "overviewFirstAction": "Erst Übersichtsfoto",
+    "overviewFirstSkip": "Trotzdem als Spot anlegen"
   },
   "settings": {
     "title": "Einstellungen",

@@ -261,7 +261,10 @@
     "noImages": "No hay imágenes disponibles",
     "fromZone": "Zona: {{zone}}",
     "restoredSuccess": "Lesión cutánea restaurada",
-    "restoredRenamed": "Restaurada como «{{name}}» (el nombre ya estaba en uso)"
+    "restoredRenamed": "Restaurada como «{{name}}» (el nombre ya estaba en uso)",
+    "overviewFirstHint": "Consejo: primero toma una foto general de la región corporal — los spots serán más fáciles de localizar.",
+    "overviewFirstAction": "Vista general primero",
+    "overviewFirstSkip": "Crear spot de todos modos"
   },
   "settings": {
     "title": "Configuración",

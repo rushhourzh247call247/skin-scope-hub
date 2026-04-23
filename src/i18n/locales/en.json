@@ -261,7 +261,10 @@
     "stPost": "St. post",
     "recording": "Recording",
     "spotCreated": "Spot \"{{name}}\" created and linked",
-    "spotCreateError": "Error creating spot"
+    "spotCreateError": "Error creating spot",
+    "overviewFirstHint": "Tip: Capture an overview photo of the body region first — spots will be easier to locate.",
+    "overviewFirstAction": "Take overview first",
+    "overviewFirstSkip": "Create spot anyway"
   },
   "settings": {
     "title": "Settings",
