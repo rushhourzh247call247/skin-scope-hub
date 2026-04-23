@@ -261,7 +261,10 @@
     "noImages": "Aucune image disponible",
     "fromZone": "Zone : {{zone}}",
     "restoredSuccess": "Lésion cutanée restaurée",
-    "restoredRenamed": "Restaurée sous «{{name}}» (le nom était déjà pris)"
+    "restoredRenamed": "Restaurée sous «{{name}}» (le nom était déjà pris)",
+    "overviewFirstHint": "Conseil : prenez d'abord une photo d'ensemble de la région corporelle — les spots seront plus faciles à localiser.",
+    "overviewFirstAction": "D'abord la vue d'ensemble",
+    "overviewFirstSkip": "Créer le spot quand même"
   },
   "settings": {
     "title": "Paramètres",
