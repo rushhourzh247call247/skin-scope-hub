@@ -264,7 +264,12 @@
     "restoredRenamed": "Restaurada como «{{name}}» (el nombre ya estaba en uso)",
     "overviewFirstHint": "Consejo: primero toma una foto general de la región corporal — los spots serán más fáciles de localizar.",
     "overviewFirstAction": "Vista general primero",
-    "overviewFirstSkip": "Crear spot de todos modos"
+    "overviewFirstSkip": "Crear spot de todos modos",
+    "guidedStartTitle": "Crear primera zona",
+    "guidedStartDescription": "Empiece con una foto general de la región corporal. Después, los puntos individuales se pueden marcar y documentar sobre ella.",
+    "guidedStartAction": "Crear primera zona",
+    "guidedStartNext": "Luego toque el mapa corporal para colocar la zona.",
+    "guidedStartToast": "Modo zona activo — toque el mapa corporal para colocar la primera zona."
   },
   "settings": {
     "title": "Configuración",

@@ -264,7 +264,12 @@
     "spotCreateError": "Error creating spot",
     "overviewFirstHint": "Tip: Capture an overview photo of the body region first — spots will be easier to locate.",
     "overviewFirstAction": "Take overview first",
-    "overviewFirstSkip": "Create spot anyway"
+    "overviewFirstSkip": "Create spot anyway",
+    "guidedStartTitle": "Capture first zone",
+    "guidedStartDescription": "Start with an overview photo of the body region. After that, individual spots can be marked and documented on it.",
+    "guidedStartAction": "Capture first zone",
+    "guidedStartNext": "Then tap the Body Map to place the zone.",
+    "guidedStartToast": "Zone mode active — tap the Body Map to place the first zone."
   },
   "settings": {
     "title": "Settings",
