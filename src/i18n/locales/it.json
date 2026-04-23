@@ -264,7 +264,12 @@
     "restoredRenamed": "Ripristinata come «{{name}}» (il nome era già in uso)",
     "overviewFirstHint": "Suggerimento: scatta prima una foto panoramica della regione corporea — gli spot saranno più facili da individuare.",
     "overviewFirstAction": "Prima la panoramica",
-    "overviewFirstSkip": "Crea comunque lo spot"
+    "overviewFirstSkip": "Crea comunque lo spot",
+    "guidedStartTitle": "Crea la prima zona",
+    "guidedStartDescription": "Inizia con una foto panoramica della regione corporea. Poi i singoli punti possono essere marcati e documentati su di essa.",
+    "guidedStartAction": "Crea la prima zona",
+    "guidedStartNext": "Poi tocca la mappa corporea per posizionare la zona.",
+    "guidedStartToast": "Modalità zona attiva — tocca la mappa corporea per posizionare la prima zona."
   },
   "settings": {
     "title": "Impostazioni",

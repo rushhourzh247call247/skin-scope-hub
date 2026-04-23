@@ -332,6 +332,22 @@ const PatientDetail = () => {
   }
   const selectedLocation = locations.find((l) => l.id === selectedLocationId);
   const totalImages = locations.reduce((sum, l) => sum + (l.images?.length ?? 0), 0);
+  const isEmptyPatient = locations.length === 0;
+
+  const startFirstZoneFlow = () => {
+    if (isReadOnly) {
+      toast.error(readOnlyTooltip);
+      return;
+    }
+    setSelectedLocationId(null);
+    setMapClickDialog(null);
+    setLocationName("");
+    setSidebarTab("zones");
+    setActiveTab("spots");
+    setMobileMapExpanded(true);
+    setRequestedMarkType({ type: "zone", nonce: Date.now() });
+    toast.info(t('patientDetail.guidedStartToast'));
+  };
 
   const handleMapClick = (
     x: number,
@@ -931,7 +947,29 @@ const PatientDetail = () => {
         {/* Center + Right: Content */}
         <div className="flex-1 overflow-y-auto p-3 lg:p-6 pb-20 lg:pb-6">
           <AnimatePresence mode="wait">
-            {activeTab === "akte" ? (
+            {isEmptyPatient ? (
+              <motion.div
+                key="guided-start"
+                initial={{ opacity: 0, y: 8 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -8 }}
+                transition={{ duration: 0.15 }}
+                className="flex min-h-[55vh] items-center justify-center"
+              >
+                <div className="w-full max-w-md rounded-lg border bg-card p-5 text-center shadow-sm">
+                  <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-primary/10 text-primary">
+                    <Camera className="h-7 w-7" />
+                  </div>
+                  <h2 className="text-lg font-semibold text-foreground">{t('patientDetail.guidedStartTitle')}</h2>
+                  <p className="mt-2 text-sm text-muted-foreground">{t('patientDetail.guidedStartDescription')}</p>
+                  <Button className="mt-5 w-full gap-2" onClick={startFirstZoneFlow} disabled={isReadOnly} title={isReadOnly ? readOnlyTooltip : undefined}>
+                    <Camera className="h-4 w-4" />
+                    {t('patientDetail.guidedStartAction')}
+                  </Button>
+                  <p className="mt-3 text-xs text-muted-foreground">{t('patientDetail.guidedStartNext')}</p>
+                </div>
+              </motion.div>
+            ) : activeTab === "akte" ? (
               <motion.div
                 key="akte"
                 initial={{ opacity: 0, y: 8 }}
