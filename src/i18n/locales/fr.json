@@ -479,7 +479,8 @@
     "deleting": "Suppression…",
     "exported": "Image exportée",
     "loadError": "L'image n'a pas pu être chargée",
-    "recording": "Enregistrement"
+    "recording": "Enregistrement",
+    "takePhoto": "Photo"
   },
   "imageCompare": {
     "title": "Comparaison de progression – {{location}}",
