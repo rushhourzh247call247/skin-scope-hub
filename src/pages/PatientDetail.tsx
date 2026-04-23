@@ -332,6 +332,22 @@ const PatientDetail = () => {
   }
   const selectedLocation = locations.find((l) => l.id === selectedLocationId);
   const totalImages = locations.reduce((sum, l) => sum + (l.images?.length ?? 0), 0);
+  const isEmptyPatient = locations.length === 0;
+
+  const startFirstZoneFlow = () => {
+    if (isReadOnly) {
+      toast.error(readOnlyTooltip);
+      return;
+    }
+    setSelectedLocationId(null);
+    setMapClickDialog(null);
+    setLocationName("");
+    setSidebarTab("zones");
+    setActiveTab("spots");
+    setMobileMapExpanded(true);
+    setRequestedMarkType({ type: "zone", nonce: Date.now() });
+    toast.info(t('patientDetail.guidedStartToast'));
+  };
 
   const handleMapClick = (
     x: number,
