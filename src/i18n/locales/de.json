@@ -264,7 +264,12 @@
     "spotCreateError": "Fehler beim Erstellen des Spots",
     "overviewFirstHint": "Tipp: Erst ein Übersichtsfoto der Körperregion erfassen — danach lassen sich Spots besser zuordnen.",
     "overviewFirstAction": "Erst Übersichtsfoto",
-    "overviewFirstSkip": "Trotzdem als Spot anlegen"
+    "overviewFirstSkip": "Trotzdem als Spot anlegen",
+    "guidedStartTitle": "Erste Zone erfassen",
+    "guidedStartDescription": "Beginnen Sie mit einem Übersichtsfoto der Körperregion. Danach können einzelne Spots darauf markiert und dokumentiert werden.",
+    "guidedStartAction": "Erste Zone erfassen",
+    "guidedStartNext": "Tippen Sie danach auf die Body Map, um die Zone zu platzieren.",
+    "guidedStartToast": "Zonenmodus aktiv — tippen Sie auf die Body Map, um die erste Zone zu platzieren."
   },
   "settings": {
     "title": "Einstellungen",
