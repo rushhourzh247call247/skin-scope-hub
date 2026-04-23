@@ -77,7 +77,8 @@
     "preview": "Vista previa",
     "reset": "Restablecer",
     "collapse": "Contraer",
-    "expand": "Expandir"
+    "expand": "Expandir",
+    "new": "Nuevo"
   },
   "login": {
     "subtitle": "Inicie sesión para continuar",

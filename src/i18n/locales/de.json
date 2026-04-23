@@ -77,7 +77,8 @@
     "years_other": "{{count}} Jahre",
     "notAvailable": "Nicht verfügbar",
     "preview": "Vorschau",
-    "reset": "Reset"
+    "reset": "Reset",
+    "new": "Neu"
   },
   "login": {
     "subtitle": "Melden Sie sich an, um fortzufahren",

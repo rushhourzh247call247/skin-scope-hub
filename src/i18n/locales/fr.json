@@ -77,7 +77,8 @@
     "preview": "Aperçu",
     "reset": "Réinitialiser",
     "collapse": "Réduire",
-    "expand": "Développer"
+    "expand": "Développer",
+    "new": "Nouveau"
   },
   "login": {
     "subtitle": "Connectez-vous pour continuer",
