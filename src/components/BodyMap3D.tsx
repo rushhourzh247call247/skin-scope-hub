@@ -76,6 +76,8 @@ interface BodyMap3DProps {
   isPlacementMode?: boolean;
   zoneOverlays?: ZoneOverlay[];
   selectedZoneId?: number | null;
+  /** External request to activate a specific mark mode (e.g. "zone"). Increments to re-trigger. */
+  requestMarkType?: { type: MarkType; nonce: number } | null;
   onPreviewMove?: (
     x: number,
     y: number,
@@ -1195,6 +1197,17 @@ const BodyMap3D: React.FC<BodyMap3DProps> = (props) => {
       setPlacementAnchor({ x: props.previewMarker.x, y: props.previewMarker.y, view: props.previewMarker.view });
     }
   }, [props.isPlacementMode, props.previewMarker, placementAnchor]);
+
+  // External request to activate a mark mode (e.g. parent says "switch to Zone now")
+  const lastRequestNonceRef = useRef<number | null>(null);
+  useEffect(() => {
+    const req = props.requestMarkType;
+    if (!req) return;
+    if (lastRequestNonceRef.current === req.nonce) return;
+    lastRequestNonceRef.current = req.nonce;
+    setMarkType(req.type);
+    setMarkMode(true);
+  }, [props.requestMarkType]);
 
   // Clear reset flag AND bump focusKey when a marker is selected (even re-selecting same one)
   useEffect(() => {
