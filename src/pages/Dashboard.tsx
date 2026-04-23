@@ -72,7 +72,7 @@ const Dashboard = () => {
               <Button
                 size="lg"
                 className="gap-2 lg:shrink-0"
-                onClick={() => navigate("/patients/new")}
+                onClick={() => navigate("/new-patient")}
                 disabled={isReadOnly}
                 title={isReadOnly ? readOnlyTooltip : undefined}
               >

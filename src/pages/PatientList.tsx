@@ -1,10 +1,10 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { api } from "@/lib/api";
 import type { Patient } from "@/types/patient";
-import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useState, useEffect } from "react";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
-import { Search, Calendar, Hash, Power, PowerOff, Trash2 } from "lucide-react";
+import { Search, Calendar, Hash, Power, PowerOff, Trash2, UserPlus } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -31,9 +31,16 @@ const PatientList = () => {
   const isAdmin = user?.role === "admin";
   const navigate = useNavigate();
   const queryClient = useQueryClient();
-  const [search, setSearch] = useState("");
+  const [searchParams, setSearchParams] = useSearchParams();
+  const [search, setSearch] = useState(searchParams.get("q") ?? "");
   const [showDeactivated, setShowDeactivated] = useState(false);
   const [deletePatientId, setDeletePatientId] = useState<number | null>(null);
+
+  // Sync URL ?q= changes (e.g. when arriving from Dashboard)
+  useEffect(() => {
+    const q = searchParams.get("q") ?? "";
+    setSearch(q);
+  }, [searchParams]);
 
   const { data: patients = [], isLoading, error } = useQuery({
     queryKey: ["patients"],
@@ -99,7 +106,7 @@ const PatientList = () => {
   return (
     <>
     <div className="container py-8">
-      <div className="mb-6 flex items-start justify-between">
+      <div className="mb-6 flex items-start justify-between gap-3">
         <div>
           <h2 className="text-2xl font-semibold tracking-tight text-foreground">
             {t("patients.title")}
@@ -108,18 +115,31 @@ const PatientList = () => {
             {t("patients.activeCount", { count: activePatients.length })}{deactivatedPatients.length > 0 && ` \u00B7 ${t("patients.deactivatedCount", { count: deactivatedPatients.length })}`}
           </p>
         </div>
-        {deactivatedPatients.length > 0 && (
-          <div className="flex items-center gap-2">
-            <label htmlFor="show-deactivated" className="text-xs text-muted-foreground cursor-pointer select-none">
-              {t("patients.showDeactivated")}
-            </label>
-            <Switch
-              id="show-deactivated"
-              checked={showDeactivated}
-              onCheckedChange={setShowDeactivated}
-            />
-          </div>
-        )}
+        <div className="flex items-center gap-3 shrink-0">
+          {deactivatedPatients.length > 0 && (
+            <div className="hidden sm:flex items-center gap-2">
+              <label htmlFor="show-deactivated" className="text-xs text-muted-foreground cursor-pointer select-none">
+                {t("patients.showDeactivated")}
+              </label>
+              <Switch
+                id="show-deactivated"
+                checked={showDeactivated}
+                onCheckedChange={setShowDeactivated}
+              />
+            </div>
+          )}
+          <Button
+            size="sm"
+            className="gap-1.5 shrink-0"
+            onClick={() => navigate("/new-patient")}
+            disabled={isReadOnly}
+            title={isReadOnly ? readOnlyTooltip : undefined}
+          >
+            <UserPlus className="h-4 w-4" />
+            <span className="hidden sm:inline">{t("nav.newPatient")}</span>
+            <span className="sm:hidden">{t("common.new") ?? "Neu"}</span>
+          </Button>
+        </div>
       </div>
 
       <div className="relative mb-4">
@@ -127,7 +147,12 @@ const PatientList = () => {
         <Input
           placeholder={t("patients.searchPlaceholder")}
           value={search}
-          onChange={(e) => setSearch(e.target.value)}
+          onChange={(e) => {
+            const v = e.target.value;
+            setSearch(v);
+            if (v) setSearchParams({ q: v }, { replace: true });
+            else setSearchParams({}, { replace: true });
+          }}
           className="pl-9"
         />
       </div>
