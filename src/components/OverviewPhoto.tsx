@@ -749,7 +749,15 @@ const OverviewPhoto = ({ overviewLocation, spotLocations, patientId, onNavigateT
                 <Plus className="h-4 w-4 text-primary" />
               </div>
             </PopoverTrigger>
-            <PopoverContent className="w-72 p-2" side="right" align="start" onClick={(e) => e.stopPropagation()}>
+            <PopoverContent
+              side="bottom"
+              align="center"
+              sideOffset={10}
+              collisionPadding={16}
+              sticky="always"
+              className="z-50 flex max-h-[min(58vh,24rem)] w-[calc(100vw-2rem)] max-w-80 flex-col overflow-hidden p-2 sm:w-72"
+              onClick={(e) => e.stopPropagation()}
+            >
               <>
                 <p className="text-xs font-semibold text-foreground mb-2">{t('overviewPhoto.linkToSpot')}</p>
 
@@ -775,7 +783,7 @@ const OverviewPhoto = ({ overviewLocation, spotLocations, patientId, onNavigateT
                     </button>
                   )}
 
-                  <div className="max-h-48 overflow-y-auto space-y-1">
+                  <div className="min-h-0 flex-1 overflow-y-auto space-y-1 overscroll-contain">
                     {spotLocations.filter(s => s.type !== "overview").length === 0 && !onCreateSpotAndLink ? (
                       <p className="text-xs text-muted-foreground py-2 text-center">{t('overviewPhoto.noSpots')}</p>
                     ) : (
