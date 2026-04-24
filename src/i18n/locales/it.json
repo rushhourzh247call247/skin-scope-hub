@@ -203,7 +203,7 @@
     "noStatus": "Nessuno stato",
     "statusPraesens": "Status praesens",
     "statusPost": "Status post",
-    "progressComparison": "Confronto progressione",
+    "progressComparison": "Confronto ABCDE",
     "older": "PRECEDENTE",
     "newer": "RECENTE",
     "timespan": "Periodo",
@@ -212,7 +212,7 @@
     "findingsTitle": "Referti",
     "newFindingPlaceholder": "Inserisci nuovo referto…",
     "addFinding": "Aggiungi referto",
-    "riskProgression": "Progressione del rischio",
+    "riskProgression": "Andamento ABCDE",
     "imageGallery": "Galleria immagini",
     "olderRecording": "Registrazione precedente",
     "newerRecording": "Registrazione recente",
@@ -605,7 +605,7 @@
     "deleted": "Rapporto eliminato"
   },
   "riskProgression": {
-    "title": "Progressione del rischio",
+    "title": "Andamento ABCDE",
     "noData": "Servono almeno 2 immagini analizzate",
     "worsening": "Peggioramento",
     "improvement": "Miglioramento",

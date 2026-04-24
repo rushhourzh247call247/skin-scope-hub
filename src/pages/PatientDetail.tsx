@@ -93,7 +93,7 @@ const PatientDetail = () => {
   const [showTrash, setShowTrash] = useState(false);
   const [permanentDeleteId, setPermanentDeleteId] = useState<number | null>(null);
   const [expandedTrashId, setExpandedTrashId] = useState<number | null>(null);
-  const [mobileMapExpanded, setMobileMapExpanded] = useState(false);
+  const [mobileMapExpanded, setMobileMapExpanded] = useState(true);
   const [pdfLoading, setPdfLoading] = useState(false);
   const [pdfPreviewUrl, setPdfPreviewUrl] = useState<string | null>(null);
   const [pdfDialogOpen, setPdfDialogOpen] = useState(false);

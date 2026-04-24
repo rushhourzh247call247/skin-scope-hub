@@ -204,7 +204,7 @@
     "noStatus": "No Status",
     "statusPraesens": "Status praesens",
     "statusPost": "Status post",
-    "progressComparison": "Progress Comparison",
+    "progressComparison": "ABCDE Comparison",
     "older": "OLDER",
     "newer": "NEWER",
     "timespan": "Timespan",
@@ -213,7 +213,7 @@
     "findingsTitle": "Findings",
     "newFindingPlaceholder": "Enter new finding…",
     "addFinding": "Add Finding",
-    "riskProgression": "Risk Progression",
+    "riskProgression": "ABCDE Progression",
     "imageGallery": "Image Gallery",
     "olderRecording": "Older recording",
     "newerRecording": "Newer recording",
@@ -605,7 +605,7 @@
     "generating": "Generating…"
   },
   "riskProgression": {
-    "title": "📈 Progression",
+    "title": "📈 ABCDE Progression",
     "worsening": "Worsening",
     "improvement": "Improvement",
     "stable": "Stable",
