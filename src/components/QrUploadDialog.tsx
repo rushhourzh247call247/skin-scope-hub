@@ -42,6 +42,18 @@ const QrUploadDialog = ({
   const [copied, setCopied] = useState(false);
   const [expiresIn, setExpiresIn] = useState<number | null>(null);
 
+  const buildUploadUrl = (token: string, apiUploadUrl?: string) => {
+    const fallbackUrl = `${FRONTEND_DOMAIN}/upload?token=${token}`;
+    if (!apiUploadUrl) return fallbackUrl;
+
+    try {
+      const url = new URL(apiUploadUrl, FRONTEND_DOMAIN);
+      return `${FRONTEND_DOMAIN}${url.pathname}${url.search || `?token=${token}`}`;
+    } catch {
+      return fallbackUrl;
+    }
+  };
+
   const createSession = async () => {
     setLoading(true);
     setError(null);
@@ -50,7 +62,7 @@ const QrUploadDialog = ({
         patient_id: patientId,
         location_id: locationId,
       });
-      const uploadUrl = `${FRONTEND_DOMAIN}/upload?token=${result.token}`;
+      const uploadUrl = buildUploadUrl(result.token, result.upload_url);
       setSession({
         token: result.token,
         expires_at: result.expires_at || '',
