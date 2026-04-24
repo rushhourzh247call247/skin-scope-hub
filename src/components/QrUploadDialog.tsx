@@ -21,8 +21,33 @@ interface QrUploadDialogProps {
   locationName: string;
 }
 
+const DEV_FRONTEND_ORIGIN = "https://proto.derm247.ch";
+const LIVE_FRONTEND_ORIGIN = "https://derm247.ch";
+const LIVE_FRONTEND_HOSTS = new Set([
+  "derm247.ch",
+  "www.derm247.ch",
+  "app.derm247.ch",
+]);
+
 const getFrontendOrigin = () => {
-  if (typeof window === "undefined") return "https://proto.derm247.ch";
+  if (typeof window === "undefined") return DEV_FRONTEND_ORIGIN;
+
+  const host = window.location.hostname;
+
+  if (
+    host === "proto.derm247.ch" ||
+    host === "localhost" ||
+    host === "127.0.0.1" ||
+    host.endsWith(".lovable.app") ||
+    host.endsWith(".lovableproject.com")
+  ) {
+    return DEV_FRONTEND_ORIGIN;
+  }
+
+  if (LIVE_FRONTEND_HOSTS.has(host)) {
+    return LIVE_FRONTEND_ORIGIN;
+  }
+
   return window.location.origin;
 };
 
@@ -45,17 +70,9 @@ const QrUploadDialog = ({
   const [copied, setCopied] = useState(false);
   const [expiresIn, setExpiresIn] = useState<number | null>(null);
 
-  const buildUploadUrl = (token: string, apiUploadUrl?: string) => {
+  const buildUploadUrl = (token: string) => {
     const frontendOrigin = getFrontendOrigin();
-    const fallbackUrl = `${frontendOrigin}/upload?token=${token}`;
-    if (!apiUploadUrl) return fallbackUrl;
-
-    try {
-      const url = new URL(apiUploadUrl, frontendOrigin);
-      return `${frontendOrigin}${url.pathname}${url.search || `?token=${token}`}`;
-    } catch {
-      return fallbackUrl;
-    }
+    return `${frontendOrigin}/upload?token=${encodeURIComponent(token)}`;
   };
 
   const createSession = async () => {
@@ -66,7 +83,7 @@ const QrUploadDialog = ({
         patient_id: patientId,
         location_id: locationId,
       });
-      const uploadUrl = buildUploadUrl(result.token, result.upload_url);
+      const uploadUrl = buildUploadUrl(result.token);
       setSession({
         token: result.token,
         expires_at: result.expires_at || '',
