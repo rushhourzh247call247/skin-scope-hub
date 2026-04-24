@@ -21,7 +21,10 @@ interface QrUploadDialogProps {
   locationName: string;
 }
 
-const FRONTEND_DOMAIN = "https://derm247.ch";
+const getFrontendOrigin = () => {
+  if (typeof window === "undefined") return "https://proto.derm247.ch";
+  return window.location.origin;
+};
 
 const QrUploadDialog = ({
   open,
@@ -43,12 +46,13 @@ const QrUploadDialog = ({
   const [expiresIn, setExpiresIn] = useState<number | null>(null);
 
   const buildUploadUrl = (token: string, apiUploadUrl?: string) => {
-    const fallbackUrl = `${FRONTEND_DOMAIN}/upload?token=${token}`;
+    const frontendOrigin = getFrontendOrigin();
+    const fallbackUrl = `${frontendOrigin}/upload?token=${token}`;
     if (!apiUploadUrl) return fallbackUrl;
 
     try {
-      const url = new URL(apiUploadUrl, FRONTEND_DOMAIN);
-      return `${FRONTEND_DOMAIN}${url.pathname}${url.search || `?token=${token}`}`;
+      const url = new URL(apiUploadUrl, frontendOrigin);
+      return `${frontendOrigin}${url.pathname}${url.search || `?token=${token}`}`;
     } catch {
       return fallbackUrl;
     }

@@ -596,11 +596,11 @@ const OverviewPhoto = ({ overviewLocation, spotLocations, patientId, onNavigateT
                     </button>
                   </PopoverTrigger>
                   <PopoverContent
-                    side={pin.x_pct > 50 ? "left" : "right"}
-                    align={pin.y_pct > 50 ? "end" : "start"}
-                    sideOffset={12}
-                    collisionPadding={8}
-                    className="w-64 p-3 z-50"
+                    side="bottom"
+                    align="center"
+                    sideOffset={10}
+                    collisionPadding={12}
+                    className="z-50 w-[calc(100vw-2rem)] max-w-80 p-3 sm:w-72"
                     onClick={(e) => e.stopPropagation()}
                   >
                     {/* Spot header */}
@@ -667,12 +667,12 @@ const OverviewPhoto = ({ overviewLocation, spotLocations, patientId, onNavigateT
                     )}
 
                     {/* Actions */}
-                    <div className="grid grid-cols-[1fr_auto_auto] gap-1.5 mt-3 pt-3 border-t">
+                    <div className="grid grid-cols-[minmax(0,1fr)_auto_auto] gap-1.5 mt-3 pt-3 border-t">
                       {(spot?.images?.length ?? 0) >= 2 && (
                         <Button
                           size="sm"
                           variant="default"
-                          className="col-span-3 text-xs h-9 gap-1.5"
+                          className="col-span-3 text-xs h-9 gap-1.5 px-2"
                           onClick={() => {
                             setOpenPinId(null);
                             (onCompareSpot || onNavigateToSpot)(pin.linked_location_id);
@@ -685,7 +685,7 @@ const OverviewPhoto = ({ overviewLocation, spotLocations, patientId, onNavigateT
                       <Button
                         size="sm"
                         variant="outline"
-                        className="text-xs h-8 gap-1 min-w-0"
+                        className="text-xs h-8 gap-1 min-w-0 px-2"
                         disabled={spotUploading}
                         onClick={() => {
                           const inp = document.createElement('input');
@@ -701,7 +701,7 @@ const OverviewPhoto = ({ overviewLocation, spotLocations, patientId, onNavigateT
                         }}
                       >
                         {spotUploading ? <Loader2 className="h-3 w-3 animate-spin" /> : <Upload className="h-3 w-3" />}
-                        {t('overviewPhoto.uploadSpotPhoto')}
+                        <span className="truncate">{t('overviewPhoto.uploadSpotPhoto')}</span>
                       </Button>
                       {onQrUpload && (
                         <Button
@@ -717,11 +717,11 @@ const OverviewPhoto = ({ overviewLocation, spotLocations, patientId, onNavigateT
                       <Button
                         size="sm"
                         variant={(spot?.images?.length ?? 0) >= 2 ? "outline" : "default"}
-                        className="text-xs h-8 gap-1"
+                        className="text-xs h-8 gap-1 px-2"
                         onClick={() => { setOpenPinId(null); onNavigateToSpot(pin.linked_location_id); }}
                       >
                         <Eye className="h-3 w-3" />
-                        {t('overviewPhoto.openSpot')}
+                        <span className="hidden min-[380px]:inline">{t('overviewPhoto.openSpot')}</span>
                       </Button>
                     </div>
                   </PopoverContent>
