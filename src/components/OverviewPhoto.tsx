@@ -35,12 +35,13 @@ interface OverviewPhotoProps {
   spotLocations: (Location & { images: LocationImage[] })[];
   patientId: number;
   onNavigateToSpot: (locationId: number) => void;
+  onCompareSpot?: (locationId: number) => void;
   onDelete?: (locationId: number) => void;
   onQrUpload?: (locationId: number) => void;
   onCreateSpotAndLink?: (name: string, pinCoords: { x_pct: number; y_pct: number }, overviewLocationId: number) => void;
 }
 
-const OverviewPhoto = ({ overviewLocation, spotLocations, patientId, onNavigateToSpot, onDelete, onQrUpload, onCreateSpotAndLink }: OverviewPhotoProps) => {
+const OverviewPhoto = ({ overviewLocation, spotLocations, patientId, onNavigateToSpot, onCompareSpot, onDelete, onQrUpload, onCreateSpotAndLink }: OverviewPhotoProps) => {
   const { t } = useTranslation();
   const queryClient = useQueryClient();
   const fileRef = useRef<HTMLInputElement>(null);
@@ -666,11 +667,25 @@ const OverviewPhoto = ({ overviewLocation, spotLocations, patientId, onNavigateT
                     )}
 
                     {/* Actions */}
-                    <div className="flex flex-wrap gap-1.5 mt-2 pt-2 border-t">
+                    <div className="grid grid-cols-[1fr_auto_auto] gap-1.5 mt-3 pt-3 border-t">
+                      {(spot?.images?.length ?? 0) >= 2 && (
+                        <Button
+                          size="sm"
+                          variant="default"
+                          className="col-span-3 text-xs h-9 gap-1.5"
+                          onClick={() => {
+                            setOpenPinId(null);
+                            (onCompareSpot || onNavigateToSpot)(pin.linked_location_id);
+                          }}
+                        >
+                          <GitCompareArrows className="h-3.5 w-3.5" />
+                          {t('overviewPhoto.openComparison')}
+                        </Button>
+                      )}
                       <Button
                         size="sm"
                         variant="outline"
-                        className="text-xs h-8 gap-1 min-w-0 flex-shrink-0"
+                        className="text-xs h-8 gap-1 min-w-0"
                         disabled={spotUploading}
                         onClick={() => {
                           const inp = document.createElement('input');
@@ -701,8 +716,8 @@ const OverviewPhoto = ({ overviewLocation, spotLocations, patientId, onNavigateT
                       )}
                       <Button
                         size="sm"
-                        variant="default"
-                        className="text-xs h-8 gap-1 ml-auto"
+                        variant={(spot?.images?.length ?? 0) >= 2 ? "outline" : "default"}
+                        className="text-xs h-8 gap-1"
                         onClick={() => { setOpenPinId(null); onNavigateToSpot(pin.linked_location_id); }}
                       >
                         <Eye className="h-3 w-3" />
