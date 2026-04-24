@@ -32,10 +32,15 @@ const NewPatient = () => {
   const createMutation = useMutation({
     mutationFn: (data: { name: string; birth_date: string; gender?: string; email?: string; phone?: string; insurance_number?: string; patient_number?: string; notes?: string }) =>
       api.createPatient(data),
-    onSuccess: () => {
+    onSuccess: (createdPatient: any) => {
       queryClient.invalidateQueries({ queryKey: ["patients"] });
       queryClient.invalidateQueries({ queryKey: ["dashboard-stats"] });
-      navigate("/patients");
+      const patientId = createdPatient?.id ?? createdPatient?.patient?.id ?? createdPatient?.data?.id;
+      if (patientId) {
+        navigate(`/patient/${patientId}`);
+      } else {
+        navigate("/patients");
+      }
     },
     onError: (err: any) => {
       const msg = err?.message || "";
