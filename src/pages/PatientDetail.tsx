@@ -1133,17 +1133,36 @@ const PatientDetail = () => {
                       );
                       return (
                         <div key={loc.id} className="space-y-3">
-                          <div className="flex items-center gap-2">
-                            <div className={cn(
-                              "flex h-5 w-5 items-center justify-center text-[10px] font-bold",
-                              loc.type === "region" ? "rounded bg-amber-500 text-white" : "rounded-full bg-primary text-primary-foreground"
-                            )}>
-                              {loc.type === "region" ? "▭" : <MapPin className="h-3 w-3" />}
+                          <div className="flex items-center justify-between gap-3">
+                            <div className="flex min-w-0 items-center gap-2">
+                              <div className={cn(
+                                "flex h-5 w-5 shrink-0 items-center justify-center text-[10px] font-bold",
+                                loc.type === "region" ? "rounded bg-amber-500 text-white" : "rounded-full bg-primary text-primary-foreground"
+                              )}>
+                                {loc.type === "region" ? "▭" : <MapPin className="h-3 w-3" />}
+                              </div>
+                              <h3 className="truncate text-sm font-semibold text-foreground">{locName}</h3>
+                              <span className="shrink-0 text-[10px] text-muted-foreground">
+                                {sortedImages.length} {sortedImages.length === 1 ? "Foto" : "Fotos"} · {loc.view === "back" ? "Hinten" : "Vorne"}
+                              </span>
                             </div>
-                            <h3 className="text-sm font-semibold text-foreground">{locName}</h3>
-                            <span className="text-[10px] text-muted-foreground">
-                              {sortedImages.length} {sortedImages.length === 1 ? "Foto" : "Fotos"} · {loc.view === "back" ? "Hinten" : "Vorne"}
-                            </span>
+                            {loc.type !== "region" && sortedImages.length >= 2 && (
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                className="h-8 shrink-0 gap-1.5 px-2 text-xs"
+                                onClick={() => {
+                                  setSelectedLocationId(loc.id);
+                                  setActiveTab("spots");
+                                  setTimeout(() => {
+                                    document.getElementById(`spot-comparison-${loc.id}`)?.scrollIntoView({ behavior: "smooth", block: "start" });
+                                  }, 120);
+                                }}
+                              >
+                                <GitCompareArrows className="h-3.5 w-3.5" />
+                                <span className="hidden min-[390px]:inline">{t('overviewPhoto.openComparison')}</span>
+                              </Button>
+                            )}
                           </div>
                           <div className="grid grid-cols-3 gap-2 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 lg:gap-3">
                             {sortedImages.map((img) => (
