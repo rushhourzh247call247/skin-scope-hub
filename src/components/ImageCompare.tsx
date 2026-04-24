@@ -282,7 +282,14 @@ const ImageCompare = ({ images, locationName, onClose }: ImageCompareProps) => {
                   {compareImages.map((img, i) => (
                     <div key={img.id} className="space-y-2">
                       <div className="relative overflow-hidden rounded-lg border aspect-square bg-muted">
-                        <img src={api.resolveImageSrc(img)} alt={`${t('imageCompare.comparison')} ${i + 1}`} className="h-full w-full object-contain" />
+                        <img
+                          src={api.resolveImageSrc(img)}
+                          alt={`${t('imageCompare.comparison')} ${i + 1}`}
+                          className="h-full w-full object-contain"
+                          style={i === 1 && isAlignmentModified ? {
+                            transform: `translate(${overlayOffsetX}%, ${overlayOffsetY}%) scale(${overlayScale / 100}) rotate(${overlayRotation}deg)`,
+                          } : undefined}
+                        />
                         <div className={cn(
                           "absolute top-2 left-2 flex h-6 w-6 items-center justify-center rounded-full text-xs font-bold",
                           i === 0 ? "bg-primary text-primary-foreground" : "bg-accent text-accent-foreground"
@@ -301,10 +308,7 @@ const ImageCompare = ({ images, locationName, onClose }: ImageCompareProps) => {
                     variant="outline"
                     size="sm"
                     className="h-7 text-[10px] gap-1.5"
-                    onClick={async () => {
-                      await handleAutoAlign();
-                      setCompareMode("overlay");
-                    }}
+                    onClick={handleAutoAlign}
                     disabled={isAutoAligning}
                   >
                     {isAutoAligning ? (
