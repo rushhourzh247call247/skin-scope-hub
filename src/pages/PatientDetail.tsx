@@ -334,6 +334,19 @@ const PatientDetail = () => {
   const totalImages = locations.reduce((sum, l) => sum + (l.images?.length ?? 0), 0);
   const isEmptyPatient = locations.length === 0;
 
+  useEffect(() => {
+    if (!patient || selectedLocationId || activeTab !== "spots" || isEmptyPatient) return;
+
+    const nextLocation = [...spotLocations]
+      .sort((a, b) => {
+        const aLatest = Math.max(...(a.images ?? []).map(img => new Date(img.created_at ?? 0).getTime()), 0);
+        const bLatest = Math.max(...(b.images ?? []).map(img => new Date(img.created_at ?? 0).getTime()), 0);
+        return bLatest - aLatest;
+      })[0];
+
+    if (nextLocation) setSelectedLocationId(nextLocation.id);
+  }, [patient, selectedLocationId, activeTab, isEmptyPatient, spotLocations]);
+
   const startFirstZoneFlow = () => {
     if (isReadOnly) {
       toast.error(readOnlyTooltip);
