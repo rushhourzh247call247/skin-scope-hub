@@ -99,10 +99,7 @@ const PatientDetail = () => {
   const [pdfDialogOpen, setPdfDialogOpen] = useState(false);
   const [newlyCreatedZoneId, setNewlyCreatedZoneId] = useState<number | null>(null);
   const zoneFileRef = useRef<HTMLInputElement>(null);
-  const selectedLocationFileRef = useRef<HTMLInputElement>(null);
-  const selectedLocationCameraRef = useRef<HTMLInputElement>(null);
   const [zoneUploadTargetId, setZoneUploadTargetId] = useState<number | null>(null);
-  const [selectedLocationUploading, setSelectedLocationUploading] = useState(false);
 
   const handleZoneSidebarUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (isReadOnly) {
@@ -120,27 +117,6 @@ const PatientDetail = () => {
       toast.error(t('imageGallery.noteError'));
     });
     if (zoneFileRef.current) zoneFileRef.current.value = "";
-  };
-
-  const handleSelectedLocationUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (isReadOnly) {
-      toast.error(readOnlyTooltip);
-      e.target.value = "";
-      return;
-    }
-
-    const file = e.target.files?.[0];
-    if (!file || !selectedLocationId) return;
-    setSelectedLocationUploading(true);
-    api.uploadImage(selectedLocationId, file).then(() => {
-      queryClient.invalidateQueries({ queryKey: ["full-patient", patientId] });
-      toast.success(t('overviewPhoto.spotPhotoUploaded'));
-    }).catch(() => {
-      toast.error(t('imageGallery.noteError'));
-    }).finally(() => {
-      setSelectedLocationUploading(false);
-      e.target.value = "";
-    });
   };
 
   useEffect(() => {
@@ -1290,28 +1266,6 @@ const PatientDetail = () => {
                       </p>
                     </div>
                   </div>
-                  {selectedLocation.type !== "region" && (
-                    <div className="flex flex-wrap justify-end gap-1.5">
-                      <input ref={selectedLocationCameraRef} type="file" accept="image/*" capture="environment" className="hidden" onChange={handleSelectedLocationUpload} disabled={isReadOnly || selectedLocationUploading} />
-                      <input ref={selectedLocationFileRef} type="file" accept="image/*" className="hidden" onChange={handleSelectedLocationUpload} disabled={isReadOnly || selectedLocationUploading} />
-                      <Button variant="default" size="sm" className="gap-1.5 text-xs" onClick={() => selectedLocationCameraRef.current?.click()} disabled={isReadOnly || selectedLocationUploading} title={isReadOnly ? readOnlyTooltip : t('imageGallery.takePhoto')}>
-                        <Camera className="h-3.5 w-3.5" /> {t('imageGallery.takePhoto')}
-                      </Button>
-                      <Button variant="outline" size="sm" className="gap-1.5 text-xs" onClick={() => selectedLocationFileRef.current?.click()} disabled={isReadOnly || selectedLocationUploading} title={isReadOnly ? readOnlyTooltip : undefined}>
-                        <Upload className="h-3.5 w-3.5" /> {selectedLocationUploading ? t('imageGallery.uploading') : t('imageGallery.uploadImage')}
-                      </Button>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        className="gap-1.5 text-xs"
-                        onClick={() => { if (!isReadOnly) { setQrLocationId(selectedLocation.id); setQrDialogOpen(true); } }}
-                        disabled={isReadOnly}
-                        title={isReadOnly ? readOnlyTooltip : undefined}
-                      >
-                        <QrCode className="h-3.5 w-3.5" /> QR
-                      </Button>
-                    </div>
-                  )}
                 </div>
 
                 {/* 1. Vergleich (Progress-Comparison) — direkt unter Bilder, am wichtigsten */}
