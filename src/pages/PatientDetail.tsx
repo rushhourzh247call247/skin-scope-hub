@@ -1291,16 +1291,26 @@ const PatientDetail = () => {
                     </div>
                   </div>
                   {selectedLocation.type !== "region" && (
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      className="gap-1.5 text-xs"
-                      onClick={() => { if (!isReadOnly) { setQrLocationId(selectedLocation.id); setQrDialogOpen(true); } }}
-                      disabled={isReadOnly}
-                      title={isReadOnly ? readOnlyTooltip : undefined}
-                    >
-                      <QrCode className="h-3.5 w-3.5" /> QR Upload
-                    </Button>
+                    <div className="flex flex-wrap justify-end gap-1.5">
+                      <input ref={selectedLocationCameraRef} type="file" accept="image/*" capture="environment" className="hidden" onChange={handleSelectedLocationUpload} disabled={isReadOnly || selectedLocationUploading} />
+                      <input ref={selectedLocationFileRef} type="file" accept="image/*" className="hidden" onChange={handleSelectedLocationUpload} disabled={isReadOnly || selectedLocationUploading} />
+                      <Button variant="default" size="sm" className="gap-1.5 text-xs" onClick={() => selectedLocationCameraRef.current?.click()} disabled={isReadOnly || selectedLocationUploading} title={isReadOnly ? readOnlyTooltip : t('imageGallery.takePhoto')}>
+                        <Camera className="h-3.5 w-3.5" /> {t('imageGallery.takePhoto')}
+                      </Button>
+                      <Button variant="outline" size="sm" className="gap-1.5 text-xs" onClick={() => selectedLocationFileRef.current?.click()} disabled={isReadOnly || selectedLocationUploading} title={isReadOnly ? readOnlyTooltip : undefined}>
+                        <Upload className="h-3.5 w-3.5" /> {selectedLocationUploading ? t('imageGallery.uploading') : t('imageGallery.uploadImage')}
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="gap-1.5 text-xs"
+                        onClick={() => { if (!isReadOnly) { setQrLocationId(selectedLocation.id); setQrDialogOpen(true); } }}
+                        disabled={isReadOnly}
+                        title={isReadOnly ? readOnlyTooltip : undefined}
+                      >
+                        <QrCode className="h-3.5 w-3.5" /> QR
+                      </Button>
+                    </div>
                   )}
                 </div>
 
