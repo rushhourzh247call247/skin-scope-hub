@@ -99,7 +99,10 @@ const PatientDetail = () => {
   const [pdfDialogOpen, setPdfDialogOpen] = useState(false);
   const [newlyCreatedZoneId, setNewlyCreatedZoneId] = useState<number | null>(null);
   const zoneFileRef = useRef<HTMLInputElement>(null);
+  const selectedLocationFileRef = useRef<HTMLInputElement>(null);
+  const selectedLocationCameraRef = useRef<HTMLInputElement>(null);
   const [zoneUploadTargetId, setZoneUploadTargetId] = useState<number | null>(null);
+  const [selectedLocationUploading, setSelectedLocationUploading] = useState(false);
 
   const handleZoneSidebarUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (isReadOnly) {
@@ -117,6 +120,27 @@ const PatientDetail = () => {
       toast.error(t('imageGallery.noteError'));
     });
     if (zoneFileRef.current) zoneFileRef.current.value = "";
+  };
+
+  const handleSelectedLocationUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (isReadOnly) {
+      toast.error(readOnlyTooltip);
+      e.target.value = "";
+      return;
+    }
+
+    const file = e.target.files?.[0];
+    if (!file || !selectedLocationId) return;
+    setSelectedLocationUploading(true);
+    api.uploadImage(selectedLocationId, file).then(() => {
+      queryClient.invalidateQueries({ queryKey: ["full-patient", patientId] });
+      toast.success(t('overviewPhoto.spotPhotoUploaded'));
+    }).catch(() => {
+      toast.error(t('imageGallery.noteError'));
+    }).finally(() => {
+      setSelectedLocationUploading(false);
+      e.target.value = "";
+    });
   };
 
   useEffect(() => {
