@@ -41,12 +41,14 @@ export function AppSidebar() {
     return () => clearInterval(interval);
   }, [fetchUnread, isAccountant]);
 
+  const showServerAdmin = isServerAdminAvailable();
+
   useEffect(() => {
-    if (!isAdmin) return;
+    if (!isAdmin || !showServerAdmin) return;
     api.serverAdmin.getStatus().then((status: any) => {
       if (status?.app_version) setAppVersion(status.app_version);
     }).catch(() => {});
-  }, [isAdmin]);
+  }, [isAdmin, showServerAdmin]);
 
   const financeNav = [
     { title: "Dashboard", url: "/finance", icon: Landmark },
@@ -71,7 +73,7 @@ export function AppSidebar() {
     { title: t("nav.snapshots"), url: "/snapshots", icon: Database },
     { title: t("nav.systemDocs"), url: "/system-docs", icon: FileText },
     { title: "Verträge", url: "/contracts", icon: ScrollText },
-    { title: "Server", url: "/server-admin", icon: Server },
+    ...(showServerAdmin ? [{ title: "Server", url: "/server-admin", icon: Server }] : []),
   ];
 
   const adminFinanceNav = [
