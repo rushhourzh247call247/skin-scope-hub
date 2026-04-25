@@ -718,6 +718,21 @@ export const LoginDemoBodyMap = () => {
                   Nebeneinander
                 </button>
                 <button
+                  onClick={() => {
+                    setCompareMode("aligned");
+                    setAligning(true);
+                    window.setTimeout(() => setAligning(false), 1400);
+                  }}
+                  className={cn(
+                    "flex-1 rounded-full px-2 py-1 text-[11px] font-medium transition-all",
+                    compareMode === "aligned"
+                      ? "bg-card text-foreground shadow-sm"
+                      : "text-muted-foreground",
+                  )}
+                >
+                  KI-Ausrichtung
+                </button>
+                <button
                   onClick={() => setCompareMode("overlay")}
                   className={cn(
                     "flex-1 rounded-full px-2 py-1 text-[11px] font-medium transition-all",
