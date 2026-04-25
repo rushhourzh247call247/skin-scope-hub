@@ -59,9 +59,12 @@ export const LoginDemoBodyMap = () => {
   const [pendingSpot, setPendingSpot] = useState<DemoSpot | null>(null);
   const [photoDialogSpotId, setPhotoDialogSpotId] = useState<number | null>(null);
   const [compareSpotId, setCompareSpotId] = useState<number | null>(null);
-  const [compareMode, setCompareMode] = useState<"side" | "overlay">("side");
+  const [compareMode, setCompareMode] = useState<"side" | "aligned" | "overlay">("side");
   const [overlayOpacity, setOverlayOpacity] = useState(50);
   const [compareIndices, setCompareIndices] = useState<[number, number]>([0, 1]);
+  const [aligning, setAligning] = useState(false);
+  const [lightboxSpotId, setLightboxSpotId] = useState<number | null>(null);
+  const [lightboxIdx, setLightboxIdx] = useState(0);
   const [qrSession, setQrSession] = useState<{ token: string; url: string } | null>(null);
   const [qrLoading, setQrLoading] = useState(false);
   const [qrError, setQrError] = useState<string | null>(null);
@@ -127,6 +130,8 @@ export const LoginDemoBodyMap = () => {
     setSelectedId(null);
     setPendingSpot(null);
     setPhotoDialogSpotId(null);
+    setLightboxSpotId(null);
+    setCompareSpotId(null);
     setQrSession(null);
     setQrError(null);
     stopPolling();
@@ -362,9 +367,15 @@ export const LoginDemoBodyMap = () => {
             {/* Photo strip — alle Fotos + Plus-Button */}
             <div className="flex flex-shrink-0 gap-1.5">
               {selectedSpot.photos.map((photo, idx) => (
-                <div
+                <button
                   key={idx}
-                  className="relative h-16 w-16 overflow-hidden rounded-lg border border-border"
+                  type="button"
+                  onClick={() => {
+                    setLightboxSpotId(selectedSpot.id);
+                    setLightboxIdx(idx);
+                  }}
+                  className="group relative h-16 w-16 overflow-hidden rounded-lg border border-border transition-all hover:border-primary hover:ring-2 hover:ring-primary/30"
+                  aria-label={`Foto ${idx + 1} öffnen`}
                 >
                   <img
                     src={photo}
@@ -374,14 +385,17 @@ export const LoginDemoBodyMap = () => {
                   <span className="absolute bottom-0 left-0 rounded-tr-md bg-background/80 px-1 text-[8px] font-bold text-foreground">
                     {idx + 1}
                   </span>
-                  <button
-                    onClick={() => removePhoto(selectedSpot.id, idx)}
-                    className="absolute right-0.5 top-0.5 flex h-4 w-4 items-center justify-center rounded-full bg-destructive text-destructive-foreground shadow"
+                  <span
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      removePhoto(selectedSpot.id, idx);
+                    }}
+                    className="absolute right-0.5 top-0.5 flex h-4 w-4 cursor-pointer items-center justify-center rounded-full bg-destructive text-destructive-foreground shadow"
                     aria-label="Foto entfernen"
                   >
                     <X className="h-2.5 w-2.5" />
-                  </button>
-                </div>
+                  </span>
+                </button>
               ))}
               {/* Plus-Button: weiteres Foto hinzufügen (max 4 für Übersicht) */}
               {selectedSpot.photos.length < 4 && (
@@ -555,7 +569,7 @@ export const LoginDemoBodyMap = () => {
               Foto hinzufügen
             </div>
             <p className="mb-4 text-xs text-muted-foreground">
-              Demo-Modus — nur 1 Foto pro Hautstelle
+              Demo-Modus — bis zu 4 Fotos pro Hautstelle für Verlaufs-Vergleich
             </p>
 
             {qrSession ? (
@@ -657,7 +671,124 @@ export const LoginDemoBodyMap = () => {
         </div>
       )}
 
-      {/* Foto-Vergleich Overlay (Side-by-Side / Overlay-Slider) */}
+      {/* Foto-Lightbox: Klick aufs Thumbnail zeigt Foto groß + Aktionen */}
+      {lightboxSpotId !== null && (() => {
+        const spot = spots.find((s) => s.id === lightboxSpotId);
+        if (!spot || spot.photos.length === 0) return null;
+        const safeIdx = Math.min(lightboxIdx, spot.photos.length - 1);
+        const photo = spot.photos[safeIdx];
+        const canCompare = spot.photos.length >= 2;
+
+        return (
+          <div
+            className="absolute inset-0 z-40 flex items-center justify-center bg-background/80 backdrop-blur-sm p-3"
+            onClick={() => setLightboxSpotId(null)}
+          >
+            <div
+              className="w-full max-w-md rounded-2xl border border-border bg-card p-4 shadow-2xl"
+              onClick={(e) => e.stopPropagation()}
+            >
+              {/* Header */}
+              <div className="mb-3 flex items-center justify-between">
+                <div className="min-w-0">
+                  <div className="flex items-center gap-2">
+                    <span
+                      className="inline-block h-2.5 w-2.5 flex-shrink-0 rounded-full ring-2 ring-background"
+                      style={{ backgroundColor: LESION_CLASSIFICATIONS[spot.classification].color }}
+                    />
+                    <span className="truncate text-sm font-semibold text-foreground">
+                      {LESION_CLASSIFICATIONS[spot.classification].label}
+                    </span>
+                  </div>
+                  <p className="text-[10px] text-muted-foreground">
+                    Foto {safeIdx + 1} von {spot.photos.length}
+                  </p>
+                </div>
+                <button
+                  onClick={() => setLightboxSpotId(null)}
+                  className="rounded-full p-1 text-muted-foreground hover:bg-muted hover:text-foreground"
+                  aria-label="Schließen"
+                >
+                  <X className="h-4 w-4" />
+                </button>
+              </div>
+
+              {/* Großes Foto */}
+              <div className="relative aspect-square w-full overflow-hidden rounded-lg border border-border bg-muted/20">
+                <img src={photo} alt={`Foto ${safeIdx + 1}`} className="h-full w-full object-cover" />
+                <span className="absolute left-2 top-2 rounded-md bg-background/85 px-2 py-0.5 text-[11px] font-bold">
+                  {safeIdx + 1} / {spot.photos.length}
+                </span>
+              </div>
+
+              {/* Foto-Navigation (wenn mehrere) */}
+              {spot.photos.length > 1 && (
+                <div className="mt-2 flex items-center justify-center gap-1.5">
+                  {spot.photos.map((_, i) => (
+                    <button
+                      key={i}
+                      onClick={() => setLightboxIdx(i)}
+                      className={cn(
+                        "h-8 w-8 overflow-hidden rounded-md border-2 transition-all",
+                        safeIdx === i ? "border-primary" : "border-transparent opacity-60 hover:opacity-100",
+                      )}
+                    >
+                      <img src={spot.photos[i]} alt={`Vorschau ${i + 1}`} className="h-full w-full object-cover" />
+                    </button>
+                  ))}
+                </div>
+              )}
+
+              {/* Aktionen */}
+              <div className="mt-3 grid grid-cols-2 gap-2">
+                <button
+                  onClick={() => {
+                    setLightboxSpotId(null);
+                    setPhotoDialogSpotId(spot.id);
+                  }}
+                  disabled={spot.photos.length >= 4}
+                  className={cn(
+                    "flex items-center justify-center gap-1.5 rounded-lg border-2 border-primary bg-primary px-3 py-2 text-xs font-semibold text-primary-foreground transition-all",
+                    spot.photos.length >= 4
+                      ? "cursor-not-allowed opacity-50"
+                      : "hover:bg-primary/90",
+                  )}
+                >
+                  <Plus className="h-3.5 w-3.5" />
+                  Weiteres Foto
+                </button>
+                <button
+                  onClick={() => {
+                    if (!canCompare) return;
+                    setCompareIndices([safeIdx, safeIdx === 0 ? 1 : 0]);
+                    setCompareMode("side");
+                    setCompareSpotId(spot.id);
+                  }}
+                  disabled={!canCompare}
+                  className={cn(
+                    "flex items-center justify-center gap-1.5 rounded-lg border-2 border-border bg-card px-3 py-2 text-xs font-semibold text-foreground transition-all",
+                    !canCompare
+                      ? "cursor-not-allowed opacity-50"
+                      : "hover:border-primary hover:bg-primary/5",
+                  )}
+                  title={canCompare ? "Verlauf vergleichen" : "Mindestens 2 Fotos nötig"}
+                >
+                  <GitCompareArrows className="h-3.5 w-3.5" />
+                  Vergleichen
+                </button>
+              </div>
+
+              {!canCompare && (
+                <p className="mt-2 text-center text-[10px] text-muted-foreground">
+                  Fügen Sie ein weiteres Foto hinzu, um den Verlauf zu vergleichen
+                </p>
+              )}
+            </div>
+          </div>
+        );
+      })()}
+
+      {/* Foto-Vergleich Overlay (Side-by-Side / KI-Ausrichtung / Overlay-Slider) */}
       {compareSpotId !== null && (() => {
         const spot = spots.find((s) => s.id === compareSpotId);
         if (!spot || spot.photos.length < 2) return null;
@@ -704,6 +835,21 @@ export const LoginDemoBodyMap = () => {
                   )}
                 >
                   Nebeneinander
+                </button>
+                <button
+                  onClick={() => {
+                    setCompareMode("aligned");
+                    setAligning(true);
+                    window.setTimeout(() => setAligning(false), 1400);
+                  }}
+                  className={cn(
+                    "flex-1 rounded-full px-2 py-1 text-[11px] font-medium transition-all",
+                    compareMode === "aligned"
+                      ? "bg-card text-foreground shadow-sm"
+                      : "text-muted-foreground",
+                  )}
+                >
+                  KI-Ausrichtung
                 </button>
                 <button
                   onClick={() => setCompareMode("overlay")}
@@ -763,7 +909,7 @@ export const LoginDemoBodyMap = () => {
               )}
 
               {/* Compare view */}
-              {compareMode === "side" ? (
+              {compareMode === "side" && (
                 <div className="grid grid-cols-2 gap-2">
                   <div className="relative aspect-square overflow-hidden rounded-lg border border-border bg-muted/20">
                     <img src={photoA} alt="Foto A" className="h-full w-full object-cover" />
@@ -778,7 +924,57 @@ export const LoginDemoBodyMap = () => {
                     </span>
                   </div>
                 </div>
-              ) : (
+              )}
+
+              {compareMode === "aligned" && (
+                <div className="space-y-2">
+                  <div className="grid grid-cols-2 gap-2">
+                    <div className="relative aspect-square overflow-hidden rounded-lg border border-border bg-muted/20">
+                      <img src={photoA} alt="Foto A" className="h-full w-full object-cover" />
+                      <span className="absolute left-1.5 top-1.5 rounded-md bg-background/80 px-1.5 py-0.5 text-[10px] font-bold">
+                        A · {safeA + 1}
+                      </span>
+                      {!aligning && (
+                        <span className="absolute bottom-1.5 right-1.5 rounded-md bg-primary/90 px-1.5 py-0.5 text-[9px] font-bold text-primary-foreground">
+                          Referenz
+                        </span>
+                      )}
+                    </div>
+                    <div className="relative aspect-square overflow-hidden rounded-lg border border-border bg-muted/20">
+                      <img
+                        src={photoB}
+                        alt="Foto B (ausgerichtet)"
+                        className={cn(
+                          "h-full w-full object-cover transition-all duration-1000 ease-out",
+                          aligning && "scale-110 rotate-3 blur-[1px]",
+                        )}
+                      />
+                      <span className="absolute left-1.5 top-1.5 rounded-md bg-background/80 px-1.5 py-0.5 text-[10px] font-bold">
+                        B · {safeB + 1}
+                      </span>
+                      {aligning ? (
+                        <div className="absolute inset-0 flex flex-col items-center justify-center gap-1.5 bg-background/40 backdrop-blur-[2px]">
+                          <Loader2 className="h-5 w-5 animate-spin text-primary" />
+                          <span className="text-[10px] font-semibold text-foreground">
+                            KI richtet aus…
+                          </span>
+                        </div>
+                      ) : (
+                        <span className="absolute bottom-1.5 right-1.5 rounded-md bg-primary/90 px-1.5 py-0.5 text-[9px] font-bold text-primary-foreground">
+                          ✓ Ausgerichtet
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                  <p className="text-center text-[10px] text-muted-foreground">
+                    {aligning
+                      ? "Demo: simulierte Ausrichtung — echte App nutzt OpenCV (Feature-Matching)"
+                      : "Foto B wurde anhand markanter Strukturen auf Foto A ausgerichtet"}
+                  </p>
+                </div>
+              )}
+
+              {compareMode === "overlay" && (
                 <div className="space-y-2">
                   <div className="relative aspect-square w-full overflow-hidden rounded-lg border border-border bg-muted/20">
                     <img src={photoA} alt="Foto A" className="absolute inset-0 h-full w-full object-cover" />
