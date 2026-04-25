@@ -3,7 +3,7 @@ import BodyMap3D from "@/components/BodyMap3D";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { LESION_CLASSIFICATIONS, type LesionClassification, type Gender } from "@/types/patient";
-import { RotateCcw, Sparkles, MousePointerClick, Upload, QrCode, Camera, X, Image as ImageIcon, Check, Loader2, Smartphone } from "lucide-react";
+import { RotateCcw, Sparkles, MousePointerClick, Upload, QrCode, Camera, X, Image as ImageIcon, Check, Loader2, Smartphone, Plus, GitCompareArrows } from "lucide-react";
 import { QRCodeSVG } from "qrcode.react";
 import { cn } from "@/lib/utils";
 
@@ -40,7 +40,7 @@ interface DemoSpot {
   ny?: number;
   nz?: number;
   classification: LesionClassification;
-  photoDataUrl?: string;
+  photos: string[];
 }
 
 const SELECTABLE_CLASSIFICATIONS: LesionClassification[] = [
@@ -58,6 +58,10 @@ export const LoginDemoBodyMap = () => {
   const [selectedId, setSelectedId] = useState<number | null>(null);
   const [pendingSpot, setPendingSpot] = useState<DemoSpot | null>(null);
   const [photoDialogSpotId, setPhotoDialogSpotId] = useState<number | null>(null);
+  const [compareSpotId, setCompareSpotId] = useState<number | null>(null);
+  const [compareMode, setCompareMode] = useState<"side" | "overlay">("side");
+  const [overlayOpacity, setOverlayOpacity] = useState(50);
+  const [compareIndices, setCompareIndices] = useState<[number, number]>([0, 1]);
   const [qrSession, setQrSession] = useState<{ token: string; url: string } | null>(null);
   const [qrLoading, setQrLoading] = useState(false);
   const [qrError, setQrError] = useState<string | null>(null);
@@ -89,6 +93,7 @@ export const LoginDemoBodyMap = () => {
         ny: normal3d?.[1],
         nz: normal3d?.[2],
         classification: "unclassified",
+        photos: [],
       };
       setPendingSpot(newSpot);
     },
@@ -138,7 +143,7 @@ export const LoginDemoBodyMap = () => {
     reader.onload = (ev) => {
       const dataUrl = ev.target?.result as string;
       setSpots((prev) =>
-        prev.map((s) => (s.id === photoDialogSpotId ? { ...s, photoDataUrl: dataUrl } : s)),
+        prev.map((s) => (s.id === photoDialogSpotId ? { ...s, photos: [...s.photos, dataUrl] } : s)),
       );
       setPhotoDialogSpotId(null);
     };
@@ -217,7 +222,7 @@ export const LoginDemoBodyMap = () => {
               const exists = prev.some((s) => s.id === targetSpotId);
               console.log("[QR-Demo] spot exists in state?", exists, "current spots:", prev.map((s) => s.id));
               return prev.map((s) =>
-                s.id === targetSpotId ? { ...s, photoDataUrl: localImageUrl } : s,
+                s.id === targetSpotId ? { ...s, photos: [...s.photos, localImageUrl] } : s,
               );
             });
             setSelectedId(targetSpotId);
@@ -251,8 +256,12 @@ export const LoginDemoBodyMap = () => {
 
   useEffect(() => () => stopPolling(), []);
 
-  const removePhoto = (spotId: number) => {
-    setSpots((prev) => prev.map((s) => (s.id === spotId ? { ...s, photoDataUrl: undefined } : s)));
+  const removePhoto = (spotId: number, index: number) => {
+    setSpots((prev) =>
+      prev.map((s) =>
+        s.id === spotId ? { ...s, photos: s.photos.filter((_, i) => i !== index) } : s,
+      ),
+    );
   };
 
   const selectedSpot = spots.find((s) => s.id === selectedId);
@@ -272,9 +281,9 @@ export const LoginDemoBodyMap = () => {
     classification: s.classification,
     classificationColor: LESION_CLASSIFICATIONS[s.classification].color,
     name: LESION_CLASSIFICATIONS[s.classification].label,
-    imageCount: s.photoDataUrl ? 1 : 0,
+    imageCount: s.photos.length,
     findingCount: 0,
-    photoThumbnailUrl: s.photoDataUrl,
+    photoThumbnailUrl: s.photos[s.photos.length - 1],
   }));
 
   return (
@@ -349,31 +358,57 @@ export const LoginDemoBodyMap = () => {
       {/* Selected spot card with photo */}
       {selectedSpot && (
         <div className="relative z-20 mx-4 mb-4 rounded-xl border border-border bg-card/95 p-3 shadow-lg backdrop-blur-md">
-          <div className="flex items-center gap-3">
-            {/* Photo or upload prompt */}
-            {selectedSpot.photoDataUrl ? (
-              <div className="relative h-16 w-16 flex-shrink-0 overflow-hidden rounded-lg border border-border">
-                <img
-                  src={selectedSpot.photoDataUrl}
-                  alt="Demo Foto"
-                  className="h-full w-full object-cover"
-                />
-                <button
-                  onClick={() => removePhoto(selectedSpot.id)}
-                  className="absolute right-0.5 top-0.5 flex h-4 w-4 items-center justify-center rounded-full bg-destructive text-destructive-foreground shadow"
+          <div className="flex items-start gap-3">
+            {/* Photo strip — alle Fotos + Plus-Button */}
+            <div className="flex flex-shrink-0 gap-1.5">
+              {selectedSpot.photos.map((photo, idx) => (
+                <div
+                  key={idx}
+                  className="relative h-16 w-16 overflow-hidden rounded-lg border border-border"
                 >
-                  <X className="h-2.5 w-2.5" />
+                  <img
+                    src={photo}
+                    alt={`Demo Foto ${idx + 1}`}
+                    className="h-full w-full object-cover"
+                  />
+                  <span className="absolute bottom-0 left-0 rounded-tr-md bg-background/80 px-1 text-[8px] font-bold text-foreground">
+                    {idx + 1}
+                  </span>
+                  <button
+                    onClick={() => removePhoto(selectedSpot.id, idx)}
+                    className="absolute right-0.5 top-0.5 flex h-4 w-4 items-center justify-center rounded-full bg-destructive text-destructive-foreground shadow"
+                    aria-label="Foto entfernen"
+                  >
+                    <X className="h-2.5 w-2.5" />
+                  </button>
+                </div>
+              ))}
+              {/* Plus-Button: weiteres Foto hinzufügen (max 4 für Übersicht) */}
+              {selectedSpot.photos.length < 4 && (
+                <button
+                  onClick={() => setPhotoDialogSpotId(selectedSpot.id)}
+                  className={cn(
+                    "flex h-16 w-16 flex-col items-center justify-center gap-0.5 rounded-lg border-2 border-dashed text-primary transition-colors",
+                    selectedSpot.photos.length === 0
+                      ? "border-primary/40 bg-primary/5 hover:border-primary hover:bg-primary/10"
+                      : "border-border hover:border-primary hover:bg-primary/5",
+                  )}
+                  aria-label="Foto hinzufügen"
+                >
+                  {selectedSpot.photos.length === 0 ? (
+                    <>
+                      <Camera className="h-5 w-5" />
+                      <span className="text-[8px] font-medium">Foto</span>
+                    </>
+                  ) : (
+                    <>
+                      <Plus className="h-5 w-5" />
+                      <span className="text-[8px] font-medium">Weiteres</span>
+                    </>
+                  )}
                 </button>
-              </div>
-            ) : (
-              <button
-                onClick={() => setPhotoDialogSpotId(selectedSpot.id)}
-                className="flex h-16 w-16 flex-shrink-0 flex-col items-center justify-center gap-0.5 rounded-lg border-2 border-dashed border-primary/40 bg-primary/5 text-primary transition-colors hover:border-primary hover:bg-primary/10"
-              >
-                <Camera className="h-5 w-5" />
-                <span className="text-[8px] font-medium">Foto</span>
-              </button>
-            )}
+              )}
+            </div>
 
             <div className="min-w-0 flex-1">
               <div className="flex items-center gap-2">
@@ -387,13 +422,26 @@ export const LoginDemoBodyMap = () => {
               </div>
               <p className="mt-0.5 text-[10px] text-muted-foreground">
                 {selectedSpot.view === "front" ? "Vorderseite" : "Rückseite"} ·{" "}
-                {selectedSpot.photoDataUrl ? "Foto angehängt ✓" : "Demo: Foto hinzufügen"}
+                {selectedSpot.photos.length === 0
+                  ? "Demo: Foto hinzufügen"
+                  : `${selectedSpot.photos.length} Foto${selectedSpot.photos.length === 1 ? "" : "s"} angehängt ✓`}
               </p>
+              {/* Vergleichen-Button erst ab 2 Fotos */}
+              {selectedSpot.photos.length >= 2 && (
+                <button
+                  onClick={() => setCompareSpotId(selectedSpot.id)}
+                  className="mt-2 inline-flex items-center gap-1.5 rounded-full bg-primary px-2.5 py-1 text-[10px] font-semibold text-primary-foreground shadow-sm transition-colors hover:bg-primary/90"
+                >
+                  <GitCompareArrows className="h-3 w-3" />
+                  Verlauf vergleichen
+                </button>
+              )}
             </div>
 
             <button
               onClick={() => setSelectedId(null)}
               className="flex-shrink-0 rounded-full p-1 text-muted-foreground hover:bg-muted hover:text-foreground"
+              aria-label="Schließen"
             >
               <X className="h-4 w-4" />
             </button>
@@ -408,9 +456,9 @@ export const LoginDemoBodyMap = () => {
             <div className="text-[9px] uppercase tracking-wide text-muted-foreground">Markiert</div>
             <div className="text-sm font-bold text-foreground">
               {spots.length} {spots.length === 1 ? "Hautstelle" : "Hautstellen"}
-              {spots.filter((s) => s.photoDataUrl).length > 0 && (
+              {spots.filter((s) => s.photos.length > 0).length > 0 && (
                 <span className="ml-2 text-[10px] font-normal text-muted-foreground">
-                  · {spots.filter((s) => s.photoDataUrl).length} mit Foto
+                  · {spots.reduce((sum, s) => sum + s.photos.length, 0)} Foto{spots.reduce((sum, s) => sum + s.photos.length, 0) === 1 ? "" : "s"}
                 </span>
               )}
             </div>
@@ -608,6 +656,167 @@ export const LoginDemoBodyMap = () => {
           </div>
         </div>
       )}
+
+      {/* Foto-Vergleich Overlay (Side-by-Side / Overlay-Slider) */}
+      {compareSpotId !== null && (() => {
+        const spot = spots.find((s) => s.id === compareSpotId);
+        if (!spot || spot.photos.length < 2) return null;
+        const [iA, iB] = compareIndices;
+        const safeA = Math.min(iA, spot.photos.length - 1);
+        const safeB = Math.min(iB, spot.photos.length - 1);
+        const photoA = spot.photos[safeA];
+        const photoB = spot.photos[safeB];
+
+        return (
+          <div
+            className="absolute inset-0 z-40 flex items-center justify-center bg-background/70 backdrop-blur-sm p-3"
+            onClick={() => setCompareSpotId(null)}
+          >
+            <div
+              className="w-full max-w-md rounded-2xl border border-border bg-card p-4 shadow-2xl"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="mb-3 flex items-center justify-between">
+                <div>
+                  <div className="text-sm font-semibold text-foreground">Foto-Vergleich</div>
+                  <p className="text-[10px] text-muted-foreground">
+                    {LESION_CLASSIFICATIONS[spot.classification].label} · Demo
+                  </p>
+                </div>
+                <button
+                  onClick={() => setCompareSpotId(null)}
+                  className="rounded-full p-1 text-muted-foreground hover:bg-muted hover:text-foreground"
+                  aria-label="Schließen"
+                >
+                  <X className="h-4 w-4" />
+                </button>
+              </div>
+
+              {/* Mode toggle */}
+              <div className="mb-3 flex items-center rounded-full border border-border bg-muted/40 p-0.5">
+                <button
+                  onClick={() => setCompareMode("side")}
+                  className={cn(
+                    "flex-1 rounded-full px-2 py-1 text-[11px] font-medium transition-all",
+                    compareMode === "side"
+                      ? "bg-card text-foreground shadow-sm"
+                      : "text-muted-foreground",
+                  )}
+                >
+                  Nebeneinander
+                </button>
+                <button
+                  onClick={() => setCompareMode("overlay")}
+                  className={cn(
+                    "flex-1 rounded-full px-2 py-1 text-[11px] font-medium transition-all",
+                    compareMode === "overlay"
+                      ? "bg-card text-foreground shadow-sm"
+                      : "text-muted-foreground",
+                  )}
+                >
+                  Überlagern
+                </button>
+              </div>
+
+              {/* Photo selectors (wenn >2 Fotos) */}
+              {spot.photos.length > 2 && (
+                <div className="mb-3 grid grid-cols-2 gap-2 text-[10px]">
+                  <div>
+                    <div className="mb-1 font-medium text-muted-foreground">Foto A</div>
+                    <div className="flex gap-1">
+                      {spot.photos.map((_, i) => (
+                        <button
+                          key={i}
+                          onClick={() => setCompareIndices([i, safeB])}
+                          className={cn(
+                            "h-7 w-7 rounded-md border text-xs font-bold transition-colors",
+                            safeA === i
+                              ? "border-primary bg-primary text-primary-foreground"
+                              : "border-border bg-muted/30 text-muted-foreground hover:border-primary/50",
+                          )}
+                        >
+                          {i + 1}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                  <div>
+                    <div className="mb-1 font-medium text-muted-foreground">Foto B</div>
+                    <div className="flex gap-1">
+                      {spot.photos.map((_, i) => (
+                        <button
+                          key={i}
+                          onClick={() => setCompareIndices([safeA, i])}
+                          className={cn(
+                            "h-7 w-7 rounded-md border text-xs font-bold transition-colors",
+                            safeB === i
+                              ? "border-primary bg-primary text-primary-foreground"
+                              : "border-border bg-muted/30 text-muted-foreground hover:border-primary/50",
+                          )}
+                        >
+                          {i + 1}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Compare view */}
+              {compareMode === "side" ? (
+                <div className="grid grid-cols-2 gap-2">
+                  <div className="relative aspect-square overflow-hidden rounded-lg border border-border bg-muted/20">
+                    <img src={photoA} alt="Foto A" className="h-full w-full object-cover" />
+                    <span className="absolute left-1.5 top-1.5 rounded-md bg-background/80 px-1.5 py-0.5 text-[10px] font-bold">
+                      A · {safeA + 1}
+                    </span>
+                  </div>
+                  <div className="relative aspect-square overflow-hidden rounded-lg border border-border bg-muted/20">
+                    <img src={photoB} alt="Foto B" className="h-full w-full object-cover" />
+                    <span className="absolute left-1.5 top-1.5 rounded-md bg-background/80 px-1.5 py-0.5 text-[10px] font-bold">
+                      B · {safeB + 1}
+                    </span>
+                  </div>
+                </div>
+              ) : (
+                <div className="space-y-2">
+                  <div className="relative aspect-square w-full overflow-hidden rounded-lg border border-border bg-muted/20">
+                    <img src={photoA} alt="Foto A" className="absolute inset-0 h-full w-full object-cover" />
+                    <img
+                      src={photoB}
+                      alt="Foto B"
+                      className="absolute inset-0 h-full w-full object-cover"
+                      style={{ opacity: overlayOpacity / 100 }}
+                    />
+                    <span className="absolute left-1.5 top-1.5 rounded-md bg-background/80 px-1.5 py-0.5 text-[10px] font-bold">
+                      A · {safeA + 1}
+                    </span>
+                    <span className="absolute right-1.5 top-1.5 rounded-md bg-background/80 px-1.5 py-0.5 text-[10px] font-bold">
+                      B · {safeB + 1}
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-2 px-1">
+                    <span className="text-[10px] font-medium text-muted-foreground">A</span>
+                    <input
+                      type="range"
+                      min={0}
+                      max={100}
+                      value={overlayOpacity}
+                      onChange={(e) => setOverlayOpacity(Number(e.target.value))}
+                      className="flex-1 accent-primary"
+                    />
+                    <span className="text-[10px] font-medium text-muted-foreground">B</span>
+                  </div>
+                </div>
+              )}
+
+              <p className="mt-3 text-center text-[10px] text-muted-foreground">
+                In der echten App: präzise Bild-Ausrichtung (OpenCV) und zeitlicher Verlauf
+              </p>
+            </div>
+          </div>
+        );
+      })()}
     </div>
   );
 };
