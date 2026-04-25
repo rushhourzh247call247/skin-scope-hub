@@ -130,6 +130,8 @@ export const LoginDemoBodyMap = () => {
     setSelectedId(null);
     setPendingSpot(null);
     setPhotoDialogSpotId(null);
+    setLightboxSpotId(null);
+    setCompareSpotId(null);
     setQrSession(null);
     setQrError(null);
     stopPolling();
