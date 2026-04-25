@@ -22,17 +22,25 @@ export interface DeployStep {
   icon: React.ComponentType<{ className?: string }>;
 }
 
+// Diese Liste muss EXAKT mit den writeDeployStatus()-Aufrufen im Backend
+// (ServerAdminController.php) übereinstimmen — Backend hat 8 Steps:
+//   1. System-Pakete prüfen      → checkSystemRequirements()
+//   2. Datenbank-Backup          → cp live DB
+//   3. Backend-Code synchron.    → rsync Dev→Live
+//   4. Composer                  → composer install
+//   5. Datenbank-Migrationen     → php artisan migrate
+//   6. Frontend von GitHub klon. → git clone
+//   7. Frontend bauen (Vite)     → npm install + npm run build
+//   8. Caches neu aufbauen       → rsync dist + artisan cache
 const DEPLOY_STEPS: DeployStep[] = [
-  { id: "preflight", label: "Pre-Flight Health-Check", estimatedSeconds: 3, icon: HeartPulse },
   { id: "syscheck", label: "System-Pakete prüfen", estimatedSeconds: 5, icon: ShieldCheck },
   { id: "backup", label: "Datenbank-Backup", estimatedSeconds: 3, icon: Database },
   { id: "rsync", label: "Backend-Code synchronisieren", estimatedSeconds: 12, icon: FolderSync },
-  { id: "envsync", label: ".env synchronisieren (geschützt)", estimatedSeconds: 4, icon: FileKey },
   { id: "composer", label: "Composer-Pakete installieren", estimatedSeconds: 25, icon: Package },
   { id: "migrate", label: "Datenbank-Migrationen", estimatedSeconds: 4, icon: ArrowUpToLine },
   { id: "git", label: "Frontend von GitHub klonen", estimatedSeconds: 8, icon: GitBranch },
-  { id: "build", label: "Frontend bauen + deployen + Cache", estimatedSeconds: 65, icon: Hammer },
-  { id: "posthealth", label: "Post-Deploy Health-Check", estimatedSeconds: 5, icon: Activity },
+  { id: "build", label: "Frontend bauen (Vite)", estimatedSeconds: 60, icon: Hammer },
+  { id: "deploy", label: "Deploy & Caches aufbauen", estimatedSeconds: 8, icon: ArrowUpToLine },
 ];
 
 const TOTAL_ESTIMATED = DEPLOY_STEPS.reduce((sum, s) => sum + s.estimatedSeconds, 0);
