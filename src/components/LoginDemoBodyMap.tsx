@@ -977,13 +977,15 @@ export const LoginDemoBodyMap = () => {
                 <div className="grid grid-cols-2 gap-2">
                   <div className="relative aspect-square overflow-hidden rounded-lg border border-border bg-muted/20">
                     <img src={photoA} alt="Foto A" className="h-full w-full object-cover" />
-                    <span className="absolute left-1.5 top-1.5 rounded-md bg-background/80 px-1.5 py-0.5 text-[10px] font-bold">
+                    <DemoWatermark size="sm" />
+                    <span className="absolute left-1.5 top-1.5 z-30 rounded-md bg-background/80 px-1.5 py-0.5 text-[10px] font-bold">
                       A · {safeA + 1}
                     </span>
                   </div>
                   <div className="relative aspect-square overflow-hidden rounded-lg border border-border bg-muted/20">
                     <img src={photoB} alt="Foto B" className="h-full w-full object-cover" />
-                    <span className="absolute left-1.5 top-1.5 rounded-md bg-background/80 px-1.5 py-0.5 text-[10px] font-bold">
+                    <DemoWatermark size="sm" />
+                    <span className="absolute left-1.5 top-1.5 z-30 rounded-md bg-background/80 px-1.5 py-0.5 text-[10px] font-bold">
                       B · {safeB + 1}
                     </span>
                   </div>
