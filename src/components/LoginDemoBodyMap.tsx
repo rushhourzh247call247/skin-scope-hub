@@ -7,6 +7,48 @@ import { RotateCcw, Sparkles, MousePointerClick, Upload, QrCode, Camera, X, Imag
 import { QRCodeSVG } from "qrcode.react";
 import { cn } from "@/lib/utils";
 
+// Wasserzeichen-Overlay für alle Demo-Bilder (verhindert kostenfreie Nutzung)
+function DemoWatermark({ size = "md" }: { size?: "sm" | "md" | "lg" }) {
+  const fontSize =
+    size === "sm" ? "text-[9px]" : size === "lg" ? "text-base" : "text-xs";
+  const tile = size === "sm" ? 90 : size === "lg" ? 180 : 130;
+  return (
+    <div
+      className="pointer-events-none absolute inset-0 z-20 overflow-hidden select-none"
+      aria-hidden="true"
+    >
+      {/* Diagonal gekacheltes Wasserzeichen */}
+      <div
+        className={cn(
+          "absolute -inset-[20%] flex flex-wrap content-start gap-x-6 gap-y-6 opacity-[0.28] mix-blend-difference",
+          fontSize,
+        )}
+        style={{ transform: "rotate(-30deg)" }}
+      >
+        {Array.from({ length: 80 }).map((_, i) => (
+          <span
+            key={i}
+            className="font-bold tracking-tight text-white whitespace-nowrap"
+            style={{ fontFamily: "'Space Grotesk', sans-serif", width: tile }}
+          >
+            DERM<span style={{ color: "hsl(var(--primary))" }}>247</span>
+            <span className="ml-1 font-medium opacity-80">· DEMO</span>
+          </span>
+        ))}
+      </div>
+      {/* Prominentes Logo unten rechts */}
+      <div className="absolute bottom-1.5 right-1.5 flex items-center gap-1 rounded-md bg-black/55 px-1.5 py-0.5 backdrop-blur-sm">
+        <span
+          className={cn("font-bold tracking-tight text-white", fontSize)}
+          style={{ fontFamily: "'Space Grotesk', sans-serif" }}
+        >
+          DERM<span style={{ color: "hsl(var(--primary))" }}>247</span>
+        </span>
+      </div>
+    </div>
+  );
+}
+
 // API-Auswahl: Live-API nur wenn Demo unter demo.derm247.ch läuft.
 // Dev (proto.derm247.ch), Lovable Preview, localhost → Dev-API
 const DEMO_API_BASE = (() => {
@@ -737,7 +779,8 @@ export const LoginDemoBodyMap = () => {
               {/* Großes Foto */}
               <div className="relative aspect-square w-full overflow-hidden rounded-lg border border-border bg-muted/20">
                 <img src={photo} alt={`Foto ${safeIdx + 1}`} className="h-full w-full object-cover" />
-                <span className="absolute left-2 top-2 rounded-md bg-background/85 px-2 py-0.5 text-[11px] font-bold">
+                <DemoWatermark size="md" />
+                <span className="absolute left-2 top-2 z-30 rounded-md bg-background/85 px-2 py-0.5 text-[11px] font-bold">
                   {safeIdx + 1} / {spot.photos.length}
                 </span>
               </div>
@@ -934,13 +977,15 @@ export const LoginDemoBodyMap = () => {
                 <div className="grid grid-cols-2 gap-2">
                   <div className="relative aspect-square overflow-hidden rounded-lg border border-border bg-muted/20">
                     <img src={photoA} alt="Foto A" className="h-full w-full object-cover" />
-                    <span className="absolute left-1.5 top-1.5 rounded-md bg-background/80 px-1.5 py-0.5 text-[10px] font-bold">
+                    <DemoWatermark size="sm" />
+                    <span className="absolute left-1.5 top-1.5 z-30 rounded-md bg-background/80 px-1.5 py-0.5 text-[10px] font-bold">
                       A · {safeA + 1}
                     </span>
                   </div>
                   <div className="relative aspect-square overflow-hidden rounded-lg border border-border bg-muted/20">
                     <img src={photoB} alt="Foto B" className="h-full w-full object-cover" />
-                    <span className="absolute left-1.5 top-1.5 rounded-md bg-background/80 px-1.5 py-0.5 text-[10px] font-bold">
+                    <DemoWatermark size="sm" />
+                    <span className="absolute left-1.5 top-1.5 z-30 rounded-md bg-background/80 px-1.5 py-0.5 text-[10px] font-bold">
                       B · {safeB + 1}
                     </span>
                   </div>
@@ -952,11 +997,12 @@ export const LoginDemoBodyMap = () => {
                   <div className="grid grid-cols-2 gap-2">
                     <div className="relative aspect-square overflow-hidden rounded-lg border border-border bg-muted/20">
                       <img src={photoA} alt="Foto A" className="h-full w-full object-cover" />
-                      <span className="absolute left-1.5 top-1.5 rounded-md bg-background/80 px-1.5 py-0.5 text-[10px] font-bold">
+                      <DemoWatermark size="sm" />
+                      <span className="absolute left-1.5 top-1.5 z-30 rounded-md bg-background/80 px-1.5 py-0.5 text-[10px] font-bold">
                         A · {safeA + 1}
                       </span>
                       {!aligning && (
-                        <span className="absolute bottom-1.5 right-1.5 rounded-md bg-primary/90 px-1.5 py-0.5 text-[9px] font-bold text-primary-foreground">
+                        <span className="absolute bottom-1.5 left-1.5 z-30 rounded-md bg-primary/90 px-1.5 py-0.5 text-[9px] font-bold text-primary-foreground">
                           Referenz
                         </span>
                       )}
@@ -970,18 +1016,19 @@ export const LoginDemoBodyMap = () => {
                           aligning && "scale-110 rotate-3 blur-[1px]",
                         )}
                       />
-                      <span className="absolute left-1.5 top-1.5 rounded-md bg-background/80 px-1.5 py-0.5 text-[10px] font-bold">
+                      <DemoWatermark size="sm" />
+                      <span className="absolute left-1.5 top-1.5 z-30 rounded-md bg-background/80 px-1.5 py-0.5 text-[10px] font-bold">
                         B · {safeB + 1}
                       </span>
                       {aligning ? (
-                        <div className="absolute inset-0 flex flex-col items-center justify-center gap-1.5 bg-background/40 backdrop-blur-[2px]">
+                        <div className="absolute inset-0 z-30 flex flex-col items-center justify-center gap-1.5 bg-background/40 backdrop-blur-[2px]">
                           <Loader2 className="h-5 w-5 animate-spin text-primary" />
                           <span className="text-[10px] font-semibold text-foreground">
                             KI richtet aus…
                           </span>
                         </div>
                       ) : (
-                        <span className="absolute bottom-1.5 right-1.5 rounded-md bg-primary/90 px-1.5 py-0.5 text-[9px] font-bold text-primary-foreground">
+                        <span className="absolute bottom-1.5 left-1.5 z-30 rounded-md bg-primary/90 px-1.5 py-0.5 text-[9px] font-bold text-primary-foreground">
                           ✓ Ausgerichtet
                         </span>
                       )}
@@ -1005,10 +1052,11 @@ export const LoginDemoBodyMap = () => {
                       className="absolute inset-0 h-full w-full object-cover"
                       style={{ opacity: overlayOpacity / 100 }}
                     />
-                    <span className="absolute left-1.5 top-1.5 rounded-md bg-background/80 px-1.5 py-0.5 text-[10px] font-bold">
+                    <DemoWatermark size="md" />
+                    <span className="absolute left-1.5 top-1.5 z-30 rounded-md bg-background/80 px-1.5 py-0.5 text-[10px] font-bold">
                       A · {safeA + 1}
                     </span>
-                    <span className="absolute right-1.5 top-1.5 rounded-md bg-background/80 px-1.5 py-0.5 text-[10px] font-bold">
+                    <span className="absolute right-1.5 top-1.5 z-30 rounded-md bg-background/80 px-1.5 py-0.5 text-[10px] font-bold">
                       B · {safeB + 1}
                     </span>
                   </div>
