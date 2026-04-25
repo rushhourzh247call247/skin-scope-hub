@@ -7,6 +7,7 @@ import { useLifecycle } from "@/hooks/use-lifecycle";
 import { DermLogo } from "@/components/DermLogo";
 import { useTranslation } from "react-i18next";
 import { api } from "@/lib/api";
+import { isServerAdminAvailable } from "@/lib/environment";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import {
   Sidebar, SidebarContent, SidebarGroup, SidebarGroupContent, SidebarGroupLabel,
