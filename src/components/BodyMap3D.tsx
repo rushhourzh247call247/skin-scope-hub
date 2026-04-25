@@ -94,6 +94,7 @@ interface BodyMap3DProps {
     normal3d?: [number, number, number],
   ) => void;
   onMarkerClick?: (id: number) => void;
+  onMarkerPhotoClick?: (id: number) => void;
 }
 
 /* ─── Camera Presets ─── */
@@ -176,15 +177,22 @@ type SpotMarkerProps = {
   classificationColor?: string;
   isHighRisk?: boolean;
   photoThumbnailUrl?: string;
+  onPhotoClick?: () => void;
 };
 
 const SpotMarker = React.forwardRef<THREE.Group, SpotMarkerProps>(function SpotMarker(
-  { position, name, index, isSelected, onClick, imageCount, findingCount, classificationColor, isHighRisk, photoThumbnailUrl },
+  { position, name, index, isSelected, onClick, imageCount, findingCount, classificationColor, isHighRisk, photoThumbnailUrl, onPhotoClick },
   forwardedRef,
 ) {
   const groupRef = useRef<THREE.Group>(null);
   const [hovered, setHovered] = useState(false);
   const lastTapRef = useRef<number>(0);
+
+  const openPhoto = useCallback((e: React.SyntheticEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    (onPhotoClick || onClick)();
+  }, [onPhotoClick, onClick]);
 
   const handleDoubleTap = useCallback((e: ThreeEvent<PointerEvent>) => {
     const now = Date.now();
@@ -285,10 +293,11 @@ const SpotMarker = React.forwardRef<THREE.Group, SpotMarkerProps>(function SpotM
               border: "none",
               background: "transparent",
             }}
-            onClick={(e) => {
-              e.stopPropagation();
-              onClick();
-            }}
+            onClick={openPhoto}
+            onPointerDown={(e) => e.stopPropagation()}
+            onPointerUp={openPhoto}
+            onTouchStart={(e) => e.stopPropagation()}
+            onTouchEnd={openPhoto}
           >
             <div
               className={cn(
@@ -990,7 +999,7 @@ function LoadingFallback() {
 }
 
 /* ─── Scene ─── */
-function Scene({ markers, selectedLocationId, onMapClick, onMarkerClick, classificationFilter, previewMarker, isPlacementMode, onPreviewMove, preset, gender, markMode, markType, resetKey, zoneOverlays, selectedZoneId }: BodyMap3DProps & { preset: CameraPreset; gender: Gender; markMode: boolean; markType: MarkType; resetKey: number }) {
+function Scene({ markers, selectedLocationId, onMapClick, onMarkerClick, onMarkerPhotoClick, classificationFilter, previewMarker, isPlacementMode, onPreviewMove, preset, gender, markMode, markType, resetKey, zoneOverlays, selectedZoneId }: BodyMap3DProps & { preset: CameraPreset; gender: Gender; markMode: boolean; markType: MarkType; resetKey: number }) {
   const [isDraggingSpot, setIsDraggingSpot] = useState(false);
   const [hoverInfo, setHoverInfo] = useState<{ point: THREE.Vector3; y3d: number; x3d: number; z3d: number; zone: string } | null>(null);
 
@@ -1087,6 +1096,7 @@ function Scene({ markers, selectedLocationId, onMapClick, onMarkerClick, classif
               classificationColor={m.classificationColor}
               isHighRisk={isHighRisk}
               photoThumbnailUrl={m.photoThumbnailUrl}
+              onPhotoClick={() => onMarkerPhotoClick?.(m.id)}
             />
           </SurfaceProjectedGroup>
         );
