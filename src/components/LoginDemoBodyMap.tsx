@@ -533,30 +533,43 @@ export const LoginDemoBodyMap = () => {
                 <p className="text-xs text-muted-foreground">QR-Code wird erstellt…</p>
               </div>
             ) : (
-              <div className="grid grid-cols-2 gap-2">
+              <div className="grid grid-cols-3 gap-2">
                 <button
-                  onClick={() => fileInputRef.current?.click()}
-                  className="flex flex-col items-center gap-2 rounded-xl border-2 border-border p-4 text-center transition-all hover:border-primary hover:bg-primary/5"
+                  onClick={() => cameraInputRef.current?.click()}
+                  className="flex flex-col items-center gap-2 rounded-xl border-2 border-border p-3 text-center transition-all hover:border-primary hover:bg-primary/5"
                 >
                   <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10">
-                    <Upload className="h-5 w-5 text-primary" />
+                    <Camera className="h-5 w-5 text-primary" />
                   </div>
                   <div>
-                    <div className="text-xs font-semibold text-foreground">Hochladen</div>
-                    <div className="text-[10px] text-muted-foreground">Vom Computer</div>
+                    <div className="text-xs font-semibold text-foreground">Kamera</div>
+                    <div className="text-[10px] text-muted-foreground">Direkt aufnehmen</div>
+                  </div>
+                </button>
+
+                <button
+                  onClick={() => fileInputRef.current?.click()}
+                  className="flex flex-col items-center gap-2 rounded-xl border-2 border-border p-3 text-center transition-all hover:border-primary hover:bg-primary/5"
+                >
+                  <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10">
+                    <ImageIcon className="h-5 w-5 text-primary" />
+                  </div>
+                  <div>
+                    <div className="text-xs font-semibold text-foreground">Galerie</div>
+                    <div className="text-[10px] text-muted-foreground">Datei wählen</div>
                   </div>
                 </button>
 
                 <button
                   onClick={startQrUpload}
-                  className="flex flex-col items-center gap-2 rounded-xl border-2 border-border p-4 text-center transition-all hover:border-primary hover:bg-primary/5"
+                  className="flex flex-col items-center gap-2 rounded-xl border-2 border-border p-3 text-center transition-all hover:border-primary hover:bg-primary/5"
                 >
                   <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10">
                     <QrCode className="h-5 w-5 text-primary" />
                   </div>
                   <div>
-                    <div className="text-xs font-semibold text-foreground">QR-Upload</div>
-                    <div className="text-[10px] text-muted-foreground">Per Smartphone</div>
+                    <div className="text-xs font-semibold text-foreground">QR-Code</div>
+                    <div className="text-[10px] text-muted-foreground">Anderes Handy</div>
                   </div>
                 </button>
               </div>
