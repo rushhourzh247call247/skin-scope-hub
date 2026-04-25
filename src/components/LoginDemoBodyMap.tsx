@@ -779,7 +779,8 @@ export const LoginDemoBodyMap = () => {
               {/* Großes Foto */}
               <div className="relative aspect-square w-full overflow-hidden rounded-lg border border-border bg-muted/20">
                 <img src={photo} alt={`Foto ${safeIdx + 1}`} className="h-full w-full object-cover" />
-                <span className="absolute left-2 top-2 rounded-md bg-background/85 px-2 py-0.5 text-[11px] font-bold">
+                <DemoWatermark size="md" />
+                <span className="absolute left-2 top-2 z-30 rounded-md bg-background/85 px-2 py-0.5 text-[11px] font-bold">
                   {safeIdx + 1} / {spot.photos.length}
                 </span>
               </div>
