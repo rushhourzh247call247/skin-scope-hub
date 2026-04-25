@@ -669,7 +669,124 @@ export const LoginDemoBodyMap = () => {
         </div>
       )}
 
-      {/* Foto-Vergleich Overlay (Side-by-Side / Overlay-Slider) */}
+      {/* Foto-Lightbox: Klick aufs Thumbnail zeigt Foto groß + Aktionen */}
+      {lightboxSpotId !== null && (() => {
+        const spot = spots.find((s) => s.id === lightboxSpotId);
+        if (!spot || spot.photos.length === 0) return null;
+        const safeIdx = Math.min(lightboxIdx, spot.photos.length - 1);
+        const photo = spot.photos[safeIdx];
+        const canCompare = spot.photos.length >= 2;
+
+        return (
+          <div
+            className="absolute inset-0 z-40 flex items-center justify-center bg-background/80 backdrop-blur-sm p-3"
+            onClick={() => setLightboxSpotId(null)}
+          >
+            <div
+              className="w-full max-w-md rounded-2xl border border-border bg-card p-4 shadow-2xl"
+              onClick={(e) => e.stopPropagation()}
+            >
+              {/* Header */}
+              <div className="mb-3 flex items-center justify-between">
+                <div className="min-w-0">
+                  <div className="flex items-center gap-2">
+                    <span
+                      className="inline-block h-2.5 w-2.5 flex-shrink-0 rounded-full ring-2 ring-background"
+                      style={{ backgroundColor: LESION_CLASSIFICATIONS[spot.classification].color }}
+                    />
+                    <span className="truncate text-sm font-semibold text-foreground">
+                      {LESION_CLASSIFICATIONS[spot.classification].label}
+                    </span>
+                  </div>
+                  <p className="text-[10px] text-muted-foreground">
+                    Foto {safeIdx + 1} von {spot.photos.length}
+                  </p>
+                </div>
+                <button
+                  onClick={() => setLightboxSpotId(null)}
+                  className="rounded-full p-1 text-muted-foreground hover:bg-muted hover:text-foreground"
+                  aria-label="Schließen"
+                >
+                  <X className="h-4 w-4" />
+                </button>
+              </div>
+
+              {/* Großes Foto */}
+              <div className="relative aspect-square w-full overflow-hidden rounded-lg border border-border bg-muted/20">
+                <img src={photo} alt={`Foto ${safeIdx + 1}`} className="h-full w-full object-cover" />
+                <span className="absolute left-2 top-2 rounded-md bg-background/85 px-2 py-0.5 text-[11px] font-bold">
+                  {safeIdx + 1} / {spot.photos.length}
+                </span>
+              </div>
+
+              {/* Foto-Navigation (wenn mehrere) */}
+              {spot.photos.length > 1 && (
+                <div className="mt-2 flex items-center justify-center gap-1.5">
+                  {spot.photos.map((_, i) => (
+                    <button
+                      key={i}
+                      onClick={() => setLightboxIdx(i)}
+                      className={cn(
+                        "h-8 w-8 overflow-hidden rounded-md border-2 transition-all",
+                        safeIdx === i ? "border-primary" : "border-transparent opacity-60 hover:opacity-100",
+                      )}
+                    >
+                      <img src={spot.photos[i]} alt={`Vorschau ${i + 1}`} className="h-full w-full object-cover" />
+                    </button>
+                  ))}
+                </div>
+              )}
+
+              {/* Aktionen */}
+              <div className="mt-3 grid grid-cols-2 gap-2">
+                <button
+                  onClick={() => {
+                    setLightboxSpotId(null);
+                    setPhotoDialogSpotId(spot.id);
+                  }}
+                  disabled={spot.photos.length >= 4}
+                  className={cn(
+                    "flex items-center justify-center gap-1.5 rounded-lg border-2 border-primary bg-primary px-3 py-2 text-xs font-semibold text-primary-foreground transition-all",
+                    spot.photos.length >= 4
+                      ? "cursor-not-allowed opacity-50"
+                      : "hover:bg-primary/90",
+                  )}
+                >
+                  <Plus className="h-3.5 w-3.5" />
+                  Weiteres Foto
+                </button>
+                <button
+                  onClick={() => {
+                    if (!canCompare) return;
+                    setCompareIndices([safeIdx, safeIdx === 0 ? 1 : 0]);
+                    setCompareMode("side");
+                    setCompareSpotId(spot.id);
+                  }}
+                  disabled={!canCompare}
+                  className={cn(
+                    "flex items-center justify-center gap-1.5 rounded-lg border-2 border-border bg-card px-3 py-2 text-xs font-semibold text-foreground transition-all",
+                    !canCompare
+                      ? "cursor-not-allowed opacity-50"
+                      : "hover:border-primary hover:bg-primary/5",
+                  )}
+                  title={canCompare ? "Verlauf vergleichen" : "Mindestens 2 Fotos nötig"}
+                >
+                  <GitCompareArrows className="h-3.5 w-3.5" />
+                  Vergleichen
+                </button>
+              </div>
+
+              {!canCompare && (
+                <p className="mt-2 text-center text-[10px] text-muted-foreground">
+                  Fügen Sie ein weiteres Foto hinzu, um den Verlauf zu vergleichen
+                </p>
+              )}
+            </div>
+          </div>
+        );
+      })()}
+
+      {/* Foto-Vergleich Overlay (Side-by-Side / KI-Ausrichtung / Overlay-Slider) */}
       {compareSpotId !== null && (() => {
         const spot = spots.find((s) => s.id === compareSpotId);
         if (!spot || spot.photos.length < 2) return null;
