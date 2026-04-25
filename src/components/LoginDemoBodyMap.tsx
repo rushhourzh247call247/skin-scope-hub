@@ -64,6 +64,7 @@ export const LoginDemoBodyMap = () => {
   const [qrPolling, setQrPolling] = useState(false);
   const [hasInteracted, setHasInteracted] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const cameraInputRef = useRef<HTMLInputElement>(null);
   const pollIntervalRef = useRef<number | null>(null);
 
   const handleMapClick = useCallback(
@@ -127,8 +128,12 @@ export const LoginDemoBodyMap = () => {
   };
 
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file || !photoDialogSpotId) return;
+    const inputEl = e.target;
+    const file = inputEl.files?.[0];
+    if (!file || !photoDialogSpotId) {
+      inputEl.value = "";
+      return;
+    }
     const reader = new FileReader();
     reader.onload = (ev) => {
       const dataUrl = ev.target?.result as string;
@@ -138,7 +143,7 @@ export const LoginDemoBodyMap = () => {
       setPhotoDialogSpotId(null);
     };
     reader.readAsDataURL(file);
-    if (fileInputRef.current) fileInputRef.current.value = "";
+    inputEl.value = "";
   };
 
   const startQrUpload = async () => {
@@ -148,7 +153,8 @@ export const LoginDemoBodyMap = () => {
     try {
       const res = await fetch(`${DEMO_API_BASE}/demo/qr-token`, { method: "POST" });
       if (!res.ok) {
-        if (res.status === 429) throw new Error("Demo-Limit erreicht — bitte 1 Stunde warten oder IP-Limit auf dem Server erhöhen.");
+        if (res.status === 429) throw new Error("Demo-Limit erreicht — bitte 1 Stunde warten.");
+        if (res.status === 404) throw new Error("QR-Upload aktuell nicht verfügbar. Bitte „Kamera" oder „Galerie" verwenden.");
         throw new Error("Konnte keinen QR-Code erstellen.");
       }
       const data = await res.json();
@@ -156,7 +162,11 @@ export const LoginDemoBodyMap = () => {
       setQrSession({ token: data.token, url });
       setQrPolling(true);
     } catch (e: any) {
-      setQrError(e?.message || "Fehler — Demo-Server nicht erreichbar.");
+      // TypeError = Network/CORS-Fehler (Backend nicht erreichbar)
+      const msg = e?.message?.includes("Failed to fetch") || e?.name === "TypeError"
+        ? "QR-Upload aktuell nicht verfügbar. Bitte „Kamera" oder „Galerie" verwenden."
+        : (e?.message || "Fehler — Demo-Server nicht erreichbar.");
+      setQrError(msg);
     } finally {
       setQrLoading(false);
     }
