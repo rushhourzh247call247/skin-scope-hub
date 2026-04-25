@@ -7,6 +7,48 @@ import { RotateCcw, Sparkles, MousePointerClick, Upload, QrCode, Camera, X, Imag
 import { QRCodeSVG } from "qrcode.react";
 import { cn } from "@/lib/utils";
 
+// Wasserzeichen-Overlay für alle Demo-Bilder (verhindert kostenfreie Nutzung)
+function DemoWatermark({ size = "md" }: { size?: "sm" | "md" | "lg" }) {
+  const fontSize =
+    size === "sm" ? "text-[9px]" : size === "lg" ? "text-base" : "text-xs";
+  const tile = size === "sm" ? 90 : size === "lg" ? 180 : 130;
+  return (
+    <div
+      className="pointer-events-none absolute inset-0 z-20 overflow-hidden select-none"
+      aria-hidden="true"
+    >
+      {/* Diagonal gekacheltes Wasserzeichen */}
+      <div
+        className={cn(
+          "absolute -inset-[20%] flex flex-wrap content-start gap-x-6 gap-y-6 opacity-[0.28] mix-blend-difference",
+          fontSize,
+        )}
+        style={{ transform: "rotate(-30deg)" }}
+      >
+        {Array.from({ length: 80 }).map((_, i) => (
+          <span
+            key={i}
+            className="font-bold tracking-tight text-white whitespace-nowrap"
+            style={{ fontFamily: "'Space Grotesk', sans-serif", width: tile }}
+          >
+            DERM<span style={{ color: "hsl(var(--primary))" }}>247</span>
+            <span className="ml-1 font-medium opacity-80">· DEMO</span>
+          </span>
+        ))}
+      </div>
+      {/* Prominentes Logo unten rechts */}
+      <div className="absolute bottom-1.5 right-1.5 flex items-center gap-1 rounded-md bg-black/55 px-1.5 py-0.5 backdrop-blur-sm">
+        <span
+          className={cn("font-bold tracking-tight text-white", fontSize)}
+          style={{ fontFamily: "'Space Grotesk', sans-serif" }}
+        >
+          DERM<span style={{ color: "hsl(var(--primary))" }}>247</span>
+        </span>
+      </div>
+    </div>
+  );
+}
+
 // API-Auswahl: Live-API nur wenn Demo unter demo.derm247.ch läuft.
 // Dev (proto.derm247.ch), Lovable Preview, localhost → Dev-API
 const DEMO_API_BASE = (() => {
