@@ -304,7 +304,9 @@ export const LoginDemoBodyMap = () => {
               const exists = prev.some((s) => s.id === targetSpotId);
               console.log("[QR-Demo] spot exists in state?", exists, "current spots:", prev.map((s) => s.id));
               return prev.map((s) =>
-                s.id === targetSpotId ? { ...s, photos: [...s.photos, localImageUrl] } : s,
+                s.id === targetSpotId && s.photos.length < 3
+                  ? { ...s, photos: [...s.photos, localImageUrl] }
+                  : s,
               );
             });
             setSelectedId(targetSpotId);
