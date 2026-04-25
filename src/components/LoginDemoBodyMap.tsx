@@ -356,6 +356,14 @@ export const LoginDemoBodyMap = () => {
             gender={gender}
             onMapClick={handleMapClick}
             onMarkerClick={(id) => setSelectedId(id)}
+            onMarkerPhotoClick={(id) => {
+              const spot = spots.find((s) => s.id === id);
+              setSelectedId(id);
+              if (spot?.photos.length) {
+                setLightboxSpotId(id);
+                setLightboxIdx(spot.photos.length - 1);
+              }
+            }}
           />
         </div>
       </div>
