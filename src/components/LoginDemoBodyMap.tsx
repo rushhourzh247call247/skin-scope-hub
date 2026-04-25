@@ -10,39 +10,70 @@ import { cn } from "@/lib/utils";
 // Wasserzeichen-Overlay für alle Demo-Bilder (verhindert kostenfreie Nutzung)
 function DemoWatermark({ size = "md" }: { size?: "sm" | "md" | "lg" }) {
   const fontSize =
-    size === "sm" ? "text-[9px]" : size === "lg" ? "text-base" : "text-xs";
-  const tile = size === "sm" ? 90 : size === "lg" ? 180 : 130;
+    size === "sm" ? "text-[13px]" : size === "lg" ? "text-2xl" : "text-lg";
+  const centerSize =
+    size === "sm" ? "text-2xl" : size === "lg" ? "text-5xl" : "text-4xl";
+  const tile = size === "sm" ? 110 : size === "lg" ? 240 : 180;
   return (
     <div
       className="pointer-events-none absolute inset-0 z-20 overflow-hidden select-none"
       aria-hidden="true"
     >
-      {/* Diagonal gekacheltes Wasserzeichen */}
+      {/* Diagonal gekacheltes Wasserzeichen — kräftig & dicht */}
       <div
         className={cn(
-          "absolute -inset-[20%] flex flex-wrap content-start gap-x-6 gap-y-6 opacity-[0.28] mix-blend-difference",
+          "absolute -inset-[30%] flex flex-wrap content-start gap-x-4 gap-y-5",
           fontSize,
         )}
         style={{ transform: "rotate(-30deg)" }}
       >
-        {Array.from({ length: 80 }).map((_, i) => (
+        {Array.from({ length: 140 }).map((_, i) => (
           <span
             key={i}
-            className="font-bold tracking-tight text-white whitespace-nowrap"
-            style={{ fontFamily: "'Space Grotesk', sans-serif", width: tile }}
+            className="font-black tracking-tight whitespace-nowrap"
+            style={{
+              fontFamily: "'Space Grotesk', sans-serif",
+              width: tile,
+              color: "rgba(255,255,255,0.55)",
+              textShadow:
+                "0 0 1px rgba(0,0,0,0.9), 1px 1px 0 rgba(0,0,0,0.7), -1px -1px 0 rgba(0,0,0,0.5)",
+              WebkitTextStroke: "0.5px rgba(0,0,0,0.6)",
+            }}
           >
             DERM<span style={{ color: "hsl(var(--primary))" }}>247</span>
-            <span className="ml-1 font-medium opacity-80">· DEMO</span>
+            <span className="ml-1 opacity-90">· DEMO</span>
           </span>
         ))}
       </div>
+
+      {/* Großes Center-Logo — unübersehbar */}
+      <div className="absolute inset-0 flex items-center justify-center">
+        <div
+          className={cn(
+            "font-black tracking-tighter",
+            centerSize,
+          )}
+          style={{
+            fontFamily: "'Space Grotesk', sans-serif",
+            transform: "rotate(-20deg)",
+            color: "rgba(255,255,255,0.85)",
+            textShadow:
+              "0 2px 8px rgba(0,0,0,0.85), 0 0 2px rgba(0,0,0,1), 2px 2px 0 rgba(0,0,0,0.7)",
+            WebkitTextStroke: "1px rgba(0,0,0,0.7)",
+          }}
+        >
+          DERM<span style={{ color: "hsl(var(--primary))" }}>247</span>
+        </div>
+      </div>
+
       {/* Prominentes Logo unten rechts */}
-      <div className="absolute bottom-1.5 right-1.5 flex items-center gap-1 rounded-md bg-black/55 px-1.5 py-0.5 backdrop-blur-sm">
+      <div className="absolute bottom-1.5 right-1.5 flex items-center gap-1 rounded-md bg-black/75 px-2 py-1 backdrop-blur-sm ring-1 ring-white/20">
         <span
-          className={cn("font-bold tracking-tight text-white", fontSize)}
+          className={cn("font-black tracking-tight text-white", fontSize)}
           style={{ fontFamily: "'Space Grotesk', sans-serif" }}
         >
           DERM<span style={{ color: "hsl(var(--primary))" }}>247</span>
+          <span className="ml-1 text-white/80">· DEMO</span>
         </span>
       </div>
     </div>
