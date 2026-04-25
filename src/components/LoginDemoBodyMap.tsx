@@ -997,11 +997,12 @@ export const LoginDemoBodyMap = () => {
                   <div className="grid grid-cols-2 gap-2">
                     <div className="relative aspect-square overflow-hidden rounded-lg border border-border bg-muted/20">
                       <img src={photoA} alt="Foto A" className="h-full w-full object-cover" />
-                      <span className="absolute left-1.5 top-1.5 rounded-md bg-background/80 px-1.5 py-0.5 text-[10px] font-bold">
+                      <DemoWatermark size="sm" />
+                      <span className="absolute left-1.5 top-1.5 z-30 rounded-md bg-background/80 px-1.5 py-0.5 text-[10px] font-bold">
                         A · {safeA + 1}
                       </span>
                       {!aligning && (
-                        <span className="absolute bottom-1.5 right-1.5 rounded-md bg-primary/90 px-1.5 py-0.5 text-[9px] font-bold text-primary-foreground">
+                        <span className="absolute bottom-1.5 left-1.5 z-30 rounded-md bg-primary/90 px-1.5 py-0.5 text-[9px] font-bold text-primary-foreground">
                           Referenz
                         </span>
                       )}
@@ -1015,18 +1016,19 @@ export const LoginDemoBodyMap = () => {
                           aligning && "scale-110 rotate-3 blur-[1px]",
                         )}
                       />
-                      <span className="absolute left-1.5 top-1.5 rounded-md bg-background/80 px-1.5 py-0.5 text-[10px] font-bold">
+                      <DemoWatermark size="sm" />
+                      <span className="absolute left-1.5 top-1.5 z-30 rounded-md bg-background/80 px-1.5 py-0.5 text-[10px] font-bold">
                         B · {safeB + 1}
                       </span>
                       {aligning ? (
-                        <div className="absolute inset-0 flex flex-col items-center justify-center gap-1.5 bg-background/40 backdrop-blur-[2px]">
+                        <div className="absolute inset-0 z-30 flex flex-col items-center justify-center gap-1.5 bg-background/40 backdrop-blur-[2px]">
                           <Loader2 className="h-5 w-5 animate-spin text-primary" />
                           <span className="text-[10px] font-semibold text-foreground">
                             KI richtet aus…
                           </span>
                         </div>
                       ) : (
-                        <span className="absolute bottom-1.5 right-1.5 rounded-md bg-primary/90 px-1.5 py-0.5 text-[9px] font-bold text-primary-foreground">
+                        <span className="absolute bottom-1.5 left-1.5 z-30 rounded-md bg-primary/90 px-1.5 py-0.5 text-[9px] font-bold text-primary-foreground">
                           ✓ Ausgerichtet
                         </span>
                       )}
