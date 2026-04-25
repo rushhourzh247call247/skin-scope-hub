@@ -277,9 +277,9 @@ export const LoginDemoBodyMap = () => {
     classification: s.classification,
     classificationColor: LESION_CLASSIFICATIONS[s.classification].color,
     name: LESION_CLASSIFICATIONS[s.classification].label,
-    imageCount: s.photoDataUrl ? 1 : 0,
+    imageCount: s.photos.length,
     findingCount: 0,
-    photoThumbnailUrl: s.photoDataUrl,
+    photoThumbnailUrl: s.photos[s.photos.length - 1],
   }));
 
   return (
@@ -354,31 +354,57 @@ export const LoginDemoBodyMap = () => {
       {/* Selected spot card with photo */}
       {selectedSpot && (
         <div className="relative z-20 mx-4 mb-4 rounded-xl border border-border bg-card/95 p-3 shadow-lg backdrop-blur-md">
-          <div className="flex items-center gap-3">
-            {/* Photo or upload prompt */}
-            {selectedSpot.photoDataUrl ? (
-              <div className="relative h-16 w-16 flex-shrink-0 overflow-hidden rounded-lg border border-border">
-                <img
-                  src={selectedSpot.photoDataUrl}
-                  alt="Demo Foto"
-                  className="h-full w-full object-cover"
-                />
-                <button
-                  onClick={() => removePhoto(selectedSpot.id)}
-                  className="absolute right-0.5 top-0.5 flex h-4 w-4 items-center justify-center rounded-full bg-destructive text-destructive-foreground shadow"
+          <div className="flex items-start gap-3">
+            {/* Photo strip — alle Fotos + Plus-Button */}
+            <div className="flex flex-shrink-0 gap-1.5">
+              {selectedSpot.photos.map((photo, idx) => (
+                <div
+                  key={idx}
+                  className="relative h-16 w-16 overflow-hidden rounded-lg border border-border"
                 >
-                  <X className="h-2.5 w-2.5" />
+                  <img
+                    src={photo}
+                    alt={`Demo Foto ${idx + 1}`}
+                    className="h-full w-full object-cover"
+                  />
+                  <span className="absolute bottom-0 left-0 rounded-tr-md bg-background/80 px-1 text-[8px] font-bold text-foreground">
+                    {idx + 1}
+                  </span>
+                  <button
+                    onClick={() => removePhoto(selectedSpot.id, idx)}
+                    className="absolute right-0.5 top-0.5 flex h-4 w-4 items-center justify-center rounded-full bg-destructive text-destructive-foreground shadow"
+                    aria-label="Foto entfernen"
+                  >
+                    <X className="h-2.5 w-2.5" />
+                  </button>
+                </div>
+              ))}
+              {/* Plus-Button: weiteres Foto hinzufügen (max 4 für Übersicht) */}
+              {selectedSpot.photos.length < 4 && (
+                <button
+                  onClick={() => setPhotoDialogSpotId(selectedSpot.id)}
+                  className={cn(
+                    "flex h-16 w-16 flex-col items-center justify-center gap-0.5 rounded-lg border-2 border-dashed text-primary transition-colors",
+                    selectedSpot.photos.length === 0
+                      ? "border-primary/40 bg-primary/5 hover:border-primary hover:bg-primary/10"
+                      : "border-border hover:border-primary hover:bg-primary/5",
+                  )}
+                  aria-label="Foto hinzufügen"
+                >
+                  {selectedSpot.photos.length === 0 ? (
+                    <>
+                      <Camera className="h-5 w-5" />
+                      <span className="text-[8px] font-medium">Foto</span>
+                    </>
+                  ) : (
+                    <>
+                      <Plus className="h-5 w-5" />
+                      <span className="text-[8px] font-medium">Weiteres</span>
+                    </>
+                  )}
                 </button>
-              </div>
-            ) : (
-              <button
-                onClick={() => setPhotoDialogSpotId(selectedSpot.id)}
-                className="flex h-16 w-16 flex-shrink-0 flex-col items-center justify-center gap-0.5 rounded-lg border-2 border-dashed border-primary/40 bg-primary/5 text-primary transition-colors hover:border-primary hover:bg-primary/10"
-              >
-                <Camera className="h-5 w-5" />
-                <span className="text-[8px] font-medium">Foto</span>
-              </button>
-            )}
+              )}
+            </div>
 
             <div className="min-w-0 flex-1">
               <div className="flex items-center gap-2">
@@ -392,13 +418,26 @@ export const LoginDemoBodyMap = () => {
               </div>
               <p className="mt-0.5 text-[10px] text-muted-foreground">
                 {selectedSpot.view === "front" ? "Vorderseite" : "Rückseite"} ·{" "}
-                {selectedSpot.photoDataUrl ? "Foto angehängt ✓" : "Demo: Foto hinzufügen"}
+                {selectedSpot.photos.length === 0
+                  ? "Demo: Foto hinzufügen"
+                  : `${selectedSpot.photos.length} Foto${selectedSpot.photos.length === 1 ? "" : "s"} angehängt ✓`}
               </p>
+              {/* Vergleichen-Button erst ab 2 Fotos */}
+              {selectedSpot.photos.length >= 2 && (
+                <button
+                  onClick={() => setCompareSpotId(selectedSpot.id)}
+                  className="mt-2 inline-flex items-center gap-1.5 rounded-full bg-primary px-2.5 py-1 text-[10px] font-semibold text-primary-foreground shadow-sm transition-colors hover:bg-primary/90"
+                >
+                  <GitCompareArrows className="h-3 w-3" />
+                  Verlauf vergleichen
+                </button>
+              )}
             </div>
 
             <button
               onClick={() => setSelectedId(null)}
               className="flex-shrink-0 rounded-full p-1 text-muted-foreground hover:bg-muted hover:text-foreground"
+              aria-label="Schließen"
             >
               <X className="h-4 w-4" />
             </button>
@@ -413,9 +452,9 @@ export const LoginDemoBodyMap = () => {
             <div className="text-[9px] uppercase tracking-wide text-muted-foreground">Markiert</div>
             <div className="text-sm font-bold text-foreground">
               {spots.length} {spots.length === 1 ? "Hautstelle" : "Hautstellen"}
-              {spots.filter((s) => s.photoDataUrl).length > 0 && (
+              {spots.filter((s) => s.photos.length > 0).length > 0 && (
                 <span className="ml-2 text-[10px] font-normal text-muted-foreground">
-                  · {spots.filter((s) => s.photoDataUrl).length} mit Foto
+                  · {spots.reduce((sum, s) => sum + s.photos.length, 0)} Foto{spots.reduce((sum, s) => sum + s.photos.length, 0) === 1 ? "" : "s"}
                 </span>
               )}
             </div>
