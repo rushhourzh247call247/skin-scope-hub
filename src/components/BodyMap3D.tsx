@@ -94,6 +94,7 @@ interface BodyMap3DProps {
     normal3d?: [number, number, number],
   ) => void;
   onMarkerClick?: (id: number) => void;
+  onMarkerPhotoClick?: (id: number) => void;
 }
 
 /* ─── Camera Presets ─── */
@@ -176,10 +177,11 @@ type SpotMarkerProps = {
   classificationColor?: string;
   isHighRisk?: boolean;
   photoThumbnailUrl?: string;
+  onPhotoClick?: () => void;
 };
 
 const SpotMarker = React.forwardRef<THREE.Group, SpotMarkerProps>(function SpotMarker(
-  { position, name, index, isSelected, onClick, imageCount, findingCount, classificationColor, isHighRisk, photoThumbnailUrl },
+  { position, name, index, isSelected, onClick, imageCount, findingCount, classificationColor, isHighRisk, photoThumbnailUrl, onPhotoClick },
   forwardedRef,
 ) {
   const groupRef = useRef<THREE.Group>(null);
@@ -287,8 +289,10 @@ const SpotMarker = React.forwardRef<THREE.Group, SpotMarkerProps>(function SpotM
             }}
             onClick={(e) => {
               e.stopPropagation();
-              onClick();
+              (onPhotoClick || onClick)();
             }}
+            onPointerDown={(e) => e.stopPropagation()}
+            onTouchStart={(e) => e.stopPropagation()}
           >
             <div
               className={cn(
