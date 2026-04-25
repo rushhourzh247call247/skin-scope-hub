@@ -188,6 +188,12 @@ const SpotMarker = React.forwardRef<THREE.Group, SpotMarkerProps>(function SpotM
   const [hovered, setHovered] = useState(false);
   const lastTapRef = useRef<number>(0);
 
+  const openPhoto = useCallback((e: React.SyntheticEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    (onPhotoClick || onClick)();
+  }, [onPhotoClick, onClick]);
+
   const handleDoubleTap = useCallback((e: ThreeEvent<PointerEvent>) => {
     const now = Date.now();
     if (now - lastTapRef.current < 400) {
@@ -287,12 +293,11 @@ const SpotMarker = React.forwardRef<THREE.Group, SpotMarkerProps>(function SpotM
               border: "none",
               background: "transparent",
             }}
-            onClick={(e) => {
-              e.stopPropagation();
-              (onPhotoClick || onClick)();
-            }}
+            onClick={openPhoto}
             onPointerDown={(e) => e.stopPropagation()}
+            onPointerUp={openPhoto}
             onTouchStart={(e) => e.stopPropagation()}
+            onTouchEnd={openPhoto}
           >
             <div
               className={cn(
