@@ -419,11 +419,19 @@ export const LoginDemoBodyMap = () => {
         </div>
       )}
 
-      {/* Hidden file input */}
+      {/* Hidden file inputs — getrennt für Kamera (capture) und Galerie/Datei */}
       <input
         ref={fileInputRef}
         type="file"
         accept="image/*"
+        onChange={handleFileUpload}
+        className="hidden"
+      />
+      <input
+        ref={cameraInputRef}
+        type="file"
+        accept="image/*"
+        capture="environment"
         onChange={handleFileUpload}
         className="hidden"
       />
