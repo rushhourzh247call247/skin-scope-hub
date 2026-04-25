@@ -367,35 +367,48 @@ export const LoginDemoBodyMap = () => {
             {/* Photo strip — alle Fotos + Plus-Button */}
             <div className="flex flex-shrink-0 gap-1.5">
               {selectedSpot.photos.map((photo, idx) => (
-                <button
+                <div
                   key={idx}
-                  type="button"
+                  role="button"
+                  tabIndex={0}
                   onClick={() => {
                     setLightboxSpotId(selectedSpot.id);
                     setLightboxIdx(idx);
                   }}
-                  className="group relative h-16 w-16 overflow-hidden rounded-lg border border-border transition-all hover:border-primary hover:ring-2 hover:ring-primary/30"
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" || e.key === " ") {
+                      e.preventDefault();
+                      setLightboxSpotId(selectedSpot.id);
+                      setLightboxIdx(idx);
+                    }
+                  }}
+                  className="group relative h-16 w-16 cursor-pointer overflow-hidden rounded-lg border border-border transition-all hover:border-primary hover:ring-2 hover:ring-primary/30"
                   aria-label={`Foto ${idx + 1} öffnen`}
+                  style={{ touchAction: "manipulation" }}
                 >
                   <img
                     src={photo}
                     alt={`Demo Foto ${idx + 1}`}
-                    className="h-full w-full object-cover"
+                    className="pointer-events-none h-full w-full object-cover"
+                    draggable={false}
                   />
-                  <span className="absolute bottom-0 left-0 rounded-tr-md bg-background/80 px-1 text-[8px] font-bold text-foreground">
+                  <span className="pointer-events-none absolute bottom-0 left-0 rounded-tr-md bg-background/80 px-1 text-[8px] font-bold text-foreground">
                     {idx + 1}
                   </span>
-                  <span
+                  <button
+                    type="button"
                     onClick={(e) => {
                       e.stopPropagation();
                       removePhoto(selectedSpot.id, idx);
                     }}
-                    className="absolute right-0.5 top-0.5 flex h-4 w-4 cursor-pointer items-center justify-center rounded-full bg-destructive text-destructive-foreground shadow"
+                    onPointerDown={(e) => e.stopPropagation()}
+                    className="absolute right-0.5 top-0.5 flex h-4 w-4 items-center justify-center rounded-full bg-destructive text-destructive-foreground shadow"
                     aria-label="Foto entfernen"
+                    style={{ touchAction: "manipulation" }}
                   >
                     <X className="h-2.5 w-2.5" />
-                  </span>
-                </button>
+                  </button>
+                </div>
               ))}
               {/* Plus-Button: weiteres Foto hinzufügen (max 4 für Übersicht) */}
               {selectedSpot.photos.length < 4 && (
