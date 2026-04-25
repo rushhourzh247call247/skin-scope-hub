@@ -221,7 +221,11 @@ export const LoginDemoBodyMap = () => {
     reader.onload = (ev) => {
       const dataUrl = ev.target?.result as string;
       setSpots((prev) =>
-        prev.map((s) => (s.id === photoDialogSpotId ? { ...s, photos: [...s.photos, dataUrl] } : s)),
+        prev.map((s) =>
+          s.id === photoDialogSpotId && s.photos.length < 3
+            ? { ...s, photos: [...s.photos, dataUrl] }
+            : s,
+        ),
       );
       setPhotoDialogSpotId(null);
     };
@@ -300,7 +304,9 @@ export const LoginDemoBodyMap = () => {
               const exists = prev.some((s) => s.id === targetSpotId);
               console.log("[QR-Demo] spot exists in state?", exists, "current spots:", prev.map((s) => s.id));
               return prev.map((s) =>
-                s.id === targetSpotId ? { ...s, photos: [...s.photos, localImageUrl] } : s,
+                s.id === targetSpotId && s.photos.length < 3
+                  ? { ...s, photos: [...s.photos, localImageUrl] }
+                  : s,
               );
             });
             setSelectedId(targetSpotId);
@@ -492,7 +498,7 @@ export const LoginDemoBodyMap = () => {
                 </div>
               ))}
               {/* Plus-Button: weiteres Foto hinzufügen (max 4 für Übersicht) */}
-              {selectedSpot.photos.length < 4 && (
+              {selectedSpot.photos.length < 3 && (
                 <button
                   onClick={() => setPhotoDialogSpotId(selectedSpot.id)}
                   className={cn(
@@ -841,10 +847,10 @@ export const LoginDemoBodyMap = () => {
                     setLightboxSpotId(null);
                     setPhotoDialogSpotId(spot.id);
                   }}
-                  disabled={spot.photos.length >= 4}
+                  disabled={spot.photos.length >= 3}
                   className={cn(
                     "flex items-center justify-center gap-1.5 rounded-lg border-2 border-primary bg-primary px-3 py-2 text-xs font-semibold text-primary-foreground transition-all",
-                    spot.photos.length >= 4
+                    spot.photos.length >= 3
                       ? "cursor-not-allowed opacity-50"
                       : "hover:bg-primary/90",
                   )}
