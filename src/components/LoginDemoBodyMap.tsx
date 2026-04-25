@@ -154,7 +154,7 @@ export const LoginDemoBodyMap = () => {
       const res = await fetch(`${DEMO_API_BASE}/demo/qr-token`, { method: "POST" });
       if (!res.ok) {
         if (res.status === 429) throw new Error("Demo-Limit erreicht — bitte 1 Stunde warten.");
-        if (res.status === 404) throw new Error("QR-Upload aktuell nicht verfügbar. Bitte „Kamera" oder „Galerie" verwenden.");
+        if (res.status === 404) throw new Error('QR-Upload aktuell nicht verfügbar. Bitte "Kamera" oder "Galerie" verwenden.');
         throw new Error("Konnte keinen QR-Code erstellen.");
       }
       const data = await res.json();
@@ -164,7 +164,7 @@ export const LoginDemoBodyMap = () => {
     } catch (e: any) {
       // TypeError = Network/CORS-Fehler (Backend nicht erreichbar)
       const msg = e?.message?.includes("Failed to fetch") || e?.name === "TypeError"
-        ? "QR-Upload aktuell nicht verfügbar. Bitte „Kamera" oder „Galerie" verwenden."
+        ? 'QR-Upload aktuell nicht verfügbar. Bitte "Kamera" oder "Galerie" verwenden.'
         : (e?.message || "Fehler — Demo-Server nicht erreichbar.");
       setQrError(msg);
     } finally {
