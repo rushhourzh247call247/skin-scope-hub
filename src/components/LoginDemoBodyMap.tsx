@@ -498,7 +498,7 @@ export const LoginDemoBodyMap = () => {
                 </div>
               ))}
               {/* Plus-Button: weiteres Foto hinzufügen (max 4 für Übersicht) */}
-              {selectedSpot.photos.length < 4 && (
+              {selectedSpot.photos.length < 3 && (
                 <button
                   onClick={() => setPhotoDialogSpotId(selectedSpot.id)}
                   className={cn(
