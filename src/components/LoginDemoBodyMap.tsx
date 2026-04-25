@@ -656,6 +656,167 @@ export const LoginDemoBodyMap = () => {
           </div>
         </div>
       )}
+
+      {/* Foto-Vergleich Overlay (Side-by-Side / Overlay-Slider) */}
+      {compareSpotId !== null && (() => {
+        const spot = spots.find((s) => s.id === compareSpotId);
+        if (!spot || spot.photos.length < 2) return null;
+        const [iA, iB] = compareIndices;
+        const safeA = Math.min(iA, spot.photos.length - 1);
+        const safeB = Math.min(iB, spot.photos.length - 1);
+        const photoA = spot.photos[safeA];
+        const photoB = spot.photos[safeB];
+
+        return (
+          <div
+            className="absolute inset-0 z-40 flex items-center justify-center bg-background/70 backdrop-blur-sm p-3"
+            onClick={() => setCompareSpotId(null)}
+          >
+            <div
+              className="w-full max-w-md rounded-2xl border border-border bg-card p-4 shadow-2xl"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="mb-3 flex items-center justify-between">
+                <div>
+                  <div className="text-sm font-semibold text-foreground">Foto-Vergleich</div>
+                  <p className="text-[10px] text-muted-foreground">
+                    {LESION_CLASSIFICATIONS[spot.classification].label} · Demo
+                  </p>
+                </div>
+                <button
+                  onClick={() => setCompareSpotId(null)}
+                  className="rounded-full p-1 text-muted-foreground hover:bg-muted hover:text-foreground"
+                  aria-label="Schließen"
+                >
+                  <X className="h-4 w-4" />
+                </button>
+              </div>
+
+              {/* Mode toggle */}
+              <div className="mb-3 flex items-center rounded-full border border-border bg-muted/40 p-0.5">
+                <button
+                  onClick={() => setCompareMode("side")}
+                  className={cn(
+                    "flex-1 rounded-full px-2 py-1 text-[11px] font-medium transition-all",
+                    compareMode === "side"
+                      ? "bg-card text-foreground shadow-sm"
+                      : "text-muted-foreground",
+                  )}
+                >
+                  Nebeneinander
+                </button>
+                <button
+                  onClick={() => setCompareMode("overlay")}
+                  className={cn(
+                    "flex-1 rounded-full px-2 py-1 text-[11px] font-medium transition-all",
+                    compareMode === "overlay"
+                      ? "bg-card text-foreground shadow-sm"
+                      : "text-muted-foreground",
+                  )}
+                >
+                  Überlagern
+                </button>
+              </div>
+
+              {/* Photo selectors (wenn >2 Fotos) */}
+              {spot.photos.length > 2 && (
+                <div className="mb-3 grid grid-cols-2 gap-2 text-[10px]">
+                  <div>
+                    <div className="mb-1 font-medium text-muted-foreground">Foto A</div>
+                    <div className="flex gap-1">
+                      {spot.photos.map((_, i) => (
+                        <button
+                          key={i}
+                          onClick={() => setCompareIndices([i, safeB])}
+                          className={cn(
+                            "h-7 w-7 rounded-md border text-xs font-bold transition-colors",
+                            safeA === i
+                              ? "border-primary bg-primary text-primary-foreground"
+                              : "border-border bg-muted/30 text-muted-foreground hover:border-primary/50",
+                          )}
+                        >
+                          {i + 1}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                  <div>
+                    <div className="mb-1 font-medium text-muted-foreground">Foto B</div>
+                    <div className="flex gap-1">
+                      {spot.photos.map((_, i) => (
+                        <button
+                          key={i}
+                          onClick={() => setCompareIndices([safeA, i])}
+                          className={cn(
+                            "h-7 w-7 rounded-md border text-xs font-bold transition-colors",
+                            safeB === i
+                              ? "border-primary bg-primary text-primary-foreground"
+                              : "border-border bg-muted/30 text-muted-foreground hover:border-primary/50",
+                          )}
+                        >
+                          {i + 1}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Compare view */}
+              {compareMode === "side" ? (
+                <div className="grid grid-cols-2 gap-2">
+                  <div className="relative aspect-square overflow-hidden rounded-lg border border-border bg-muted/20">
+                    <img src={photoA} alt="Foto A" className="h-full w-full object-cover" />
+                    <span className="absolute left-1.5 top-1.5 rounded-md bg-background/80 px-1.5 py-0.5 text-[10px] font-bold">
+                      A · {safeA + 1}
+                    </span>
+                  </div>
+                  <div className="relative aspect-square overflow-hidden rounded-lg border border-border bg-muted/20">
+                    <img src={photoB} alt="Foto B" className="h-full w-full object-cover" />
+                    <span className="absolute left-1.5 top-1.5 rounded-md bg-background/80 px-1.5 py-0.5 text-[10px] font-bold">
+                      B · {safeB + 1}
+                    </span>
+                  </div>
+                </div>
+              ) : (
+                <div className="space-y-2">
+                  <div className="relative aspect-square w-full overflow-hidden rounded-lg border border-border bg-muted/20">
+                    <img src={photoA} alt="Foto A" className="absolute inset-0 h-full w-full object-cover" />
+                    <img
+                      src={photoB}
+                      alt="Foto B"
+                      className="absolute inset-0 h-full w-full object-cover"
+                      style={{ opacity: overlayOpacity / 100 }}
+                    />
+                    <span className="absolute left-1.5 top-1.5 rounded-md bg-background/80 px-1.5 py-0.5 text-[10px] font-bold">
+                      A · {safeA + 1}
+                    </span>
+                    <span className="absolute right-1.5 top-1.5 rounded-md bg-background/80 px-1.5 py-0.5 text-[10px] font-bold">
+                      B · {safeB + 1}
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-2 px-1">
+                    <span className="text-[10px] font-medium text-muted-foreground">A</span>
+                    <input
+                      type="range"
+                      min={0}
+                      max={100}
+                      value={overlayOpacity}
+                      onChange={(e) => setOverlayOpacity(Number(e.target.value))}
+                      className="flex-1 accent-primary"
+                    />
+                    <span className="text-[10px] font-medium text-muted-foreground">B</span>
+                  </div>
+                </div>
+              )}
+
+              <p className="mt-3 text-center text-[10px] text-muted-foreground">
+                In der echten App: präzise Bild-Ausrichtung (OpenCV) und zeitlicher Verlauf
+              </p>
+            </div>
+          </div>
+        );
+      })()}
     </div>
   );
 };
