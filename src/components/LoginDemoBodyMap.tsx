@@ -569,7 +569,7 @@ export const LoginDemoBodyMap = () => {
               Foto hinzufügen
             </div>
             <p className="mb-4 text-xs text-muted-foreground">
-              Demo-Modus — nur 1 Foto pro Hautstelle
+              Demo-Modus — bis zu 4 Fotos pro Hautstelle für Verlaufs-Vergleich
             </p>
 
             {qrSession ? (
