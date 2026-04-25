@@ -365,9 +365,15 @@ export const LoginDemoBodyMap = () => {
             {/* Photo strip — alle Fotos + Plus-Button */}
             <div className="flex flex-shrink-0 gap-1.5">
               {selectedSpot.photos.map((photo, idx) => (
-                <div
+                <button
                   key={idx}
-                  className="relative h-16 w-16 overflow-hidden rounded-lg border border-border"
+                  type="button"
+                  onClick={() => {
+                    setLightboxSpotId(selectedSpot.id);
+                    setLightboxIdx(idx);
+                  }}
+                  className="group relative h-16 w-16 overflow-hidden rounded-lg border border-border transition-all hover:border-primary hover:ring-2 hover:ring-primary/30"
+                  aria-label={`Foto ${idx + 1} öffnen`}
                 >
                   <img
                     src={photo}
@@ -377,14 +383,17 @@ export const LoginDemoBodyMap = () => {
                   <span className="absolute bottom-0 left-0 rounded-tr-md bg-background/80 px-1 text-[8px] font-bold text-foreground">
                     {idx + 1}
                   </span>
-                  <button
-                    onClick={() => removePhoto(selectedSpot.id, idx)}
-                    className="absolute right-0.5 top-0.5 flex h-4 w-4 items-center justify-center rounded-full bg-destructive text-destructive-foreground shadow"
+                  <span
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      removePhoto(selectedSpot.id, idx);
+                    }}
+                    className="absolute right-0.5 top-0.5 flex h-4 w-4 cursor-pointer items-center justify-center rounded-full bg-destructive text-destructive-foreground shadow"
                     aria-label="Foto entfernen"
                   >
                     <X className="h-2.5 w-2.5" />
-                  </button>
-                </div>
+                  </span>
+                </button>
               ))}
               {/* Plus-Button: weiteres Foto hinzufügen (max 4 für Übersicht) */}
               {selectedSpot.photos.length < 4 && (
