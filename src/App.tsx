@@ -29,6 +29,7 @@ import FinanceCompanies from "./pages/FinanceCompanies";
 import FinanceCompanyDetail from "./pages/FinanceCompanyDetail";
 import FinanceContracts from "./pages/FinanceContracts";
 import ServerAdmin from "./pages/ServerAdmin";
+import { isServerAdminAvailable } from "@/lib/environment";
 
 const queryClient = new QueryClient({
   defaultOptions: {
