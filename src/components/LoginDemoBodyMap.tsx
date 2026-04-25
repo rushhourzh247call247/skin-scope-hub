@@ -89,6 +89,7 @@ export const LoginDemoBodyMap = () => {
         ny: normal3d?.[1],
         nz: normal3d?.[2],
         classification: "unclassified",
+        photos: [],
       };
       setPendingSpot(newSpot);
     },
@@ -138,7 +139,7 @@ export const LoginDemoBodyMap = () => {
     reader.onload = (ev) => {
       const dataUrl = ev.target?.result as string;
       setSpots((prev) =>
-        prev.map((s) => (s.id === photoDialogSpotId ? { ...s, photoDataUrl: dataUrl } : s)),
+        prev.map((s) => (s.id === photoDialogSpotId ? { ...s, photos: [...s.photos, dataUrl] } : s)),
       );
       setPhotoDialogSpotId(null);
     };
@@ -217,7 +218,7 @@ export const LoginDemoBodyMap = () => {
               const exists = prev.some((s) => s.id === targetSpotId);
               console.log("[QR-Demo] spot exists in state?", exists, "current spots:", prev.map((s) => s.id));
               return prev.map((s) =>
-                s.id === targetSpotId ? { ...s, photoDataUrl: localImageUrl } : s,
+                s.id === targetSpotId ? { ...s, photos: [...s.photos, localImageUrl] } : s,
               );
             });
             setSelectedId(targetSpotId);
@@ -251,8 +252,12 @@ export const LoginDemoBodyMap = () => {
 
   useEffect(() => () => stopPolling(), []);
 
-  const removePhoto = (spotId: number) => {
-    setSpots((prev) => prev.map((s) => (s.id === spotId ? { ...s, photoDataUrl: undefined } : s)));
+  const removePhoto = (spotId: number, index: number) => {
+    setSpots((prev) =>
+      prev.map((s) =>
+        s.id === spotId ? { ...s, photos: s.photos.filter((_, i) => i !== index) } : s,
+      ),
+    );
   };
 
   const selectedSpot = spots.find((s) => s.id === selectedId);
