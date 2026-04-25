@@ -3,7 +3,7 @@ import BodyMap3D from "@/components/BodyMap3D";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { LESION_CLASSIFICATIONS, type LesionClassification, type Gender } from "@/types/patient";
-import { RotateCcw, Sparkles, MousePointerClick, Upload, QrCode, Camera, X, Image as ImageIcon, Check, Loader2, Smartphone } from "lucide-react";
+import { RotateCcw, Sparkles, MousePointerClick, Upload, QrCode, Camera, X, Image as ImageIcon, Check, Loader2, Smartphone, Plus, GitCompareArrows } from "lucide-react";
 import { QRCodeSVG } from "qrcode.react";
 import { cn } from "@/lib/utils";
 
@@ -40,7 +40,7 @@ interface DemoSpot {
   ny?: number;
   nz?: number;
   classification: LesionClassification;
-  photoDataUrl?: string;
+  photos: string[];
 }
 
 const SELECTABLE_CLASSIFICATIONS: LesionClassification[] = [
