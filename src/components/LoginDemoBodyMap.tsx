@@ -221,7 +221,11 @@ export const LoginDemoBodyMap = () => {
     reader.onload = (ev) => {
       const dataUrl = ev.target?.result as string;
       setSpots((prev) =>
-        prev.map((s) => (s.id === photoDialogSpotId ? { ...s, photos: [...s.photos, dataUrl] } : s)),
+        prev.map((s) =>
+          s.id === photoDialogSpotId && s.photos.length < 3
+            ? { ...s, photos: [...s.photos, dataUrl] }
+            : s,
+        ),
       );
       setPhotoDialogSpotId(null);
     };
