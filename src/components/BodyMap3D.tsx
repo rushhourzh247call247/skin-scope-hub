@@ -994,7 +994,7 @@ function LoadingFallback() {
 }
 
 /* ─── Scene ─── */
-function Scene({ markers, selectedLocationId, onMapClick, onMarkerClick, classificationFilter, previewMarker, isPlacementMode, onPreviewMove, preset, gender, markMode, markType, resetKey, zoneOverlays, selectedZoneId }: BodyMap3DProps & { preset: CameraPreset; gender: Gender; markMode: boolean; markType: MarkType; resetKey: number }) {
+function Scene({ markers, selectedLocationId, onMapClick, onMarkerClick, onMarkerPhotoClick, classificationFilter, previewMarker, isPlacementMode, onPreviewMove, preset, gender, markMode, markType, resetKey, zoneOverlays, selectedZoneId }: BodyMap3DProps & { preset: CameraPreset; gender: Gender; markMode: boolean; markType: MarkType; resetKey: number }) {
   const [isDraggingSpot, setIsDraggingSpot] = useState(false);
   const [hoverInfo, setHoverInfo] = useState<{ point: THREE.Vector3; y3d: number; x3d: number; z3d: number; zone: string } | null>(null);
 
@@ -1091,6 +1091,7 @@ function Scene({ markers, selectedLocationId, onMapClick, onMarkerClick, classif
               classificationColor={m.classificationColor}
               isHighRisk={isHighRisk}
               photoThumbnailUrl={m.photoThumbnailUrl}
+              onPhotoClick={() => onMarkerPhotoClick?.(m.id)}
             />
           </SurfaceProjectedGroup>
         );
