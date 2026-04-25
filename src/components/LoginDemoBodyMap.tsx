@@ -847,10 +847,10 @@ export const LoginDemoBodyMap = () => {
                     setLightboxSpotId(null);
                     setPhotoDialogSpotId(spot.id);
                   }}
-                  disabled={spot.photos.length >= 4}
+                  disabled={spot.photos.length >= 3}
                   className={cn(
                     "flex items-center justify-center gap-1.5 rounded-lg border-2 border-primary bg-primary px-3 py-2 text-xs font-semibold text-primary-foreground transition-all",
-                    spot.photos.length >= 4
+                    spot.photos.length >= 3
                       ? "cursor-not-allowed opacity-50"
                       : "hover:bg-primary/90",
                   )}
