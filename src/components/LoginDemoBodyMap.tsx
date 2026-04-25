@@ -59,9 +59,12 @@ export const LoginDemoBodyMap = () => {
   const [pendingSpot, setPendingSpot] = useState<DemoSpot | null>(null);
   const [photoDialogSpotId, setPhotoDialogSpotId] = useState<number | null>(null);
   const [compareSpotId, setCompareSpotId] = useState<number | null>(null);
-  const [compareMode, setCompareMode] = useState<"side" | "overlay">("side");
+  const [compareMode, setCompareMode] = useState<"side" | "aligned" | "overlay">("side");
   const [overlayOpacity, setOverlayOpacity] = useState(50);
   const [compareIndices, setCompareIndices] = useState<[number, number]>([0, 1]);
+  const [aligning, setAligning] = useState(false);
+  const [lightboxSpotId, setLightboxSpotId] = useState<number | null>(null);
+  const [lightboxIdx, setLightboxIdx] = useState(0);
   const [qrSession, setQrSession] = useState<{ token: string; url: string } | null>(null);
   const [qrLoading, setQrLoading] = useState(false);
   const [qrError, setQrError] = useState<string | null>(null);
