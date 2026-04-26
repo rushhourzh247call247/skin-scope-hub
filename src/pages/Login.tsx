@@ -222,12 +222,6 @@ const Login = () => {
             <ArrowRight className="h-3 w-3" />
           </Link>
 
-          <p className="mt-3 text-center text-[9px] text-muted-foreground/50">
-            designed by{" "}
-            <a href="https://www.techassist.ch" target="_blank" rel="noopener noreferrer" className="font-medium hover:text-muted-foreground transition-colors">
-              techassist.ch
-            </a>
-          </p>
         </CardContent>
       </Card>
       </div>
