@@ -1230,6 +1230,21 @@
       "sendFailed": "Senden fehlgeschlagen. Bitte versuchen Sie es später erneut.",
       "rateLimited": "Zu viele Anfragen. Bitte versuchen Sie es in wenigen Minuten erneut.",
       "validation": "Bitte überprüfen Sie Ihre Eingaben."
-    }
+    },
+    "confirmTitle": "Bitte E-Mail bestätigen",
+    "confirmMessage": "Wir haben Ihnen einen Bestätigungslink gesendet. Klicken Sie darauf, damit Ihre Anfrage an uns weitergeleitet wird.",
+    "confirmHint": "Falls Sie keine Mail finden, prüfen Sie bitte den Spam-Ordner."
+  },
+  "contactConfirm": {
+    "loading": "Ihre Bestätigung wird verarbeitet…",
+    "successTitle": "Vielen Dank — Anfrage bestätigt",
+    "successMessage": "Ihre Anfrage wurde erfolgreich bestätigt und an unser Team weitergeleitet. Wir melden uns zeitnah bei Ihnen.",
+    "alreadyTitle": "Bereits bestätigt",
+    "alreadyMessage": "Diese Anfrage wurde bereits bestätigt. Wir haben sie erhalten und melden uns bei Ihnen.",
+    "expiredTitle": "Bestätigungslink abgelaufen",
+    "expiredMessage": "Aus Sicherheitsgründen ist dieser Link nicht mehr gültig. Bitte senden Sie uns eine neue Anfrage.",
+    "invalidTitle": "Ungültiger Bestätigungslink",
+    "invalidMessage": "Dieser Link ist ungültig oder beschädigt. Bitte senden Sie uns eine neue Anfrage über das Kontaktformular.",
+    "backToLogin": "Zurück zur Startseite"
   }
 }
