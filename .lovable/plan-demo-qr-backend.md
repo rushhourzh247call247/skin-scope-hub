@@ -72,7 +72,7 @@ class DemoUploadController extends Controller {
             'token'        => $token,
             'client_ip'    => $ip,
             'expires_at'   => now()->addMinutes(15),
-            'delete_after' => now()->addDay(),
+            'delete_after' => now()->addMinutes(15), // Safety-Net falls Desktop nie abholt
             'created_at'   => now(),
             'updated_at'   => now(),
         ]);
