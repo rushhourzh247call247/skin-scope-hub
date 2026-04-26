@@ -1174,5 +1174,31 @@
     "alignSimNote": "Demo: simulated alignment — the real app uses OpenCV (feature matching)",
     "alignDoneNote": "Photo B was aligned to photo A using prominent landmarks",
     "realAppNote": "In the real app: precise image alignment (OpenCV) and time-based progression"
+  },
+  "demoUpload": {
+    "title": "Upload photo",
+    "subtitle": "Demo only · image is deleted from the server immediately after transfer",
+    "invalidTitle": "Invalid link",
+    "invalidBody": "This QR code is no longer valid. Please return to the demo and generate a new code.",
+    "expiredTitle": "Link expired",
+    "expiredBody": "The QR code has expired (15 min). Please generate a new QR code in the demo.",
+    "doneTitle": "Photo transferred successfully",
+    "doneBody": "You can return to the computer now — the image will appear there in a few seconds.",
+    "uploadingTitle": "Uploading…",
+    "uploadingBody": "One moment please — your photo is being uploaded securely.",
+    "uploadedAlt": "Uploaded",
+    "previewAlt": "Preview",
+    "takePhoto": "Take photo",
+    "fromGallery": "Choose from gallery",
+    "deleteHint": "The image is transferred directly to the desktop and then deleted from the server immediately",
+    "footer": "Powered by DERM247 · Demo mode",
+    "errHeic": "HEIC/HEIF is not supported. {{diag}} Please switch iPhone Settings → Camera → Formats → 'Most Compatible'.",
+    "errAlreadyUsed": "This QR code has already been used. {{diag}}",
+    "errHttp": "HTTP {{status}} · {{msg}} {{diag}} → {{api}}",
+    "errEmpty": "(empty response)",
+    "errNetwork": "Network error: {{msg}} {{diag}} → {{api}}",
+    "errUnknown": "unknown",
+    "noName": "(no name)",
+    "noType": "(no type)"
   }
 }

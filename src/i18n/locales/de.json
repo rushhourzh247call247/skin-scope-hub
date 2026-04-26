@@ -1174,5 +1174,31 @@
     "alignSimNote": "Demo: simulierte Ausrichtung — echte App nutzt OpenCV (Feature-Matching)",
     "alignDoneNote": "Foto B wurde anhand markanter Strukturen auf Foto A ausgerichtet",
     "realAppNote": "In der echten App: präzise Bild-Ausrichtung (OpenCV) und zeitlicher Verlauf"
+  },
+  "demoUpload": {
+    "title": "Foto hochladen",
+    "subtitle": "Nur für die Demo · Bild wird nach Übertragung sofort gelöscht",
+    "invalidTitle": "Ungültiger Link",
+    "invalidBody": "Dieser QR-Code ist nicht (mehr) gültig. Bitte zurück zur Demo gehen und einen neuen Code generieren.",
+    "expiredTitle": "Link abgelaufen",
+    "expiredBody": "Der QR-Code ist abgelaufen (15 min). Bitte einen neuen QR-Code in der Demo generieren.",
+    "doneTitle": "Foto erfolgreich übertragen",
+    "doneBody": "Sie können jetzt zum Computer zurückkehren — das Bild erscheint dort in wenigen Sekunden.",
+    "uploadingTitle": "Wird übertragen…",
+    "uploadingBody": "Bitte einen Moment — Ihr Foto wird sicher hochgeladen.",
+    "uploadedAlt": "Hochgeladen",
+    "previewAlt": "Vorschau",
+    "takePhoto": "Foto aufnehmen",
+    "fromGallery": "Aus Galerie wählen",
+    "deleteHint": "Das Bild wird direkt an den Desktop übertragen und danach sofort vom Server gelöscht",
+    "footer": "Powered by DERM247 · Demo-Modus",
+    "errHeic": "HEIC/HEIF wird nicht unterstützt. {{diag}} Bitte iPhone-Einstellungen → Kamera → Formate → 'Maximale Kompatibilität' wählen.",
+    "errAlreadyUsed": "Dieser QR-Code wurde bereits verwendet. {{diag}}",
+    "errHttp": "HTTP {{status}} · {{msg}} {{diag}} → {{api}}",
+    "errEmpty": "(leere Antwort)",
+    "errNetwork": "Netzwerkfehler: {{msg}} {{diag}} → {{api}}",
+    "errUnknown": "unbekannt",
+    "noName": "(kein Name)",
+    "noType": "(kein Typ)"
   }
 }
