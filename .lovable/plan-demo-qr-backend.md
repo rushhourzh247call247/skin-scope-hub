@@ -25,9 +25,9 @@ return new class extends Migration {
             $table->string('file_path')->nullable();             // storage/app/demo/...
             $table->string('mime_type', 64)->nullable();
             $table->unsignedInteger('size_bytes')->nullable();
-            $table->timestamp('expires_at')->index();            // Token-Ablauf (15min)
+            $table->timestamp('expires_at')->index();            // Token-Ablauf (15min, falls Handy nie hochlädt)
             $table->timestamp('uploaded_at')->nullable();        // Wann Foto kam
-            $table->timestamp('delete_after')->index();          // Hard-Delete (24h)
+            $table->timestamp('delete_after')->index();          // Safety-Net: Hard-Delete (15min nach Upload, falls Desktop nie abholt)
             $table->timestamps();
         });
     }
