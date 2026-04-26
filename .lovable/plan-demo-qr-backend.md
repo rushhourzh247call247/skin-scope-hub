@@ -282,7 +282,7 @@ curl -s https://api.derm247.ch/api/demo/qr-status/$TOKEN
 | `/api/demo/qr-token` | POST | – | `{ token, expires_at }` |
 | `/api/demo/qr-status/{token}` | GET | – | `{ status: 'waiting'\|'completed'\|'expired'\|'invalid', image_url? }` |
 | `/api/demo/upload/{token}` | POST | `multipart/form-data: photo=<File>` | `{ status: 'ok' }` |
-| `/api/demo/image/{token}` | GET | – | Binary JPEG |
+| `/api/demo/image/{token}` | GET | – | Binary JPEG (Single-Use: Datei wird nach diesem Aufruf serverseitig gelöscht) |
 
 Mobile-Upload-Seite im Frontend: `/demo-upload?token=...`
 
@@ -292,9 +292,16 @@ Mobile-Upload-Seite im Frontend: `/demo-upload?token=...`
 
 ✅ Keine Auth-Tokens, keine Patient-/Company-IDs in der Tabelle
 ✅ Eigenes Verzeichnis `storage/app/demo/` — komplett separiert
-✅ Token nur 15 min gültig, Datei max. 24h
-✅ EXIF-Stripping beim Upload (kein GPS)
-✅ Single-Use: nach Upload kein zweiter Versuch möglich
+✅ **Sofort-Löschung**: Datei + DB-Eintrag werden beim ersten erfolgreichen Bildabruf vom Desktop entfernt (Single-Use)
+✅ **Safety-Net Cleanup**: Nicht abgeholte Uploads werden nach max. 15 min vom Cron gelöscht
+✅ Token nur 15 min gültig
+✅ EXIF-Stripping beim Upload (kein GPS, keine Kameradaten)
+✅ Single-Use Upload: nach Upload kein zweiter Versuch möglich
+✅ `Cache-Control: no-store` beim Bild-Response (kein Browser/Proxy-Cache)
 ✅ Throttling auf allen 3 Endpunkten
-✅ Max. 20 Tokens/IP/h (lockerer aber missbrauchsbegrenzend)
+✅ Max. 20 Tokens/IP/h
 ✅ Nginx blockt direkten Storage-Zugriff weiterhin
+
+**Foto-Lebensdauer auf Server (Worst-Case):**
+- Normalfall: wenige Sekunden (Upload → Desktop-Polling → sofortige Löschung)
+- Wenn Desktop-Tab geschlossen: max. 15 min bis Cron aufräumt
