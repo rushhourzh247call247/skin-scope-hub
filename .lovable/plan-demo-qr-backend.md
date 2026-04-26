@@ -25,9 +25,9 @@ return new class extends Migration {
             $table->string('file_path')->nullable();             // storage/app/demo/...
             $table->string('mime_type', 64)->nullable();
             $table->unsignedInteger('size_bytes')->nullable();
-            $table->timestamp('expires_at')->index();            // Token-Ablauf (15min)
+            $table->timestamp('expires_at')->index();            // Token-Ablauf (15min, falls Handy nie hochlädt)
             $table->timestamp('uploaded_at')->nullable();        // Wann Foto kam
-            $table->timestamp('delete_after')->index();          // Hard-Delete (24h)
+            $table->timestamp('delete_after')->index();          // Safety-Net: Hard-Delete (15min nach Upload, falls Desktop nie abholt)
             $table->timestamps();
         });
     }
@@ -72,7 +72,7 @@ class DemoUploadController extends Controller {
             'token'        => $token,
             'client_ip'    => $ip,
             'expires_at'   => now()->addMinutes(15),
-            'delete_after' => now()->addDay(),
+            'delete_after' => now()->addMinutes(15), // Safety-Net falls Desktop nie abholt
             'created_at'   => now(),
             'updated_at'   => now(),
         ]);
@@ -117,22 +117,38 @@ class DemoUploadController extends Controller {
         Storage::disk('local')->put("demo/{$filename}", (string) $img);
 
         DB::table('demo_uploads')->where('token', $token)->update([
-            'file_path'   => "demo/{$filename}",
-            'mime_type'   => 'image/jpeg',
-            'size_bytes'  => Storage::disk('local')->size("demo/{$filename}"),
-            'uploaded_at' => now(),
-            'updated_at'  => now(),
+            'file_path'    => "demo/{$filename}",
+            'mime_type'    => 'image/jpeg',
+            'size_bytes'   => Storage::disk('local')->size("demo/{$filename}"),
+            'uploaded_at'  => now(),
+            'delete_after' => now()->addMinutes(15), // Safety-Net: max. 15min auf Server falls Desktop nie abholt
+            'updated_at'   => now(),
         ]);
         return response()->json(['status' => 'ok']);
     }
 
-    // GET /api/demo/image/{token}  →  Bild ausliefern
+    // GET /api/demo/image/{token}  →  Bild ausliefern + SOFORT LÖSCHEN (Single-Use)
     public function image(string $token) {
         $row = DB::table('demo_uploads')->where('token', $token)->first();
         if (!$row || !$row->file_path) abort(404);
-        return response()->file(storage_path('app/' . $row->file_path), [
-            'Content-Type'  => $row->mime_type ?? 'image/jpeg',
-            'Cache-Control' => 'private, max-age=300',
+
+        $absPath = storage_path('app/' . $row->file_path);
+        if (!file_exists($absPath)) abort(404);
+
+        // Bild komplett in den Speicher laden, BEVOR die Datei gelöscht wird
+        $bytes = file_get_contents($absPath);
+        $mime  = $row->mime_type ?? 'image/jpeg';
+
+        // SOFORT-LÖSCHEN nach Abholung: Datei + DB-Eintrag weg
+        @unlink($absPath);
+        DB::table('demo_uploads')->where('token', $token)->delete();
+
+        return response($bytes, 200, [
+            'Content-Type'        => $mime,
+            'Content-Length'      => strlen($bytes),
+            'Cache-Control'       => 'no-store, no-cache, must-revalidate, max-age=0',
+            'Pragma'              => 'no-cache',
+            'X-Content-Type-Options' => 'nosniff',
         ]);
     }
 
@@ -266,7 +282,7 @@ curl -s https://api.derm247.ch/api/demo/qr-status/$TOKEN
 | `/api/demo/qr-token` | POST | – | `{ token, expires_at }` |
 | `/api/demo/qr-status/{token}` | GET | – | `{ status: 'waiting'\|'completed'\|'expired'\|'invalid', image_url? }` |
 | `/api/demo/upload/{token}` | POST | `multipart/form-data: photo=<File>` | `{ status: 'ok' }` |
-| `/api/demo/image/{token}` | GET | – | Binary JPEG |
+| `/api/demo/image/{token}` | GET | – | Binary JPEG (Single-Use: Datei wird nach diesem Aufruf serverseitig gelöscht) |
 
 Mobile-Upload-Seite im Frontend: `/demo-upload?token=...`
 
@@ -276,9 +292,16 @@ Mobile-Upload-Seite im Frontend: `/demo-upload?token=...`
 
 ✅ Keine Auth-Tokens, keine Patient-/Company-IDs in der Tabelle
 ✅ Eigenes Verzeichnis `storage/app/demo/` — komplett separiert
-✅ Token nur 15 min gültig, Datei max. 24h
-✅ EXIF-Stripping beim Upload (kein GPS)
-✅ Single-Use: nach Upload kein zweiter Versuch möglich
+✅ **Sofort-Löschung**: Datei + DB-Eintrag werden beim ersten erfolgreichen Bildabruf vom Desktop entfernt (Single-Use)
+✅ **Safety-Net Cleanup**: Nicht abgeholte Uploads werden nach max. 15 min vom Cron gelöscht
+✅ Token nur 15 min gültig
+✅ EXIF-Stripping beim Upload (kein GPS, keine Kameradaten)
+✅ Single-Use Upload: nach Upload kein zweiter Versuch möglich
+✅ `Cache-Control: no-store` beim Bild-Response (kein Browser/Proxy-Cache)
 ✅ Throttling auf allen 3 Endpunkten
-✅ Max. 20 Tokens/IP/h (lockerer aber missbrauchsbegrenzend)
+✅ Max. 20 Tokens/IP/h
 ✅ Nginx blockt direkten Storage-Zugriff weiterhin
+
+**Foto-Lebensdauer auf Server (Worst-Case):**
+- Normalfall: wenige Sekunden (Upload → Desktop-Polling → sofortige Löschung)
+- Wenn Desktop-Tab geschlossen: max. 15 min bis Cron aufräumt
