@@ -233,7 +233,7 @@ const Login = () => {
       </div>
 
       {/* Tagline footer */}
-      <div className="mt-8 text-center">
+      <div className="mt-6 sm:mt-8 text-center">
         <div className="text-xs font-semibold tracking-wide text-foreground/80">
           {t("demo.tagline1")}
         </div>
