@@ -1144,5 +1144,36 @@
     "errUnknown": "sconosciuto",
     "noName": "(senza nome)",
     "noType": "(senza tipo)"
+  },
+  "contact": {
+    "title": "Contattaci",
+    "subtitle": "Inviaci la tua richiesta — di solito rispondiamo entro un giorno lavorativo.",
+    "name": "Nome",
+    "namePlaceholder": "Il tuo nome",
+    "email": "E-mail",
+    "emailPlaceholder": "nome@studio.ch",
+    "company": "Studio / Azienda",
+    "companyPlaceholder": "Opzionale",
+    "message": "Messaggio",
+    "messagePlaceholder": "Come possiamo aiutarti?",
+    "send": "Invia richiesta",
+    "sending": "Invio in corso…",
+    "cancel": "Annulla",
+    "close": "Chiudi",
+    "successTitle": "Richiesta inviata",
+    "successMessage": "Grazie — ti ricontatteremo a breve.",
+    "footerLink": "Contatto",
+    "errors": {
+      "nameRequired": "Inserisci il tuo nome.",
+      "nameTooLong": "Il nome è troppo lungo (max. 100 caratteri).",
+      "emailInvalid": "Inserisci un indirizzo e-mail valido.",
+      "emailTooLong": "L'e-mail è troppo lunga.",
+      "companyTooLong": "Nome dello studio/azienda troppo lungo.",
+      "messageTooShort": "Il messaggio è troppo corto (almeno 10 caratteri).",
+      "messageTooLong": "Il messaggio è troppo lungo (max. 2000 caratteri).",
+      "sendFailed": "Invio non riuscito. Riprova più tardi.",
+      "rateLimited": "Troppe richieste. Riprova tra qualche minuto.",
+      "validation": "Controlla i dati inseriti."
+    }
   }
 }

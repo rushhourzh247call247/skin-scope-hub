@@ -1144,5 +1144,36 @@
     "errUnknown": "desconocido",
     "noName": "(sin nombre)",
     "noType": "(sin tipo)"
+  },
+  "contact": {
+    "title": "Contáctenos",
+    "subtitle": "Envíenos su consulta — solemos responder en un día laborable.",
+    "name": "Nombre",
+    "namePlaceholder": "Su nombre",
+    "email": "Correo electrónico",
+    "emailPlaceholder": "nombre@consulta.es",
+    "company": "Consulta / Empresa",
+    "companyPlaceholder": "Opcional",
+    "message": "Mensaje",
+    "messagePlaceholder": "¿En qué podemos ayudarle?",
+    "send": "Enviar solicitud",
+    "sending": "Enviando…",
+    "cancel": "Cancelar",
+    "close": "Cerrar",
+    "successTitle": "Solicitud enviada",
+    "successMessage": "Gracias — le responderemos en breve.",
+    "footerLink": "Contacto",
+    "errors": {
+      "nameRequired": "Por favor, indique su nombre.",
+      "nameTooLong": "El nombre es demasiado largo (máx. 100 caracteres).",
+      "emailInvalid": "Introduzca una dirección de correo válida.",
+      "emailTooLong": "El correo es demasiado largo.",
+      "companyTooLong": "Nombre de consulta/empresa demasiado largo.",
+      "messageTooShort": "El mensaje es demasiado corto (mín. 10 caracteres).",
+      "messageTooLong": "El mensaje es demasiado largo (máx. 2000 caracteres).",
+      "sendFailed": "Error al enviar. Inténtelo de nuevo más tarde.",
+      "rateLimited": "Demasiadas solicitudes. Inténtelo de nuevo en unos minutos.",
+      "validation": "Revise los datos introducidos."
+    }
   }
 }
