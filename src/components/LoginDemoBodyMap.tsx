@@ -313,7 +313,7 @@ export const LoginDemoBodyMap = () => {
             setPhotoDialogSpotId(null);
             setQrSession(null);
             setQrError(null);
-            fetch(`${DEMO_API_BASE}/demo/consume/${token}`, { method: "POST" }).catch(() => {});
+            // Backend löscht die Datei automatisch nach dem ersten GET /image/{token} (Single-Use)
           } catch (err) {
             console.error("[QR-Demo] image load failed:", err);
             setQrError("Foto wurde hochgeladen, konnte aber am Desktop nicht geladen werden.");
