@@ -268,6 +268,10 @@ export const api = {
     request<{ user: any; token: string }>('/login', { method: 'POST', body: JSON.stringify(data) }),
   me: () => request<{ user: any }>('/me'),
 
+  // Public: Contact form (no auth required)
+  submitContactRequest: (data: { name: string; email: string; company?: string; message: string }) =>
+    request<{ success: boolean }>('/contact', { method: 'POST', body: JSON.stringify(data) }),
+
   // Admin: Companies
   getCompanies: () => request<any[]>('/companies'),
   createCompany: (data: { name: string }) =>

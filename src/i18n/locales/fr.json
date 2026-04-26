@@ -1144,5 +1144,36 @@
     "errUnknown": "inconnu",
     "noName": "(sans nom)",
     "noType": "(sans type)"
+  },
+  "contact": {
+    "title": "Nous contacter",
+    "subtitle": "Envoyez-nous votre demande — nous répondons généralement sous un jour ouvré.",
+    "name": "Nom",
+    "namePlaceholder": "Votre nom",
+    "email": "E-mail",
+    "emailPlaceholder": "nom@cabinet.ch",
+    "company": "Cabinet / Entreprise",
+    "companyPlaceholder": "Optionnel",
+    "message": "Message",
+    "messagePlaceholder": "Comment pouvons-nous vous aider ?",
+    "send": "Envoyer la demande",
+    "sending": "Envoi en cours…",
+    "cancel": "Annuler",
+    "close": "Fermer",
+    "successTitle": "Demande envoyée",
+    "successMessage": "Merci — nous vous recontacterons rapidement.",
+    "footerLink": "Contact",
+    "errors": {
+      "nameRequired": "Veuillez indiquer votre nom.",
+      "nameTooLong": "Le nom est trop long (max. 100 caractères).",
+      "emailInvalid": "Veuillez saisir une adresse e-mail valide.",
+      "emailTooLong": "L'e-mail est trop long.",
+      "companyTooLong": "Nom du cabinet/entreprise trop long.",
+      "messageTooShort": "Le message est trop court (au moins 10 caractères).",
+      "messageTooLong": "Le message est trop long (max. 2000 caractères).",
+      "sendFailed": "Échec de l'envoi. Veuillez réessayer plus tard.",
+      "rateLimited": "Trop de demandes. Veuillez réessayer dans quelques minutes.",
+      "validation": "Veuillez vérifier vos saisies."
+    }
   }
 }

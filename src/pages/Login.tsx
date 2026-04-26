@@ -8,10 +8,11 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardDescription } from "@/components/ui/card";
 import { DermLogo } from "@/components/DermLogo";
-import { LogIn, Shield, Clock, Stethoscope, Sparkles, ArrowRight } from "lucide-react";
+import { LogIn, Shield, Clock, Stethoscope, Sparkles, ArrowRight, Mail } from "lucide-react";
 import { SUPPORTED_LANGUAGES } from "@/i18n";
 import { LanguageFlag } from "@/components/LanguageFlag";
 import { Link } from "react-router-dom";
+import { ContactDialog } from "@/components/ContactDialog";
 
 
 
@@ -233,6 +234,19 @@ const Login = () => {
         </div>
         <div className="text-[10px] text-muted-foreground tracking-wider">
           {t("demo.tagline2")}
+        </div>
+        <div className="mt-3">
+          <ContactDialog
+            trigger={
+              <button
+                type="button"
+                className="inline-flex items-center gap-1.5 rounded-full border border-border/60 bg-card/40 px-3 py-1 text-[11px] text-muted-foreground hover:text-foreground hover:border-border hover:bg-card transition-colors"
+              >
+                <Mail className="h-3 w-3" />
+                {t("contact.footerLink")}
+              </button>
+            }
+          />
         </div>
         <div className="mt-2 text-[10px] text-muted-foreground/60 tracking-wide">
           © {new Date().getFullYear()} DERM247 · designed by{" "}

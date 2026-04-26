@@ -1200,5 +1200,36 @@
     "errUnknown": "unbekannt",
     "noName": "(kein Name)",
     "noType": "(kein Typ)"
+  },
+  "contact": {
+    "title": "Kontakt aufnehmen",
+    "subtitle": "Senden Sie uns Ihre Anfrage — wir melden uns in der Regel innerhalb eines Werktags.",
+    "name": "Name",
+    "namePlaceholder": "Ihr Name",
+    "email": "E-Mail",
+    "emailPlaceholder": "name@praxis.ch",
+    "company": "Praxis / Firma",
+    "companyPlaceholder": "Optional",
+    "message": "Nachricht",
+    "messagePlaceholder": "Wie können wir Ihnen helfen?",
+    "send": "Anfrage senden",
+    "sending": "Wird gesendet…",
+    "cancel": "Abbrechen",
+    "close": "Schließen",
+    "successTitle": "Anfrage gesendet",
+    "successMessage": "Vielen Dank — wir melden uns zeitnah bei Ihnen.",
+    "footerLink": "Kontakt",
+    "errors": {
+      "nameRequired": "Bitte geben Sie Ihren Namen an.",
+      "nameTooLong": "Name ist zu lang (max. 100 Zeichen).",
+      "emailInvalid": "Bitte geben Sie eine gültige E-Mail-Adresse an.",
+      "emailTooLong": "E-Mail ist zu lang.",
+      "companyTooLong": "Praxis-/Firmenname ist zu lang.",
+      "messageTooShort": "Nachricht ist zu kurz (mind. 10 Zeichen).",
+      "messageTooLong": "Nachricht ist zu lang (max. 2000 Zeichen).",
+      "sendFailed": "Senden fehlgeschlagen. Bitte versuchen Sie es später erneut.",
+      "rateLimited": "Zu viele Anfragen. Bitte versuchen Sie es in wenigen Minuten erneut.",
+      "validation": "Bitte überprüfen Sie Ihre Eingaben."
+    }
   }
 }
