@@ -276,6 +276,7 @@ export const api = {
     message: string;
     website?: string; // Honeypot
     elapsed_ms?: number; // Zeit-Check
+    locale?: string; // Sprache des Absenders (de/en/fr/it/es)
   }) =>
     request<{ success: boolean }>('/contact', { method: 'POST', body: JSON.stringify(data) }),
 
