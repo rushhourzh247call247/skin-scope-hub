@@ -8,10 +8,11 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardDescription } from "@/components/ui/card";
 import { DermLogo } from "@/components/DermLogo";
-import { LogIn, Shield, Clock, Stethoscope, Sparkles, ArrowRight } from "lucide-react";
+import { LogIn, Shield, Clock, Stethoscope, Sparkles, ArrowRight, Mail } from "lucide-react";
 import { SUPPORTED_LANGUAGES } from "@/i18n";
 import { LanguageFlag } from "@/components/LanguageFlag";
 import { Link } from "react-router-dom";
+import { ContactDialog } from "@/components/ContactDialog";
 
 
 
