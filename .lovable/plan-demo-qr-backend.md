@@ -126,13 +126,28 @@ class DemoUploadController extends Controller {
         return response()->json(['status' => 'ok']);
     }
 
-    // GET /api/demo/image/{token}  →  Bild ausliefern
+    // GET /api/demo/image/{token}  →  Bild ausliefern + SOFORT LÖSCHEN (Single-Use)
     public function image(string $token) {
         $row = DB::table('demo_uploads')->where('token', $token)->first();
         if (!$row || !$row->file_path) abort(404);
-        return response()->file(storage_path('app/' . $row->file_path), [
-            'Content-Type'  => $row->mime_type ?? 'image/jpeg',
-            'Cache-Control' => 'private, max-age=300',
+
+        $absPath = storage_path('app/' . $row->file_path);
+        if (!file_exists($absPath)) abort(404);
+
+        // Bild komplett in den Speicher laden, BEVOR die Datei gelöscht wird
+        $bytes = file_get_contents($absPath);
+        $mime  = $row->mime_type ?? 'image/jpeg';
+
+        // SOFORT-LÖSCHEN nach Abholung: Datei + DB-Eintrag weg
+        @unlink($absPath);
+        DB::table('demo_uploads')->where('token', $token)->delete();
+
+        return response($bytes, 200, [
+            'Content-Type'        => $mime,
+            'Content-Length'      => strlen($bytes),
+            'Cache-Control'       => 'no-store, no-cache, must-revalidate, max-age=0',
+            'Pragma'              => 'no-cache',
+            'X-Content-Type-Options' => 'nosniff',
         ]);
     }
 
