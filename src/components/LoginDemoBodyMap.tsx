@@ -142,6 +142,7 @@ export const LoginDemoBodyMap = () => {
   const [qrLoading, setQrLoading] = useState(false);
   const [qrError, setQrError] = useState<string | null>(null);
   const [qrPolling, setQrPolling] = useState(false);
+  const [qrInfoOpen, setQrInfoOpen] = useState(false);
   const [hasInteracted, setHasInteracted] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const cameraInputRef = useRef<HTMLInputElement>(null);
