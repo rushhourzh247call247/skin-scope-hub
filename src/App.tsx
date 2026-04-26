@@ -77,6 +77,7 @@ const App = () => (
             <Route path="/upload" element={<MobileUpload />} />
             <Route path="/demo-upload" element={<DemoUpload />} />
             <Route path="/demo" element={<Demo />} />
+            <Route path="/contact-confirm" element={<ContactConfirm />} />
             <Route path="/contact/confirm" element={<ContactConfirm />} />
             <Route path="/calibrate" element={<Calibrate />} />
             <Route path="/" element={<ProtectedPage><AccountantRedirect><Dashboard /></AccountantRedirect></ProtectedPage>} />
