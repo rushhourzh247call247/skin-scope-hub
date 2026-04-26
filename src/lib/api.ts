@@ -268,9 +268,23 @@ export const api = {
     request<{ user: any; token: string }>('/login', { method: 'POST', body: JSON.stringify(data) }),
   me: () => request<{ user: any }>('/me'),
 
-  // Public: Contact form (no auth required)
-  submitContactRequest: (data: { name: string; email: string; company?: string; message: string }) =>
+  // Public: Contact form (no auth required) — Double-Opt-in via E-Mail-Bestätigung
+  submitContactRequest: (data: {
+    name: string;
+    email: string;
+    company?: string;
+    message: string;
+    website?: string; // Honeypot
+    elapsed_ms?: number; // Zeit-Check
+  }) =>
     request<{ success: boolean }>('/contact', { method: 'POST', body: JSON.stringify(data) }),
+
+  // Public: Bestätigung des Double-Opt-in-Tokens
+  confirmContactRequest: (token: string) =>
+    request<{ success: boolean; status?: 'confirmed' | 'already_confirmed' | 'expired' | 'invalid' }>(
+      `/contact/confirm?token=${encodeURIComponent(token)}`,
+      { method: 'GET' },
+    ),
 
   // Admin: Companies
   getCompanies: () => request<any[]>('/companies'),
