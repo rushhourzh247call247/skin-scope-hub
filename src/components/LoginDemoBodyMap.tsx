@@ -724,7 +724,7 @@ export const LoginDemoBodyMap = () => {
                 </button>
 
                 <button
-                  onClick={startQrUpload}
+                  onClick={() => setQrInfoOpen(true)}
                   className="flex flex-col items-center gap-2 rounded-xl border-2 border-border p-3 text-center transition-all hover:border-primary hover:bg-primary/5"
                 >
                   <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10">
@@ -732,7 +732,7 @@ export const LoginDemoBodyMap = () => {
                   </div>
                   <div>
                     <div className="text-xs font-semibold text-foreground">QR-Code</div>
-                    <div className="text-[10px] text-muted-foreground">Anderes Handy</div>
+                    <div className="text-[10px] text-muted-foreground">Nur mit Lizenz</div>
                   </div>
                 </button>
               </div>
