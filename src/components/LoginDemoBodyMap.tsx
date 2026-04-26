@@ -1,4 +1,5 @@
 import { useState, useCallback, useRef, useEffect } from "react";
+import { useTranslation, Trans } from "react-i18next";
 import BodyMap3D from "@/components/BodyMap3D";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -127,6 +128,7 @@ const SELECTABLE_CLASSIFICATIONS: LesionClassification[] = [
 
 
 export const LoginDemoBodyMap = () => {
+  const { t } = useTranslation();
   const [gender, setGender] = useState<Gender>("male");
   const [spots, setSpots] = useState<DemoSpot[]>([]);
   const [selectedId, setSelectedId] = useState<number | null>(null);
