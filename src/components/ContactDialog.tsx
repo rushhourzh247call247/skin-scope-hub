@@ -124,6 +124,8 @@ export function ContactDialog({ trigger }: ContactDialogProps) {
         // Bot-Schutz-Signale auch ans Backend (Defense-in-Depth)
         website: form.website,
         elapsed_ms: elapsed,
+        // Sprache für lokalisierte Bestätigungsmail
+        locale: (i18n.language || "de").split("-")[0],
       });
       setSubmitted(true);
     } catch (err: any) {
