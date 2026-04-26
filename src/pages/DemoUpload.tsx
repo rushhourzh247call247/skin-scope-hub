@@ -1,7 +1,10 @@
 import { useState, useEffect, useRef } from "react";
 import { useSearchParams } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import { Camera, Images, CheckCircle2, AlertCircle, Loader2, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { SUPPORTED_LANGUAGES } from "@/i18n";
+import { LanguageFlag } from "@/components/LanguageFlag";
 
 // API-Auswahl basierend auf der Hostname:
 // - demo.derm247.ch (Live-Demo)          → Live-API
@@ -17,6 +20,7 @@ const API_BASE = (() => {
 type Status = "idle" | "uploading" | "done" | "error" | "expired" | "invalid";
 
 const DemoUpload = () => {
+  const { t, i18n } = useTranslation();
   const [params] = useSearchParams();
   const token = params.get("token");
   const [status, setStatus] = useState<Status>("idle");
@@ -44,13 +48,13 @@ const DemoUpload = () => {
   const upload = async (file: File) => {
     if (!token) return;
 
-    const fileName = file.name?.toLowerCase() || "(kein Name)";
-    const fileType = file.type?.toLowerCase() || "(kein Typ)";
+    const fileName = file.name?.toLowerCase() || t("demoUpload.noName");
+    const fileType = file.type?.toLowerCase() || t("demoUpload.noType");
     const fileSize = file.size;
     const diagPrefix = `[${fileType} · ${(fileSize / 1024).toFixed(0)}KB · ${fileName.slice(-20)}]`;
 
     if (fileType.includes("heic") || fileType.includes("heif") || fileName.endsWith(".heic") || fileName.endsWith(".heif")) {
-      setErrorMsg(`HEIC/HEIF wird nicht unterstützt. ${diagPrefix} Bitte iPhone-Einstellungen → Kamera → Formate → 'Maximale Kompatibilität' wählen.`);
+      setErrorMsg(t("demoUpload.errHeic", { diag: diagPrefix }));
       setStatus("error");
       return;
     }
@@ -73,18 +77,18 @@ const DemoUpload = () => {
         if (res.status === 410) {
           setStatus("expired");
         } else if (res.status === 409) {
-          setErrorMsg(`Dieser QR-Code wurde bereits verwendet. ${diagPrefix}`);
+          setErrorMsg(t("demoUpload.errAlreadyUsed", { diag: diagPrefix }));
           setStatus("error");
         } else {
-          const serverMsg = data?.error || data?.message || rawText.slice(0, 120) || "(leere Antwort)";
-          setErrorMsg(`HTTP ${res.status} · ${serverMsg} ${diagPrefix} → ${API_BASE}`);
+          const serverMsg = data?.error || data?.message || rawText.slice(0, 120) || t("demoUpload.errEmpty");
+          setErrorMsg(t("demoUpload.errHttp", { status: res.status, msg: serverMsg, diag: diagPrefix, api: API_BASE }));
           setStatus("error");
         }
         return;
       }
       setStatus("done");
     } catch (e: any) {
-      setErrorMsg(`Netzwerkfehler: ${e?.message || "unbekannt"} ${diagPrefix} → ${API_BASE}`);
+      setErrorMsg(t("demoUpload.errNetwork", { msg: e?.message || t("demoUpload.errUnknown"), diag: diagPrefix, api: API_BASE }));
       setStatus("error");
     }
   };
@@ -97,39 +101,56 @@ const DemoUpload = () => {
           <Sparkles className="h-3 w-3" />
           DERM247 · Demo
         </div>
-        <h1 className="mt-3 text-xl font-semibold text-foreground">Foto hochladen</h1>
+        <h1 className="mt-3 text-xl font-semibold text-foreground">{t("demoUpload.title")}</h1>
         <p className="mt-1 text-xs text-muted-foreground">
-          Nur für die Demo · Bild wird nach Übertragung sofort gelöscht
+          {t("demoUpload.subtitle")}
         </p>
+
+        {/* Language flags */}
+        <div className="mt-3 inline-flex items-center gap-0.5 rounded-full border border-border bg-card/80 px-1 py-0.5 backdrop-blur">
+          {SUPPORTED_LANGUAGES.map((lang) => (
+            <button
+              key={lang.code}
+              onClick={() => i18n.changeLanguage(lang.code)}
+              className={`text-xs px-1.5 py-0.5 rounded-full transition-colors ${
+                i18n.language === lang.code ? "bg-primary/10" : "opacity-50 hover:opacity-100"
+              }`}
+              title={lang.label}
+              aria-label={lang.label}
+            >
+              <LanguageFlag code={lang.code} />
+            </button>
+          ))}
+        </div>
       </header>
 
       <main className="flex-1 px-4 pb-8 flex flex-col items-center justify-center">
         {status === "invalid" && (
-          <Card icon={<AlertCircle className="h-8 w-8 text-destructive" />} title="Ungültiger Link">
-            Dieser QR-Code ist nicht (mehr) gültig. Bitte zurück zur Demo gehen und einen neuen Code generieren.
+          <Card icon={<AlertCircle className="h-8 w-8 text-destructive" />} title={t("demoUpload.invalidTitle")}>
+            {t("demoUpload.invalidBody")}
           </Card>
         )}
 
         {status === "expired" && (
-          <Card icon={<AlertCircle className="h-8 w-8 text-clinical-warning" />} title="Link abgelaufen">
-            Der QR-Code ist abgelaufen (15 min). Bitte einen neuen QR-Code in der Demo generieren.
+          <Card icon={<AlertCircle className="h-8 w-8 text-clinical-warning" />} title={t("demoUpload.expiredTitle")}>
+            {t("demoUpload.expiredBody")}
           </Card>
         )}
 
         {status === "done" && (
-          <Card icon={<CheckCircle2 className="h-8 w-8 text-clinical-success" />} title="Foto erfolgreich übertragen">
-            Sie können jetzt zum Computer zurückkehren — das Bild erscheint dort in wenigen Sekunden.
+          <Card icon={<CheckCircle2 className="h-8 w-8 text-clinical-success" />} title={t("demoUpload.doneTitle")}>
+            {t("demoUpload.doneBody")}
             {preview && (
-              <img src={preview} alt="Hochgeladen" className="mt-4 mx-auto max-h-48 rounded-lg border border-border" />
+              <img src={preview} alt={t("demoUpload.uploadedAlt")} className="mt-4 mx-auto max-h-48 rounded-lg border border-border" />
             )}
           </Card>
         )}
 
         {status === "uploading" && (
-          <Card icon={<Loader2 className="h-8 w-8 animate-spin text-primary" />} title="Wird übertragen…">
-            Bitte einen Moment — Ihr Foto wird sicher hochgeladen.
+          <Card icon={<Loader2 className="h-8 w-8 animate-spin text-primary" />} title={t("demoUpload.uploadingTitle")}>
+            {t("demoUpload.uploadingBody")}
             {preview && (
-              <img src={preview} alt="Vorschau" className="mt-4 mx-auto max-h-48 rounded-lg border border-border opacity-60" />
+              <img src={preview} alt={t("demoUpload.previewAlt")} className="mt-4 mx-auto max-h-48 rounded-lg border border-border opacity-60" />
             )}
           </Card>
         )}
@@ -147,7 +168,7 @@ const DemoUpload = () => {
               onClick={() => cameraRef.current?.click()}
             >
               <Camera className="h-6 w-6" />
-              Foto aufnehmen
+              {t("demoUpload.takePhoto")}
             </Button>
             <Button
               size="lg"
@@ -156,10 +177,10 @@ const DemoUpload = () => {
               onClick={() => galleryRef.current?.click()}
             >
               <Images className="h-6 w-6" />
-              Aus Galerie wählen
+              {t("demoUpload.fromGallery")}
             </Button>
             <p className="text-center text-[11px] text-muted-foreground pt-2">
-              Das Bild wird direkt an den Desktop übertragen und danach sofort vom Server gelöscht
+              {t("demoUpload.deleteHint")}
             </p>
           </div>
         )}
@@ -182,7 +203,7 @@ const DemoUpload = () => {
       </main>
 
       <footer className="px-4 py-4 text-center text-[10px] text-muted-foreground">
-        Powered by DERM247 · Demo-Modus
+        {t("demoUpload.footer")}
       </footer>
     </div>
   );
