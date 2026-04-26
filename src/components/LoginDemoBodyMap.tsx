@@ -851,6 +851,122 @@ export const LoginDemoBodyMap = () => {
         </div>
       )}
 
+      {/* Zone-Info-Dialog (Zone-Modus in der Demo deaktiviert) */}
+      {zoneInfoOpen && (
+        <div
+          className="absolute inset-0 z-40 flex items-center justify-center bg-background/70 backdrop-blur-sm p-4 overflow-y-auto"
+          onClick={() => setZoneInfoOpen(false)}
+        >
+          <div
+            className="w-full max-w-md rounded-2xl border border-border bg-card p-5 shadow-2xl my-auto"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-start gap-3">
+              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-primary/10">
+                <ScanSearch className="h-5 w-5 text-primary" />
+              </div>
+              <div className="flex-1">
+                <h3 className="text-sm font-semibold text-foreground">
+                  Zonen-Aufnahme — exklusiv für Lizenznehmer
+                </h3>
+                <p className="mt-1 text-[11px] text-muted-foreground">
+                  In der Demo nur Spot-Markierung möglich
+                </p>
+              </div>
+            </div>
+
+            <div className="mt-4 space-y-3 text-xs leading-relaxed text-foreground/90">
+              <p>
+                Mit der <strong>Zonen-Funktion</strong> fotografieren Sie zunächst eine
+                ganze Körperregion (z. B. den Rücken). Auf dieser Übersichtsaufnahme
+                markieren Sie anschließend einzelne Hautstellen direkt im Bild und
+                ordnen sie automatisch der korrekten anatomischen Position zu.
+              </p>
+
+              {/* Beispielbild mit eingezeichneten Spots */}
+              <div className="relative overflow-hidden rounded-lg border border-border bg-muted">
+                <img
+                  src={demoZoneBack}
+                  alt="Beispiel: Zone Rücken mit markierten Hautstellen"
+                  className="block w-full h-auto select-none"
+                  draggable={false}
+                />
+                <DemoWatermark size="sm" />
+                {[
+                  { x: 22, y: 30, c: "naevus", n: "1" },
+                  { x: 41, y: 18, c: "melanoma_suspect", n: "2" },
+                  { x: 58, y: 42, c: "naevus", n: "3" },
+                  { x: 30, y: 70, c: "bcc", n: "4" },
+                ].map((s) => {
+                  const color = LESION_CLASSIFICATIONS[s.c as LesionClassification].color;
+                  return (
+                    <div
+                      key={s.n}
+                      className="absolute z-30 -translate-x-1/2 -translate-y-1/2"
+                      style={{ left: `${s.x}%`, top: `${s.y}%` }}
+                    >
+                      <div
+                        className="flex h-6 w-6 items-center justify-center rounded-full text-[10px] font-bold text-white shadow-lg ring-2 ring-white/90"
+                        style={{ backgroundColor: color }}
+                      >
+                        {s.n}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+              <p className="text-[10px] text-muted-foreground italic text-center -mt-1">
+                Beispiel: Übersichtsfoto „Rücken" mit 4 markierten Hautstellen
+              </p>
+
+              <div className="rounded-md border border-primary/20 bg-primary/5 p-2.5 space-y-2">
+                <div className="flex items-start gap-2">
+                  <span className="mt-0.5 flex h-4 w-4 shrink-0 items-center justify-center rounded-full bg-primary text-[9px] font-bold text-primary-foreground">1</span>
+                  <span className="text-[11px]">
+                    <strong>Zone aufnehmen:</strong> Foto der Körperregion (z. B.
+                    Rücken, Brust, Bein) erstellen oder hochladen.
+                  </span>
+                </div>
+                <div className="flex items-start gap-2">
+                  <span className="mt-0.5 flex h-4 w-4 shrink-0 items-center justify-center rounded-full bg-primary text-[9px] font-bold text-primary-foreground">2</span>
+                  <span className="text-[11px]">
+                    <strong>Spots im Foto markieren:</strong> Direkt auf der
+                    Übersichtsaufnahme einzelne Hautstellen antippen — jede wird zu
+                    einem eigenen Spot mit eigener Verlaufsdokumentation.
+                  </span>
+                </div>
+                <div className="flex items-start gap-2">
+                  <span className="mt-0.5 flex h-4 w-4 shrink-0 items-center justify-center rounded-full bg-primary text-[9px] font-bold text-primary-foreground">3</span>
+                  <span className="text-[11px]">
+                    <strong>Detailaufnahmen ergänzen:</strong> Pro Spot dermatoskopische
+                    Nahaufnahmen hinzufügen und Verlauf über Monate/Jahre vergleichen.
+                  </span>
+                </div>
+              </div>
+
+              <p className="text-[11px] text-muted-foreground">
+                Vorteil: Anatomischer Gesamtüberblick — Sie wissen jederzeit, welcher
+                Spot wo am Körper sitzt.
+              </p>
+            </div>
+
+            <p className="mt-4 text-[11px] text-muted-foreground">
+              In dieser Demo können Sie ausschließlich <strong>Spots</strong> direkt am
+              3D-Modell setzen.
+            </p>
+
+            <Button
+              size="sm"
+              className="mt-4 w-full"
+              onClick={() => setZoneInfoOpen(false)}
+            >
+              Verstanden
+            </Button>
+          </div>
+        </div>
+      )}
+
+
 
       {lightboxSpotId !== null && (() => {
         const spot = spots.find((s) => s.id === lightboxSpotId);
