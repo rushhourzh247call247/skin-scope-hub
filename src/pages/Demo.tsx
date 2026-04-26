@@ -65,6 +65,17 @@ const Demo = () => {
         <div className="hidden sm:block text-[10px] text-muted-foreground tracking-wider">
           {t("demo.tagline2")}
         </div>
+        <div className="mt-0.5 text-[9px] text-muted-foreground/60 tracking-wide">
+          © {new Date().getFullYear()} DERM247 · designed by{" "}
+          <a
+            href="https://www.techassist.ch"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="hover:text-muted-foreground transition-colors"
+          >
+            techassist.ch
+          </a>
+        </div>
       </footer>
     </div>
   );
