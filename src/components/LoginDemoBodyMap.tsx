@@ -772,7 +772,79 @@ export const LoginDemoBodyMap = () => {
         </div>
       )}
 
-      {/* Foto-Lightbox: Klick aufs Thumbnail zeigt Foto groß + Aktionen */}
+      {/* QR-Info-Dialog (nur Lizenz-Hinweis in der Demo) */}
+      {qrInfoOpen && (
+        <div
+          className="absolute inset-0 z-40 flex items-center justify-center bg-background/60 backdrop-blur-sm p-4"
+          onClick={() => setQrInfoOpen(false)}
+        >
+          <div
+            className="w-full max-w-sm rounded-2xl border border-border bg-card p-5 shadow-2xl"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-start gap-3">
+              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-primary/10">
+                <QrCode className="h-5 w-5 text-primary" />
+              </div>
+              <div className="flex-1">
+                <h3 className="text-sm font-semibold text-foreground">
+                  QR-Foto-Upload — exklusiv für Lizenznehmer
+                </h3>
+                <p className="mt-1 text-[11px] text-muted-foreground">
+                  Funktion der Vollversion von DERM247
+                </p>
+              </div>
+            </div>
+
+            <div className="mt-4 space-y-3 text-xs leading-relaxed text-foreground/90">
+              <p>
+                In der lizenzierten DERM247-Umgebung scannen Sie den QR-Code mit dem
+                Smartphone und übertragen Aufnahmen <strong>direkt in die zuvor angelegte
+                Hautstelle</strong> der jeweiligen Patientenakte.
+              </p>
+              <div className="rounded-md border border-primary/20 bg-primary/5 p-2.5">
+                <div className="flex items-start gap-2">
+                  <Check className="mt-0.5 h-3.5 w-3.5 shrink-0 text-primary" />
+                  <span className="text-[11px]">
+                    <strong>Zuordnungssicher:</strong> Fotos landen ausschließlich beim
+                    selektierten Spot des korrekten Patienten — Verwechslungen sind
+                    technisch ausgeschlossen.
+                  </span>
+                </div>
+              </div>
+              <div className="flex items-start gap-2">
+                <Check className="mt-0.5 h-3.5 w-3.5 shrink-0 text-primary" />
+                <span className="text-[11px] text-muted-foreground">
+                  Verschlüsselte Übertragung, Einmal-Token, automatische Löschung nach
+                  Übernahme — DSG-/DSGVO-konform.
+                </span>
+              </div>
+              <div className="flex items-start gap-2">
+                <Check className="mt-0.5 h-3.5 w-3.5 shrink-0 text-primary" />
+                <span className="text-[11px] text-muted-foreground">
+                  Kein App-Download, keine Drittanbieter — Smartphone fungiert als
+                  sterile Aufnahmestation.
+                </span>
+              </div>
+            </div>
+
+            <p className="mt-4 text-[11px] text-muted-foreground">
+              In dieser Demo nutzen Sie bitte <strong>Kamera</strong> oder
+              <strong> Galerie</strong>, um Aufnahmen hinzuzufügen.
+            </p>
+
+            <Button
+              size="sm"
+              className="mt-4 w-full"
+              onClick={() => setQrInfoOpen(false)}
+            >
+              Verstanden
+            </Button>
+          </div>
+        </div>
+      )}
+
+
       {lightboxSpotId !== null && (() => {
         const spot = spots.find((s) => s.id === lightboxSpotId);
         if (!spot || spot.photos.length === 0) return null;
