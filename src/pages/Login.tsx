@@ -117,7 +117,7 @@ const Login = () => {
   };
 
   return (
-    <div className="flex min-h-screen flex-col items-center bg-background px-4 pt-6 pb-8 sm:justify-center sm:py-8">
+    <div className="flex min-h-screen flex-col items-center bg-background px-4 pt-16 pb-8 sm:justify-center sm:py-8">
       <div className="w-full max-w-sm">
         <Card className="w-full border-0 shadow-none sm:border sm:shadow-sm">
         <CardHeader className="text-center">
@@ -222,12 +222,6 @@ const Login = () => {
             <ArrowRight className="h-3 w-3" />
           </Link>
 
-          <p className="mt-3 text-center text-[9px] text-muted-foreground/50">
-            designed by{" "}
-            <a href="https://www.techassist.ch" target="_blank" rel="noopener noreferrer" className="font-medium hover:text-muted-foreground transition-colors">
-              techassist.ch
-            </a>
-          </p>
         </CardContent>
       </Card>
       </div>
@@ -239,6 +233,17 @@ const Login = () => {
         </div>
         <div className="text-[10px] text-muted-foreground tracking-wider">
           {t("demo.tagline2")}
+        </div>
+        <div className="mt-2 text-[10px] text-muted-foreground/60 tracking-wide">
+          © {new Date().getFullYear()} DERM247 · designed by{" "}
+          <a
+            href="https://www.techassist.ch"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="hover:text-muted-foreground transition-colors"
+          >
+            techassist.ch
+          </a>
         </div>
       </div>
     </div>
