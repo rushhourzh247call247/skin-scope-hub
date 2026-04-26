@@ -1117,7 +1117,7 @@ export const LoginDemoBodyMap = () => {
                       : "text-muted-foreground",
                   )}
                 >
-                  Nebeneinander
+                  {t("demo.sideBySide")}
                 </button>
                 <button
                   onClick={() => {
@@ -1132,7 +1132,7 @@ export const LoginDemoBodyMap = () => {
                       : "text-muted-foreground",
                   )}
                 >
-                  KI-Ausrichtung
+                  {t("demo.aiAlign")}
                 </button>
                 <button
                   onClick={() => setCompareMode("overlay")}
@@ -1143,7 +1143,7 @@ export const LoginDemoBodyMap = () => {
                       : "text-muted-foreground",
                   )}
                 >
-                  Überlagern
+                  {t("demo.overlay")}
                 </button>
               </div>
 
