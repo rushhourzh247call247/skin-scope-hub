@@ -112,7 +112,10 @@ export default function ContactInquiries() {
     }
     setSending(true);
     try {
-      const res = await api.replyToContactRequest(selected.id, parsed.data);
+      const res = await api.replyToContactRequest(selected.id, {
+        subject: parsed.data.subject,
+        body: parsed.data.body,
+      });
       toast.success("Antwort versendet");
       setSelected(res.contact);
       setBody("");
