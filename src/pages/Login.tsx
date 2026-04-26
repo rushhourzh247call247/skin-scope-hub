@@ -235,6 +235,19 @@ const Login = () => {
         <div className="text-[10px] text-muted-foreground tracking-wider">
           {t("demo.tagline2")}
         </div>
+        <div className="mt-3">
+          <ContactDialog
+            trigger={
+              <button
+                type="button"
+                className="inline-flex items-center gap-1.5 rounded-full border border-border/60 bg-card/40 px-3 py-1 text-[11px] text-muted-foreground hover:text-foreground hover:border-border hover:bg-card transition-colors"
+              >
+                <Mail className="h-3 w-3" />
+                {t("contact.footerLink")}
+              </button>
+            }
+          />
+        </div>
         <div className="mt-2 text-[10px] text-muted-foreground/60 tracking-wide">
           © {new Date().getFullYear()} DERM247 · designed by{" "}
           <a
