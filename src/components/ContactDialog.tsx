@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
+import i18n from "@/i18n";
 import { z } from "zod";
 import { toast } from "sonner";
 import { Mail, Send, Loader2, MailCheck } from "lucide-react";
@@ -124,6 +125,8 @@ export function ContactDialog({ trigger }: ContactDialogProps) {
         // Bot-Schutz-Signale auch ans Backend (Defense-in-Depth)
         website: form.website,
         elapsed_ms: elapsed,
+        // Sprache für lokalisierte Bestätigungsmail
+        locale: (i18n.language || "de").split("-")[0],
       });
       setSubmitted(true);
     } catch (err: any) {
