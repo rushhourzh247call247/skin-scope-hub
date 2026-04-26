@@ -117,11 +117,12 @@ class DemoUploadController extends Controller {
         Storage::disk('local')->put("demo/{$filename}", (string) $img);
 
         DB::table('demo_uploads')->where('token', $token)->update([
-            'file_path'   => "demo/{$filename}",
-            'mime_type'   => 'image/jpeg',
-            'size_bytes'  => Storage::disk('local')->size("demo/{$filename}"),
-            'uploaded_at' => now(),
-            'updated_at'  => now(),
+            'file_path'    => "demo/{$filename}",
+            'mime_type'    => 'image/jpeg',
+            'size_bytes'   => Storage::disk('local')->size("demo/{$filename}"),
+            'uploaded_at'  => now(),
+            'delete_after' => now()->addMinutes(15), // Safety-Net: max. 15min auf Server falls Desktop nie abholt
+            'updated_at'   => now(),
         ]);
         return response()->json(['status' => 'ok']);
     }
