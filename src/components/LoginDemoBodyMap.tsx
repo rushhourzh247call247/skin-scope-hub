@@ -862,27 +862,24 @@ export const LoginDemoBodyMap = () => {
               </div>
               <div className="flex-1">
                 <h3 className="text-sm font-semibold text-foreground">
-                  Zonen-Aufnahme — exklusiv für Lizenznehmer
+                  {t("demo.zoneInfoTitle")}
                 </h3>
                 <p className="mt-1 text-[11px] text-muted-foreground">
-                  In der Demo nur Spot-Markierung möglich
+                  {t("demo.zoneInfoSubtitle")}
                 </p>
               </div>
             </div>
 
             <div className="mt-4 space-y-3 text-xs leading-relaxed text-foreground/90">
               <p>
-                Mit der <strong>Zonen-Funktion</strong> fotografieren Sie zunächst eine
-                ganze Körperregion (z. B. den Rücken). Auf dieser Übersichtsaufnahme
-                markieren Sie anschließend einzelne Hautstellen direkt im Bild und
-                ordnen sie automatisch der korrekten anatomischen Position zu.
+                <Trans i18nKey="demo.zoneInfoIntro" components={{ 1: <strong /> }} />
               </p>
 
               {/* Beispielbild mit eingezeichneten Spots */}
               <div className="relative overflow-hidden rounded-lg border border-border bg-muted">
                 <img
                   src={demoZoneBack}
-                  alt="Beispiel: Zone Rücken mit markierten Hautstellen"
+                  alt={t("demo.zoneImageAlt")}
                   className="block w-full h-auto select-none"
                   draggable={false}
                 />
@@ -911,43 +908,37 @@ export const LoginDemoBodyMap = () => {
                 })}
               </div>
               <p className="text-[10px] text-muted-foreground italic text-center -mt-1">
-                Beispiel: Übersichtsfoto „Rücken" mit 4 markierten Hautstellen
+                {t("demo.zoneImageCaption")}
               </p>
 
               <div className="rounded-md border border-primary/20 bg-primary/5 p-2.5 space-y-2">
                 <div className="flex items-start gap-2">
                   <span className="mt-0.5 flex h-4 w-4 shrink-0 items-center justify-center rounded-full bg-primary text-[9px] font-bold text-primary-foreground">1</span>
                   <span className="text-[11px]">
-                    <strong>Zone aufnehmen:</strong> Foto der Körperregion (z. B.
-                    Rücken, Brust, Bein) erstellen oder hochladen.
+                    <Trans i18nKey="demo.zoneStep1" components={{ 1: <strong /> }} />
                   </span>
                 </div>
                 <div className="flex items-start gap-2">
                   <span className="mt-0.5 flex h-4 w-4 shrink-0 items-center justify-center rounded-full bg-primary text-[9px] font-bold text-primary-foreground">2</span>
                   <span className="text-[11px]">
-                    <strong>Spots im Foto markieren:</strong> Direkt auf der
-                    Übersichtsaufnahme einzelne Hautstellen antippen — jede wird zu
-                    einem eigenen Spot mit eigener Verlaufsdokumentation.
+                    <Trans i18nKey="demo.zoneStep2" components={{ 1: <strong /> }} />
                   </span>
                 </div>
                 <div className="flex items-start gap-2">
                   <span className="mt-0.5 flex h-4 w-4 shrink-0 items-center justify-center rounded-full bg-primary text-[9px] font-bold text-primary-foreground">3</span>
                   <span className="text-[11px]">
-                    <strong>Detailaufnahmen ergänzen:</strong> Pro Spot dermatoskopische
-                    Nahaufnahmen hinzufügen und Verlauf über Monate/Jahre vergleichen.
+                    <Trans i18nKey="demo.zoneStep3" components={{ 1: <strong /> }} />
                   </span>
                 </div>
               </div>
 
               <p className="text-[11px] text-muted-foreground">
-                Vorteil: Anatomischer Gesamtüberblick — Sie wissen jederzeit, welcher
-                Spot wo am Körper sitzt.
+                {t("demo.zoneAdvantage")}
               </p>
             </div>
 
             <p className="mt-4 text-[11px] text-muted-foreground">
-              In dieser Demo können Sie ausschließlich <strong>Spots</strong> direkt am
-              3D-Modell setzen.
+              <Trans i18nKey="demo.zoneDemoNote" components={{ 1: <strong /> }} />
             </p>
 
             <Button
@@ -955,7 +946,7 @@ export const LoginDemoBodyMap = () => {
               className="mt-4 w-full"
               onClick={() => setZoneInfoOpen(false)}
             >
-              Verstanden
+              {t("demo.understood")}
             </Button>
           </div>
         </div>
