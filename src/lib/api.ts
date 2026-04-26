@@ -287,6 +287,19 @@ export const api = {
       { method: 'GET' },
     ),
 
+  // Admin: Kontaktanfragen
+  getContactRequests: () =>
+    request<import('@/types/contactRequest').ContactRequest[]>('/admin/contact-requests'),
+  getContactRequest: (id: number) =>
+    request<import('@/types/contactRequest').ContactRequest>(`/admin/contact-requests/${id}`),
+  replyToContactRequest: (id: number, data: { subject: string; body: string }) =>
+    request<{ success: boolean; contact: import('@/types/contactRequest').ContactRequest }>(
+      `/admin/contact-requests/${id}/reply`,
+      { method: 'POST', body: JSON.stringify(data) },
+    ),
+  deleteContactRequest: (id: number) =>
+    request<{ success: boolean }>(`/admin/contact-requests/${id}`, { method: 'DELETE' }),
+
   // Admin: Companies
   getCompanies: () => request<any[]>('/companies'),
   createCompany: (data: { name: string }) =>

@@ -30,6 +30,7 @@ import FinanceCompanies from "./pages/FinanceCompanies";
 import FinanceCompanyDetail from "./pages/FinanceCompanyDetail";
 import FinanceContracts from "./pages/FinanceContracts";
 import ServerAdmin from "./pages/ServerAdmin";
+import ContactInquiries from "./pages/ContactInquiries";
 import { isServerAdminAvailable } from "@/lib/environment";
 
 const queryClient = new QueryClient({
@@ -98,6 +99,7 @@ const App = () => (
             <Route path="/finance/companies/:id" element={<ProtectedPage><FinanceRoute><FinanceCompanyDetail /></FinanceRoute></ProtectedPage>} />
             <Route path="/finance/contracts" element={<ProtectedPage><FinanceRoute><FinanceContracts /></FinanceRoute></ProtectedPage>} />
             <Route path="/server-admin" element={isServerAdminAvailable() ? <ProtectedPage><AdminRoute><ServerAdmin /></AdminRoute></ProtectedPage> : <Navigate to="/" replace />} />
+            <Route path="/contact-inquiries" element={<ProtectedPage><AdminRoute><ContactInquiries /></AdminRoute></ProtectedPage>} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>
