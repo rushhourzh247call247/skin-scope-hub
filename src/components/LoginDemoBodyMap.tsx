@@ -797,49 +797,42 @@ export const LoginDemoBodyMap = () => {
               </div>
               <div className="flex-1">
                 <h3 className="text-sm font-semibold text-foreground">
-                  QR-Foto-Upload — exklusiv für Lizenznehmer
+                  {t("demo.qrInfoTitle")}
                 </h3>
                 <p className="mt-1 text-[11px] text-muted-foreground">
-                  Funktion der Vollversion von DERM247
+                  {t("demo.qrInfoSubtitle")}
                 </p>
               </div>
             </div>
 
             <div className="mt-4 space-y-3 text-xs leading-relaxed text-foreground/90">
               <p>
-                In der lizenzierten DERM247-Umgebung scannen Sie den QR-Code mit dem
-                Smartphone und übertragen Aufnahmen <strong>direkt in die zuvor angelegte
-                Hautstelle</strong> der jeweiligen Patientenakte.
+                <Trans i18nKey="demo.qrInfoIntro" components={{ 1: <strong /> }} />
               </p>
               <div className="rounded-md border border-primary/20 bg-primary/5 p-2.5">
                 <div className="flex items-start gap-2">
                   <Check className="mt-0.5 h-3.5 w-3.5 shrink-0 text-primary" />
                   <span className="text-[11px]">
-                    <strong>Zuordnungssicher:</strong> Fotos landen ausschließlich beim
-                    selektierten Spot des korrekten Patienten — Verwechslungen sind
-                    technisch ausgeschlossen.
+                    <Trans i18nKey="demo.qrInfoBenefit1" components={{ 1: <strong /> }} />
                   </span>
                 </div>
               </div>
               <div className="flex items-start gap-2">
                 <Check className="mt-0.5 h-3.5 w-3.5 shrink-0 text-primary" />
                 <span className="text-[11px] text-muted-foreground">
-                  Verschlüsselte Übertragung, Einmal-Token, automatische Löschung nach
-                  Übernahme — DSG-/DSGVO-konform.
+                  {t("demo.qrInfoBenefit2")}
                 </span>
               </div>
               <div className="flex items-start gap-2">
                 <Check className="mt-0.5 h-3.5 w-3.5 shrink-0 text-primary" />
                 <span className="text-[11px] text-muted-foreground">
-                  Kein App-Download, keine Drittanbieter — Smartphone fungiert als
-                  sterile Aufnahmestation.
+                  {t("demo.qrInfoBenefit3")}
                 </span>
               </div>
             </div>
 
             <p className="mt-4 text-[11px] text-muted-foreground">
-              In dieser Demo nutzen Sie bitte <strong>Kamera</strong> oder
-              <strong> Galerie</strong>, um Aufnahmen hinzuzufügen.
+              <Trans i18nKey="demo.qrInfoFooter" components={{ 1: <strong />, 3: <strong /> }} />
             </p>
 
             <Button
@@ -847,7 +840,7 @@ export const LoginDemoBodyMap = () => {
               className="mt-4 w-full"
               onClick={() => setQrInfoOpen(false)}
             >
-              Verstanden
+              {t("demo.understood")}
             </Button>
           </div>
         </div>
