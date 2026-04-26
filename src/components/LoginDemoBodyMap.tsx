@@ -3,9 +3,10 @@ import BodyMap3D from "@/components/BodyMap3D";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { LESION_CLASSIFICATIONS, type LesionClassification, type Gender } from "@/types/patient";
-import { RotateCcw, Sparkles, MousePointerClick, Upload, QrCode, Camera, X, Image as ImageIcon, Check, Loader2, Smartphone, Plus, GitCompareArrows } from "lucide-react";
+import { RotateCcw, Sparkles, MousePointerClick, Upload, QrCode, Camera, X, Image as ImageIcon, Check, Loader2, Smartphone, Plus, GitCompareArrows, ScanSearch } from "lucide-react";
 import { QRCodeSVG } from "qrcode.react";
 import { cn } from "@/lib/utils";
+import demoZoneBack from "@/assets/demo-zone-back.jpg";
 
 // Wasserzeichen-Overlay für alle Demo-Bilder (verhindert kostenfreie Nutzung)
 function DemoWatermark({ size = "md" }: { size?: "sm" | "md" | "lg" }) {
@@ -143,6 +144,7 @@ export const LoginDemoBodyMap = () => {
   const [qrError, setQrError] = useState<string | null>(null);
   const [qrPolling, setQrPolling] = useState(false);
   const [qrInfoOpen, setQrInfoOpen] = useState(false);
+  const [zoneInfoOpen, setZoneInfoOpen] = useState(false);
   const [hasInteracted, setHasInteracted] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const cameraInputRef = useRef<HTMLInputElement>(null);
@@ -157,6 +159,11 @@ export const LoginDemoBodyMap = () => {
       point3d?: [number, number, number],
       normal3d?: [number, number, number],
     ) => {
+      // Zone-Modus ist in der Demo deaktiviert — stattdessen Info-Dialog zeigen
+      if (_markType === "zone") {
+        setZoneInfoOpen(true);
+        return;
+      }
       setHasInteracted(true);
       const newSpot: DemoSpot = {
         id: Date.now(),
