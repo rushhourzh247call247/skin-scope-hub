@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
+import i18n from "@/i18n";
 import { z } from "zod";
 import { toast } from "sonner";
 import { Mail, Send, Loader2, MailCheck } from "lucide-react";
