@@ -983,13 +983,13 @@ export const LoginDemoBodyMap = () => {
                     </span>
                   </div>
                   <p className="text-[10px] text-muted-foreground">
-                    Foto {safeIdx + 1} von {spot.photos.length}
+                    {t("demo.lightboxPhotoOf", { current: safeIdx + 1, total: spot.photos.length })}
                   </p>
                 </div>
                 <button
                   onClick={() => setLightboxSpotId(null)}
                   className="rounded-full p-1 text-muted-foreground hover:bg-muted hover:text-foreground"
-                  aria-label="Schließen"
+                  aria-label={t("demo.close")}
                 >
                   <X className="h-4 w-4" />
                 </button>
@@ -997,7 +997,7 @@ export const LoginDemoBodyMap = () => {
 
               {/* Großes Foto */}
               <div className="relative aspect-square w-full overflow-hidden rounded-lg border border-border bg-muted/20">
-                <img src={photo} alt={`Foto ${safeIdx + 1}`} className="h-full w-full object-cover" />
+                <img src={photo} alt={t("demo.demoPhotoAlt", { n: safeIdx + 1 })} className="h-full w-full object-cover" />
                 <DemoWatermark size="md" />
                 <span className="absolute left-2 top-2 z-30 rounded-md bg-background/85 px-2 py-0.5 text-[11px] font-bold">
                   {safeIdx + 1} / {spot.photos.length}
@@ -1016,7 +1016,7 @@ export const LoginDemoBodyMap = () => {
                         safeIdx === i ? "border-primary" : "border-transparent opacity-60 hover:opacity-100",
                       )}
                     >
-                      <img src={spot.photos[i]} alt={`Vorschau ${i + 1}`} className="h-full w-full object-cover" />
+                      <img src={spot.photos[i]} alt={t("demo.previewN", { n: i + 1 })} className="h-full w-full object-cover" />
                     </button>
                   ))}
                 </div>
@@ -1038,7 +1038,7 @@ export const LoginDemoBodyMap = () => {
                   )}
                 >
                   <Plus className="h-3.5 w-3.5" />
-                  Weiteres Foto
+                  {t("demo.morePhoto")}
                 </button>
                 <button
                   onClick={() => {
@@ -1054,16 +1054,16 @@ export const LoginDemoBodyMap = () => {
                       ? "cursor-not-allowed opacity-50"
                       : "hover:border-primary hover:bg-primary/5",
                   )}
-                  title={canCompare ? "Verlauf vergleichen" : "Mindestens 2 Fotos nötig"}
+                  title={canCompare ? t("demo.compareProgress") : t("demo.compareNeed2")}
                 >
                   <GitCompareArrows className="h-3.5 w-3.5" />
-                  Vergleichen
+                  {t("demo.compare")}
                 </button>
               </div>
 
               {!canCompare && (
                 <p className="mt-2 text-center text-[10px] text-muted-foreground">
-                  Fügen Sie ein weiteres Foto hinzu, um den Verlauf zu vergleichen
+                  {t("demo.addPhotoToCompare")}
                 </p>
               )}
             </div>
@@ -1092,7 +1092,7 @@ export const LoginDemoBodyMap = () => {
             >
               <div className="mb-3 flex items-center justify-between">
                 <div>
-                  <div className="text-sm font-semibold text-foreground">Foto-Vergleich</div>
+                  <div className="text-sm font-semibold text-foreground">{t("demo.photoCompare")}</div>
                   <p className="text-[10px] text-muted-foreground">
                     {LESION_CLASSIFICATIONS[spot.classification].label} · Demo
                   </p>
@@ -1100,7 +1100,7 @@ export const LoginDemoBodyMap = () => {
                 <button
                   onClick={() => setCompareSpotId(null)}
                   className="rounded-full p-1 text-muted-foreground hover:bg-muted hover:text-foreground"
-                  aria-label="Schließen"
+                  aria-label={t("demo.close")}
                 >
                   <X className="h-4 w-4" />
                 </button>
@@ -1151,7 +1151,7 @@ export const LoginDemoBodyMap = () => {
               {spot.photos.length > 2 && (
                 <div className="mb-3 grid grid-cols-2 gap-2 text-[10px]">
                   <div>
-                    <div className="mb-1 font-medium text-muted-foreground">Foto A</div>
+                    <div className="mb-1 font-medium text-muted-foreground">{t("demo.photoA")}</div>
                     <div className="flex gap-1">
                       {spot.photos.map((_, i) => (
                         <button
@@ -1170,7 +1170,7 @@ export const LoginDemoBodyMap = () => {
                     </div>
                   </div>
                   <div>
-                    <div className="mb-1 font-medium text-muted-foreground">Foto B</div>
+                    <div className="mb-1 font-medium text-muted-foreground">{t("demo.photoB")}</div>
                     <div className="flex gap-1">
                       {spot.photos.map((_, i) => (
                         <button
@@ -1195,14 +1195,14 @@ export const LoginDemoBodyMap = () => {
               {compareMode === "side" && (
                 <div className="grid grid-cols-2 gap-2">
                   <div className="relative aspect-square overflow-hidden rounded-lg border border-border bg-muted/20">
-                    <img src={photoA} alt="Foto A" className="h-full w-full object-cover" />
+                    <img src={photoA} alt={t("demo.photoA")} className="h-full w-full object-cover" />
                     <DemoWatermark size="sm" />
                     <span className="absolute left-1.5 top-1.5 z-30 rounded-md bg-background/80 px-1.5 py-0.5 text-[10px] font-bold">
                       A · {safeA + 1}
                     </span>
                   </div>
                   <div className="relative aspect-square overflow-hidden rounded-lg border border-border bg-muted/20">
-                    <img src={photoB} alt="Foto B" className="h-full w-full object-cover" />
+                    <img src={photoB} alt={t("demo.photoB")} className="h-full w-full object-cover" />
                     <DemoWatermark size="sm" />
                     <span className="absolute left-1.5 top-1.5 z-30 rounded-md bg-background/80 px-1.5 py-0.5 text-[10px] font-bold">
                       B · {safeB + 1}
@@ -1215,7 +1215,7 @@ export const LoginDemoBodyMap = () => {
                 <div className="space-y-2">
                   <div className="grid grid-cols-2 gap-2">
                     <div className="relative aspect-square overflow-hidden rounded-lg border border-border bg-muted/20">
-                      <img src={photoA} alt="Foto A" className="h-full w-full object-cover" />
+                      <img src={photoA} alt={t("demo.photoA")} className="h-full w-full object-cover" />
                       <DemoWatermark size="sm" />
                       <span className="absolute left-1.5 top-1.5 z-30 rounded-md bg-background/80 px-1.5 py-0.5 text-[10px] font-bold">
                         A · {safeA + 1}
@@ -1229,7 +1229,7 @@ export const LoginDemoBodyMap = () => {
                     <div className="relative aspect-square overflow-hidden rounded-lg border border-border bg-muted/20">
                       <img
                         src={photoB}
-                        alt="Foto B (ausgerichtet)"
+                        alt={t("demo.photoB")}
                         className={cn(
                           "h-full w-full object-cover transition-all duration-1000 ease-out",
                           aligning && "scale-110 rotate-3 blur-[1px]",
@@ -1243,20 +1243,20 @@ export const LoginDemoBodyMap = () => {
                         <div className="absolute inset-0 z-30 flex flex-col items-center justify-center gap-1.5 bg-background/40 backdrop-blur-[2px]">
                           <Loader2 className="h-5 w-5 animate-spin text-primary" />
                           <span className="text-[10px] font-semibold text-foreground">
-                            KI richtet aus…
+                            {t("demo.aligning")}
                           </span>
                         </div>
                       ) : (
                         <span className="absolute bottom-1.5 left-1.5 z-30 rounded-md bg-primary/90 px-1.5 py-0.5 text-[9px] font-bold text-primary-foreground">
-                          ✓ Ausgerichtet
+                          {t("demo.aligned")}
                         </span>
                       )}
                     </div>
                   </div>
                   <p className="text-center text-[10px] text-muted-foreground">
                     {aligning
-                      ? "Demo: simulierte Ausrichtung — echte App nutzt OpenCV (Feature-Matching)"
-                      : "Foto B wurde anhand markanter Strukturen auf Foto A ausgerichtet"}
+                      ? t("demo.alignSimNote")
+                      : t("demo.alignDoneNote")}
                   </p>
                 </div>
               )}
@@ -1264,10 +1264,10 @@ export const LoginDemoBodyMap = () => {
               {compareMode === "overlay" && (
                 <div className="space-y-2">
                   <div className="relative aspect-square w-full overflow-hidden rounded-lg border border-border bg-muted/20">
-                    <img src={photoA} alt="Foto A" className="absolute inset-0 h-full w-full object-cover" />
+                    <img src={photoA} alt={t("demo.photoA")} className="absolute inset-0 h-full w-full object-cover" />
                     <img
                       src={photoB}
-                      alt="Foto B"
+                      alt={t("demo.photoB")}
                       className="absolute inset-0 h-full w-full object-cover"
                       style={{ opacity: overlayOpacity / 100 }}
                     />
@@ -1295,7 +1295,7 @@ export const LoginDemoBodyMap = () => {
               )}
 
               <p className="mt-3 text-center text-[10px] text-muted-foreground">
-                In der echten App: präzise Bild-Ausrichtung (OpenCV) und zeitlicher Verlauf
+                {t("demo.realAppNote")}
               </p>
             </div>
           </div>
