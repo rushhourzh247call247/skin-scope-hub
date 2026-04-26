@@ -250,9 +250,9 @@ export const LoginDemoBodyMap = () => {
     try {
       const res = await fetch(`${DEMO_API_BASE}/demo/qr-token`, { method: "POST" });
       if (!res.ok) {
-        if (res.status === 429) throw new Error("Demo-Limit erreicht — bitte 1 Stunde warten.");
-        if (res.status === 404) throw new Error('QR-Upload aktuell nicht verfügbar. Bitte "Kamera" oder "Galerie" verwenden.');
-        throw new Error("Konnte keinen QR-Code erstellen.");
+        if (res.status === 429) throw new Error(t("demo.qrLimitReached"));
+        if (res.status === 404) throw new Error(t("demo.qrUnavailable"));
+        throw new Error(t("demo.qrCreateFailed"));
       }
       const data = await res.json();
       const url = `${FRONTEND_DEMO_DOMAIN}/demo-upload?token=${data.token}`;
@@ -261,8 +261,8 @@ export const LoginDemoBodyMap = () => {
     } catch (e: any) {
       // TypeError = Network/CORS-Fehler (Backend nicht erreichbar)
       const msg = e?.message?.includes("Failed to fetch") || e?.name === "TypeError"
-        ? 'QR-Upload aktuell nicht verfügbar. Bitte "Kamera" oder "Galerie" verwenden.'
-        : (e?.message || "Fehler — Demo-Server nicht erreichbar.");
+        ? t("demo.qrUnavailable")
+        : (e?.message || t("demo.qrServerUnreachable"));
       setQrError(msg);
     } finally {
       setQrLoading(false);
@@ -326,12 +326,12 @@ export const LoginDemoBodyMap = () => {
             // Backend löscht die Datei automatisch nach dem ersten GET /image/{token} (Single-Use)
           } catch (err) {
             console.error("[QR-Demo] image load failed:", err);
-            setQrError("Foto wurde hochgeladen, konnte aber am Desktop nicht geladen werden.");
+            setQrError(t("demo.qrLoadFailed"));
             setQrSession(null);
             handlingCompletion = false;
           }
         } else if (data.status === "expired" || data.status === "invalid") {
-          setQrError("QR-Code abgelaufen. Bitte neu generieren.");
+          setQrError(t("demo.qrExpired"));
           setQrSession(null);
           stopPolling();
         }
@@ -386,7 +386,7 @@ export const LoginDemoBodyMap = () => {
       <div className="relative z-20 flex items-center justify-between gap-2 px-4 pt-4">
         <div className="flex items-center gap-2 rounded-full border border-primary/20 bg-card/90 px-3 py-1.5 text-xs font-medium shadow-sm backdrop-blur-md">
           <Sparkles className="h-3.5 w-3.5 text-primary" />
-          <span>Live Demo</span>
+          <span>{t("demo.badge")}</span>
         </div>
 
         {/* Gender toggle */}
@@ -400,7 +400,7 @@ export const LoginDemoBodyMap = () => {
                 : "text-muted-foreground hover:text-foreground",
             )}
           >
-            ♂ Männlich
+            ♂ {t("demo.male")}
           </button>
           <button
             onClick={() => setGender("female")}
@@ -411,7 +411,7 @@ export const LoginDemoBodyMap = () => {
                 : "text-muted-foreground hover:text-foreground",
             )}
           >
-            ♀ Weiblich
+            ♀ {t("demo.female")}
           </button>
         </div>
 
@@ -421,7 +421,7 @@ export const LoginDemoBodyMap = () => {
             className="flex items-center gap-1.5 rounded-full border border-border bg-card/90 px-3 py-1.5 text-xs font-medium shadow-sm backdrop-blur-md transition-colors hover:bg-card"
           >
             <RotateCcw className="h-3.5 w-3.5" />
-            Reset
+            {t("demo.reset")}
           </button>
         ) : (
           <div className="w-[68px]" />
@@ -432,7 +432,7 @@ export const LoginDemoBodyMap = () => {
       {!hasInteracted && spots.length === 0 && (
         <div className="pointer-events-none absolute left-1/2 top-16 z-20 flex -translate-x-1/2 items-center gap-2 rounded-full border border-primary/30 bg-primary/10 px-4 py-2 text-xs font-medium text-primary shadow-md backdrop-blur-md animate-pulse">
           <MousePointerClick className="h-4 w-4" />
-          <span>Klicken Sie auf den Körper, um eine Hautstelle zu markieren</span>
+          <span>{t("demo.onboardingHint")}</span>
         </div>
       )}
 
@@ -480,12 +480,12 @@ export const LoginDemoBodyMap = () => {
                     }
                   }}
                   className="group relative h-16 w-16 cursor-pointer overflow-hidden rounded-lg border border-border transition-all hover:border-primary hover:ring-2 hover:ring-primary/30"
-                  aria-label={`Foto ${idx + 1} öffnen`}
+                  aria-label={t("demo.openPhoto", { n: idx + 1 })}
                   style={{ touchAction: "manipulation" }}
                 >
                   <img
                     src={photo}
-                    alt={`Demo Foto ${idx + 1}`}
+                    alt={t("demo.demoPhotoAlt", { n: idx + 1 })}
                     className="pointer-events-none h-full w-full object-cover"
                     draggable={false}
                   />
@@ -500,7 +500,7 @@ export const LoginDemoBodyMap = () => {
                     }}
                     onPointerDown={(e) => e.stopPropagation()}
                     className="absolute right-0.5 top-0.5 flex h-4 w-4 items-center justify-center rounded-full bg-destructive text-destructive-foreground shadow"
-                    aria-label="Foto entfernen"
+                    aria-label={t("demo.removePhoto")}
                     style={{ touchAction: "manipulation" }}
                   >
                     <X className="h-2.5 w-2.5" />
@@ -517,17 +517,17 @@ export const LoginDemoBodyMap = () => {
                       ? "border-primary/40 bg-primary/5 hover:border-primary hover:bg-primary/10"
                       : "border-border hover:border-primary hover:bg-primary/5",
                   )}
-                  aria-label="Foto hinzufügen"
+                  aria-label={t("demo.addPhoto")}
                 >
                   {selectedSpot.photos.length === 0 ? (
                     <>
                       <Camera className="h-5 w-5" />
-                      <span className="text-[8px] font-medium">Foto</span>
+                      <span className="text-[8px] font-medium">{t("demo.photo")}</span>
                     </>
                   ) : (
                     <>
                       <Plus className="h-5 w-5" />
-                      <span className="text-[8px] font-medium">Weiteres</span>
+                      <span className="text-[8px] font-medium">{t("demo.more")}</span>
                     </>
                   )}
                 </button>
@@ -545,10 +545,10 @@ export const LoginDemoBodyMap = () => {
                 </span>
               </div>
               <p className="mt-0.5 text-[10px] text-muted-foreground">
-                {selectedSpot.view === "front" ? "Vorderseite" : "Rückseite"} ·{" "}
+                {selectedSpot.view === "front" ? t("demo.front") : t("demo.back")} ·{" "}
                 {selectedSpot.photos.length === 0
-                  ? "Demo: Foto hinzufügen"
-                  : `${selectedSpot.photos.length} Foto${selectedSpot.photos.length === 1 ? "" : "s"} angehängt ✓`}
+                  ? t("demo.demoAddPhoto")
+                  : t("demo.photosAttached", { count: selectedSpot.photos.length })}
               </p>
               {/* Vergleichen-Button erst ab 2 Fotos */}
               {selectedSpot.photos.length >= 2 && (
@@ -557,7 +557,7 @@ export const LoginDemoBodyMap = () => {
                   className="mt-2 inline-flex items-center gap-1.5 rounded-full bg-primary px-2.5 py-1 text-[10px] font-semibold text-primary-foreground shadow-sm transition-colors hover:bg-primary/90"
                 >
                   <GitCompareArrows className="h-3 w-3" />
-                  Verlauf vergleichen
+                  {t("demo.compareProgress")}
                 </button>
               )}
             </div>
@@ -565,7 +565,7 @@ export const LoginDemoBodyMap = () => {
             <button
               onClick={() => setSelectedId(null)}
               className="flex-shrink-0 rounded-full p-1 text-muted-foreground hover:bg-muted hover:text-foreground"
-              aria-label="Schließen"
+              aria-label={t("demo.close")}
             >
               <X className="h-4 w-4" />
             </button>
@@ -577,12 +577,12 @@ export const LoginDemoBodyMap = () => {
       {spots.length > 0 && !selectedSpot && (
         <div className="relative z-20 mx-4 mb-4 flex items-center justify-between rounded-lg border border-border bg-card/90 px-3 py-2 shadow-sm backdrop-blur-md">
           <div>
-            <div className="text-[9px] uppercase tracking-wide text-muted-foreground">Markiert</div>
+            <div className="text-[9px] uppercase tracking-wide text-muted-foreground">{t("demo.marked")}</div>
             <div className="text-sm font-bold text-foreground">
-              {spots.length} {spots.length === 1 ? "Hautstelle" : "Hautstellen"}
+              {spots.length} {spots.length === 1 ? t("demo.spot_one") : t("demo.spot_other")}
               {spots.filter((s) => s.photos.length > 0).length > 0 && (
                 <span className="ml-2 text-[10px] font-normal text-muted-foreground">
-                  · {spots.reduce((sum, s) => sum + s.photos.length, 0)} Foto{spots.reduce((sum, s) => sum + s.photos.length, 0) === 1 ? "" : "s"}
+                  · {t("demo.photoCount", { count: spots.reduce((sum, s) => sum + s.photos.length, 0) })}
                 </span>
               )}
             </div>
@@ -619,10 +619,10 @@ export const LoginDemoBodyMap = () => {
             onClick={(e) => e.stopPropagation()}
           >
             <div className="mb-1 text-sm font-semibold text-foreground">
-              Hautstelle klassifizieren
+              {t("demo.classifyTitle")}
             </div>
             <p className="mb-4 text-xs text-muted-foreground">
-              Demo-Modus — wählen Sie eine Klassifizierung
+              {t("demo.classifySubtitle")}
             </p>
             <div className="grid grid-cols-1 gap-2">
               {SELECTABLE_CLASSIFICATIONS.map((c) => {
@@ -653,7 +653,7 @@ export const LoginDemoBodyMap = () => {
               className="mt-3 w-full text-xs text-muted-foreground"
               onClick={() => setPendingSpot(null)}
             >
-              Abbrechen
+              {t("demo.cancel")}
             </Button>
           </div>
         </div>
@@ -676,10 +676,10 @@ export const LoginDemoBodyMap = () => {
             onClick={(e) => e.stopPropagation()}
           >
             <div className="mb-1 text-sm font-semibold text-foreground">
-              Foto hinzufügen
+              {t("demo.addPhotoTitle")}
             </div>
             <p className="mb-4 text-xs text-muted-foreground">
-              Demo-Modus — bis zu 4 Fotos pro Hautstelle für Verlaufs-Vergleich
+              {t("demo.addPhotoSubtitle")}
             </p>
 
             {qrSession ? (
@@ -690,19 +690,19 @@ export const LoginDemoBodyMap = () => {
                 </div>
                 <div className="flex items-center gap-2 text-xs text-primary">
                   <Loader2 className="h-3.5 w-3.5 animate-spin" />
-                  <span className="font-medium">Warte auf Foto vom Handy…</span>
+                  <span className="font-medium">{t("demo.waitingForPhone")}</span>
                 </div>
                 <div className="flex items-start gap-1.5 rounded-md bg-muted/50 px-2.5 py-2 text-left">
                   <Smartphone className="h-3 w-3 text-primary mt-0.5 flex-shrink-0" />
                   <span className="text-[10px] text-muted-foreground leading-tight">
-                    Scannen Sie den Code mit Ihrer Handy-Kamera. Das Foto erscheint live an der markierten Stelle.
+                    {t("demo.scanHint")}
                   </span>
                 </div>
               </div>
             ) : qrLoading ? (
               <div className="flex flex-col items-center gap-3 py-8">
                 <Loader2 className="h-8 w-8 animate-spin text-primary" />
-                <p className="text-xs text-muted-foreground">QR-Code wird erstellt…</p>
+                <p className="text-xs text-muted-foreground">{t("demo.creatingQr")}</p>
               </div>
             ) : (
               <div className="grid grid-cols-3 gap-2">
@@ -714,8 +714,8 @@ export const LoginDemoBodyMap = () => {
                     <Camera className="h-5 w-5 text-primary" />
                   </div>
                   <div>
-                    <div className="text-xs font-semibold text-foreground">Kamera</div>
-                    <div className="text-[10px] text-muted-foreground">Direkt aufnehmen</div>
+                    <div className="text-xs font-semibold text-foreground">{t("demo.camera")}</div>
+                    <div className="text-[10px] text-muted-foreground">{t("demo.cameraHint")}</div>
                   </div>
                 </button>
 
@@ -727,8 +727,8 @@ export const LoginDemoBodyMap = () => {
                     <ImageIcon className="h-5 w-5 text-primary" />
                   </div>
                   <div>
-                    <div className="text-xs font-semibold text-foreground">Galerie</div>
-                    <div className="text-[10px] text-muted-foreground">Datei wählen</div>
+                    <div className="text-xs font-semibold text-foreground">{t("demo.gallery")}</div>
+                    <div className="text-[10px] text-muted-foreground">{t("demo.galleryHint")}</div>
                   </div>
                 </button>
 
@@ -740,8 +740,8 @@ export const LoginDemoBodyMap = () => {
                     <QrCode className="h-5 w-5 text-primary" />
                   </div>
                   <div>
-                    <div className="text-xs font-semibold text-foreground">QR-Code</div>
-                    <div className="text-[10px] text-muted-foreground">Nur mit Lizenz</div>
+                    <div className="text-xs font-semibold text-foreground">{t("demo.qrCode")}</div>
+                    <div className="text-[10px] text-muted-foreground">{t("demo.licenseOnly")}</div>
                   </div>
                 </button>
               </div>
@@ -757,7 +757,7 @@ export const LoginDemoBodyMap = () => {
               <div className="mt-3 flex items-center gap-1.5 rounded-md bg-muted/50 px-2.5 py-1.5">
                 <Check className="h-3 w-3 text-primary" />
                 <span className="text-[10px] text-muted-foreground">
-                  Bild wird nach Übertragung sofort vom Server gelöscht
+                  {t("demo.autoDelete")}
                 </span>
               </div>
             )}
@@ -774,7 +774,7 @@ export const LoginDemoBodyMap = () => {
                   stopPolling();
                 }}
               >
-                {qrSession ? "Schließen" : "Abbrechen"}
+                {qrSession ? t("demo.close") : t("demo.cancel")}
               </Button>
             )}
           </div>
