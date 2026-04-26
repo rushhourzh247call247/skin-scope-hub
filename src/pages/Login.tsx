@@ -218,7 +218,7 @@ const Login = () => {
             className="mt-4 flex items-center justify-center gap-1.5 rounded-md border border-dashed border-primary/30 bg-primary/5 px-3 py-2 text-xs text-primary hover:bg-primary/10 hover:border-primary/50 transition-colors"
           >
             <Sparkles className="h-3 w-3" />
-            <span>Live-Demo ohne Login testen</span>
+            <span>{t("demo.tryDemo")}</span>
             <ArrowRight className="h-3 w-3" />
           </Link>
 
@@ -235,10 +235,10 @@ const Login = () => {
       {/* Tagline footer */}
       <div className="mt-8 text-center">
         <div className="text-xs font-semibold tracking-wide text-foreground/80">
-          Klinische Hautdiagnostik
+          {t("demo.tagline1")}
         </div>
         <div className="text-[10px] text-muted-foreground tracking-wider">
-          Präzise · Sicher · Schweizer Server
+          {t("demo.tagline2")}
         </div>
       </div>
     </div>
