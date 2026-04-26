@@ -1174,6 +1174,21 @@
       "sendFailed": "Échec de l'envoi. Veuillez réessayer plus tard.",
       "rateLimited": "Trop de demandes. Veuillez réessayer dans quelques minutes.",
       "validation": "Veuillez vérifier vos saisies."
-    }
+    },
+    "confirmTitle": "Veuillez confirmer votre e-mail",
+    "confirmMessage": "Nous vous avons envoyé un lien de confirmation. Cliquez dessus pour que votre demande nous soit transmise.",
+    "confirmHint": "Si vous ne trouvez pas l'e-mail, vérifiez votre dossier spam."
+  },
+  "contactConfirm": {
+    "loading": "Traitement de votre confirmation…",
+    "successTitle": "Merci — demande confirmée",
+    "successMessage": "Votre demande a bien été confirmée et transmise à notre équipe. Nous vous recontacterons rapidement.",
+    "alreadyTitle": "Déjà confirmée",
+    "alreadyMessage": "Cette demande a déjà été confirmée. Nous l'avons reçue et y répondrons bientôt.",
+    "expiredTitle": "Lien de confirmation expiré",
+    "expiredMessage": "Pour des raisons de sécurité, ce lien n'est plus valable. Veuillez nous envoyer une nouvelle demande.",
+    "invalidTitle": "Lien de confirmation invalide",
+    "invalidMessage": "Ce lien est invalide ou endommagé. Veuillez nous envoyer une nouvelle demande via le formulaire de contact.",
+    "backToLogin": "Retour à l'accueil"
   }
 }

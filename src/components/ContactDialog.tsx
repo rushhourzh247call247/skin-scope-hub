@@ -1,8 +1,8 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { z } from "zod";
 import { toast } from "sonner";
-import { Mail, Send, Loader2, CheckCircle2 } from "lucide-react";
+import { Mail, Send, Loader2, MailCheck } from "lucide-react";
 
 import { api } from "@/lib/api";
 import { Button } from "@/components/ui/button";
@@ -23,18 +23,31 @@ interface ContactDialogProps {
   trigger: React.ReactNode;
 }
 
+// Mindestzeit zwischen Form-Render und Submit (Bots tippen instant)
+const MIN_FILL_MS = 3000;
+
 export function ContactDialog({ trigger }: ContactDialogProps) {
   const { t } = useTranslation();
   const [open, setOpen] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const renderedAtRef = useRef<number>(Date.now());
   const [form, setForm] = useState({
     name: "",
     email: "",
     company: "",
     message: "",
+    // Honeypot — wird per CSS versteckt; echte Nutzer lassen leer
+    website: "",
   });
+
+  // Reset Timer beim Öffnen des Dialogs
+  useEffect(() => {
+    if (open) {
+      renderedAtRef.current = Date.now();
+    }
+  }, [open]);
 
   const schema = z.object({
     name: z
@@ -61,7 +74,7 @@ export function ContactDialog({ trigger }: ContactDialogProps) {
   });
 
   const reset = () => {
-    setForm({ name: "", email: "", company: "", message: "" });
+    setForm({ name: "", email: "", company: "", message: "", website: "" });
     setErrors({});
     setSubmitted(false);
   };
@@ -69,7 +82,6 @@ export function ContactDialog({ trigger }: ContactDialogProps) {
   const handleOpenChange = (next: boolean) => {
     setOpen(next);
     if (!next) {
-      // Reset shortly after close so the user doesn't see the form flash back
       setTimeout(reset, 250);
     }
   };
@@ -77,6 +89,20 @@ export function ContactDialog({ trigger }: ContactDialogProps) {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setErrors({});
+
+    // 1) Honeypot — wenn ausgefüllt, Bot. Stille Erfolgsmeldung (kein Hinweis).
+    if (form.website.trim() !== "") {
+      setSubmitted(true);
+      return;
+    }
+
+    // 2) Zeit-Check — zu schnell ausgefüllt = Bot. Stille Erfolgsmeldung.
+    const elapsed = Date.now() - renderedAtRef.current;
+    if (elapsed < MIN_FILL_MS) {
+      setSubmitted(true);
+      return;
+    }
+
     const parsed = schema.safeParse(form);
     if (!parsed.success) {
       const fieldErrors: Record<string, string> = {};
@@ -95,9 +121,11 @@ export function ContactDialog({ trigger }: ContactDialogProps) {
         email: parsed.data.email,
         company: parsed.data.company || undefined,
         message: parsed.data.message,
+        // Bot-Schutz-Signale auch ans Backend (Defense-in-Depth)
+        website: form.website,
+        elapsed_ms: elapsed,
       });
       setSubmitted(true);
-      toast.success(t("contact.successTitle"));
     } catch (err: any) {
       const status = err?.status;
       if (status === 429) {
@@ -127,11 +155,16 @@ export function ContactDialog({ trigger }: ContactDialogProps) {
         {submitted ? (
           <div className="flex flex-col items-center gap-3 py-6 text-center">
             <div className="flex h-14 w-14 items-center justify-center rounded-full bg-primary/10">
-              <CheckCircle2 className="h-7 w-7 text-primary" />
+              <MailCheck className="h-7 w-7 text-primary" />
             </div>
             <div className="space-y-1">
-              <h3 className="text-base font-semibold">{t("contact.successTitle")}</h3>
-              <p className="text-sm text-muted-foreground">{t("contact.successMessage")}</p>
+              <h3 className="text-base font-semibold">{t("contact.confirmTitle")}</h3>
+              <p className="text-sm text-muted-foreground">
+                {t("contact.confirmMessage")}
+              </p>
+              <p className="text-xs text-muted-foreground/70 mt-2">
+                {t("contact.confirmHint")}
+              </p>
             </div>
             <Button onClick={() => handleOpenChange(false)} className="mt-2">
               {t("contact.close")}
@@ -197,6 +230,29 @@ export function ContactDialog({ trigger }: ContactDialogProps) {
               <p className="text-[10px] text-muted-foreground/70 text-right">
                 {form.message.length}/2000
               </p>
+            </div>
+
+            {/* Honeypot — visuell + für Screenreader versteckt, für Bots sichtbar */}
+            <div
+              aria-hidden="true"
+              style={{
+                position: "absolute",
+                left: "-9999px",
+                top: "auto",
+                width: "1px",
+                height: "1px",
+                overflow: "hidden",
+              }}
+            >
+              <label htmlFor="contact-website">Website (do not fill)</label>
+              <input
+                id="contact-website"
+                type="text"
+                tabIndex={-1}
+                autoComplete="off"
+                value={form.website}
+                onChange={(e) => setForm((f) => ({ ...f, website: e.target.value }))}
+              />
             </div>
 
             <DialogFooter className="gap-2 sm:gap-2">

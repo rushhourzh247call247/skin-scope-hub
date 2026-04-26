@@ -1230,6 +1230,21 @@
       "sendFailed": "Sending failed. Please try again later.",
       "rateLimited": "Too many requests. Please try again in a few minutes.",
       "validation": "Please check your inputs."
-    }
+    },
+    "confirmTitle": "Please confirm your email",
+    "confirmMessage": "We sent you a confirmation link. Click it so your request is forwarded to us.",
+    "confirmHint": "If you can't find the email, please check your spam folder."
+  },
+  "contactConfirm": {
+    "loading": "Processing your confirmation…",
+    "successTitle": "Thank you — request confirmed",
+    "successMessage": "Your request has been confirmed and forwarded to our team. We'll get back to you shortly.",
+    "alreadyTitle": "Already confirmed",
+    "alreadyMessage": "This request has already been confirmed. We've received it and will reply soon.",
+    "expiredTitle": "Confirmation link expired",
+    "expiredMessage": "For security reasons this link is no longer valid. Please send us a new request.",
+    "invalidTitle": "Invalid confirmation link",
+    "invalidMessage": "This link is invalid or damaged. Please send us a new request via the contact form.",
+    "backToLogin": "Back to start"
   }
 }

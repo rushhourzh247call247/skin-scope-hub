@@ -1174,6 +1174,21 @@
       "sendFailed": "Invio non riuscito. Riprova più tardi.",
       "rateLimited": "Troppe richieste. Riprova tra qualche minuto.",
       "validation": "Controlla i dati inseriti."
-    }
+    },
+    "confirmTitle": "Conferma la tua e-mail",
+    "confirmMessage": "Ti abbiamo inviato un link di conferma. Cliccalo affinché la tua richiesta ci venga inoltrata.",
+    "confirmHint": "Se non trovi l'e-mail, controlla la cartella spam."
+  },
+  "contactConfirm": {
+    "loading": "Elaborazione della conferma…",
+    "successTitle": "Grazie — richiesta confermata",
+    "successMessage": "La tua richiesta è stata confermata e inoltrata al nostro team. Ti ricontatteremo a breve.",
+    "alreadyTitle": "Già confermata",
+    "alreadyMessage": "Questa richiesta è già stata confermata. L'abbiamo ricevuta e risponderemo a breve.",
+    "expiredTitle": "Link di conferma scaduto",
+    "expiredMessage": "Per motivi di sicurezza questo link non è più valido. Inviaci una nuova richiesta.",
+    "invalidTitle": "Link di conferma non valido",
+    "invalidMessage": "Questo link non è valido o è danneggiato. Inviaci una nuova richiesta tramite il modulo di contatto.",
+    "backToLogin": "Torna alla pagina iniziale"
   }
 }

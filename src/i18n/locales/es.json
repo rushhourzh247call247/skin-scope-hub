@@ -1174,6 +1174,21 @@
       "sendFailed": "Error al enviar. Inténtelo de nuevo más tarde.",
       "rateLimited": "Demasiadas solicitudes. Inténtelo de nuevo en unos minutos.",
       "validation": "Revise los datos introducidos."
-    }
+    },
+    "confirmTitle": "Confirme su correo electrónico",
+    "confirmMessage": "Le hemos enviado un enlace de confirmación. Haga clic en él para que su solicitud nos llegue.",
+    "confirmHint": "Si no encuentra el correo, revise la carpeta de spam."
+  },
+  "contactConfirm": {
+    "loading": "Procesando su confirmación…",
+    "successTitle": "Gracias — solicitud confirmada",
+    "successMessage": "Su solicitud ha sido confirmada y enviada a nuestro equipo. Le responderemos en breve.",
+    "alreadyTitle": "Ya confirmada",
+    "alreadyMessage": "Esta solicitud ya ha sido confirmada. La hemos recibido y le responderemos pronto.",
+    "expiredTitle": "Enlace de confirmación caducado",
+    "expiredMessage": "Por motivos de seguridad, este enlace ya no es válido. Envíenos una nueva solicitud.",
+    "invalidTitle": "Enlace de confirmación no válido",
+    "invalidMessage": "Este enlace no es válido o está dañado. Envíenos una nueva solicitud mediante el formulario de contacto.",
+    "backToLogin": "Volver al inicio"
   }
 }
