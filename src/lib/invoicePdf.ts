@@ -51,7 +51,16 @@ const DATE_FMT: Record<InvoiceLanguage, string> = {
   es: "dd/MM/yyyy",
 };
 
-export function generateInvoicePdf(invoice: InvoiceData, language: InvoiceLanguage = "de"): jsPDF {
+export interface GenerateInvoicePdfOptions {
+  /** When true, the green "BEZAHLT" stamp will be omitted (e.g. for sending to the customer). */
+  skipPaidStamp?: boolean;
+}
+
+export function generateInvoicePdf(
+  invoice: InvoiceData,
+  language: InvoiceLanguage = "de",
+  options: GenerateInvoicePdfOptions = {},
+): jsPDF {
   const t = INVOICE_STRINGS[language];
   const locale = DATE_LOCALES[language];
   const numLocale = NUMBER_LOCALES[language];
@@ -297,7 +306,7 @@ export function generateInvoicePdf(invoice: InvoiceData, language: InvoiceLangua
   }
 
   // ── Paid stamp ──
-  if (invoice.status === "paid" && invoice.paid_at) {
+  if (invoice.status === "paid" && invoice.paid_at && !options.skipPaidStamp) {
     doc.setFontSize(36);
     doc.setTextColor(34, 139, 34);
     doc.setFont("helvetica", "bold");

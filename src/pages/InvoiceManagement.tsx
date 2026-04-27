@@ -66,6 +66,15 @@ export default function InvoiceManagement() {
     onError: () => toast.error("Fehler beim Aktualisieren"),
   });
 
+  const markUnpaidMutation = useMutation({
+    mutationFn: (invoiceId: number) => api.markInvoiceUnpaid(invoiceId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["invoices"] });
+      toast.success("Bezahlt-Status zurückgesetzt");
+    },
+    onError: () => toast.error("Fehler beim Zurücksetzen"),
+  });
+
   const sendDunningMutation = useMutation({
     mutationFn: (data: { invoiceId: number; level: number }) =>
       api.sendDunning(data.invoiceId, data.level),
@@ -202,6 +211,22 @@ export default function InvoiceManagement() {
                                 <Send className="h-4 w-4 text-amber-600" />
                               </Button>
                             </>
+                          )}
+                          {inv.status === "paid" && (
+                            <Button
+                              size="icon"
+                              variant="ghost"
+                              className="h-8 w-8"
+                              title="Bezahlt-Status zurücksetzen"
+                              onClick={() => {
+                                if (window.confirm(`Bezahlt-Status für Rechnung ${inv.invoice_number} wirklich zurücksetzen?`)) {
+                                  markUnpaidMutation.mutate(inv.id);
+                                }
+                              }}
+                              disabled={markUnpaidMutation.isPending}
+                            >
+                              <RotateCcw className="h-4 w-4 text-amber-600" />
+                            </Button>
                           )}
                           <Button
                             size="icon"
@@ -342,7 +367,7 @@ export default function InvoiceManagement() {
                 contract_number: contract?.contract_number,
                 licenses: contract?.licenses,
                 package_name: contract?.package_name,
-              }, language)
+              }, language, { skipPaidStamp: true })
             }
           />
         );

@@ -750,6 +750,8 @@ export const api = {
   getInvoices: () => request<any[]>('/invoices'),
   markInvoicePaid: (invoiceId: number, notes?: string) =>
     request<any>(`/invoices/${invoiceId}/pay`, { method: 'POST', body: JSON.stringify({ notes }) }),
+  markInvoiceUnpaid: (invoiceId: number) =>
+    request<any>(`/invoices/${invoiceId}/unpay`, { method: 'POST' }),
   sendDunning: (invoiceId: number, level: number) =>
     request<any>(`/invoices/${invoiceId}/dunning`, { method: 'POST', body: JSON.stringify({ dunning_level: level }) }),
   generateMonthlyInvoices: () =>

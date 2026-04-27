@@ -663,7 +663,7 @@ export default function FinanceCompanyDetail() {
                 contract_number: activeContract?.contract_number,
                 licenses: activeContract?.licenses,
                 package_name: activeContract?.package_name,
-              }, language)
+              }, language, { skipPaidStamp: true })
             }
           />
         );
