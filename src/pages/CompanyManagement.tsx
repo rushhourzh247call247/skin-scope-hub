@@ -45,6 +45,7 @@ const CompanyManagement = () => {
     city: "",
     email: "",
     phone: "",
+    delivery_method: "mail" as "mail" | "post",
   });
 
   // Lifecycle-Dialog State
