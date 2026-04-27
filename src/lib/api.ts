@@ -767,6 +767,7 @@ export const api = {
     message?: string;
     pdf_base64: string;
     pdf_filename: string;
+    language?: 'de' | 'en' | 'fr' | 'it' | 'es';
   }) =>
     request<{ ok: boolean; log_id: number }>('/admin/finance/send-document', {
       method: 'POST',
