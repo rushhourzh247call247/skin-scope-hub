@@ -756,6 +756,8 @@ export const api = {
     request<any>(`/invoices/${invoiceId}/dunning`, { method: 'POST', body: JSON.stringify({ dunning_level: level }) }),
   generateMonthlyInvoices: () =>
     request<{ count: number }>('/invoices/generate-monthly', { method: 'POST' }),
+  generateInvoiceForContract: (contractId: number) =>
+    request<{ invoice_id: number; invoice_number: string }>(`/contracts/${contractId}/generate-invoice`, { method: 'POST' }),
   downloadInvoicePdf: (invoiceId: number) =>
     requestBlob(`/invoices/${invoiceId}/pdf`),
 
