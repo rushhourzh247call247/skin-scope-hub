@@ -52,6 +52,11 @@ export default function InvoiceManagement() {
     queryFn: () => api.getAllContracts(),
   });
 
+  const { data: companies = [] } = useQuery({
+    queryKey: ["companies"],
+    queryFn: () => api.getCompanies().catch(() => []),
+  });
+
   const markPaidMutation = useMutation({
     mutationFn: (invoiceId: number) => api.markInvoicePaid(invoiceId),
     onSuccess: () => {
