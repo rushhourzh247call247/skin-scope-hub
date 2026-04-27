@@ -342,7 +342,7 @@ export default function InvoiceManagement() {
                 contract_number: contract?.contract_number,
                 licenses: contract?.licenses,
                 package_name: contract?.package_name,
-              }, language)
+              }, language, { skipPaidStamp: true })
             }
           />
         );
