@@ -23,7 +23,8 @@ import {
 import { format, addMonths, differenceInDays } from "date-fns";
 import { de } from "date-fns/locale";
 import { toast } from "sonner";
-import { downloadInvoicePdf } from "@/lib/invoicePdf";
+import { downloadInvoicePdf, generateInvoicePdf } from "@/lib/invoicePdf";
+import { SendDocumentMailDialog } from "@/components/SendDocumentMailDialog";
 import { PACKAGES, calcPrice } from "@/lib/contractPdf";
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
