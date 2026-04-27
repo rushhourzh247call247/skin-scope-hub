@@ -623,6 +623,33 @@ const CompanyManagement = () => {
               />
             </div>
 
+            <div className="space-y-2 rounded-lg border p-3 bg-muted/30">
+              <Label className="text-sm font-medium">Bevorzugte Versandart für Dokumente</Label>
+              <p className="text-xs text-muted-foreground">
+                Bestimmt, ob Rechnungen, Mahnungen und Kündigungen standardmässig per E-Mail oder per Post versendet werden.
+              </p>
+              <div className="flex gap-2 mt-2">
+                <Button
+                  type="button"
+                  variant={editForm.delivery_method === "mail" ? "default" : "outline"}
+                  size="sm"
+                  onClick={() => setEditForm({ ...editForm, delivery_method: "mail" })}
+                  className="flex-1"
+                >
+                  E-Mail
+                </Button>
+                <Button
+                  type="button"
+                  variant={editForm.delivery_method === "post" ? "default" : "outline"}
+                  size="sm"
+                  onClick={() => setEditForm({ ...editForm, delivery_method: "post" })}
+                  className="flex-1"
+                >
+                  Post
+                </Button>
+              </div>
+            </div>
+
             <div className="flex items-start gap-2 rounded-md border border-amber-500/30 bg-amber-500/10 p-3 text-xs text-amber-900">
               <Info className="h-4 w-4 shrink-0 mt-0.5" />
               <div>
