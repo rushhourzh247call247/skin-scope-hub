@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { TrendingUp, AlertTriangle, CheckCircle, Clock, ArrowUpRight, Receipt, CalendarClock, ScrollText, ShieldAlert } from "lucide-react";
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
-import { format, subMonths, differenceInDays, addDays } from "date-fns";
+import { format, subMonths, differenceInDays, addDays, addMonths } from "date-fns";
 import { de } from "date-fns/locale";
 
 interface Invoice {
@@ -75,6 +75,31 @@ export default function FinanceDashboard() {
       })
       .sort((a, b) => new Date(a.due_date).getTime() - new Date(b.due_date).getTime());
   }, [openInvoices]);
+
+  // Next upcoming invoices per contract (last invoice + 1 month)
+  const upcomingByContract = useMemo(() => {
+    const now = new Date();
+    return activeContracts
+      .map((c: any) => {
+        const company = companies.find((co: any) => co.id === c.company_id);
+        const contractInvoices = invoices
+          .filter((i: any) => i.contract_id === c.id)
+          .sort((a: any, b: any) => new Date(b.invoice_date || b.created_at).getTime() - new Date(a.invoice_date || a.created_at).getTime());
+        const lastDate = contractInvoices[0]
+          ? new Date(contractInvoices[0].invoice_date || contractInvoices[0].created_at)
+          : new Date(c.start_date);
+        const nextDate = addMonths(lastDate, 1);
+        return {
+          contractId: c.id,
+          companyId: c.company_id,
+          companyName: company?.name || `#${c.company_id}`,
+          monthlyPrice: Number(c.custom_price ?? c.monthly_price) || 0,
+          nextDate,
+          daysUntil: differenceInDays(nextDate, now),
+        };
+      })
+      .sort((a: any, b: any) => a.nextDate.getTime() - b.nextDate.getTime());
+  }, [activeContracts, companies, invoices]);
 
   // Contracts expiring within 60 days
   const expiringContracts = useMemo(() => {
