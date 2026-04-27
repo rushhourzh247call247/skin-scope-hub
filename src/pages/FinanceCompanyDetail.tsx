@@ -441,6 +441,15 @@ export default function FinanceCompanyDetail() {
                             size="icon"
                             variant="ghost"
                             className="h-7 w-7"
+                            title="Per E-Mail senden"
+                            onClick={() => setMailInvoice(inv)}
+                          >
+                            <Mail className="h-4 w-4 text-primary" />
+                          </Button>
+                          <Button
+                            size="icon"
+                            variant="ghost"
+                            className="h-7 w-7"
                             title="PDF"
                             onClick={() => downloadPdf(inv)}
                           >
