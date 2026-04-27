@@ -66,6 +66,15 @@ export default function InvoiceManagement() {
     onError: () => toast.error("Fehler beim Aktualisieren"),
   });
 
+  const markUnpaidMutation = useMutation({
+    mutationFn: (invoiceId: number) => api.markInvoiceUnpaid(invoiceId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["invoices"] });
+      toast.success("Bezahlt-Status zurückgesetzt");
+    },
+    onError: () => toast.error("Fehler beim Zurücksetzen"),
+  });
+
   const sendDunningMutation = useMutation({
     mutationFn: (data: { invoiceId: number; level: number }) =>
       api.sendDunning(data.invoiceId, data.level),
