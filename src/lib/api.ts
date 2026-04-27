@@ -313,7 +313,7 @@ export const api = {
       city?: string | null;
       email?: string | null;
       phone?: string | null;
-      delivery_method?: 'mail' | 'post';
+      delivery_method?: 'email' | 'post';
     }
   ) => request<any>(`/companies/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
 
