@@ -246,6 +246,22 @@ export default function InvoiceManagement() {
                             size="icon"
                             variant="ghost"
                             className="h-8 w-8"
+                            title="Per Post versenden (PDF + Begleitbrief)"
+                            onClick={() => {
+                              const lvl = inv.dunning_level || 0;
+                              const type: CoverLetterType =
+                                lvl >= 3 ? "dunning_3" :
+                                lvl === 2 ? "dunning_2" :
+                                lvl === 1 ? "dunning_1" : "invoice";
+                              setPostDialog({ invoice: inv, type });
+                            }}
+                          >
+                            <Mailbox className="h-4 w-4 text-amber-700" />
+                          </Button>
+                          <Button
+                            size="icon"
+                            variant="ghost"
+                            className="h-8 w-8"
                             title="PDF herunterladen"
                             onClick={() => {
                               try {
