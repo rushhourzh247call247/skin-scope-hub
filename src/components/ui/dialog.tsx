@@ -51,30 +51,36 @@ const DialogContent = React.forwardRef<
 ));
 DialogContent.displayName = DialogPrimitive.Content.displayName;
 
-const DialogHeader = ({ className, ...props }: React.HTMLAttributes<HTMLDivElement>) => (
-  <div
-    className={cn("flex flex-col space-y-1.5 text-center sm:text-left shrink-0", className)}
-    {...props}
-  />
+const DialogHeader = React.forwardRef<HTMLDivElement, React.HTMLAttributes<HTMLDivElement>>(
+  ({ className, ...props }, ref) => (
+    <div
+      ref={ref}
+      className={cn("flex flex-col space-y-1.5 text-center sm:text-left shrink-0", className)}
+      {...props}
+    />
+  ),
 );
 DialogHeader.displayName = "DialogHeader";
 
-const DialogBody = ({ className, ...props }: React.HTMLAttributes<HTMLDivElement>) => (
-  <div
-    className={cn("flex-1 min-h-0 overflow-y-auto overscroll-contain -mx-6 px-6", className)}
-    {...props}
-  />
+const DialogBody = React.forwardRef<HTMLDivElement, React.HTMLAttributes<HTMLDivElement>>(
+  ({ className, ...props }, ref) => (
+    <div
+      ref={ref}
+      className={cn("flex-1 min-h-0 overflow-y-auto overscroll-contain -mx-6 px-6", className)}
+      {...props}
+    />
+  ),
 );
 DialogBody.displayName = "DialogBody";
 
-const DialogFooter = ({ className, ...props }: React.HTMLAttributes<HTMLDivElement>) => (
-  <div
-    className={cn(
-      "flex flex-col-reverse gap-2 sm:flex-row sm:justify-end sm:space-x-2 shrink-0",
-      className,
-    )}
-    {...props}
-  />
+const DialogFooter = React.forwardRef<HTMLDivElement, React.HTMLAttributes<HTMLDivElement>>(
+  ({ className, ...props }, ref) => (
+    <div
+      ref={ref}
+      className={cn("flex flex-col-reverse gap-2 sm:flex-row sm:justify-end sm:space-x-2 shrink-0", className)}
+      {...props}
+    />
+  ),
 );
 DialogFooter.displayName = "DialogFooter";
 
