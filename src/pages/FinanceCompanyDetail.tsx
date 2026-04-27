@@ -647,13 +647,6 @@ export default function FinanceCompanyDetail() {
         const inv = mailInvoice;
         const level = inv.dunning_level || 0;
         const isDunning = level > 0;
-        const stufe = level === 1 ? "1. Mahnung" : level === 2 ? "2. Mahnung" : level >= 3 ? "3. Mahnung" : "";
-        const subject = isDunning
-          ? `${stufe} – Rechnung ${inv.invoice_number} (DERM247)`
-          : `Rechnung ${inv.invoice_number} (DERM247)`;
-        const filename = isDunning
-          ? `Mahnung_${stufe.replace(". ", "_")}_${inv.invoice_number}.pdf`
-          : `Rechnung_${inv.invoice_number}.pdf`;
         return (
           <SendDocumentMailDialog
             open
@@ -662,15 +655,15 @@ export default function FinanceCompanyDetail() {
             documentId={inv.id}
             companyId={companyId}
             defaultRecipient={company?.email || ""}
-            defaultSubject={subject}
-            pdfFilename={filename}
-            buildPdf={() =>
+            referenceNumber={inv.invoice_number}
+            dunningLevel={isDunning ? level : undefined}
+            buildPdf={(language) =>
               generateInvoicePdf({
                 ...inv,
                 contract_number: activeContract?.contract_number,
                 licenses: activeContract?.licenses,
                 package_name: activeContract?.package_name,
-              })
+              }, language)
             }
           />
         );
