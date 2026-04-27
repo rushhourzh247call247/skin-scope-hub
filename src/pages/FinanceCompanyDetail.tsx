@@ -40,6 +40,7 @@ export default function FinanceCompanyDetail() {
   const [editContractOpen, setEditContractOpen] = useState(false);
   const [terminateOpen, setTerminateOpen] = useState(false);
   const [dunningInvoice, setDunningInvoice] = useState<any | null>(null);
+  const [mailInvoice, setMailInvoice] = useState<any | null>(null);
   const [lifecycleAction, setLifecycleAction] = useState<null | "read_only" | "archived" | "active">(null);
   const [archiveMode, setArchiveMode] = useState<"offer" | "status">("offer");
 
