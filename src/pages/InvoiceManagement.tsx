@@ -10,8 +10,9 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
-import { Search, Plus, CheckCircle, AlertTriangle, FileDown, RotateCcw, Send, Receipt } from "lucide-react";
-import { downloadInvoicePdf } from "@/lib/invoicePdf";
+import { Search, Plus, CheckCircle, AlertTriangle, FileDown, RotateCcw, Send, Receipt, Mail } from "lucide-react";
+import { downloadInvoicePdf, generateInvoicePdf } from "@/lib/invoicePdf";
+import { SendDocumentMailDialog } from "@/components/SendDocumentMailDialog";
 import { format } from "date-fns";
 import { toast } from "sonner";
 
