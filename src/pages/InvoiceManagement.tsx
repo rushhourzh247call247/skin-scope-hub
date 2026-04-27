@@ -212,6 +212,22 @@ export default function InvoiceManagement() {
                               </Button>
                             </>
                           )}
+                          {inv.status === "paid" && (
+                            <Button
+                              size="icon"
+                              variant="ghost"
+                              className="h-8 w-8"
+                              title="Bezahlt-Status zurücksetzen"
+                              onClick={() => {
+                                if (window.confirm(`Bezahlt-Status für Rechnung ${inv.invoice_number} wirklich zurücksetzen?`)) {
+                                  markUnpaidMutation.mutate(inv.id);
+                                }
+                              }}
+                              disabled={markUnpaidMutation.isPending}
+                            >
+                              <RotateCcw className="h-4 w-4 text-amber-600" />
+                            </Button>
+                          )}
                           <Button
                             size="icon"
                             variant="ghost"
