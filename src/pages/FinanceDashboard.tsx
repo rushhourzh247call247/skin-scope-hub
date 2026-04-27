@@ -221,39 +221,63 @@ export default function FinanceDashboard() {
 
       {/* Alerts Row: Upcoming + Expiring */}
       <div className="grid gap-4 lg:grid-cols-2">
-        {/* Upcoming Due Invoices */}
-        <Card className={upcomingDue.length > 0 ? "border-amber-200/60" : ""}>
+        {/* Next Invoices Per Contract */}
+        <Card className="border-amber-200/60">
           <CardHeader className="pb-2">
-            <CardTitle className="text-base flex items-center gap-2">
-              <CalendarClock className="h-4 w-4 text-amber-600" />
-              Fällig in den nächsten 14 Tagen
-              {upcomingDue.length > 0 && (
-                <Badge className="bg-amber-500/10 text-amber-600 border-amber-200 ml-auto">{upcomingDue.length}</Badge>
-              )}
-            </CardTitle>
+            <div className="flex items-center justify-between">
+              <CardTitle className="text-base flex items-center gap-2">
+                <CalendarClock className="h-4 w-4 text-amber-600" />
+                Nächste Rechnungen pro Firma
+                <Badge className="bg-amber-500/10 text-amber-600 border-amber-200 ml-1">
+                  {upcomingByContract.length}
+                </Badge>
+              </CardTitle>
+              <Button variant="outline" size="sm" onClick={() => navigate("/finance/upcoming")}>
+                Alle <ArrowUpRight className="ml-1 h-3 w-3" />
+              </Button>
+            </div>
           </CardHeader>
           <CardContent>
-            {upcomingDue.length === 0 ? (
-              <p className="text-sm text-muted-foreground py-3">Keine anstehenden Fälligkeiten</p>
+            {upcomingByContract.length === 0 ? (
+              <p className="text-sm text-muted-foreground py-3">Keine aktiven Verträge</p>
             ) : (
               <div className="space-y-2">
-                {upcomingDue.slice(0, 5).map((inv) => {
-                  const daysUntil = differenceInDays(new Date(inv.due_date), new Date());
-                  return (
-                    <div key={inv.id} className="flex items-center justify-between py-2 px-3 rounded-lg bg-muted/50 text-sm">
-                      <div className="min-w-0">
-                        <p className="font-medium truncate">{inv.company_name}</p>
-                        <p className="text-xs text-muted-foreground">{inv.invoice_number}</p>
-                      </div>
-                      <div className="text-right shrink-0 ml-3">
-                        <p className="font-semibold">CHF {inv.amount.toLocaleString("de-CH")}</p>
-                        <p className={`text-xs ${daysUntil <= 3 ? "text-destructive font-medium" : "text-muted-foreground"}`}>
-                          {daysUntil === 0 ? "Heute fällig" : daysUntil === 1 ? "Morgen fällig" : `in ${daysUntil} Tagen`}
-                        </p>
-                      </div>
+                {upcomingByContract.slice(0, 5).map((u: any) => (
+                  <div
+                    key={u.contractId}
+                    className="flex items-center justify-between py-2 px-3 rounded-lg bg-muted/50 text-sm cursor-pointer hover:bg-muted"
+                    onClick={() => navigate(`/finance/companies/${u.companyId}`)}
+                  >
+                    <div className="min-w-0">
+                      <p className="font-medium truncate">{u.companyName}</p>
+                      <p className="text-xs text-muted-foreground">
+                        {format(u.nextDate, "dd.MM.yyyy", { locale: de })}
+                      </p>
                     </div>
-                  );
-                })}
+                    <div className="text-right shrink-0 ml-3">
+                      <p className="font-semibold">CHF {u.monthlyPrice.toLocaleString("de-CH")}</p>
+                      <p
+                        className={`text-xs ${
+                          u.daysUntil < 0
+                            ? "text-destructive font-medium"
+                            : u.daysUntil <= 3
+                            ? "text-destructive font-medium"
+                            : u.daysUntil <= 7
+                            ? "text-amber-600 font-medium"
+                            : "text-muted-foreground"
+                        }`}
+                      >
+                        {u.daysUntil < 0
+                          ? `überfällig ${Math.abs(u.daysUntil)} T.`
+                          : u.daysUntil === 0
+                          ? "Heute"
+                          : u.daysUntil === 1
+                          ? "Morgen"
+                          : `in ${u.daysUntil} Tagen`}
+                      </p>
+                    </div>
+                  </div>
+                ))}
               </div>
             )}
           </CardContent>
