@@ -29,6 +29,7 @@ import InvoiceManagement from "./pages/InvoiceManagement";
 import FinanceCompanies from "./pages/FinanceCompanies";
 import FinanceCompanyDetail from "./pages/FinanceCompanyDetail";
 import FinanceContracts from "./pages/FinanceContracts";
+import FinanceUpcoming from "./pages/FinanceUpcoming";
 import ServerAdmin from "./pages/ServerAdmin";
 import ContactInquiries from "./pages/ContactInquiries";
 import { isServerAdminAvailable } from "@/lib/environment";
@@ -98,6 +99,7 @@ const App = () => (
             <Route path="/finance/companies" element={<ProtectedPage><FinanceRoute><FinanceCompanies /></FinanceRoute></ProtectedPage>} />
             <Route path="/finance/companies/:id" element={<ProtectedPage><FinanceRoute><FinanceCompanyDetail /></FinanceRoute></ProtectedPage>} />
             <Route path="/finance/contracts" element={<ProtectedPage><FinanceRoute><FinanceContracts /></FinanceRoute></ProtectedPage>} />
+            <Route path="/finance/upcoming" element={<ProtectedPage><FinanceRoute><FinanceUpcoming /></FinanceRoute></ProtectedPage>} />
             <Route path="/server-admin" element={isServerAdminAvailable() ? <ProtectedPage><AdminRoute><ServerAdmin /></AdminRoute></ProtectedPage> : <Navigate to="/" replace />} />
             <Route path="/contact-inquiries" element={<ProtectedPage><AdminRoute><ContactInquiries /></AdminRoute></ProtectedPage>} />
             <Route path="*" element={<NotFound />} />
