@@ -43,6 +43,7 @@ export default function InvoiceManagement() {
   const [dunningDialog, setDunningDialog] = useState<Invoice | null>(null);
   const [generateDialog, setGenerateDialog] = useState(false);
   const [mailDialog, setMailDialog] = useState<{ invoice: Invoice; isDunning: boolean } | null>(null);
+  const [postDialog, setPostDialog] = useState<{ invoice: Invoice; type: CoverLetterType } | null>(null);
 
   const { data: invoices = [], isLoading } = useQuery({
     queryKey: ["invoices"],
