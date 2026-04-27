@@ -166,6 +166,7 @@ const CompanyManagement = () => {
       city: company.city ?? "",
       email: company.email ?? "",
       phone: company.phone ?? "",
+      delivery_method: (company.delivery_method === "post" ? "post" : "mail") as "mail" | "post",
     });
   };
 
