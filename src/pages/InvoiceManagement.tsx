@@ -10,9 +10,11 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
-import { Search, Plus, CheckCircle, AlertTriangle, FileDown, RotateCcw, Send, Receipt, Mail } from "lucide-react";
+import { Search, Plus, CheckCircle, AlertTriangle, FileDown, RotateCcw, Send, Receipt, Mail, Mailbox } from "lucide-react";
 import { downloadInvoicePdf, generateInvoicePdf } from "@/lib/invoicePdf";
 import { SendDocumentMailDialog } from "@/components/SendDocumentMailDialog";
+import { PostSendDialog } from "@/components/PostSendDialog";
+import type { CoverLetterType } from "@/lib/coverLetterPdf";
 import { format } from "date-fns";
 import { toast } from "sonner";
 
@@ -41,6 +43,7 @@ export default function InvoiceManagement() {
   const [dunningDialog, setDunningDialog] = useState<Invoice | null>(null);
   const [generateDialog, setGenerateDialog] = useState(false);
   const [mailDialog, setMailDialog] = useState<{ invoice: Invoice; isDunning: boolean } | null>(null);
+  const [postDialog, setPostDialog] = useState<{ invoice: Invoice; type: CoverLetterType } | null>(null);
 
   const { data: invoices = [], isLoading } = useQuery({
     queryKey: ["invoices"],
@@ -243,6 +246,22 @@ export default function InvoiceManagement() {
                             size="icon"
                             variant="ghost"
                             className="h-8 w-8"
+                            title="Per Post versenden (PDF + Begleitbrief)"
+                            onClick={() => {
+                              const lvl = inv.dunning_level || 0;
+                              const type: CoverLetterType =
+                                lvl >= 3 ? "dunning_3" :
+                                lvl === 2 ? "dunning_2" :
+                                lvl === 1 ? "dunning_1" : "invoice";
+                              setPostDialog({ invoice: inv, type });
+                            }}
+                          >
+                            <Mailbox className="h-4 w-4 text-amber-700" />
+                          </Button>
+                          <Button
+                            size="icon"
+                            variant="ghost"
+                            className="h-8 w-8"
                             title="PDF herunterladen"
                             onClick={() => {
                               try {
@@ -369,6 +388,39 @@ export default function InvoiceManagement() {
                 package_name: contract?.package_name,
               }, language, { skipPaidStamp: true })
             }
+          />
+        );
+      })()}
+
+      {postDialog && (() => {
+        const inv = postDialog.invoice;
+        const contract = contracts.find((c: any) => c.id === inv.contract_id);
+        const company = companies.find((c: any) => c.id === inv.company_id);
+        const docPdf = generateInvoicePdf({
+          ...inv,
+          contract_number: contract?.contract_number,
+          licenses: contract?.licenses,
+          package_name: contract?.package_name,
+        }, "de", { skipPaidStamp: true });
+        return (
+          <PostSendDialog
+            open
+            onClose={() => setPostDialog(null)}
+            type={postDialog.type}
+            recipient={{
+              company_name: inv.company_name,
+              address_line1: company?.address || undefined,
+              zip: company?.zip || undefined,
+              city: company?.city || undefined,
+            }}
+            context={{
+              documentNumber: inv.invoice_number,
+              amount: inv.amount,
+              dueDate: inv.due_date,
+            }}
+            documentPdf={docPdf}
+            documentFilename={`${inv.invoice_number}.pdf`}
+            invoiceId={inv.id}
           />
         );
       })()}
