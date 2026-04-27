@@ -757,6 +757,30 @@ export const api = {
   downloadInvoicePdf: (invoiceId: number) =>
     requestBlob(`/invoices/${invoiceId}/pdf`),
 
+  // Finance: Dokument per E-Mail versenden
+  sendDocumentMail: (data: {
+    document_type: 'invoice' | 'dunning' | 'cancellation' | 'contract';
+    document_id?: number | null;
+    company_id: number;
+    recipient_email: string;
+    subject: string;
+    message?: string;
+    pdf_base64: string;
+    pdf_filename: string;
+  }) =>
+    request<{ ok: boolean; log_id: number }>('/admin/finance/send-document', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    }),
+  getMailHistory: (params?: { document_type?: string; document_id?: number; company_id?: number }) => {
+    const qs = new URLSearchParams();
+    if (params?.document_type) qs.set('document_type', params.document_type);
+    if (params?.document_id) qs.set('document_id', String(params.document_id));
+    if (params?.company_id) qs.set('company_id', String(params.company_id));
+    const query = qs.toString();
+    return request<any[]>(`/admin/finance/mail-history${query ? `?${query}` : ''}`);
+  },
+
   // Server Admin
   serverAdmin: {
     getStatus: () =>
