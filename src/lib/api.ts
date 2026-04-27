@@ -313,8 +313,17 @@ export const api = {
       city?: string | null;
       email?: string | null;
       phone?: string | null;
+      delivery_method?: 'mail' | 'post';
     }
   ) => request<any>(`/companies/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
+
+  // Mark invoice as sent by post (sets sent_by_post_at timestamp)
+  markInvoicePostSent: (invoiceId: number) =>
+    request<any>(`/invoices/${invoiceId}/mark-post-sent`, { method: 'POST' }),
+
+  // Mark contract cancellation as sent by post
+  markCancellationPostSent: (contractId: number) =>
+    request<any>(`/contracts/${contractId}/mark-cancellation-post-sent`, { method: 'POST' }),
   deleteCompany: (id: number) =>
     request<any>(`/companies/${id}`, { method: 'DELETE' }),
 
