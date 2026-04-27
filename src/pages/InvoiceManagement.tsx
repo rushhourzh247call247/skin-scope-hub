@@ -319,6 +319,41 @@ export default function InvoiceManagement() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {mailDialog && (() => {
+        const inv = mailDialog.invoice;
+        const isDunning = mailDialog.isDunning;
+        const contract = contracts.find((c: any) => c.id === inv.contract_id);
+        const company = companies.find((c: any) => c.id === inv.company_id);
+        const level = inv.dunning_level || 0;
+        const stufe = level === 1 ? "1. Mahnung" : level === 2 ? "2. Mahnung" : level >= 3 ? "3. Mahnung" : "";
+        const subject = isDunning
+          ? `${stufe} – Rechnung ${inv.invoice_number} (DERM247)`
+          : `Rechnung ${inv.invoice_number} (DERM247)`;
+        const filename = isDunning
+          ? `Mahnung_${stufe.replace(". ", "_")}_${inv.invoice_number}.pdf`
+          : `Rechnung_${inv.invoice_number}.pdf`;
+        return (
+          <SendDocumentMailDialog
+            open
+            onClose={() => setMailDialog(null)}
+            documentType={isDunning ? "dunning" : "invoice"}
+            documentId={inv.id}
+            companyId={inv.company_id}
+            defaultRecipient={company?.email || ""}
+            defaultSubject={subject}
+            pdfFilename={filename}
+            buildPdf={() =>
+              generateInvoicePdf({
+                ...inv,
+                contract_number: contract?.contract_number,
+                licenses: contract?.licenses,
+                package_name: contract?.package_name,
+              })
+            }
+          />
+        );
+      })()}
     </div>
   );
 }
