@@ -391,6 +391,39 @@ export default function InvoiceManagement() {
           />
         );
       })()}
+
+      {postDialog && (() => {
+        const inv = postDialog.invoice;
+        const contract = contracts.find((c: any) => c.id === inv.contract_id);
+        const company = companies.find((c: any) => c.id === inv.company_id);
+        const docPdf = generateInvoicePdf({
+          ...inv,
+          contract_number: contract?.contract_number,
+          licenses: contract?.licenses,
+          package_name: contract?.package_name,
+        }, "de", { skipPaidStamp: true });
+        return (
+          <PostSendDialog
+            open
+            onClose={() => setPostDialog(null)}
+            type={postDialog.type}
+            recipient={{
+              company_name: inv.company_name,
+              address_line1: company?.address || undefined,
+              zip: company?.zip || undefined,
+              city: company?.city || undefined,
+            }}
+            context={{
+              documentNumber: inv.invoice_number,
+              amount: inv.amount,
+              dueDate: inv.due_date,
+            }}
+            documentPdf={docPdf}
+            documentFilename={`${inv.invoice_number}.pdf`}
+            invoiceId={inv.id}
+          />
+        );
+      })()}
     </div>
   );
 }
