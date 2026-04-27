@@ -10,8 +10,9 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
-import { Search, Plus, CheckCircle, AlertTriangle, FileDown, RotateCcw, Send, Receipt } from "lucide-react";
-import { downloadInvoicePdf } from "@/lib/invoicePdf";
+import { Search, Plus, CheckCircle, AlertTriangle, FileDown, RotateCcw, Send, Receipt, Mail } from "lucide-react";
+import { downloadInvoicePdf, generateInvoicePdf } from "@/lib/invoicePdf";
+import { SendDocumentMailDialog } from "@/components/SendDocumentMailDialog";
 import { format } from "date-fns";
 import { toast } from "sonner";
 
@@ -39,6 +40,7 @@ export default function InvoiceManagement() {
   const [statusFilter, setStatusFilter] = useState<string>(initialStatus);
   const [dunningDialog, setDunningDialog] = useState<Invoice | null>(null);
   const [generateDialog, setGenerateDialog] = useState(false);
+  const [mailDialog, setMailDialog] = useState<{ invoice: Invoice; isDunning: boolean } | null>(null);
 
   const { data: invoices = [], isLoading } = useQuery({
     queryKey: ["invoices"],
@@ -48,6 +50,11 @@ export default function InvoiceManagement() {
   const { data: contracts = [] } = useQuery({
     queryKey: ["all-contracts"],
     queryFn: () => api.getAllContracts(),
+  });
+
+  const { data: companies = [] } = useQuery({
+    queryKey: ["companies"],
+    queryFn: () => api.getCompanies().catch(() => []),
   });
 
   const markPaidMutation = useMutation({
@@ -200,6 +207,17 @@ export default function InvoiceManagement() {
                             size="icon"
                             variant="ghost"
                             className="h-8 w-8"
+                            title="Per E-Mail senden"
+                            onClick={() =>
+                              setMailDialog({ invoice: inv, isDunning: (inv.dunning_level || 0) > 0 })
+                            }
+                          >
+                            <Mail className="h-4 w-4 text-primary" />
+                          </Button>
+                          <Button
+                            size="icon"
+                            variant="ghost"
+                            className="h-8 w-8"
                             title="PDF herunterladen"
                             onClick={() => {
                               try {
@@ -301,6 +319,41 @@ export default function InvoiceManagement() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {mailDialog && (() => {
+        const inv = mailDialog.invoice;
+        const isDunning = mailDialog.isDunning;
+        const contract = contracts.find((c: any) => c.id === inv.contract_id);
+        const company = companies.find((c: any) => c.id === inv.company_id);
+        const level = inv.dunning_level || 0;
+        const stufe = level === 1 ? "1. Mahnung" : level === 2 ? "2. Mahnung" : level >= 3 ? "3. Mahnung" : "";
+        const subject = isDunning
+          ? `${stufe} – Rechnung ${inv.invoice_number} (DERM247)`
+          : `Rechnung ${inv.invoice_number} (DERM247)`;
+        const filename = isDunning
+          ? `Mahnung_${stufe.replace(". ", "_")}_${inv.invoice_number}.pdf`
+          : `Rechnung_${inv.invoice_number}.pdf`;
+        return (
+          <SendDocumentMailDialog
+            open
+            onClose={() => setMailDialog(null)}
+            documentType={isDunning ? "dunning" : "invoice"}
+            documentId={inv.id}
+            companyId={inv.company_id}
+            defaultRecipient={company?.email || ""}
+            defaultSubject={subject}
+            pdfFilename={filename}
+            buildPdf={() =>
+              generateInvoicePdf({
+                ...inv,
+                contract_number: contract?.contract_number,
+                licenses: contract?.licenses,
+                package_name: contract?.package_name,
+              })
+            }
+          />
+        );
+      })()}
     </div>
   );
 }
