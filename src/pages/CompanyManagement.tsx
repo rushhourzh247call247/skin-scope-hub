@@ -182,6 +182,7 @@ const CompanyManagement = () => {
         city: editForm.city.trim() || null,
         email: editForm.email.trim() || null,
         phone: editForm.phone.trim() || null,
+        delivery_method: editForm.delivery_method,
       },
     });
   };
