@@ -1,12 +1,18 @@
 import jsPDF from "jspdf";
 import { format } from "date-fns";
-import { de } from "date-fns/locale";
 import { PAYMENT_QR_PNG } from "@/assets/paymentQrBase64";
+import {
+  INVOICE_STRINGS,
+  DATE_LOCALES,
+  NUMBER_LOCALES,
+  type InvoiceLanguage,
+} from "./invoiceTranslations";
 
 const BRAND_RGB: [number, number, number] = [28, 175, 154];
 const DARK_RGB: [number, number, number] = [30, 30, 30];
 const GRAY_RGB: [number, number, number] = [120, 120, 120];
 const LIGHT_GRAY_RGB: [number, number, number] = [240, 240, 240];
+const REMINDER_RGB: [number, number, number] = [200, 70, 30];
 
 interface InvoiceData {
   invoice_number: string;
@@ -37,7 +43,26 @@ const COMPANY_INFO = {
   bank: "Zürcher Kantonalbank",
 };
 
-export function generateInvoicePdf(invoice: InvoiceData): jsPDF {
+const DATE_FMT: Record<InvoiceLanguage, string> = {
+  de: "dd.MM.yyyy",
+  en: "dd/MM/yyyy",
+  fr: "dd/MM/yyyy",
+  it: "dd/MM/yyyy",
+  es: "dd/MM/yyyy",
+};
+
+export function generateInvoicePdf(invoice: InvoiceData, language: InvoiceLanguage = "de"): jsPDF {
+  const t = INVOICE_STRINGS[language];
+  const locale = DATE_LOCALES[language];
+  const numLocale = NUMBER_LOCALES[language];
+  const dateFmt = DATE_FMT[language];
+  const fmtDate = (d: string) => format(new Date(d), dateFmt, { locale });
+  const fmtCHF = (n: number) =>
+    `CHF ${n.toLocaleString(numLocale, { minimumFractionDigits: 2 })}`;
+
+  const isReminder = (invoice.dunning_level || 0) > 0;
+  const reminderLevel = invoice.dunning_level || 0;
+
   const doc = new jsPDF({ unit: "mm", format: "a4" });
   const pageW = 210;
   const marginL = 25;
@@ -80,13 +105,13 @@ export function generateInvoicePdf(invoice: InvoiceData): jsPDF {
   doc.setTextColor(...GRAY_RGB);
   doc.setFont("helvetica", "normal");
 
-  const metaLines = [
-    ["Rechnungsnr.:", invoice.invoice_number],
-    ["Rechnungsdatum:", format(new Date(invoice.created_at), "dd.MM.yyyy", { locale: de })],
-    ["Fälligkeitsdatum:", format(new Date(invoice.due_date), "dd.MM.yyyy", { locale: de })],
+  const metaLines: [string, string][] = [
+    [t.invoiceNumber, invoice.invoice_number],
+    [t.invoiceDate, fmtDate(invoice.created_at)],
+    [t.dueDate, fmtDate(invoice.due_date)],
   ];
   if (invoice.contract_number) {
-    metaLines.push(["Vertragsnr.:", invoice.contract_number]);
+    metaLines.push([t.contractNumber, invoice.contract_number]);
   }
 
   for (const [label, value] of metaLines) {
@@ -103,18 +128,19 @@ export function generateInvoicePdf(invoice: InvoiceData): jsPDF {
   y = 70;
   doc.setFontSize(18);
   doc.setFont("helvetica", "bold");
-  doc.setTextColor(...DARK_RGB);
-  doc.text("RECHNUNG", marginL, y);
+  doc.setTextColor(isReminder ? REMINDER_RGB[0] : DARK_RGB[0], isReminder ? REMINDER_RGB[1] : DARK_RGB[1], isReminder ? REMINDER_RGB[2] : DARK_RGB[2]);
+  const title = isReminder ? t.reminderTitle(reminderLevel) : t.invoiceTitle;
+  doc.text(title, marginL, y);
 
   // Status badge
   if (invoice.status === "paid") {
     doc.setFontSize(10);
     doc.setTextColor(34, 139, 34);
-    doc.text("BEZAHLT", marginL + doc.getTextWidth("RECHNUNG  ") + 5, y);
+    doc.text(t.paid, marginL + doc.getTextWidth(title + "  ") + 5, y);
   } else if (invoice.status === "cancelled") {
     doc.setFontSize(10);
     doc.setTextColor(180, 0, 0);
-    doc.text("STORNIERT", marginL + doc.getTextWidth("RECHNUNG  ") + 5, y);
+    doc.text(t.cancelled, marginL + doc.getTextWidth(title + "  ") + 5, y);
   }
 
   // ── Separator ──
@@ -123,18 +149,34 @@ export function generateInvoicePdf(invoice: InvoiceData): jsPDF {
   doc.setLineWidth(0.8);
   doc.line(marginL, y, pageW - marginR, y);
 
+  // ── Reminder banner (if dunning_level > 0) ──
+  if (isReminder) {
+    y += 6;
+    const bannerH = 16;
+    doc.setFillColor(255, 240, 230);
+    doc.setDrawColor(...REMINDER_RGB);
+    doc.setLineWidth(0.4);
+    doc.roundedRect(marginL, y, contentW, bannerH, 1.5, 1.5, "FD");
+    doc.setFontSize(8.5);
+    doc.setFont("helvetica", "normal");
+    doc.setTextColor(...DARK_RGB);
+    const bannerText = t.reminderBanner(reminderLevel, fmtDate(invoice.due_date));
+    doc.text(bannerText, marginL + 4, y + 6, { maxWidth: contentW - 8 });
+    y += bannerH;
+  }
+
   // ── Table header ──
-  y = 85;
+  y += 10;
   doc.setFillColor(...LIGHT_GRAY_RGB);
   doc.rect(marginL, y - 5, contentW, 8, "F");
 
   doc.setFontSize(9);
   doc.setFont("helvetica", "bold");
   doc.setTextColor(...DARK_RGB);
-  doc.text("Beschreibung", marginL + 3, y);
-  doc.text("Menge", marginL + contentW - 60, y, { align: "right" });
-  doc.text("Einzelpreis", marginL + contentW - 30, y, { align: "right" });
-  doc.text("Betrag", marginL + contentW - 3, y, { align: "right" });
+  doc.text(t.description, marginL + 3, y);
+  doc.text(t.quantity, marginL + contentW - 60, y, { align: "right" });
+  doc.text(t.unitPrice, marginL + contentW - 30, y, { align: "right" });
+  doc.text(t.amount, marginL + contentW - 3, y, { align: "right" });
 
   // ── Table row ──
   y += 10;
@@ -143,16 +185,13 @@ export function generateInvoicePdf(invoice: InvoiceData): jsPDF {
   doc.setTextColor(...DARK_RGB);
 
   const licenseCount = invoice.licenses || 1;
-  const pkgLabel = invoice.package_name ? ` – ${invoice.package_name}` : "";
-  const description = invoice.contract_number
-    ? `DERM247 Softwarelizenz${pkgLabel} (Vertrag ${invoice.contract_number})`
-    : `DERM247 Softwarelizenz${pkgLabel}`;
+  const description = t.licenseDescription(invoice.package_name, invoice.contract_number);
   const unitPrice = licenseCount > 0 ? invoice.amount / licenseCount : invoice.amount;
 
   doc.text(description, marginL + 3, y);
   doc.text(String(licenseCount), marginL + contentW - 60, y, { align: "right" });
-  doc.text(`CHF ${unitPrice.toLocaleString("de-CH", { minimumFractionDigits: 2 })}`, marginL + contentW - 30, y, { align: "right" });
-  doc.text(`CHF ${invoice.amount.toLocaleString("de-CH", { minimumFractionDigits: 2 })}`, marginL + contentW - 3, y, { align: "right" });
+  doc.text(fmtCHF(unitPrice), marginL + contentW - 30, y, { align: "right" });
+  doc.text(fmtCHF(invoice.amount), marginL + contentW - 3, y, { align: "right" });
 
   // ── Subtotal separator ──
   y += 8;
@@ -165,14 +204,14 @@ export function generateInvoicePdf(invoice: InvoiceData): jsPDF {
   doc.setFont("helvetica", "normal");
   doc.setFontSize(9);
   doc.setTextColor(...GRAY_RGB);
-  doc.text("Zwischensumme", marginL + contentW - 80, y);
+  doc.text(t.subtotal, marginL + contentW - 80, y);
   doc.setTextColor(...DARK_RGB);
-  doc.text(`CHF ${invoice.amount.toLocaleString("de-CH", { minimumFractionDigits: 2 })}`, marginL + contentW - 3, y, { align: "right" });
+  doc.text(fmtCHF(invoice.amount), marginL + contentW - 3, y, { align: "right" });
 
-  // MwSt
+  // VAT
   y += 6;
   doc.setTextColor(...GRAY_RGB);
-  doc.text("MwSt. (0% – von der Steuer befreit)", marginL + contentW - 80, y);
+  doc.text(t.vatLine, marginL + contentW - 80, y);
   doc.setTextColor(...DARK_RGB);
   doc.text("CHF 0.00", marginL + contentW - 3, y, { align: "right" });
 
@@ -186,8 +225,8 @@ export function generateInvoicePdf(invoice: InvoiceData): jsPDF {
   doc.setFont("helvetica", "bold");
   doc.setFontSize(12);
   doc.setTextColor(...DARK_RGB);
-  doc.text("Gesamtbetrag", marginL + contentW - 80, y);
-  doc.text(`CHF ${invoice.amount.toLocaleString("de-CH", { minimumFractionDigits: 2 })}`, marginL + contentW - 3, y, { align: "right" });
+  doc.text(t.total, marginL + contentW - 80, y);
+  doc.text(fmtCHF(invoice.amount), marginL + contentW - 3, y, { align: "right" });
 
   // ── Payment info box with QR ──
   y += 18;
@@ -212,28 +251,27 @@ export function generateInvoicePdf(invoice: InvoiceData): jsPDF {
   doc.setFontSize(6);
   doc.setFont("helvetica", "normal");
   doc.setTextColor(...GRAY_RGB);
-  doc.text("QR-Code scannen", qrX + qrSize / 2, qrY + qrSize + 4, { align: "center" });
+  doc.text(t.scanQr, qrX + qrSize / 2, qrY + qrSize + 4, { align: "center" });
 
   // Title
   const infoY = y + 7;
   doc.setFontSize(10);
   doc.setFont("helvetica", "bold");
   doc.setTextColor(...BRAND_RGB);
-  doc.text("Zahlungsinformationen", marginL + 5, infoY);
+  doc.text(t.paymentInfo, marginL + 5, infoY);
 
   // Payment details – left column layout
   const lineX = marginL + 5;
   const valX = marginL + 42;
-  const maxTextX = qrX - 8; // don't overlap QR
   let lineY = infoY + 8;
   doc.setFontSize(8.5);
 
   const payDetails: [string, string][] = [
-    ["Empfänger:", COMPANY_INFO.owner],
-    ["Bank:", COMPANY_INFO.bank],
-    ["IBAN:", COMPANY_INFO.iban],
-    ["Referenz:", invoice.invoice_number],
-    ["Zahlbar bis:", format(new Date(invoice.due_date), "dd.MM.yyyy", { locale: de })],
+    [t.recipient, COMPANY_INFO.owner],
+    [t.bank, COMPANY_INFO.bank],
+    [t.iban, COMPANY_INFO.iban],
+    [t.reference, invoice.invoice_number],
+    [t.payableUntil, fmtDate(invoice.due_date)],
   ];
 
   for (const [label, value] of payDetails) {
@@ -252,7 +290,7 @@ export function generateInvoicePdf(invoice: InvoiceData): jsPDF {
     doc.setFontSize(9);
     doc.setFont("helvetica", "bold");
     doc.setTextColor(...GRAY_RGB);
-    doc.text("Bemerkungen:", marginL, y);
+    doc.text(t.notesLabel, marginL, y);
     y += 5;
     doc.setFont("helvetica", "normal");
     doc.text(invoice.notes, marginL, y, { maxWidth: contentW });
@@ -263,9 +301,9 @@ export function generateInvoicePdf(invoice: InvoiceData): jsPDF {
     doc.setFontSize(36);
     doc.setTextColor(34, 139, 34);
     doc.setFont("helvetica", "bold");
-    doc.text("BEZAHLT", pageW / 2, 180, { align: "center", angle: 25 });
+    doc.text(t.paidStamp, pageW / 2, 180, { align: "center", angle: 25 });
     doc.setFontSize(10);
-    doc.text(`am ${format(new Date(invoice.paid_at), "dd.MM.yyyy", { locale: de })}`, pageW / 2, 190, { align: "center", angle: 25 });
+    doc.text(`${t.paidOn} ${fmtDate(invoice.paid_at)}`, pageW / 2, 190, { align: "center", angle: 25 });
   }
 
   // ── Footer ──
@@ -290,9 +328,9 @@ export function generateInvoicePdf(invoice: InvoiceData): jsPDF {
   doc.text(`E-Mail: ${COMPANY_INFO.email}`, col2X, footerY + 9);
   doc.text(`Web: ${COMPANY_INFO.web}`, col2X, footerY + 13);
 
-  doc.text(`Inhaber: ${COMPANY_INFO.owner}`, col3X, footerY + 5);
-  doc.text(`IBAN: ${COMPANY_INFO.iban}`, col3X, footerY + 9);
-  doc.text(`Bank: ${COMPANY_INFO.bank}`, col3X, footerY + 13);
+  doc.text(`${t.ownerLabel} ${COMPANY_INFO.owner}`, col3X, footerY + 5);
+  doc.text(`${t.iban} ${COMPANY_INFO.iban}`, col3X, footerY + 9);
+  doc.text(`${t.bank} ${COMPANY_INFO.bank}`, col3X, footerY + 13);
 
   // Bottom brand bar
   doc.setFillColor(...BRAND_RGB);
@@ -301,7 +339,11 @@ export function generateInvoicePdf(invoice: InvoiceData): jsPDF {
   return doc;
 }
 
-export function downloadInvoicePdf(invoice: InvoiceData) {
-  const doc = generateInvoicePdf(invoice);
-  doc.save(`Rechnung_${invoice.invoice_number}.pdf`);
+export function downloadInvoicePdf(invoice: InvoiceData, language: InvoiceLanguage = "de") {
+  const t = INVOICE_STRINGS[language];
+  const doc = generateInvoicePdf(invoice, language);
+  const filename = (invoice.dunning_level || 0) > 0
+    ? t.filenameReminder(invoice.dunning_level, invoice.invoice_number)
+    : t.filenameInvoice(invoice.invoice_number);
+  doc.save(filename);
 }
