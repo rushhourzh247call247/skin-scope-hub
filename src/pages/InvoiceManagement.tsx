@@ -207,6 +207,17 @@ export default function InvoiceManagement() {
                             size="icon"
                             variant="ghost"
                             className="h-8 w-8"
+                            title="Per E-Mail senden"
+                            onClick={() =>
+                              setMailDialog({ invoice: inv, isDunning: (inv.dunning_level || 0) > 0 })
+                            }
+                          >
+                            <Mail className="h-4 w-4 text-primary" />
+                          </Button>
+                          <Button
+                            size="icon"
+                            variant="ghost"
+                            className="h-8 w-8"
                             title="PDF herunterladen"
                             onClick={() => {
                               try {
