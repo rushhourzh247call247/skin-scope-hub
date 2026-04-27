@@ -45,7 +45,7 @@ const CompanyManagement = () => {
     city: "",
     email: "",
     phone: "",
-    delivery_method: "mail" as "mail" | "post",
+    delivery_method: "email" as "email" | "post",
   });
 
   // Lifecycle-Dialog State
@@ -166,7 +166,7 @@ const CompanyManagement = () => {
       city: company.city ?? "",
       email: company.email ?? "",
       phone: company.phone ?? "",
-      delivery_method: (company.delivery_method === "post" ? "post" : "mail") as "mail" | "post",
+      delivery_method: (company.delivery_method === "post" ? "post" : "email") as "email" | "post",
     });
   };
 
@@ -631,9 +631,9 @@ const CompanyManagement = () => {
               <div className="flex gap-2 mt-2">
                 <Button
                   type="button"
-                  variant={editForm.delivery_method === "mail" ? "default" : "outline"}
+                  variant={editForm.delivery_method === "email" ? "default" : "outline"}
                   size="sm"
-                  onClick={() => setEditForm({ ...editForm, delivery_method: "mail" })}
+                  onClick={() => setEditForm({ ...editForm, delivery_method: "email" })}
                   className="flex-1"
                 >
                   E-Mail
