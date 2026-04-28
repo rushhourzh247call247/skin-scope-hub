@@ -43,12 +43,18 @@ const DEPLOY_STEPS: DeployStep[] = [
   { id: "deploy", label: "Deploy & Caches aufbauen", estimatedSeconds: 8, icon: ArrowUpToLine },
 ];
 
-const TOTAL_ESTIMATED = DEPLOY_STEPS.reduce((sum, s) => sum + s.estimatedSeconds, 0);
+// Verkürzte Liste für Frontend-only Deploy (kein Composer, keine Migrations, kein Backend-Sync)
+const FRONTEND_ONLY_STEPS: DeployStep[] = [
+  { id: "git", label: "Frontend von GitHub klonen", estimatedSeconds: 8, icon: GitBranch },
+  { id: "build", label: "Frontend bauen (Vite)", estimatedSeconds: 45, icon: Hammer },
+  { id: "deploy", label: "Deploy & Cache-Bust", estimatedSeconds: 5, icon: ArrowUpToLine },
+];
 
 interface DeployProgressProps {
   isRunning: boolean;
   isDone: boolean;
   hasFailed: boolean;
+  mode?: "full" | "frontend";
 }
 
 export const DeployProgress: React.FC<DeployProgressProps> = ({ isRunning, isDone, hasFailed }) => {
