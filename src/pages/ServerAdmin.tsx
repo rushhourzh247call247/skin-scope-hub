@@ -15,7 +15,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import {
   Server, Rocket, GitBranch, HardDrive, RotateCcw, Play, Square, RefreshCw,
   CheckCircle2, XCircle, Clock, Cpu, MemoryStick, Database, Activity,
-  Download, Trash2, Camera, Loader2, ChevronRight, AlertTriangle
+  Download, Trash2, Camera, Loader2, ChevronRight, AlertTriangle, Hammer
 } from "lucide-react";
 import { toast } from "sonner";
 import { DeployProgress } from "@/components/DeployProgress";
@@ -214,6 +214,7 @@ const ServerAdmin = () => {
   const [terminalLines, setTerminalLines] = useState<TerminalLine[]>([]);
   const [isRunning, setIsRunning] = useState(false);
   const [deployState, setDeployState] = useState<"idle" | "running" | "done" | "failed">("idle");
+  const [deployMode, setDeployMode] = useState<"full" | "frontend">("full");
   const [actionPassword, setActionPassword] = useState("");
   const [passwordError, setPasswordError] = useState(false);
   const [restoreConfirmText, setRestoreConfirmText] = useState("");
@@ -286,6 +287,7 @@ const ServerAdmin = () => {
   const deployMutation = useMutation({
     mutationFn: async (password: string) => {
       setIsRunning(true);
+      setDeployMode("full");
       setDeployState("running");
       setTerminalLines([]);
       addLine("═══ Deployment auf Live-Server gestartet ═══", "step");
@@ -309,6 +311,38 @@ const ServerAdmin = () => {
       setDeployState("failed");
       const parsed = appendServerActionError(err, "Deployment fehlgeschlagen");
       toast.error(parsed.message || "Deployment fehlgeschlagen");
+    },
+    onSettled: () => setIsRunning(false),
+  });
+
+  /* ── Frontend-only Deploy ──────── */
+  const deployFrontendMutation = useMutation({
+    mutationFn: async (password: string) => {
+      setIsRunning(true);
+      setDeployMode("frontend");
+      setDeployState("running");
+      setTerminalLines([]);
+      addLine("═══ Frontend-Deployment gestartet (ohne Backend/DB) ═══", "step");
+
+      const response = await api.serverAdmin.deployFrontend(password);
+
+      if (!response.success) {
+        throw createServerActionError(response);
+      }
+
+      appendServerActionSteps(response.steps);
+      addLine("═══ Frontend-Deployment erfolgreich abgeschlossen ═══", "success");
+
+      return response;
+    },
+    onSuccess: () => {
+      setDeployState("done");
+      refetchStatus();
+    },
+    onError: (err: Error) => {
+      setDeployState("failed");
+      const parsed = appendServerActionError(err, "Frontend-Deployment fehlgeschlagen");
+      toast.error(parsed.message || "Frontend-Deployment fehlgeschlagen");
     },
     onSettled: () => setIsRunning(false),
   });
@@ -578,7 +612,22 @@ const ServerAdmin = () => {
                 <Rocket className="h-5 w-5 text-primary" />
                 Deployment
               </CardTitle>
-              <div className="flex gap-2 self-end sm:self-auto">
+              <div className="flex flex-wrap gap-2 self-end sm:self-auto">
+                <Button
+                  variant="secondary"
+                  onClick={() => setConfirmAction({
+                    title: "Nur Frontend deployen?",
+                    description: "Schneller Deploy: Nur das Frontend wird von GitHub geklont und gebaut (~1 Min). Kein Backend-Sync, kein Composer, keine DB-Migrationen. Geeignet wenn nur UI-Änderungen vorgenommen wurden.",
+                    onConfirm: (pw) => deployFrontendMutation.mutate(pw),
+                  })}
+                  disabled={isRunning}
+                  size="sm"
+                  className="gap-1.5"
+                  title="Nur Frontend bauen & deployen — überspringt Backend/Composer/Migrations"
+                >
+                  {isRunning && deployMode === "frontend" ? <Loader2 className="h-4 w-4 animate-spin" /> : <Hammer className="h-4 w-4" />}
+                  {isRunning && deployMode === "frontend" ? "Läuft…" : "Frontend only"}
+                </Button>
                 <Button
                   onClick={() => setConfirmAction({
                     title: "Deployment auf Live-Server starten?",
@@ -589,8 +638,8 @@ const ServerAdmin = () => {
                   size="sm"
                   className="gap-1.5"
                 >
-                  {isRunning ? <Loader2 className="h-4 w-4 animate-spin" /> : <Play className="h-4 w-4" />}
-                  {isRunning ? "Läuft…" : "Deploy"}
+                  {isRunning && deployMode === "full" ? <Loader2 className="h-4 w-4 animate-spin" /> : <Play className="h-4 w-4" />}
+                  {isRunning && deployMode === "full" ? "Läuft…" : "Full Deploy"}
                 </Button>
                 <Button
                   variant="outline"
@@ -610,6 +659,7 @@ const ServerAdmin = () => {
               isRunning={isRunning}
               isDone={deployState === "done"}
               hasFailed={deployState === "failed"}
+              mode={deployMode}
             />
             <Terminal lines={terminalLines} isRunning={isRunning} />
           </CardContent>

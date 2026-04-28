@@ -43,15 +43,23 @@ const DEPLOY_STEPS: DeployStep[] = [
   { id: "deploy", label: "Deploy & Caches aufbauen", estimatedSeconds: 8, icon: ArrowUpToLine },
 ];
 
-const TOTAL_ESTIMATED = DEPLOY_STEPS.reduce((sum, s) => sum + s.estimatedSeconds, 0);
+// Verkürzte Liste für Frontend-only Deploy (kein Composer, keine Migrations, kein Backend-Sync)
+const FRONTEND_ONLY_STEPS: DeployStep[] = [
+  { id: "git", label: "Frontend von GitHub klonen", estimatedSeconds: 8, icon: GitBranch },
+  { id: "build", label: "Frontend bauen (Vite)", estimatedSeconds: 45, icon: Hammer },
+  { id: "deploy", label: "Deploy & Cache-Bust", estimatedSeconds: 5, icon: ArrowUpToLine },
+];
 
 interface DeployProgressProps {
   isRunning: boolean;
   isDone: boolean;
   hasFailed: boolean;
+  mode?: "full" | "frontend";
 }
 
-export const DeployProgress: React.FC<DeployProgressProps> = ({ isRunning, isDone, hasFailed }) => {
+export const DeployProgress: React.FC<DeployProgressProps> = ({ isRunning, isDone, hasFailed, mode = "full" }) => {
+  const steps = mode === "frontend" ? FRONTEND_ONLY_STEPS : DEPLOY_STEPS;
+  const TOTAL_ESTIMATED = steps.reduce((sum, s) => sum + s.estimatedSeconds, 0);
   const [elapsed, setElapsed] = useState(0);
   const [startTime, setStartTime] = useState<number | null>(null);
   const [liveStep, setLiveStep] = useState<number | null>(null); // echter Step vom Backend (1-basiert) oder null
@@ -115,8 +123,8 @@ export const DeployProgress: React.FC<DeployProgressProps> = ({ isRunning, isDon
   } else {
     activeIndex = 0;
     let cumSeconds = 0;
-    for (let i = 0; i < DEPLOY_STEPS.length; i++) {
-      cumSeconds += DEPLOY_STEPS[i].estimatedSeconds;
+    for (let i = 0; i < steps.length; i++) {
+      cumSeconds += steps[i].estimatedSeconds;
       if (elapsed < cumSeconds) {
         activeIndex = i;
         break;
@@ -125,10 +133,10 @@ export const DeployProgress: React.FC<DeployProgressProps> = ({ isRunning, isDon
     }
   }
 
-  if (isDone) activeIndex = DEPLOY_STEPS.length;
+  if (isDone) activeIndex = steps.length;
 
   const rawProgress = liveSource === "live" && liveStep !== null
-    ? Math.min((liveStep / DEPLOY_STEPS.length) * 100, 95)
+    ? Math.min((liveStep / steps.length) * 100, 95)
     : Math.min((elapsed / TOTAL_ESTIMATED) * 100, 95);
   const progress = isDone ? 100 : rawProgress;
 
@@ -145,7 +153,7 @@ export const DeployProgress: React.FC<DeployProgressProps> = ({ isRunning, isDon
     return m > 0 ? `${m}m ${sec}s` : `${sec}s`;
   };
 
-  const safeActiveIndex = Math.min(activeIndex, DEPLOY_STEPS.length - 1);
+  const safeActiveIndex = Math.min(activeIndex, steps.length - 1);
 
   return (
     <div className="rounded-lg border bg-card p-4 mb-4 space-y-4">
@@ -166,7 +174,7 @@ export const DeployProgress: React.FC<DeployProgressProps> = ({ isRunning, isDon
               <>
                 <Loader2 className="h-4 w-4 animate-spin text-primary" />
                 <span className="font-medium">
-                  Schritt {Math.min(activeIndex + 1, DEPLOY_STEPS.length)}/{DEPLOY_STEPS.length}: {DEPLOY_STEPS[safeActiveIndex].label}
+                  Schritt {Math.min(activeIndex + 1, steps.length)}/{steps.length}: {steps[safeActiveIndex].label}
                 </span>
                 {stepElapsed !== null && (
                   <span className="text-muted-foreground font-mono">({stepElapsed}s)</span>
@@ -203,7 +211,7 @@ export const DeployProgress: React.FC<DeployProgressProps> = ({ isRunning, isDon
 
       {/* Step-Liste */}
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-5 lg:grid-cols-10 gap-2">
-        {DEPLOY_STEPS.map((step, i) => {
+        {steps.map((step, i) => {
           const isComplete = i < activeIndex;
           const isActive = i === activeIndex && !isDone && !hasFailed;
           const isPending = i > activeIndex;

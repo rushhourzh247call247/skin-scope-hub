@@ -834,6 +834,12 @@ export const api = {
         error?: string;
         steps?: { label: string; success: boolean; output?: string }[];
       }>('/server-admin/deploy', { method: 'POST', body: JSON.stringify({ action_password: actionPassword }) }),
+    deployFrontend: (actionPassword: string) =>
+      requestServerAdmin<{
+        success: boolean;
+        error?: string;
+        steps?: { label: string; success: boolean; output?: string }[];
+      }>('/server-admin/deploy/frontend', { method: 'POST', body: JSON.stringify({ action_password: actionPassword }) }),
     createBackup: (actionPassword: string) =>
       requestServerAdmin<{ success: boolean; filename: string; error?: string }>('/server-admin/backup', { method: 'POST', body: JSON.stringify({ action_password: actionPassword }) }),
     rollback: (hash: string, actionPassword: string) =>
