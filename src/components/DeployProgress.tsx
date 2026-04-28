@@ -58,7 +58,7 @@ interface DeployProgressProps {
 }
 
 export const DeployProgress: React.FC<DeployProgressProps> = ({ isRunning, isDone, hasFailed, mode = "full" }) => {
-  const steps = mode === "frontend" ? FRONTEND_ONLY_STEPS : steps;
+  const steps = mode === "frontend" ? FRONTEND_ONLY_STEPS : DEPLOY_STEPS;
   const TOTAL_ESTIMATED = steps.reduce((sum, s) => sum + s.estimatedSeconds, 0);
   const [elapsed, setElapsed] = useState(0);
   const [startTime, setStartTime] = useState<number | null>(null);
