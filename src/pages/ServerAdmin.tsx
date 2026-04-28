@@ -287,6 +287,7 @@ const ServerAdmin = () => {
   const deployMutation = useMutation({
     mutationFn: async (password: string) => {
       setIsRunning(true);
+      setDeployMode("full");
       setDeployState("running");
       setTerminalLines([]);
       addLine("═══ Deployment auf Live-Server gestartet ═══", "step");
@@ -310,6 +311,38 @@ const ServerAdmin = () => {
       setDeployState("failed");
       const parsed = appendServerActionError(err, "Deployment fehlgeschlagen");
       toast.error(parsed.message || "Deployment fehlgeschlagen");
+    },
+    onSettled: () => setIsRunning(false),
+  });
+
+  /* ── Frontend-only Deploy ──────── */
+  const deployFrontendMutation = useMutation({
+    mutationFn: async (password: string) => {
+      setIsRunning(true);
+      setDeployMode("frontend");
+      setDeployState("running");
+      setTerminalLines([]);
+      addLine("═══ Frontend-Deployment gestartet (ohne Backend/DB) ═══", "step");
+
+      const response = await api.serverAdmin.deployFrontend(password);
+
+      if (!response.success) {
+        throw createServerActionError(response);
+      }
+
+      appendServerActionSteps(response.steps);
+      addLine("═══ Frontend-Deployment erfolgreich abgeschlossen ═══", "success");
+
+      return response;
+    },
+    onSuccess: () => {
+      setDeployState("done");
+      refetchStatus();
+    },
+    onError: (err: Error) => {
+      setDeployState("failed");
+      const parsed = appendServerActionError(err, "Frontend-Deployment fehlgeschlagen");
+      toast.error(parsed.message || "Frontend-Deployment fehlgeschlagen");
     },
     onSettled: () => setIsRunning(false),
   });
