@@ -15,7 +15,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import {
   Server, Rocket, GitBranch, HardDrive, RotateCcw, Play, Square, RefreshCw,
   CheckCircle2, XCircle, Clock, Cpu, MemoryStick, Database, Activity,
-  Download, Trash2, Camera, Loader2, ChevronRight, AlertTriangle
+  Download, Trash2, Camera, Loader2, ChevronRight, AlertTriangle, Hammer
 } from "lucide-react";
 import { toast } from "sonner";
 import { DeployProgress } from "@/components/DeployProgress";
