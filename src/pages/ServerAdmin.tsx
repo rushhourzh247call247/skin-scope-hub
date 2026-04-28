@@ -214,6 +214,7 @@ const ServerAdmin = () => {
   const [terminalLines, setTerminalLines] = useState<TerminalLine[]>([]);
   const [isRunning, setIsRunning] = useState(false);
   const [deployState, setDeployState] = useState<"idle" | "running" | "done" | "failed">("idle");
+  const [deployMode, setDeployMode] = useState<"full" | "frontend">("full");
   const [actionPassword, setActionPassword] = useState("");
   const [passwordError, setPasswordError] = useState(false);
   const [restoreConfirmText, setRestoreConfirmText] = useState("");
