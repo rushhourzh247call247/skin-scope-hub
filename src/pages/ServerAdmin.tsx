@@ -612,7 +612,22 @@ const ServerAdmin = () => {
                 <Rocket className="h-5 w-5 text-primary" />
                 Deployment
               </CardTitle>
-              <div className="flex gap-2 self-end sm:self-auto">
+              <div className="flex flex-wrap gap-2 self-end sm:self-auto">
+                <Button
+                  variant="secondary"
+                  onClick={() => setConfirmAction({
+                    title: "Nur Frontend deployen?",
+                    description: "Schneller Deploy: Nur das Frontend wird von GitHub geklont und gebaut (~1 Min). Kein Backend-Sync, kein Composer, keine DB-Migrationen. Geeignet wenn nur UI-Änderungen vorgenommen wurden.",
+                    onConfirm: (pw) => deployFrontendMutation.mutate(pw),
+                  })}
+                  disabled={isRunning}
+                  size="sm"
+                  className="gap-1.5"
+                  title="Nur Frontend bauen & deployen — überspringt Backend/Composer/Migrations"
+                >
+                  {isRunning && deployMode === "frontend" ? <Loader2 className="h-4 w-4 animate-spin" /> : <Hammer className="h-4 w-4" />}
+                  {isRunning && deployMode === "frontend" ? "Läuft…" : "Frontend only"}
+                </Button>
                 <Button
                   onClick={() => setConfirmAction({
                     title: "Deployment auf Live-Server starten?",
@@ -623,8 +638,8 @@ const ServerAdmin = () => {
                   size="sm"
                   className="gap-1.5"
                 >
-                  {isRunning ? <Loader2 className="h-4 w-4 animate-spin" /> : <Play className="h-4 w-4" />}
-                  {isRunning ? "Läuft…" : "Deploy"}
+                  {isRunning && deployMode === "full" ? <Loader2 className="h-4 w-4 animate-spin" /> : <Play className="h-4 w-4" />}
+                  {isRunning && deployMode === "full" ? "Läuft…" : "Full Deploy"}
                 </Button>
                 <Button
                   variant="outline"
@@ -644,6 +659,7 @@ const ServerAdmin = () => {
               isRunning={isRunning}
               isDone={deployState === "done"}
               hasFailed={deployState === "failed"}
+              mode={deployMode}
             />
             <Terminal lines={terminalLines} isRunning={isRunning} />
           </CardContent>
