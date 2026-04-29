@@ -96,11 +96,21 @@ const SystemDocs = () => {
       </Section>
 
       <Section icon={Cpu} title={t('systemDocs.backendApi')}>
+        <div className="mb-3 rounded-md border border-primary/30 bg-primary/5 p-3 text-xs">
+          <p className="font-semibold text-primary mb-1">⚙️ Server-Architektur (Proto + Live identisch)</p>
+          <p className="text-muted-foreground leading-relaxed">
+            Beide Server (Proto: <code>138.199.167.214</code> / Live: <code>83.228.246.191</code>) sind <strong>identisch</strong> aufgebaut.
+            Laravel liegt auf <strong>beiden</strong> unter <code>/home/ubuntu/derm-api/</code>.
+            Die <code>.env</code> wird pro Server gepflegt (Mail-Keys, APP_ENV, APP_URL).
+            <code>/var/www/</code> enthält nur statische Frontend-Dateien (<code>app.derm247.ch/</code> bzw. <code>proto.derm247.ch/</code>).
+          </p>
+        </div>
         <InfoRow label={t('systemDocs.framework')} value="Laravel (PHP)" />
         <InfoRow label={t('systemDocs.phpVersion')} value="8.3 (PHP-FPM)" badge={t('systemDocs.autoStartLabel')} />
         <InfoRow label={t('systemDocs.connection')} value="Unix Socket (/run/php/php8.3-fpm.sock)" />
-        <InfoRow label={t('systemDocs.apiUrl')} value="https://api.derm247.ch" />
-        <InfoRow label={t('systemDocs.serverPath')} value="/home/ubuntu/derm-api/" />
+        <InfoRow label={t('systemDocs.apiUrl')} value="https://api.derm247.ch (Live) / https://dev.derm247.ch (Proto)" />
+        <InfoRow label={t('systemDocs.serverPath')} value="/home/ubuntu/derm-api/ (Proto + Live)" />
+        <InfoRow label="ENV-Datei" value="/home/ubuntu/derm-api/.env (pro Server gepflegt)" />
         <InfoRow label={t('systemDocs.authentication')} value={t('systemDocs.authVal')} />
         <InfoRow label={t('systemDocs.twoFa')} value={t('systemDocs.twoFaVal')} />
         <InfoRow label={t('systemDocs.cors')} value={t('systemDocs.corsVal')} />
