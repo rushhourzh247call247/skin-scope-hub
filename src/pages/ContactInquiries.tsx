@@ -467,11 +467,11 @@ export default function ContactInquiries() {
                         )}
                       </div>
                       <p className="line-clamp-2 text-xs text-muted-foreground">
-                        {item.message}
+                        {getLastMessage(item)}
                       </p>
                     </div>
                     <div className="shrink-0 text-right text-[11px] text-muted-foreground">
-                      {formatDate(item.confirmed_at)}
+                      {formatDate(getLastActivityAt(item))}
                     </div>
                   </div>
                 </Card>
