@@ -3,12 +3,13 @@ import { format } from "date-fns";
 import { de } from "date-fns/locale";
 import {
   Mail, Search, Reply, Trash2, Loader2, CheckCircle2, Inbox,
-  Building2, Clock, Send, ArrowLeft, MailCheck, AlertCircle,
+  Building2, Clock, Send, ArrowLeft, MailCheck, UserRound,
 } from "lucide-react";
 import { toast } from "sonner";
 import { z } from "zod";
 
 import { api } from "@/lib/api";
+import { cn } from "@/lib/utils";
 import type { ContactRequest } from "@/types/contactRequest";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -29,6 +30,26 @@ const replySchema = z.object({
   subject: z.string().trim().min(3, "Betreff zu kurz").max(255),
   body: z.string().trim().min(10, "Antwort zu kurz").max(10000),
 });
+
+const getInitials = (value?: string | null) => {
+  const source = value?.trim() || "?";
+  return source
+    .split(/\s+/)
+    .map((part) => part[0])
+    .join("")
+    .slice(0, 2)
+    .toUpperCase();
+};
+
+const getLastMessage = (item: ContactRequest) => {
+  const lastReply = [...item.replies].sort((a, b) => a.id - b.id).at(-1);
+  return lastReply?.body || item.message;
+};
+
+const getLastActivityAt = (item: ContactRequest) => {
+  const lastReply = [...item.replies].sort((a, b) => a.id - b.id).at(-1);
+  return lastReply?.sent_at || lastReply?.created_at || item.confirmed_at;
+};
 
 export default function ContactInquiries() {
   const [items, setItems] = useState<ContactRequest[]>([]);
@@ -236,27 +257,33 @@ export default function ContactInquiries() {
               Verlauf ({selected.replies.length})
             </Label>
             {selected.replies.map((r) => (
-              <Card key={r.id} className="p-5">
+              <Card
+                key={r.id}
+                className={cn(
+                  "p-5",
+                  r.direction === "inbound" ? "border-primary/25 bg-primary/5" : "bg-card",
+                )}
+              >
                 <div className="mb-3 flex items-center justify-between gap-2">
                   <div className="flex items-center gap-2">
-                    <div className="flex h-7 w-7 items-center justify-center rounded-full bg-primary/15 text-xs font-semibold text-primary">
-                      {r.admin_name
-                        ?.split(" ")
-                        .map((n) => n[0])
-                        .join("")
-                        .slice(0, 2)
-                        .toUpperCase()}
+                    <div className={cn(
+                      "flex h-7 w-7 items-center justify-center rounded-full text-xs font-semibold",
+                      r.direction === "inbound" ? "bg-background text-primary" : "bg-primary/15 text-primary",
+                    )}>
+                      {r.direction === "inbound" ? getInitials(selected.name) : getInitials(r.admin_name)}
                     </div>
                     <div>
-                      <p className="text-sm font-medium">{r.admin_name}</p>
+                      <p className="text-sm font-medium">
+                        {r.direction === "inbound" ? selected.name : r.admin_name}
+                      </p>
                       <p className="text-xs text-muted-foreground">
                         {r.sent_at ? formatDate(r.sent_at) : formatDate(r.created_at)}
                       </p>
                     </div>
                   </div>
-                  <Badge variant="outline" className="gap-1">
-                    <MailCheck className="h-3 w-3" />
-                    Gesendet
+                  <Badge variant={r.direction === "inbound" ? "default" : "outline"} className="gap-1">
+                    {r.direction === "inbound" ? <UserRound className="h-3 w-3" /> : <MailCheck className="h-3 w-3" />}
+                    {r.direction === "inbound" ? "Kundenantwort" : "Gesendet"}
                   </Badge>
                 </div>
                 <p className="mb-2 text-sm font-medium">{r.subject}</p>
@@ -275,15 +302,6 @@ export default function ContactInquiries() {
             <h2 className="text-base font-semibold">
               {selected.replies.length > 0 ? "Erneut antworten" : "Antworten"}
             </h2>
-          </div>
-
-          <div className="mb-4 flex items-start gap-2 rounded-md border border-amber-200 bg-amber-50 p-3 text-xs text-amber-900 dark:border-amber-900/40 dark:bg-amber-950/30 dark:text-amber-200">
-            <AlertCircle className="mt-0.5 h-3.5 w-3.5 shrink-0" />
-            <p>
-              Hinweis: Antworten des Kunden landen aktuell in Ihrem Mail-Postfach
-              (Reply-To: <code>contact+{selected.id}@derm247.ch</code>) — automatische
-              Inbox-Verarbeitung folgt in Phase 2.
-            </p>
           </div>
 
           <div className="space-y-3">
@@ -449,11 +467,11 @@ export default function ContactInquiries() {
                         )}
                       </div>
                       <p className="line-clamp-2 text-xs text-muted-foreground">
-                        {item.message}
+                        {getLastMessage(item)}
                       </p>
                     </div>
                     <div className="shrink-0 text-right text-[11px] text-muted-foreground">
-                      {formatDate(item.confirmed_at)}
+                      {formatDate(getLastActivityAt(item))}
                     </div>
                   </div>
                 </Card>
