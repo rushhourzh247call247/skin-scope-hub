@@ -31,6 +31,26 @@ const replySchema = z.object({
   body: z.string().trim().min(10, "Antwort zu kurz").max(10000),
 });
 
+const getInitials = (value?: string | null) => {
+  const source = value?.trim() || "?";
+  return source
+    .split(/\s+/)
+    .map((part) => part[0])
+    .join("")
+    .slice(0, 2)
+    .toUpperCase();
+};
+
+const getLastMessage = (item: ContactRequest) => {
+  const lastReply = [...item.replies].sort((a, b) => a.id - b.id).at(-1);
+  return lastReply?.body || item.message;
+};
+
+const getLastActivityAt = (item: ContactRequest) => {
+  const lastReply = [...item.replies].sort((a, b) => a.id - b.id).at(-1);
+  return lastReply?.sent_at || lastReply?.created_at || item.confirmed_at;
+};
+
 export default function ContactInquiries() {
   const [items, setItems] = useState<ContactRequest[]>([]);
   const [loading, setLoading] = useState(true);
