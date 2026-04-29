@@ -3,12 +3,13 @@ import { format } from "date-fns";
 import { de } from "date-fns/locale";
 import {
   Mail, Search, Reply, Trash2, Loader2, CheckCircle2, Inbox,
-  Building2, Clock, Send, ArrowLeft, MailCheck, AlertCircle,
+  Building2, Clock, Send, ArrowLeft, MailCheck, UserRound,
 } from "lucide-react";
 import { toast } from "sonner";
 import { z } from "zod";
 
 import { api } from "@/lib/api";
+import { cn } from "@/lib/utils";
 import type { ContactRequest } from "@/types/contactRequest";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
