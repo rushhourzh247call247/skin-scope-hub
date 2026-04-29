@@ -24,6 +24,7 @@ export function AppSidebar() {
   const isAdmin = user?.role === "admin";
   const isAccountant = user?.role === "accountant";
   const [unreadTickets, setUnreadTickets] = useState(0);
+  const [unreadInquiries, setUnreadInquiries] = useState(0);
   const [appVersion, setAppVersion] = useState<string | null>(null);
 
   const fetchUnread = useCallback(async () => {
@@ -34,12 +35,40 @@ export function AppSidebar() {
     } catch {}
   }, []);
 
+  const fetchUnreadInquiries = useCallback(async () => {
+    try {
+      const inquiries = await api.getContactRequests();
+      const count = inquiries.reduce((sum: number, item: any) => {
+        const replies = Array.isArray(item.replies) ? item.replies : [];
+        const lastInbound = replies.filter((r: any) => r.direction === "inbound").at(-1);
+        const lastOutbound = replies.filter((r: any) => r.direction === "outbound").at(-1);
+        if (!item.replied_at && replies.length === 0) return sum + 1;
+        if (lastInbound) {
+          const inboundAt = new Date(lastInbound.sent_at || lastInbound.created_at).getTime();
+          const outboundAt = lastOutbound
+            ? new Date(lastOutbound.sent_at || lastOutbound.created_at).getTime()
+            : 0;
+          if (inboundAt > outboundAt) return sum + 1;
+        }
+        return sum;
+      }, 0);
+      setUnreadInquiries(count);
+    } catch {}
+  }, []);
+
   useEffect(() => {
     if (isAccountant) return;
     fetchUnread();
     const interval = setInterval(fetchUnread, 15_000);
     return () => clearInterval(interval);
   }, [fetchUnread, isAccountant]);
+
+  useEffect(() => {
+    if (!isAdmin) return;
+    fetchUnreadInquiries();
+    const interval = setInterval(fetchUnreadInquiries, 15_000);
+    return () => clearInterval(interval);
+  }, [fetchUnreadInquiries, isAdmin]);
 
   const showServerAdmin = isServerAdminAvailable();
 
