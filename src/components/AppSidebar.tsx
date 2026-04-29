@@ -24,6 +24,7 @@ export function AppSidebar() {
   const isAdmin = user?.role === "admin";
   const isAccountant = user?.role === "accountant";
   const [unreadTickets, setUnreadTickets] = useState(0);
+  const [unreadInquiries, setUnreadInquiries] = useState(0);
   const [appVersion, setAppVersion] = useState<string | null>(null);
 
   const fetchUnread = useCallback(async () => {
@@ -34,12 +35,40 @@ export function AppSidebar() {
     } catch {}
   }, []);
 
+  const fetchUnreadInquiries = useCallback(async () => {
+    try {
+      const inquiries = await api.getContactRequests();
+      const count = inquiries.reduce((sum: number, item: any) => {
+        const replies = Array.isArray(item.replies) ? item.replies : [];
+        const lastInbound = replies.filter((r: any) => r.direction === "inbound").at(-1);
+        const lastOutbound = replies.filter((r: any) => r.direction === "outbound").at(-1);
+        if (!item.replied_at && replies.length === 0) return sum + 1;
+        if (lastInbound) {
+          const inboundAt = new Date(lastInbound.sent_at || lastInbound.created_at).getTime();
+          const outboundAt = lastOutbound
+            ? new Date(lastOutbound.sent_at || lastOutbound.created_at).getTime()
+            : 0;
+          if (inboundAt > outboundAt) return sum + 1;
+        }
+        return sum;
+      }, 0);
+      setUnreadInquiries(count);
+    } catch {}
+  }, []);
+
   useEffect(() => {
     if (isAccountant) return;
     fetchUnread();
     const interval = setInterval(fetchUnread, 15_000);
     return () => clearInterval(interval);
   }, [fetchUnread, isAccountant]);
+
+  useEffect(() => {
+    if (!isAdmin) return;
+    fetchUnreadInquiries();
+    const interval = setInterval(fetchUnreadInquiries, 15_000);
+    return () => clearInterval(interval);
+  }, [fetchUnreadInquiries, isAdmin]);
 
   const showServerAdmin = isServerAdminAvailable();
 
@@ -173,9 +202,14 @@ export function AppSidebar() {
                       {adminNav.map((item) => (
                         <SidebarMenuItem key={item.url}>
                           <SidebarMenuButton asChild isActive={isActive(item.url)}>
-                            <NavLink to={item.url} end className="hover:bg-sidebar-accent" activeClassName="bg-sidebar-accent text-primary font-medium">
+                            <NavLink to={item.url} end className="hover:bg-sidebar-accent relative" activeClassName="bg-sidebar-accent text-primary font-medium">
                               <item.icon className="mr-2 h-4 w-4" />
                               {!collapsed && <span>{item.title}</span>}
+                              {item.url === "/contact-inquiries" && unreadInquiries > 0 && (
+                                <span className="ml-auto flex h-5 min-w-5 items-center justify-center rounded-full bg-destructive text-[10px] font-bold text-destructive-foreground px-1">
+                                  {unreadInquiries}
+                                </span>
+                              )}
                             </NavLink>
                           </SidebarMenuButton>
                         </SidebarMenuItem>
