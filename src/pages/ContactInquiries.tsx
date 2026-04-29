@@ -257,27 +257,33 @@ export default function ContactInquiries() {
               Verlauf ({selected.replies.length})
             </Label>
             {selected.replies.map((r) => (
-              <Card key={r.id} className="p-5">
+              <Card
+                key={r.id}
+                className={cn(
+                  "p-5",
+                  r.direction === "inbound" ? "border-primary/25 bg-primary/5" : "bg-card",
+                )}
+              >
                 <div className="mb-3 flex items-center justify-between gap-2">
                   <div className="flex items-center gap-2">
-                    <div className="flex h-7 w-7 items-center justify-center rounded-full bg-primary/15 text-xs font-semibold text-primary">
-                      {r.admin_name
-                        ?.split(" ")
-                        .map((n) => n[0])
-                        .join("")
-                        .slice(0, 2)
-                        .toUpperCase()}
+                    <div className={cn(
+                      "flex h-7 w-7 items-center justify-center rounded-full text-xs font-semibold",
+                      r.direction === "inbound" ? "bg-background text-primary" : "bg-primary/15 text-primary",
+                    )}>
+                      {r.direction === "inbound" ? getInitials(selected.name) : getInitials(r.admin_name)}
                     </div>
                     <div>
-                      <p className="text-sm font-medium">{r.admin_name}</p>
+                      <p className="text-sm font-medium">
+                        {r.direction === "inbound" ? selected.name : r.admin_name}
+                      </p>
                       <p className="text-xs text-muted-foreground">
                         {r.sent_at ? formatDate(r.sent_at) : formatDate(r.created_at)}
                       </p>
                     </div>
                   </div>
-                  <Badge variant="outline" className="gap-1">
-                    <MailCheck className="h-3 w-3" />
-                    Gesendet
+                  <Badge variant={r.direction === "inbound" ? "default" : "outline"} className="gap-1">
+                    {r.direction === "inbound" ? <UserRound className="h-3 w-3" /> : <MailCheck className="h-3 w-3" />}
+                    {r.direction === "inbound" ? "Kundenantwort" : "Gesendet"}
                   </Badge>
                 </div>
                 <p className="mb-2 text-sm font-medium">{r.subject}</p>
@@ -296,15 +302,6 @@ export default function ContactInquiries() {
             <h2 className="text-base font-semibold">
               {selected.replies.length > 0 ? "Erneut antworten" : "Antworten"}
             </h2>
-          </div>
-
-          <div className="mb-4 flex items-start gap-2 rounded-md border border-amber-200 bg-amber-50 p-3 text-xs text-amber-900 dark:border-amber-900/40 dark:bg-amber-950/30 dark:text-amber-200">
-            <AlertCircle className="mt-0.5 h-3.5 w-3.5 shrink-0" />
-            <p>
-              Hinweis: Antworten des Kunden landen aktuell in Ihrem Mail-Postfach
-              (Reply-To: <code>contact+{selected.id}@derm247.ch</code>) — automatische
-              Inbox-Verarbeitung folgt in Phase 2.
-            </p>
           </div>
 
           <div className="space-y-3">
