@@ -111,11 +111,19 @@ export default function ContactInquiries() {
     [items],
   );
 
-  const openDetail = (item: ContactRequest) => {
+  const openDetail = async (item: ContactRequest) => {
     setSelected(item);
     setSubject(`Re: Ihre Anfrage an DERM247`);
     setBody("");
     setErrors({});
+    try {
+      await api.markContactRequestSeen(item.id);
+      setItems((prev) =>
+        prev.map((i) =>
+          i.id === item.id ? { ...i, last_admin_seen_at: new Date().toISOString() } : i,
+        ),
+      );
+    } catch {}
   };
 
   const handleReply = async () => {
