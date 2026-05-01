@@ -41,14 +41,18 @@ export function AppSidebar() {
       const count = inquiries.reduce((sum: number, item: any) => {
         const replies = Array.isArray(item.replies) ? item.replies : [];
         const lastInbound = replies.filter((r: any) => r.direction === "inbound").at(-1);
-        const lastOutbound = replies.filter((r: any) => r.direction === "outbound").at(-1);
-        if (!item.replied_at && replies.length === 0) return sum + 1;
+        const seenAt = item.last_admin_seen_at
+          ? new Date(item.last_admin_seen_at).getTime()
+          : 0;
         if (lastInbound) {
           const inboundAt = new Date(lastInbound.sent_at || lastInbound.created_at).getTime();
-          const outboundAt = lastOutbound
-            ? new Date(lastOutbound.sent_at || lastOutbound.created_at).getTime()
-            : 0;
-          if (inboundAt > outboundAt) return sum + 1;
+          if (inboundAt > seenAt) return sum + 1;
+          return sum;
+        }
+        // Noch nie geantwortet UND noch nie gesehen → ungelesen
+        if (!item.replied_at && replies.length === 0) {
+          const createdAt = new Date(item.confirmed_at || item.created_at).getTime();
+          if (createdAt > seenAt) return sum + 1;
         }
         return sum;
       }, 0);

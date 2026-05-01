@@ -22,6 +22,7 @@ export interface ContactRequest {
   confirmed_at: string;
   replied_at: string | null;
   replied_by_user_id: number | null;
+  last_admin_seen_at: string | null;
   created_at: string;
   updated_at: string;
   replies: ContactReply[];

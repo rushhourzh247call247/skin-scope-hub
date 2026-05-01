@@ -299,6 +299,11 @@ export const api = {
     ),
   deleteContactRequest: (id: number) =>
     request<{ success: boolean }>(`/admin/contact-requests/${id}`, { method: 'DELETE' }),
+  markContactRequestSeen: (id: number) =>
+    request<{ ok: boolean; last_admin_seen_at: string }>(
+      `/admin/contact-requests/${id}/seen`,
+      { method: 'POST' },
+    ),
 
   // Admin: Companies
   getCompanies: () => request<any[]>('/companies'),
