@@ -85,9 +85,16 @@ export default function ContactInquiries() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  const isUnread = (i: ContactRequest) => {
+    const lastActivity = getLastActivityAt(i);
+    if (!lastActivity) return false;
+    if (!i.last_admin_seen_at) return true;
+    return new Date(lastActivity).getTime() > new Date(i.last_admin_seen_at).getTime();
+  };
+
   const filtered = useMemo(() => {
     let result = items;
-    if (filter === "new") result = result.filter((i) => !i.replied_at);
+    if (filter === "new") result = result.filter(isUnread);
     if (filter === "replied") result = result.filter((i) => !!i.replied_at);
     if (search.trim()) {
       const q = search.toLowerCase();
@@ -105,9 +112,10 @@ export default function ContactInquiries() {
   const counts = useMemo(
     () => ({
       all: items.length,
-      new: items.filter((i) => !i.replied_at).length,
+      new: items.filter(isUnread).length,
       replied: items.filter((i) => !!i.replied_at).length,
     }),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     [items],
   );
 
