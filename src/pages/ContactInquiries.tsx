@@ -112,9 +112,10 @@ export default function ContactInquiries() {
   const counts = useMemo(
     () => ({
       all: items.length,
-      new: items.filter((i) => !i.replied_at).length,
+      new: items.filter(isUnread).length,
       replied: items.filter((i) => !!i.replied_at).length,
     }),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     [items],
   );
 
