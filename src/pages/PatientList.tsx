@@ -117,7 +117,7 @@ const PatientList = () => {
         </div>
         <div className="flex items-center gap-3 shrink-0">
           {deactivatedPatients.length > 0 && (
-            <div className="hidden sm:flex items-center gap-2">
+            <div className="flex items-center gap-2">
               <label htmlFor="show-deactivated" className="text-xs text-muted-foreground cursor-pointer select-none">
                 {t("patients.showDeactivated")}
               </label>
