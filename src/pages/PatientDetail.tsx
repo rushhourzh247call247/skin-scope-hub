@@ -105,6 +105,7 @@ const PatientDetail = () => {
   const detailContentRef = useRef<HTMLDivElement>(null);
   const scrollToDetailAfterCollapseRef = useRef(false);
   const lastBodyFocusedLocationRef = useRef<number | null>(null);
+  const ignoreNextSpotClickRef = useRef(false);
   const [zoneUploadTargetId, setZoneUploadTargetId] = useState<number | null>(null);
 
   const selectLocation = (locationId: number | null, scrollToDetail = false) => {
@@ -122,7 +123,13 @@ const PatientDetail = () => {
     const shouldFocusBodyFirst = isMobile && (!mobileMapExpanded || lastBodyFocusedLocationRef.current !== locationId);
 
     if (!shouldFocusBodyFirst && selectedLocationId === locationId) {
-      selectLocation(locationId, true);
+      setMapClickDialog(null);
+      setActiveTab("spots");
+      setMobileMapExpanded(true);
+      scrollToDetailAfterCollapseRef.current = false;
+      window.setTimeout(() => {
+        detailContentRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+      }, 80);
       return;
     }
 
@@ -804,11 +811,18 @@ const PatientDetail = () => {
                   className="flex flex-1 touch-manipulation items-center gap-2.5 min-w-0"
                   onPointerDown={(e) => {
                     if (e.pointerType === "mouse") return;
+                    ignoreNextSpotClickRef.current = true;
                     e.preventDefault();
                     e.stopPropagation();
                     handleSpotListClick(loc.id);
                   }}
-                  onClick={() => handleSpotListClick(loc.id)}
+                  onClick={() => {
+                    if (ignoreNextSpotClickRef.current) {
+                      ignoreNextSpotClickRef.current = false;
+                      return;
+                    }
+                    handleSpotListClick(loc.id);
+                  }}
                 >
                   {(() => {
                     const cls = (loc as any).classification as LesionClassification | undefined;
