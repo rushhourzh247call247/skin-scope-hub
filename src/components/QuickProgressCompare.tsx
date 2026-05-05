@@ -56,6 +56,13 @@ const QuickProgressCompare = ({ images, getDaysDiff }: QuickProgressCompareProps
   const left = sorted.find(s => s.id === leftId) ?? sorted[0];
   const right = sorted.find(s => s.id === rightId) ?? sorted[sorted.length - 1];
 
+  // Determine which side actually holds the older / newer image (by exact timestamp)
+  const leftIsOlder = left && right
+    ? new Date(left.created_at ?? 0).getTime() <= new Date(right.created_at ?? 0).getTime()
+    : true;
+  const leftLabel = leftIsOlder ? t('patientDetail.older') : t('patientDetail.newer');
+  const rightLabel = leftIsOlder ? t('patientDetail.newer') : t('patientDetail.older');
+
   const [mode, setMode] = useState<"side" | "overlay">("side");
   const [opacity, setOpacity] = useState(50);
   const [rotation, setRotation] = useState(0);
