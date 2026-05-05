@@ -1406,67 +1406,11 @@ const PatientDetail = () => {
 
                 {/* 1. Vergleich (Progress-Comparison) — direkt unter Bilder, am wichtigsten */}
                 {selectedLocation.type !== "region" && (selectedLocation.images?.length ?? 0) >= 2 && (
-                  <div id={`spot-comparison-${selectedLocation.id}`} className="rounded-lg border bg-card p-4 space-y-4 scroll-mt-24">
-                    <h4 className="text-xs font-semibold text-foreground uppercase tracking-wider flex items-center gap-2">
-                      <GitCompareArrows className="h-3.5 w-3.5 text-amber-500" />
-                      {t('patientDetail.progressComparison')}
-                    </h4>
-                    {(() => {
-                      const sorted = [...(selectedLocation.images ?? [])].sort(
-                        (a, b) => new Date(a.created_at ?? 0).getTime() - new Date(b.created_at ?? 0).getTime()
-                      );
-                      const oldest = sorted[0];
-                      const newest = sorted[sorted.length - 1];
-                      return (
-                        <div className="space-y-3">
-                          <div className="grid grid-cols-2 gap-4">
-                            <div className="space-y-2">
-                              <div className="relative overflow-hidden rounded-lg border aspect-[3/4] bg-muted">
-                                <img
-                                  src={api.resolveImageSrc(oldest)}
-                                  alt="Ältere Aufnahme"
-                                  className="h-full w-full object-cover"
-                                />
-                                  <div className="absolute top-2 left-2 rounded-full bg-muted/90 px-2 py-0.5 text-[10px] font-semibold text-foreground backdrop-blur-sm">
-                                   {t('patientDetail.older')}
-                                </div>
-                              </div>
-                              <p className="text-center text-xs text-muted-foreground tabular-nums">
-                                {oldest.created_at ? formatDate(oldest.created_at, "dd. MMM yyyy") : "–"}
-                              </p>
-                            </div>
-                            <div className="space-y-2">
-                              <div className="relative overflow-hidden rounded-lg border aspect-[3/4] bg-muted">
-                                <img
-                                  src={api.resolveImageSrc(newest)}
-                                  alt="Neuere Aufnahme"
-                                  className="h-full w-full object-cover"
-                                />
-                                 <div className="absolute top-2 left-2 rounded-full bg-primary/90 px-2 py-0.5 text-[10px] font-semibold text-primary-foreground backdrop-blur-sm">
-                                   {t('patientDetail.newer')}
-                                </div>
-                              </div>
-                              <p className="text-center text-xs text-muted-foreground tabular-nums">
-                                {newest.created_at ? formatDate(newest.created_at, "dd. MMM yyyy") : "–"}
-                              </p>
-                            </div>
-                          </div>
-                          {oldest.created_at && newest.created_at && (
-                            <div className="text-center">
-                              <span className="inline-flex items-center gap-1.5 rounded-full bg-muted px-3 py-1 text-xs font-medium text-muted-foreground">
-                                <Calendar className="h-3 w-3" />
-                                Zeitraum: {getDaysDiff(oldest.created_at, newest.created_at)}
-                              </span>
-                            </div>
-                          )}
-                          {sorted.length > 2 && (
-                            <p className="text-center text-[10px] text-muted-foreground">
-                              {sorted.length} Aufnahmen insgesamt · Alle Fotos unten in der Galerie
-                            </p>
-                          )}
-                        </div>
-                      );
-                    })()}
+                  <div id={`spot-comparison-${selectedLocation.id}`} className="scroll-mt-24">
+                    <QuickProgressCompare
+                      images={selectedLocation.images ?? []}
+                      getDaysDiff={getDaysDiff}
+                    />
                   </div>
                 )}
 
