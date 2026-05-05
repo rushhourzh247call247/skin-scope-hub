@@ -170,6 +170,7 @@ type SpotMarkerProps = {
   position: [number, number, number];
   name?: string;
   index?: number;
+  labelOffset?: { x: number; y: number };
   isSelected: boolean;
   onClick: () => void;
   imageCount?: number;
@@ -181,7 +182,7 @@ type SpotMarkerProps = {
 };
 
 const SpotMarker = React.forwardRef<THREE.Group, SpotMarkerProps>(function SpotMarker(
-  { position, name, index, isSelected, onClick, imageCount, findingCount, classificationColor, isHighRisk, photoThumbnailUrl, onPhotoClick },
+  { position, name, index, labelOffset, isSelected, onClick, imageCount, findingCount, classificationColor, isHighRisk, photoThumbnailUrl, onPhotoClick },
   forwardedRef,
 ) {
   const groupRef = useRef<THREE.Group>(null);
@@ -221,6 +222,8 @@ const SpotMarker = React.forwardRef<THREE.Group, SpotMarkerProps>(function SpotM
 
   const armLen = isSelected ? 0.022 : 0.016;
   const armThick = isSelected ? 0.003 : 0.002;
+  const badgeOffset = labelOffset ?? { x: 34, y: -34 };
+  const touchSize = 48;
 
   return (
     <group ref={forwardedRef} position={position}>
@@ -265,13 +268,13 @@ const SpotMarker = React.forwardRef<THREE.Group, SpotMarkerProps>(function SpotM
 
       <Html position={[0, 0, 0]} center={false} style={{ pointerEvents: "auto" }}>
         <svg
-          width="80" height="80"
-          viewBox="-40 -40 80 80"
-          style={{ position: "absolute", left: "-40px", top: "-40px", pointerEvents: "none", overflow: "visible" }}
+          width="180" height="180"
+          viewBox="-90 -90 180 180"
+          style={{ position: "absolute", left: "-90px", top: "-90px", pointerEvents: "none", overflow: "visible" }}
         >
           <line
             x1="0" y1="0"
-            x2="28" y2="-28"
+            x2={badgeOffset.x} y2={badgeOffset.y}
             stroke={color}
             strokeWidth="1"
             strokeDasharray="3,2"
@@ -285,8 +288,8 @@ const SpotMarker = React.forwardRef<THREE.Group, SpotMarkerProps>(function SpotM
             aria-label="Spot-Foto öffnen"
             style={{
               position: "absolute",
-              left: "-8px",
-              top: "-66px",
+              left: `${badgeOffset.x - 23}px`,
+              top: `${badgeOffset.y - 58}px`,
               pointerEvents: "auto",
               cursor: "pointer",
               padding: 0,
@@ -318,12 +321,15 @@ const SpotMarker = React.forwardRef<THREE.Group, SpotMarkerProps>(function SpotM
         <div
           style={{
             position: "absolute",
-            left: "22px",
-            top: "-42px",
+            left: `${badgeOffset.x - touchSize / 2}px`,
+            top: `${badgeOffset.y - touchSize / 2}px`,
+            width: `${touchSize}px`,
+            height: `${touchSize}px`,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
             pointerEvents: "auto",
             cursor: "pointer",
-            padding: "6px",
-            margin: "-6px",
           }}
           onClick={(e) => { e.stopPropagation(); onClick(); }}
         >
