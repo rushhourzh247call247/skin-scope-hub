@@ -338,7 +338,7 @@ const SpotMarker = React.forwardRef<THREE.Group, SpotMarkerProps>(function SpotM
             )}
             style={{ borderColor: isSelected ? undefined : color }}
           >
-            {(imageCount ?? 0) > 0 ? imageCount : (index != null ? index + 1 : "•")}
+            {index != null ? index + 1 : ((imageCount ?? 0) > 0 ? imageCount : "•")}
           </div>
         </div>
       </Html>
