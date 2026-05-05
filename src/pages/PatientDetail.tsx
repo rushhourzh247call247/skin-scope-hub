@@ -136,7 +136,7 @@ const PatientDetail = () => {
     setMapClickDialog(null);
     setSelectedLocationId(locationId);
     setActiveTab("spots");
-    setBodyMapFocusSignal((signal) => signal + 1);
+    
     if (isMobile) {
       scrollToDetailAfterCollapseRef.current = false;
       lastBodyFocusedLocationRef.current = locationId;
