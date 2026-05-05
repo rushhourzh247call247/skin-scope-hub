@@ -56,6 +56,13 @@ const QuickProgressCompare = ({ images, getDaysDiff }: QuickProgressCompareProps
   const left = sorted.find(s => s.id === leftId) ?? sorted[0];
   const right = sorted.find(s => s.id === rightId) ?? sorted[sorted.length - 1];
 
+  // Determine which side actually holds the older / newer image (by exact timestamp)
+  const leftIsOlder = left && right
+    ? new Date(left.created_at ?? 0).getTime() <= new Date(right.created_at ?? 0).getTime()
+    : true;
+  const leftLabel = leftIsOlder ? t('patientDetail.older') : t('patientDetail.newer');
+  const rightLabel = leftIsOlder ? t('patientDetail.newer') : t('patientDetail.older');
+
   const [mode, setMode] = useState<"side" | "overlay">("side");
   const [opacity, setOpacity] = useState(50);
   const [rotation, setRotation] = useState(0);
@@ -177,12 +184,12 @@ const QuickProgressCompare = ({ images, getDaysDiff }: QuickProgressCompareProps
       {sorted.length > 2 && (
         <div className="grid grid-cols-2 gap-2">
           <div className="space-y-1">
-            <p className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider">{t('patientDetail.older')}</p>
-            {renderSelector(leftId, setLeftId, t('patientDetail.older'))}
+            <p className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider">{leftLabel}</p>
+            {renderSelector(leftId, setLeftId, leftLabel)}
           </div>
           <div className="space-y-1">
-            <p className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider">{t('patientDetail.newer')}</p>
-            {renderSelector(rightId, setRightId, t('patientDetail.newer'))}
+            <p className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider">{rightLabel}</p>
+            {renderSelector(rightId, setRightId, rightLabel)}
           </div>
         </div>
       )}
@@ -197,7 +204,7 @@ const QuickProgressCompare = ({ images, getDaysDiff }: QuickProgressCompareProps
             >
               <img src={api.resolveImageSrc(left)} alt="A" className="h-full w-full object-cover" />
               <div className="absolute top-2 left-2 rounded-full bg-muted/90 px-2 py-0.5 text-[10px] font-semibold text-foreground backdrop-blur-sm">
-                {t('patientDetail.older')}
+                {leftLabel}
               </div>
               <div className="absolute bottom-2 right-2 rounded-full bg-background/80 p-1 opacity-0 transition-opacity group-hover:opacity-100">
                 <ZoomIn className="h-3 w-3" />
@@ -222,7 +229,7 @@ const QuickProgressCompare = ({ images, getDaysDiff }: QuickProgressCompareProps
                 } : undefined}
               />
               <div className="absolute top-2 left-2 rounded-full bg-primary/90 px-2 py-0.5 text-[10px] font-semibold text-primary-foreground backdrop-blur-sm">
-                {t('patientDetail.newer')}
+                {rightLabel}
               </div>
               <div className="absolute bottom-2 right-2 rounded-full bg-background/80 p-1 opacity-0 transition-opacity group-hover:opacity-100">
                 <ZoomIn className="h-3 w-3" />
@@ -342,6 +349,7 @@ const QuickProgressCompare = ({ images, getDaysDiff }: QuickProgressCompareProps
     {lightboxIdx !== null && createPortal(
       <CompareLightbox
         pair={[left, right]}
+        labels={[leftLabel, rightLabel]}
         startIndex={lightboxIdx}
         onClose={() => setLightboxIdx(null)}
       />,
@@ -353,13 +361,13 @@ const QuickProgressCompare = ({ images, getDaysDiff }: QuickProgressCompareProps
 
 interface CompareLightboxProps {
   pair: [LocationImage, LocationImage];
+  labels: [string, string];
   startIndex: 0 | 1;
   onClose: () => void;
 }
 
-const CompareLightbox = ({ pair, startIndex, onClose }: CompareLightboxProps) => {
+const CompareLightbox = ({ pair, labels, startIndex, onClose }: CompareLightboxProps) => {
   const [idx, setIdx] = useState<0 | 1>(startIndex);
-  const labels = ["Älter", "Neuer"] as const;
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
@@ -430,39 +438,7 @@ const CompareLightbox = ({ pair, startIndex, onClose }: CompareLightboxProps) =>
             <ChevronRight className="h-5 w-5" />
           </button>
 
-          <AnimatePresence mode="wait" initial={false}>
-            <motion.div
-              key={current.id}
-              drag="x"
-              dragConstraints={{ left: 0, right: 0 }}
-              dragElastic={0.2}
-              onDragEnd={handleDragEnd}
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              transition={{ duration: 0.15 }}
-              className="h-full w-full"
-            >
-              <TransformWrapper
-                doubleClick={{ mode: "toggle", step: 2 }}
-                pinch={{ step: 5 }}
-                wheel={{ step: 0.2 }}
-                panning={{ velocityDisabled: true }}
-              >
-                <TransformComponent
-                  wrapperStyle={{ width: "100%", height: "100%" }}
-                  contentStyle={{ width: "100%", height: "100%" }}
-                >
-                  <img
-                    src={api.resolveImageSrc(current)}
-                    alt={labels[idx]}
-                    className="h-full w-full select-none object-contain"
-                    draggable={false}
-                  />
-                </TransformComponent>
-              </TransformWrapper>
-            </motion.div>
-          </AnimatePresence>
+          <SwipePager pair={pair} labels={labels} idx={idx} setIdx={setIdx} />
         </div>
 
         <div className="border-t border-border/40 bg-card/60 px-4 py-2 text-center text-[11px] text-muted-foreground safe-area-bottom">
@@ -472,4 +448,68 @@ const CompareLightbox = ({ pair, startIndex, onClose }: CompareLightboxProps) =>
     </AnimatePresence>
   );
 };
+
+interface SwipePagerProps {
+  pair: [LocationImage, LocationImage];
+  labels: [string, string];
+  idx: 0 | 1;
+  setIdx: (n: 0 | 1) => void;
+}
+
+const SwipePager = ({ pair, labels, idx, setIdx }: SwipePagerProps) => {
+  const [zoomed, setZoomed] = useState<[boolean, boolean]>([false, false]);
+  const anyZoomed = zoomed[0] || zoomed[1];
+
+  return (
+    <div className="relative h-full w-full overflow-hidden">
+      <motion.div
+        className="flex h-full"
+        style={{ width: "200%" }}
+        animate={{ x: `${idx * -50}%` }}
+        transition={{ type: "spring", stiffness: 300, damping: 32, mass: 0.6 }}
+        drag={anyZoomed ? false : "x"}
+        dragDirectionLock
+        dragConstraints={{ left: 0, right: 0 }}
+        dragElastic={0.15}
+        onDragEnd={(_, info) => {
+          const threshold = 60;
+          const velocity = info.velocity.x;
+          if ((info.offset.x < -threshold || velocity < -400) && idx === 0) setIdx(1);
+          else if ((info.offset.x > threshold || velocity > 400) && idx === 1) setIdx(0);
+        }}
+      >
+        {pair.map((img, i) => (
+          <div key={img.id} className="flex h-full w-1/2 items-center justify-center px-2">
+            <TransformWrapper
+              doubleClick={{ mode: "toggle", step: 2 }}
+              pinch={{ step: 5 }}
+              wheel={{ step: 0.2 }}
+              panning={{ velocityDisabled: true }}
+              onTransform={(ref) =>
+                setZoomed((prev) => {
+                  const next: [boolean, boolean] = [prev[0], prev[1]];
+                  next[i] = ref.state.scale > 1.01;
+                  return next;
+                })
+              }
+            >
+              <TransformComponent
+                wrapperStyle={{ width: "100%", height: "100%" }}
+                contentStyle={{ width: "100%", height: "100%" }}
+              >
+                <img
+                  src={api.resolveImageSrc(img)}
+                  alt={labels[i]}
+                  className="h-full w-full select-none object-contain"
+                  draggable={false}
+                />
+              </TransformComponent>
+            </TransformWrapper>
+          </div>
+        ))}
+      </motion.div>
+    </div>
+  );
+};
+
 export default QuickProgressCompare;
