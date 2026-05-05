@@ -64,7 +64,8 @@ const QuickProgressCompare = ({ images, getDaysDiff }: QuickProgressCompareProps
   const [offsetY, setOffsetY] = useState(0);
   const [showAlignControls, setShowAlignControls] = useState(false);
   const [isAligning, setIsAligning] = useState(false);
-  const saveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const [lightboxIdx, setLightboxIdx] = useState<0 | 1 | null>(null);
+  const touchStartX = useRef<number | null>(null);
 
   // Load saved alignment whenever pair changes
   useEffect(() => {
