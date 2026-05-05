@@ -689,7 +689,8 @@ const PatientDetail = () => {
               <div className="space-y-1 mb-3">
                 {overviewLocations.length > 0 ? overviewLocations.map((loc) => {
                   const firstImg = loc.images?.[0];
-                  const imgCount = loc.images?.length ?? 0;
+                  const zoneEntry = zonePinsData?.find(zp => zp.zoneId === loc.id);
+                  const spotCount = zoneEntry?.pins.length ?? 0;
                   return (
                     <div
                       key={loc.id}
