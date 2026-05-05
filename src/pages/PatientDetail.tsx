@@ -1347,6 +1347,7 @@ const PatientDetail = () => {
                   patientName={patient.name}
                   patientBirthDate={patient.birth_date}
                   onQrUpload={() => { setQrLocationId(selectedLocation.id); setQrDialogOpen(true); }}
+                  triggerCameraSignal={autoCameraSignal}
                 />
 
                 {/* 3. Klassifikation + Status (zusammen, weiter unten) */}
