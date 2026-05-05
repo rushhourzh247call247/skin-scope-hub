@@ -190,18 +190,29 @@ const QuickProgressCompare = ({ images, getDaysDiff }: QuickProgressCompareProps
       {mode === "side" ? (
         <div className="grid grid-cols-2 gap-3">
           <div className="space-y-1.5">
-            <div className="relative overflow-hidden rounded-lg border aspect-square bg-muted">
+            <button
+              type="button"
+              onClick={() => setLightboxIdx(0)}
+              className="group relative block w-full overflow-hidden rounded-lg border aspect-square bg-muted"
+            >
               <img src={api.resolveImageSrc(left)} alt="A" className="h-full w-full object-cover" />
               <div className="absolute top-2 left-2 rounded-full bg-muted/90 px-2 py-0.5 text-[10px] font-semibold text-foreground backdrop-blur-sm">
                 {t('patientDetail.older')}
               </div>
-            </div>
+              <div className="absolute bottom-2 right-2 rounded-full bg-background/80 p-1 opacity-0 transition-opacity group-hover:opacity-100">
+                <ZoomIn className="h-3 w-3" />
+              </div>
+            </button>
             <p className="text-center text-[11px] text-muted-foreground tabular-nums">
               {left.created_at ? formatDate(left.created_at, "dd. MMM yyyy") : "–"}
             </p>
           </div>
           <div className="space-y-1.5">
-            <div className="relative overflow-hidden rounded-lg border aspect-square bg-muted">
+            <button
+              type="button"
+              onClick={() => setLightboxIdx(1)}
+              className="group relative block w-full overflow-hidden rounded-lg border aspect-square bg-muted"
+            >
               <img
                 src={api.resolveImageSrc(right)}
                 alt="B"
@@ -213,7 +224,10 @@ const QuickProgressCompare = ({ images, getDaysDiff }: QuickProgressCompareProps
               <div className="absolute top-2 left-2 rounded-full bg-primary/90 px-2 py-0.5 text-[10px] font-semibold text-primary-foreground backdrop-blur-sm">
                 {t('patientDetail.newer')}
               </div>
-            </div>
+              <div className="absolute bottom-2 right-2 rounded-full bg-background/80 p-1 opacity-0 transition-opacity group-hover:opacity-100">
+                <ZoomIn className="h-3 w-3" />
+              </div>
+            </button>
             <p className="text-center text-[11px] text-muted-foreground tabular-nums">
               {right.created_at ? formatDate(right.created_at, "dd. MMM yyyy") : "–"}
             </p>
