@@ -689,7 +689,8 @@ const PatientDetail = () => {
               <div className="space-y-1 mb-3">
                 {overviewLocations.length > 0 ? overviewLocations.map((loc) => {
                   const firstImg = loc.images?.[0];
-                  const imgCount = loc.images?.length ?? 0;
+                  const zoneEntry = allZonePins.find(zp => zp.zoneId === loc.id);
+                  const spotCount = zoneEntry?.pins.length ?? 0;
                   return (
                     <div
                       key={loc.id}
@@ -707,7 +708,7 @@ const PatientDetail = () => {
                           </div>
                         )}
                         <span className="truncate font-medium flex-1">{translateAnatomyName(loc.name) || t('patientDetail.overview')}</span>
-                        <span className="text-[10px] text-muted-foreground shrink-0">{imgCount} {imgCount === 1 ? t('common.image') : t('common.images')}</span>
+                        <span className="text-[10px] text-muted-foreground shrink-0">{spotCount} {spotCount === 1 ? "Spot" : "Spots"}</span>
                       </button>
                       <div className="flex items-center gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity shrink-0">
                         <button disabled={isReadOnly} onClick={(e) => { e.stopPropagation(); setZoneUploadTargetId(loc.id); setTimeout(() => zoneFileRef.current?.click(), 0); }} className="h-5 w-5 rounded flex items-center justify-center hover:bg-muted-foreground/10 text-muted-foreground hover:text-foreground disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:bg-transparent" title={isReadOnly ? readOnlyTooltip : t('imageGallery.uploadImage')}><Upload className="h-3 w-3" /></button>
