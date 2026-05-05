@@ -468,14 +468,13 @@ const SwipePager = ({ pair, labels, idx, setIdx }: SwipePagerProps) => {
         animate={{ x: `${idx * -50}%` }}
         transition={{ type: "spring", stiffness: 300, damping: 32, mass: 0.6 }}
         drag={anyZoomed ? false : "x"}
-        dragDirectionLock
         dragConstraints={{ left: 0, right: 0 }}
-        dragElastic={0.15}
+        dragElastic={0.25}
         onDragEnd={(_, info) => {
-          const threshold = 60;
+          const threshold = 40;
           const velocity = info.velocity.x;
-          if ((info.offset.x < -threshold || velocity < -400) && idx === 0) setIdx(1);
-          else if ((info.offset.x > threshold || velocity > 400) && idx === 1) setIdx(0);
+          if ((info.offset.x < -threshold || velocity < -250) && idx === 0) setIdx(1);
+          else if ((info.offset.x > threshold || velocity > 250) && idx === 1) setIdx(0);
         }}
       >
         {pair.map((img, i) => (
