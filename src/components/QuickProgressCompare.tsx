@@ -339,8 +339,137 @@ const QuickProgressCompare = ({ images, getDaysDiff }: QuickProgressCompareProps
           </span>
         </div>
       )}
+    {lightboxIdx !== null && createPortal(
+      <CompareLightbox
+        pair={[left, right]}
+        startIndex={lightboxIdx}
+        onClose={() => setLightboxIdx(null)}
+      />,
+      document.body,
+    )}
     </motion.div>
   );
 };
 
+interface CompareLightboxProps {
+  pair: [LocationImage, LocationImage];
+  startIndex: 0 | 1;
+  onClose: () => void;
+}
+
+const CompareLightbox = ({ pair, startIndex, onClose }: CompareLightboxProps) => {
+  const [idx, setIdx] = useState<0 | 1>(startIndex);
+  const labels = ["Älter", "Neuer"] as const;
+
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") onClose();
+      if (e.key === "ArrowLeft") setIdx(0);
+      if (e.key === "ArrowRight") setIdx(1);
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [onClose]);
+
+  const handleDragEnd = (_: unknown, info: PanInfo) => {
+    if (info.offset.x < -60) setIdx(1);
+    else if (info.offset.x > 60) setIdx(0);
+  };
+
+  const current = pair[idx];
+
+  return (
+    <AnimatePresence>
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
+        className="fixed inset-0 z-[100] flex flex-col bg-background/95 backdrop-blur-sm"
+      >
+        <div className="flex items-center justify-between gap-2 border-b border-border/40 px-4 py-3 safe-area-top">
+          <div className="min-w-0 flex-1">
+            <h3 className="truncate text-sm font-semibold text-foreground">{labels[idx]}</h3>
+            <p className="text-[11px] text-muted-foreground tabular-nums">
+              {current.created_at ? formatDate(current.created_at, "dd. MMM yyyy") : "–"}
+            </p>
+          </div>
+          <div className="flex items-center gap-1 rounded-lg bg-muted p-0.5">
+            {[0, 1].map((i) => (
+              <button
+                key={i}
+                onClick={() => setIdx(i as 0 | 1)}
+                className={cn(
+                  "rounded-md px-3 py-1 text-[11px] font-medium transition-all",
+                  idx === i ? "bg-primary text-primary-foreground shadow-sm" : "text-muted-foreground"
+                )}
+              >
+                {labels[i]}
+              </button>
+            ))}
+          </div>
+          <Button size="icon" variant="ghost" onClick={onClose} className="h-9 w-9 shrink-0">
+            <X className="h-5 w-5" />
+          </Button>
+        </div>
+
+        <div className="relative flex flex-1 items-center justify-center overflow-hidden">
+          <button
+            onClick={() => setIdx(0)}
+            disabled={idx === 0}
+            className="absolute left-2 top-1/2 z-10 hidden h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full bg-card/80 shadow-md hover:bg-card disabled:opacity-30 md:flex"
+            aria-label="Älter"
+          >
+            <ChevronLeft className="h-5 w-5" />
+          </button>
+          <button
+            onClick={() => setIdx(1)}
+            disabled={idx === 1}
+            className="absolute right-2 top-1/2 z-10 hidden h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full bg-card/80 shadow-md hover:bg-card disabled:opacity-30 md:flex"
+            aria-label="Neuer"
+          >
+            <ChevronRight className="h-5 w-5" />
+          </button>
+
+          <AnimatePresence mode="wait" initial={false}>
+            <motion.div
+              key={current.id}
+              drag="x"
+              dragConstraints={{ left: 0, right: 0 }}
+              dragElastic={0.2}
+              onDragEnd={handleDragEnd}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.15 }}
+              className="h-full w-full"
+            >
+              <TransformWrapper
+                doubleClick={{ mode: "toggle", step: 2 }}
+                pinch={{ step: 5 }}
+                wheel={{ step: 0.2 }}
+                panning={{ velocityDisabled: true }}
+              >
+                <TransformComponent
+                  wrapperStyle={{ width: "100%", height: "100%" }}
+                  contentStyle={{ width: "100%", height: "100%" }}
+                >
+                  <img
+                    src={api.resolveImageSrc(current)}
+                    alt={labels[idx]}
+                    className="h-full w-full select-none object-contain"
+                    draggable={false}
+                  />
+                </TransformComponent>
+              </TransformWrapper>
+            </motion.div>
+          </AnimatePresence>
+        </div>
+
+        <div className="border-t border-border/40 bg-card/60 px-4 py-2 text-center text-[11px] text-muted-foreground safe-area-bottom">
+          Doppeltippen zum Zoomen · Wischen zum Wechseln
+        </div>
+      </motion.div>
+    </AnimatePresence>
+  );
+};
 export default QuickProgressCompare;
