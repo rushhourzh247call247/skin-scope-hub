@@ -126,6 +126,13 @@ const PatientDetail = () => {
     const shouldFocusBodyFirst = isMobile && (!mobileMapExpanded || lastBodyFocusedLocationRef.current !== locationId);
 
     if (!shouldFocusBodyFirst && selectedLocationId === locationId) {
+      // Second tap on the same already-focused spot: open lightbox with full-size photo + history
+      const loc = locations.find(l => l.id === locationId);
+      if (loc && (loc.images?.length ?? 0) > 0) {
+        setLightboxOpen(true);
+        return;
+      }
+      // Fallback: no images yet — scroll to detail like before
       setMapClickDialog(null);
       setActiveTab("spots");
       setMobileMapExpanded(true);
@@ -139,7 +146,7 @@ const PatientDetail = () => {
     setMapClickDialog(null);
     setSelectedLocationId(locationId);
     setActiveTab("spots");
-    
+
     if (isMobile) {
       scrollToDetailAfterCollapseRef.current = false;
       lastBodyFocusedLocationRef.current = locationId;
