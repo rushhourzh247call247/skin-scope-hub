@@ -1665,6 +1665,23 @@ const PatientDetail = () => {
         />
       )}
 
+      {selectedLocation && (
+        <SpotLightbox
+          open={lightboxOpen}
+          onClose={() => setLightboxOpen(false)}
+          images={selectedLocation.images ?? []}
+          locationName={translateAnatomyName(selectedLocation.name) || `Spot #${selectedLocation.id}`}
+          onCompare={() => {
+            setLightboxOpen(false);
+            setActiveTab("spots");
+            setCompareSignal(s => s + 1);
+            window.setTimeout(() => {
+              detailContentRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+            }, 120);
+          }}
+        />
+      )}
+
       <AlertDialog open={deleteConfirmId !== null} onOpenChange={(open) => !open && setDeleteConfirmId(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>
