@@ -1099,10 +1099,41 @@ const PatientDetail = () => {
                                 try {
                                   // Inherit 3D anchor from the zone so the new spot appears on the 3D body map
                                   const zone = overviewLocations.find(l => l.id === overviewLocId);
-                                  // Small offset based on pin position on the zone photo so multiple pins
-                                  // don't stack perfectly on the same 3D point (~1.5cm spread).
-                                  const offsetX = ((pinCoords.x_pct ?? 50) - 50) / 1000; // ~±0.05 units
-                                  const offsetY = -((pinCoords.y_pct ?? 50) - 50) / 1000;
+
+                                  // Map the pin's position on the zone photo to a 3D offset around
+                                  // the zone anchor. Larger spread (~±0.18 units ≈ several cm) so labels
+                                  // don't overlap on the body map.
+                                  const SPREAD = 0.36;
+                                  let offsetX = (((pinCoords.x_pct ?? 50) - 50) / 100) * SPREAD;
+                                  let offsetY = -(((pinCoords.y_pct ?? 50) - 50) / 100) * SPREAD;
+
+                                  // Collision avoidance: if the resulting 3D position is too close to an
+                                  // existing spot from the SAME zone, nudge it outward on a deterministic
+                                  // golden-angle ring until it's free. Keeps placement stable & non-overlapping.
+                                  if (zone?.x3d != null && zone?.y3d != null) {
+                                    const zoneEntry = allZonePins.find(zp => zp.zoneId === overviewLocId);
+                                    const siblingIds = new Set<number>((zoneEntry?.pins ?? []).map(p => p.linked_location_id));
+                                    const siblings = locations.filter(l => siblingIds.has(l.id) && l.x3d != null && l.y3d != null);
+                                    const MIN_DIST = 0.13; // ~3-4 label widths apart
+                                    const tooClose = (ox: number, oy: number) =>
+                                      siblings.some(s => {
+                                        const dx = (zone.x3d! + ox) - (s.x3d as number);
+                                        const dy = (zone.y3d! + oy) - (s.y3d as number);
+                                        return Math.sqrt(dx * dx + dy * dy) < MIN_DIST;
+                                      });
+                                    if (tooClose(offsetX, offsetY)) {
+                                      const golden = 2.39996;
+                                      const startIdx = siblings.length;
+                                      for (let i = 0; i < 24; i++) {
+                                        const angle = (startIdx + i) * golden;
+                                        const radius = 0.14 + Math.floor(i / 8) * 0.06;
+                                        const ox = Math.cos(angle) * radius;
+                                        const oy = Math.sin(angle) * radius;
+                                        if (!tooClose(ox, oy)) { offsetX = ox; offsetY = oy; break; }
+                                      }
+                                    }
+                                  }
+
                                   const newLoc = await api.createLocation(patientId, {
                                     name: name || "Neuer Spot",
                                     x: zone?.x ?? 0,
@@ -1124,6 +1155,7 @@ const PatientDetail = () => {
                                   });
                                   queryClient.invalidateQueries({ queryKey: ["full-patient", patientId] });
                                   queryClient.invalidateQueries({ queryKey: ["overview-pins", overviewLocId] });
+                                  queryClient.invalidateQueries({ queryKey: ["all-zone-pins", patientId] });
                                   setSelectedLocationId(newLoc.id);
                                   setActiveTab("spots");
                                   toast.success(t("patientDetail.spotCreated", { name: name || t("patientDetail.newSpot") }));
