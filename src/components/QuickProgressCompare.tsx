@@ -167,6 +167,19 @@ const QuickProgressCompare = ({ images, getDaysDiff }: QuickProgressCompareProps
         </div>
       </div>
 
+      {sorted.length > 2 && (
+        <div className="grid grid-cols-2 gap-2">
+          <div className="space-y-1">
+            <p className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider">{t('patientDetail.older')}</p>
+            {renderSelector(leftId, setLeftId, t('patientDetail.older'))}
+          </div>
+          <div className="space-y-1">
+            <p className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider">{t('patientDetail.newer')}</p>
+            {renderSelector(rightId, setRightId, t('patientDetail.newer'))}
+          </div>
+        </div>
+      )}
+
       {mode === "side" ? (
         <div className="grid grid-cols-2 gap-3">
           <div className="space-y-1.5">
