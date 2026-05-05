@@ -229,7 +229,7 @@ const QuickProgressCompare = ({ images, getDaysDiff }: QuickProgressCompareProps
                 } : undefined}
               />
               <div className="absolute top-2 left-2 rounded-full bg-primary/90 px-2 py-0.5 text-[10px] font-semibold text-primary-foreground backdrop-blur-sm">
-                {t('patientDetail.newer')}
+                {rightLabel}
               </div>
               <div className="absolute bottom-2 right-2 rounded-full bg-background/80 p-1 opacity-0 transition-opacity group-hover:opacity-100">
                 <ZoomIn className="h-3 w-3" />
