@@ -252,6 +252,13 @@ const QuickProgressCompare = ({ images, getDaysDiff }: QuickProgressCompareProps
             <div className="absolute top-2 right-2 rounded-full bg-primary/90 px-2 py-0.5 text-[10px] font-semibold text-primary-foreground backdrop-blur-sm">
               {t('imageCompare.newerPercent', { percent: opacity })}
             </div>
+            <button
+              type="button"
+              onClick={() => setLightboxIdx(1)}
+              className="absolute bottom-2 right-2 flex items-center gap-1 rounded-full bg-background/80 px-2 py-1 text-[10px] font-medium backdrop-blur-sm hover:bg-background"
+            >
+              <ZoomIn className="h-3 w-3" /> Vollbild
+            </button>
           </div>
           <Slider value={[opacity]} onValueChange={([v]) => setOpacity(v)} min={0} max={100} step={1} />
         </div>
