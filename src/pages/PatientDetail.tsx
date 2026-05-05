@@ -141,9 +141,6 @@ const PatientDetail = () => {
       scrollToDetailAfterCollapseRef.current = false;
       lastBodyFocusedLocationRef.current = locationId;
       setMobileMapExpanded(true);
-      window.setTimeout(() => {
-        bodyMapRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
-      }, 80);
     }
   };
 
