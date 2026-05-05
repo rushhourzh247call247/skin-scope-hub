@@ -553,7 +553,7 @@ const PatientDetail = () => {
             "transition-all duration-300",
             mobileMapExpanded ? "h-[300px] lg:h-[450px]" : "h-0 overflow-hidden lg:h-[450px]",
             mapClickDialog && mobileMapExpanded && "h-[350px] lg:h-[560px]"
-          )}>
+          )} ref={bodyMapRef}>
             <BodyMap3D
               markers={spotLocations.map((l) => {
                 const pf = (v: any) => v != null ? parseFloat(String(v)) : null;
