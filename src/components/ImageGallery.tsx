@@ -31,9 +31,10 @@ interface ImageGalleryProps {
   patientName?: string;
   patientBirthDate?: string;
   onQrUpload?: () => void;
+  triggerCameraSignal?: number;
 }
 
-const ImageGallery = ({ locationId, patientId, images, locationName, locationType = "spot", patientName, patientBirthDate, onQrUpload }: ImageGalleryProps) => {
+const ImageGallery = ({ locationId, patientId, images, locationName, locationType = "spot", patientName, patientBirthDate, onQrUpload, triggerCameraSignal }: ImageGalleryProps) => {
   const { t } = useTranslation();
   const queryClient = useQueryClient();
   const { isReadOnly, readOnlyTooltip } = useLifecycle();
@@ -61,6 +62,17 @@ const ImageGallery = ({ locationId, patientId, images, locationName, locationTyp
       return merged;
     });
   }, [images]);
+
+  // Auto-trigger camera when signal changes (e.g. right after spot creation)
+  useEffect(() => {
+    if (!triggerCameraSignal || isReadOnly) return;
+    const timer = setTimeout(() => {
+      cameraRef.current?.click();
+      // Scroll gallery into view on mobile
+      cameraRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
+    }, 250);
+    return () => clearTimeout(timer);
+  }, [triggerCameraSignal, isReadOnly]);
 
   const uploadMutation = useMutation({
     mutationFn: (file: File) => api.uploadImage(locationId, file),

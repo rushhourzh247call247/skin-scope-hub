@@ -63,6 +63,7 @@ const PatientDetail = () => {
   const patientId = Number(id);
 
   const [selectedLocationId, setSelectedLocationId] = useState<number | null>(null);
+  const [autoCameraSignal, setAutoCameraSignal] = useState<number>(0);
   const [mapClickDialog, setMapClickDialog] = useState<{
     x: number;
     y: number;
@@ -220,6 +221,8 @@ const PatientDetail = () => {
         setNewlyCreatedZoneId(newLoc.id);
       } else {
         setSelectedLocationId(newLoc.id);
+        // Auto-open camera for new spots/regions so user can immediately take photo
+        setAutoCameraSignal((s) => s + 1);
       }
     },
   });
@@ -1344,6 +1347,7 @@ const PatientDetail = () => {
                   patientName={patient.name}
                   patientBirthDate={patient.birth_date}
                   onQrUpload={() => { setQrLocationId(selectedLocation.id); setQrDialogOpen(true); }}
+                  triggerCameraSignal={autoCameraSignal}
                 />
 
                 {/* 3. Klassifikation + Status (zusammen, weiter unten) */}
