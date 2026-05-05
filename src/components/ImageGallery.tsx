@@ -32,9 +32,10 @@ interface ImageGalleryProps {
   patientBirthDate?: string;
   onQrUpload?: () => void;
   triggerCameraSignal?: number;
+  triggerCompareSignal?: number;
 }
 
-const ImageGallery = ({ locationId, patientId, images, locationName, locationType = "spot", patientName, patientBirthDate, onQrUpload, triggerCameraSignal }: ImageGalleryProps) => {
+const ImageGallery = ({ locationId, patientId, images, locationName, locationType = "spot", patientName, patientBirthDate, onQrUpload, triggerCameraSignal, triggerCompareSignal }: ImageGalleryProps) => {
   const { t } = useTranslation();
   const queryClient = useQueryClient();
   const { isReadOnly, readOnlyTooltip } = useLifecycle();
