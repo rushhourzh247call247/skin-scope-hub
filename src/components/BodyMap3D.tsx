@@ -1056,6 +1056,46 @@ function Scene({ markers, selectedLocationId, onMapClick, onMarkerClick, onMarke
 
   const spots = filteredMarkers.filter((m) => m.type !== "region");
   const regions = filteredMarkers.filter((m) => m.type === "region");
+  const spotLabelOffsets = useMemo(() => {
+    const offsets = new Map<number, { x: number; y: number }>();
+    const groups = new Map<string, Marker[]>();
+
+    spots.forEach((spot) => {
+      const x = spot.x3d ?? spot.x;
+      const y = spot.y3d ?? spot.y;
+      const z = spot.z3d ?? 0;
+      if (x == null || y == null) return;
+      const key = `${spot.view ?? (z >= 0 ? "front" : "back")}:${Math.round(x * 8)}:${Math.round(y * 8)}`;
+      groups.set(key, [...(groups.get(key) ?? []), spot]);
+    });
+
+    const baseOffsets = [
+      { x: 44, y: -38 },
+      { x: -44, y: -38 },
+      { x: 48, y: 34 },
+      { x: -48, y: 34 },
+      { x: 0, y: -58 },
+      { x: 58, y: 0 },
+      { x: -58, y: 0 },
+      { x: 0, y: 58 },
+    ];
+
+    groups.forEach((group) => {
+      if (group.length === 1) {
+        offsets.set(group[0].id, baseOffsets[0]);
+        return;
+      }
+
+      group
+        .slice()
+        .sort((a, b) => a.id - b.id)
+        .forEach((spot, idx) => {
+          offsets.set(spot.id, baseOffsets[idx % baseOffsets.length]);
+        });
+    });
+
+    return offsets;
+  }, [spots]);
 
   return (
     <>
@@ -1095,6 +1135,7 @@ function Scene({ markers, selectedLocationId, onMapClick, onMarkerClick, onMarke
               position={[0, 0, 0]}
               name={translateAnatomyName(m.name)}
               index={i}
+              labelOffset={spotLabelOffsets.get(m.id)}
               isSelected={m.id === selectedLocationId}
               onClick={() => onMarkerClick?.(m.id)}
               imageCount={m.imageCount}
