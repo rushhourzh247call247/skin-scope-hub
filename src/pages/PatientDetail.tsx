@@ -24,6 +24,7 @@ import { formatDate } from "@/lib/dateUtils";
 import BodyMap3D from "@/components/BodyMap3D";
 import ImageGallery from "@/components/ImageGallery";
 import ImageCompare from "@/components/ImageCompare";
+import SpotLightbox from "@/components/SpotLightbox";
 import RiskProgression from "@/components/RiskProgression";
 import QrUploadDialog from "@/components/QrUploadDialog";
 import OverviewPhoto from "@/components/OverviewPhoto";
@@ -107,6 +108,8 @@ const PatientDetail = () => {
   const lastBodyFocusedLocationRef = useRef<number | null>(null);
   const ignoreNextSpotClickRef = useRef(false);
   const [zoneUploadTargetId, setZoneUploadTargetId] = useState<number | null>(null);
+  const [lightboxOpen, setLightboxOpen] = useState(false);
+  const [compareSignal, setCompareSignal] = useState(0);
 
   const selectLocation = (locationId: number | null, scrollToDetail = false) => {
     setMapClickDialog(null);
@@ -123,6 +126,13 @@ const PatientDetail = () => {
     const shouldFocusBodyFirst = isMobile && (!mobileMapExpanded || lastBodyFocusedLocationRef.current !== locationId);
 
     if (!shouldFocusBodyFirst && selectedLocationId === locationId) {
+      // Second tap on the same already-focused spot: open lightbox with full-size photo + history
+      const loc = locations.find(l => l.id === locationId);
+      if (loc && (loc.images?.length ?? 0) > 0) {
+        setLightboxOpen(true);
+        return;
+      }
+      // Fallback: no images yet — scroll to detail like before
       setMapClickDialog(null);
       setActiveTab("spots");
       setMobileMapExpanded(true);
@@ -136,7 +146,7 @@ const PatientDetail = () => {
     setMapClickDialog(null);
     setSelectedLocationId(locationId);
     setActiveTab("spots");
-    
+
     if (isMobile) {
       scrollToDetailAfterCollapseRef.current = false;
       lastBodyFocusedLocationRef.current = locationId;
@@ -1461,6 +1471,7 @@ const PatientDetail = () => {
                   patientBirthDate={patient.birth_date}
                   onQrUpload={() => { setQrLocationId(selectedLocation.id); setQrDialogOpen(true); }}
                   triggerCameraSignal={autoCameraSignal}
+                  triggerCompareSignal={compareSignal}
                 />
 
                 {/* 3. Klassifikation + Status (zusammen, weiter unten) */}
@@ -1651,6 +1662,23 @@ const PatientDetail = () => {
           patientName={patient.name}
           locationId={qrLocationId}
           locationName={locations.find(l => l.id === qrLocationId)?.name || `Location #${qrLocationId}`}
+        />
+      )}
+
+      {selectedLocation && (
+        <SpotLightbox
+          open={lightboxOpen}
+          onClose={() => setLightboxOpen(false)}
+          images={selectedLocation.images ?? []}
+          locationName={translateAnatomyName(selectedLocation.name) || `Spot #${selectedLocation.id}`}
+          onCompare={() => {
+            setLightboxOpen(false);
+            setActiveTab("spots");
+            setCompareSignal(s => s + 1);
+            window.setTimeout(() => {
+              detailContentRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+            }, 120);
+          }}
         />
       )}
 

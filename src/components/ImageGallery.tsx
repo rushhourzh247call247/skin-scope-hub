@@ -32,9 +32,10 @@ interface ImageGalleryProps {
   patientBirthDate?: string;
   onQrUpload?: () => void;
   triggerCameraSignal?: number;
+  triggerCompareSignal?: number;
 }
 
-const ImageGallery = ({ locationId, patientId, images, locationName, locationType = "spot", patientName, patientBirthDate, onQrUpload, triggerCameraSignal }: ImageGalleryProps) => {
+const ImageGallery = ({ locationId, patientId, images, locationName, locationType = "spot", patientName, patientBirthDate, onQrUpload, triggerCameraSignal, triggerCompareSignal }: ImageGalleryProps) => {
   const { t } = useTranslation();
   const queryClient = useQueryClient();
   const { isReadOnly, readOnlyTooltip } = useLifecycle();
@@ -73,6 +74,12 @@ const ImageGallery = ({ locationId, patientId, images, locationName, locationTyp
     }, 250);
     return () => clearTimeout(timer);
   }, [triggerCameraSignal, isReadOnly]);
+
+  // Auto-open compare when signal changes (e.g. from spot lightbox)
+  useEffect(() => {
+    if (!triggerCompareSignal) return;
+    if (images.length >= 2) setCompareMode(true);
+  }, [triggerCompareSignal, images.length]);
 
   const uploadMutation = useMutation({
     mutationFn: (file: File) => api.uploadImage(locationId, file),
