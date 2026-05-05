@@ -44,11 +44,16 @@ export default function PatientHeader({ patient, activeTab, setActiveTab, locati
             {patient.name.split(" ").map((n) => n[0]).join("").slice(0, 2).toUpperCase()}
           </div>
           <div className="min-w-0">
-            <div className="flex items-center gap-1.5">
-              <h1 className="text-sm font-semibold text-foreground truncate">{patient.name}</h1>
-              <Badge variant="outline" className="text-[10px] px-1.5 py-0 shrink-0">{t('common.active')}</Badge>
+            <h1 className="text-sm font-semibold text-foreground truncate">{patient.name}</h1>
+            <div className="flex items-center gap-2 text-[11px] text-muted-foreground tabular-nums">
+              <span className="font-mono">#{patient.id}</span>
+              {patient.birth_date && (
+                <>
+                  <span className="opacity-50">·</span>
+                  <span>{formatDate(patient.birth_date, "dd.MM.yyyy")}</span>
+                </>
+              )}
             </div>
-            <p className="text-xs text-muted-foreground hidden sm:block">{t('patientDetail.patient')}</p>
           </div>
         </div>
 
