@@ -143,7 +143,7 @@ const QuickProgressCompare = ({ images, getDaysDiff }: QuickProgressCompareProps
       <div className="flex items-center justify-between gap-2">
         <h4 className="text-xs font-semibold text-foreground uppercase tracking-wider flex items-center gap-2">
           <GitCompareArrows className="h-3.5 w-3.5 text-amber-500" />
-          {t('patientDetail.progressComparison')}
+          {t('imageCompare.title', 'Vergleich')}
         </h4>
         <div className="flex items-center gap-1 rounded-lg bg-muted p-0.5">
           <button
@@ -166,6 +166,19 @@ const QuickProgressCompare = ({ images, getDaysDiff }: QuickProgressCompareProps
           </button>
         </div>
       </div>
+
+      {sorted.length > 2 && (
+        <div className="grid grid-cols-2 gap-2">
+          <div className="space-y-1">
+            <p className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider">{t('patientDetail.older')}</p>
+            {renderSelector(leftId, setLeftId, t('patientDetail.older'))}
+          </div>
+          <div className="space-y-1">
+            <p className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider">{t('patientDetail.newer')}</p>
+            {renderSelector(rightId, setRightId, t('patientDetail.newer'))}
+          </div>
+        </div>
+      )}
 
       {mode === "side" ? (
         <div className="grid grid-cols-2 gap-3">
@@ -258,13 +271,7 @@ const QuickProgressCompare = ({ images, getDaysDiff }: QuickProgressCompareProps
         )}
       </div>
 
-      {/* Image pickers (only when more than 2 images) */}
-      {sorted.length > 2 && (
-        <div className="grid grid-cols-2 gap-2 pt-1">
-          {renderSelector(leftId, setLeftId, t('patientDetail.older'))}
-          {renderSelector(rightId, setRightId, t('patientDetail.newer'))}
-        </div>
-      )}
+      {/* (Bildauswahl jetzt oberhalb der Bilder) */}
 
       {/* Manual alignment controls */}
       {mode === "overlay" && showAlignControls && (
