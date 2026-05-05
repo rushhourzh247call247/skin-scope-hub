@@ -801,7 +801,13 @@ const PatientDetail = () => {
                 )}
               >
                 <button
-                  className="flex flex-1 items-center gap-2.5 min-w-0"
+                  className="flex flex-1 touch-manipulation items-center gap-2.5 min-w-0"
+                  onPointerDown={(e) => {
+                    if (e.pointerType === "mouse") return;
+                    e.preventDefault();
+                    e.stopPropagation();
+                    handleSpotListClick(loc.id);
+                  }}
                   onClick={() => handleSpotListClick(loc.id)}
                 >
                   {(() => {
@@ -867,7 +873,7 @@ const PatientDetail = () => {
                 <button
                   disabled={isReadOnly}
                   onClick={(e) => { e.stopPropagation(); setDeleteConfirmId(loc.id); }}
-                  className="shrink-0 p-1 rounded opacity-0 group-hover:opacity-100 transition-opacity hover:bg-destructive/10 text-muted-foreground hover:text-destructive disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:bg-transparent"
+                  className="shrink-0 rounded p-1 text-muted-foreground transition-opacity hover:bg-destructive/10 hover:text-destructive disabled:cursor-not-allowed disabled:opacity-30 disabled:hover:bg-transparent sm:opacity-0 sm:group-hover:opacity-100"
                   title={isReadOnly ? readOnlyTooltip : t('patientDetail.moveToTrash')}
                 >
                   <Trash2 className="h-3.5 w-3.5" />
