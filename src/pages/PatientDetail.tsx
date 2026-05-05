@@ -63,7 +63,7 @@ const PatientDetail = () => {
   const patientId = Number(id);
 
   const [selectedLocationId, setSelectedLocationId] = useState<number | null>(null);
-  const [bodyMapFocusSignal, setBodyMapFocusSignal] = useState(0);
+  
   const [autoCameraSignal, setAutoCameraSignal] = useState<number>(0);
   const [mapClickDialog, setMapClickDialog] = useState<{
     x: number;
@@ -136,7 +136,7 @@ const PatientDetail = () => {
     setMapClickDialog(null);
     setSelectedLocationId(locationId);
     setActiveTab("spots");
-    setBodyMapFocusSignal((signal) => signal + 1);
+    
     if (isMobile) {
       scrollToDetailAfterCollapseRef.current = false;
       lastBodyFocusedLocationRef.current = locationId;
@@ -592,7 +592,7 @@ const PatientDetail = () => {
                 return { id: z.id, name: z.name, x: pfn(z.x), y: pfn(z.y), x3d: pfn(z.x3d), y3d: pfn(z.y3d), z3d: pfn(z.z3d), nx: pfn(z.nx), ny: pfn(z.ny), nz: pfn(z.nz), view: z.view };
               })}
               selectedZoneId={activeTab === "uebersicht" ? selectedLocationId : null}
-              focusSignal={bodyMapFocusSignal}
+              
               requestMarkType={requestedMarkType}
             />
           </div>
