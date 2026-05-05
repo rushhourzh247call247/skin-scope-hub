@@ -75,6 +75,12 @@ const ImageGallery = ({ locationId, patientId, images, locationName, locationTyp
     return () => clearTimeout(timer);
   }, [triggerCameraSignal, isReadOnly]);
 
+  // Auto-open compare when signal changes (e.g. from spot lightbox)
+  useEffect(() => {
+    if (!triggerCompareSignal) return;
+    if (images.length >= 2) setCompareMode(true);
+  }, [triggerCompareSignal, images.length]);
+
   const uploadMutation = useMutation({
     mutationFn: (file: File) => api.uploadImage(locationId, file),
     onSuccess: () => {
