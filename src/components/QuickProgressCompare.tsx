@@ -366,9 +366,8 @@ interface CompareLightboxProps {
   onClose: () => void;
 }
 
-const CompareLightbox = ({ pair, startIndex, onClose }: CompareLightboxProps) => {
+const CompareLightbox = ({ pair, labels, startIndex, onClose }: CompareLightboxProps) => {
   const [idx, setIdx] = useState<0 | 1>(startIndex);
-  const labels = ["Älter", "Neuer"] as const;
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
