@@ -25,6 +25,7 @@ import BodyMap3D from "@/components/BodyMap3D";
 import ImageGallery from "@/components/ImageGallery";
 import ImageCompare from "@/components/ImageCompare";
 import SpotLightbox from "@/components/SpotLightbox";
+import QuickProgressCompare from "@/components/QuickProgressCompare";
 import RiskProgression from "@/components/RiskProgression";
 import QrUploadDialog from "@/components/QrUploadDialog";
 import OverviewPhoto from "@/components/OverviewPhoto";
