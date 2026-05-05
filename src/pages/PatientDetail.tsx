@@ -137,10 +137,11 @@ const PatientDetail = () => {
       scrollToDetailAfterCollapseRef.current = false;
 
       if (imgCount >= 2) {
-        // Direct into compare mode
-        setCompareSignal(s => s + 1);
+        // Scroll to the upper Quick-Compare block (already shows oldest vs newest with full tools)
         window.setTimeout(() => {
-          detailContentRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+          const el = document.getElementById(`spot-comparison-${locationId}`);
+          if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
+          else detailContentRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
         }, 80);
       } else if (imgCount === 1) {
         // Single image: enlarge in lightbox
