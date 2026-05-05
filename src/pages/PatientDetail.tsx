@@ -101,8 +101,10 @@ const PatientDetail = () => {
   const [pdfDialogOpen, setPdfDialogOpen] = useState(false);
   const [newlyCreatedZoneId, setNewlyCreatedZoneId] = useState<number | null>(null);
   const zoneFileRef = useRef<HTMLInputElement>(null);
+  const bodyMapRef = useRef<HTMLDivElement>(null);
   const detailContentRef = useRef<HTMLDivElement>(null);
   const scrollToDetailAfterCollapseRef = useRef(false);
+  const lastBodyFocusedLocationRef = useRef<number | null>(null);
   const [zoneUploadTargetId, setZoneUploadTargetId] = useState<number | null>(null);
 
   const selectLocation = (locationId: number | null, scrollToDetail = false) => {
@@ -117,7 +119,7 @@ const PatientDetail = () => {
 
   const handleSpotListClick = (locationId: number) => {
     const isMobile = window.matchMedia("(max-width: 1023px)").matches;
-    const shouldFocusBodyFirst = isMobile && (!mobileMapExpanded || selectedLocationId !== locationId);
+    const shouldFocusBodyFirst = isMobile && (!mobileMapExpanded || lastBodyFocusedLocationRef.current !== locationId);
 
     if (!shouldFocusBodyFirst && selectedLocationId === locationId) {
       selectLocation(locationId, true);
@@ -130,7 +132,11 @@ const PatientDetail = () => {
     setBodyMapFocusSignal((signal) => signal + 1);
     if (isMobile) {
       scrollToDetailAfterCollapseRef.current = false;
+      lastBodyFocusedLocationRef.current = locationId;
       setMobileMapExpanded(true);
+      window.setTimeout(() => {
+        bodyMapRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+      }, 80);
     }
   };
 
