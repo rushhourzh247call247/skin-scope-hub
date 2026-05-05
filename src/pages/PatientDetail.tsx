@@ -114,6 +114,21 @@ const PatientDetail = () => {
     }
   };
 
+  const handleSpotListClick = (locationId: number) => {
+    if (selectedLocationId === locationId) {
+      selectLocation(locationId, true);
+      return;
+    }
+
+    setMapClickDialog(null);
+    setSelectedLocationId(locationId);
+    setActiveTab("spots");
+    if (window.matchMedia("(max-width: 1023px)").matches) {
+      scrollToDetailAfterCollapseRef.current = false;
+      setMobileMapExpanded(true);
+    }
+  };
+
   useEffect(() => {
     if (!scrollToDetailAfterCollapseRef.current || mobileMapExpanded) return;
     scrollToDetailAfterCollapseRef.current = false;
@@ -775,7 +790,7 @@ const PatientDetail = () => {
               >
                 <button
                   className="flex flex-1 items-center gap-2.5 min-w-0"
-                  onClick={() => selectLocation(loc.id, true)}
+                  onClick={() => handleSpotListClick(loc.id)}
                 >
                   {(() => {
                     const cls = (loc as any).classification as LesionClassification | undefined;
