@@ -100,7 +100,28 @@ const PatientDetail = () => {
   const [pdfDialogOpen, setPdfDialogOpen] = useState(false);
   const [newlyCreatedZoneId, setNewlyCreatedZoneId] = useState<number | null>(null);
   const zoneFileRef = useRef<HTMLInputElement>(null);
+  const detailContentRef = useRef<HTMLDivElement>(null);
+  const scrollToDetailAfterCollapseRef = useRef(false);
   const [zoneUploadTargetId, setZoneUploadTargetId] = useState<number | null>(null);
+
+  const selectLocation = (locationId: number | null, scrollToDetail = false) => {
+    setMapClickDialog(null);
+    setSelectedLocationId(locationId);
+    setActiveTab("spots");
+    if (scrollToDetail && locationId && window.matchMedia("(max-width: 1023px)").matches) {
+      scrollToDetailAfterCollapseRef.current = true;
+      setMobileMapExpanded(false);
+    }
+  };
+
+  useEffect(() => {
+    if (!scrollToDetailAfterCollapseRef.current || mobileMapExpanded) return;
+    scrollToDetailAfterCollapseRef.current = false;
+    const timer = window.setTimeout(() => {
+      detailContentRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+    }, 320);
+    return () => window.clearTimeout(timer);
+  }, [mobileMapExpanded, selectedLocationId]);
 
   const handleZoneSidebarUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (isReadOnly) {
@@ -516,7 +537,7 @@ const PatientDetail = () => {
               gender={patient.gender}
               onMapClick={handleMapClick}
               selectedLocationId={selectedLocationId}
-              onMarkerClick={(id) => { setMapClickDialog(null); setSelectedLocationId(id); setActiveTab("spots"); }}
+              onMarkerClick={(id) => selectLocation(id, true)}
               classificationFilter={classificationFilter}
               onFilterChange={setClassificationFilter}
               isPlacementMode={!!mapClickDialog}
@@ -754,7 +775,7 @@ const PatientDetail = () => {
               >
                 <button
                   className="flex flex-1 items-center gap-2.5 min-w-0"
-                  onClick={() => { setMapClickDialog(null); setSelectedLocationId(loc.id); setActiveTab("spots"); setMobileMapExpanded(true); }}
+                  onClick={() => selectLocation(loc.id, true)}
                 >
                   {(() => {
                     const cls = (loc as any).classification as LesionClassification | undefined;
@@ -962,7 +983,7 @@ const PatientDetail = () => {
       <input ref={zoneFileRef} type="file" accept="image/*" className="hidden" onChange={handleZoneSidebarUpload} />
 
         {/* Center + Right: Content */}
-        <div className="flex-1 overflow-y-auto p-3 lg:p-6 pb-20 lg:pb-6">
+        <div ref={detailContentRef} className="flex-1 overflow-y-auto p-3 lg:p-6 pb-20 lg:pb-6 scroll-mt-2">
           <AnimatePresence mode="wait">
             {isEmptyPatient ? (
               <motion.div
