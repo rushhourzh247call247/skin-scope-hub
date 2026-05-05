@@ -46,7 +46,7 @@ export default function PatientHeader({ patient, activeTab, setActiveTab, locati
           <div className="min-w-0">
             <h1 className="text-sm font-semibold text-foreground truncate">{patient.name}</h1>
             <div className="flex items-center gap-2 text-[11px] text-muted-foreground tabular-nums">
-              <span className="font-mono">{patient.id}</span>
+              <span className="font-mono">ID {patient.id}</span>
               {patient.birth_date && (
                 <>
                   <span className="opacity-50">·</span>
