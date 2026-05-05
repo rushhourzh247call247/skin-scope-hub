@@ -221,6 +221,8 @@ const PatientDetail = () => {
         setNewlyCreatedZoneId(newLoc.id);
       } else {
         setSelectedLocationId(newLoc.id);
+        // Auto-open camera for new spots/regions so user can immediately take photo
+        setAutoCameraSignal((s) => s + 1);
       }
     },
   });
