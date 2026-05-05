@@ -76,6 +76,7 @@ interface BodyMap3DProps {
   isPlacementMode?: boolean;
   zoneOverlays?: ZoneOverlay[];
   selectedZoneId?: number | null;
+  focusSignal?: number;
   /** External request to activate a specific mark mode (e.g. "zone"). Increments to re-trigger. */
   requestMarkType?: { type: MarkType; nonce: number } | null;
   onPreviewMove?: (
@@ -1199,9 +1200,8 @@ const BodyMap3D: React.FC<BodyMap3DProps> = (props) => {
   const [markType, setMarkType] = useState<MarkType>("spot");
   const [placementAnchor, setPlacementAnchor] = useState<{ x: number; y: number; view: "front" | "back" } | null>(null);
   const gender = props.gender ?? "male";
-  // Track selection changes to force camera re-animation
+  // Track selection/focus requests to force camera re-animation
   const [focusKey, setFocusKey] = useState(0);
-  const prevSelectedRef = useRef<number | null>(null);
 
   // Freeze camera anchor during placement so camera won't jump while marker moves
   useEffect(() => {
@@ -1226,15 +1226,14 @@ const BodyMap3D: React.FC<BodyMap3DProps> = (props) => {
     setMarkMode(true);
   }, [props.requestMarkType]);
 
-  // Clear reset flag AND bump focusKey when a marker is selected (even re-selecting same one)
+  // Clear reset flag AND bump focusKey when a marker is selected or explicitly refocused
   useEffect(() => {
     if (props.selectedLocationId != null) {
       setResetCounter(0);
       setActiveRegion("full");
       setFocusKey(k => k + 1);
     }
-    prevSelectedRef.current = props.selectedLocationId;
-  }, [props.selectedLocationId]);
+  }, [props.selectedLocationId, props.focusSignal]);
 
   // Compute camera preset once per placement session (not on every drag move)
   const placementPreset = useMemo<CameraPreset | null>(() => {
