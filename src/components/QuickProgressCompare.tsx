@@ -258,13 +258,7 @@ const QuickProgressCompare = ({ images, getDaysDiff }: QuickProgressCompareProps
         )}
       </div>
 
-      {/* Image pickers (only when more than 2 images) */}
-      {sorted.length > 2 && (
-        <div className="grid grid-cols-2 gap-2 pt-1">
-          {renderSelector(leftId, setLeftId, t('patientDetail.older'))}
-          {renderSelector(rightId, setRightId, t('patientDetail.newer'))}
-        </div>
-      )}
+      {/* (Bildauswahl jetzt oberhalb der Bilder) */}
 
       {/* Manual alignment controls */}
       {mode === "overlay" && showAlignControls && (
