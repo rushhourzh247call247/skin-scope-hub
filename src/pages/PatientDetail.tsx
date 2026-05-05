@@ -101,6 +101,7 @@ const PatientDetail = () => {
   const [newlyCreatedZoneId, setNewlyCreatedZoneId] = useState<number | null>(null);
   const zoneFileRef = useRef<HTMLInputElement>(null);
   const detailContentRef = useRef<HTMLDivElement>(null);
+  const scrollToDetailAfterCollapseRef = useRef(false);
   const [zoneUploadTargetId, setZoneUploadTargetId] = useState<number | null>(null);
 
   const selectLocation = (locationId: number | null, scrollToDetail = false) => {
@@ -108,12 +109,19 @@ const PatientDetail = () => {
     setSelectedLocationId(locationId);
     setActiveTab("spots");
     if (scrollToDetail && locationId && window.matchMedia("(max-width: 1023px)").matches) {
+      scrollToDetailAfterCollapseRef.current = true;
       setMobileMapExpanded(false);
-      requestAnimationFrame(() => {
-        detailContentRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
-      });
     }
   };
+
+  useEffect(() => {
+    if (!scrollToDetailAfterCollapseRef.current || mobileMapExpanded) return;
+    scrollToDetailAfterCollapseRef.current = false;
+    const timer = window.setTimeout(() => {
+      detailContentRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+    }, 320);
+    return () => window.clearTimeout(timer);
+  }, [mobileMapExpanded, selectedLocationId]);
 
   const handleZoneSidebarUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (isReadOnly) {
