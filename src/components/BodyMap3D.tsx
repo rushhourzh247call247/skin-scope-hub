@@ -93,7 +93,7 @@ interface BodyMap3DProps {
     point3d?: [number, number, number],
     normal3d?: [number, number, number],
   ) => void;
-  onMarkerClick?: (id: number) => void;
+  onMarkerClick?: (id: number | null) => void;
   onMarkerPhotoClick?: (id: number) => void;
 }
 
@@ -748,7 +748,7 @@ const SurfaceProjectedGroup = React.forwardRef<THREE.Group, SurfaceProjectedGrou
 /* ─── Camera Animator: animate to preset only, then free interaction ─── */
 function CameraAnimator({ preset, resetKey, disableControls }: { preset: Pick<CameraPreset, "position" | "target">; resetKey?: number; disableControls?: boolean }) {
   const { camera } = useThree();
-  const controlsRef = useRef<any>(null);
+  const controlsRef = useRef<React.ElementRef<typeof OrbitControls>>(null);
   const targetPositionRef = useRef(new THREE.Vector3(...preset.position));
   const targetLookAtRef = useRef(new THREE.Vector3(...preset.target));
   const isAnimatingRef = useRef(true);
@@ -1264,7 +1264,7 @@ const BodyMap3D: React.FC<BodyMap3DProps> = (props) => {
 
     // Use stored 3D coords if available, otherwise approximate from 2D
     let pos3d: [number, number, number];
-    let view = marker.view ?? "front";
+    const view = marker.view ?? "front";
     const x3d = toFiniteNumber(marker.x3d);
     const y3d = toFiniteNumber(marker.y3d);
     const z3d = toFiniteNumber(marker.z3d);
@@ -1330,7 +1330,7 @@ const BodyMap3D: React.FC<BodyMap3DProps> = (props) => {
         {/* Bottom controls */}
         <div className="absolute bottom-2 left-2 flex items-center gap-1.5">
           <button
-            onClick={() => { setActiveRegion("full"); setResetCounter(c => c + 1); setFocusKey(k => k + 1); if (props.onMarkerClick) props.onMarkerClick(undefined as any); }}
+            onClick={() => { setActiveRegion("full"); setResetCounter(c => c + 1); setFocusKey(k => k + 1); props.onMarkerClick?.(null); }}
             className="flex h-7 items-center gap-1 rounded-md border border-border/50 bg-card/80 px-2 text-[10px] text-muted-foreground transition-all hover:text-foreground"
           >
             <RotateCcw className="h-3 w-3" /> {i18n.t('common.reset')}
