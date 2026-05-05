@@ -126,20 +126,30 @@ const PatientDetail = () => {
     const shouldFocusBodyFirst = isMobile && (!mobileMapExpanded || lastBodyFocusedLocationRef.current !== locationId);
 
     if (!shouldFocusBodyFirst && selectedLocationId === locationId) {
-      // Second tap on the same already-focused spot: open lightbox with full-size photo + history
+      // Second tap on the same already-focused spot
       const loc = locations.find(l => l.id === locationId);
-      if (loc && (loc.images?.length ?? 0) > 0) {
-        setLightboxOpen(true);
-        return;
-      }
-      // Fallback: no images yet — scroll to detail like before
+      const imgCount = loc?.images?.length ?? 0;
+
       setMapClickDialog(null);
       setActiveTab("spots");
       setMobileMapExpanded(true);
       scrollToDetailAfterCollapseRef.current = false;
-      window.setTimeout(() => {
-        detailContentRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
-      }, 80);
+
+      if (imgCount >= 2) {
+        // Direct into compare mode
+        setCompareSignal(s => s + 1);
+        window.setTimeout(() => {
+          detailContentRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+        }, 80);
+      } else if (imgCount === 1) {
+        // Single image: enlarge in lightbox
+        setLightboxOpen(true);
+      } else {
+        // No images: scroll to detail (where camera/upload buttons are)
+        window.setTimeout(() => {
+          detailContentRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+        }, 80);
+      }
       return;
     }
 
