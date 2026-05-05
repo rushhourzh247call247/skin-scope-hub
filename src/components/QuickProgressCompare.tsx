@@ -484,7 +484,7 @@ const SwipePager = ({ pair, labels, idx, setIdx }: SwipePagerProps) => {
               doubleClick={{ mode: "toggle", step: 2 }}
               pinch={{ step: 5 }}
               wheel={{ step: 0.2 }}
-              panning={{ velocityDisabled: true }}
+              panning={{ velocityDisabled: true, disabled: !zoomed[i] }}
               onTransform={(ref) =>
                 setZoomed((prev) => {
                   const next: [boolean, boolean] = [prev[0], prev[1]];
