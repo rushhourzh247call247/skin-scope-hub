@@ -485,10 +485,10 @@ const SwipePager = ({ pair, labels, idx, setIdx }: SwipePagerProps) => {
               pinch={{ step: 5 }}
               wheel={{ step: 0.2 }}
               panning={{ velocityDisabled: true }}
-              onTransformed={(_, state) =>
+              onTransform={(ref) =>
                 setZoomed((prev) => {
                   const next: [boolean, boolean] = [prev[0], prev[1]];
-                  next[i] = state.scale > 1.01;
+                  next[i] = ref.state.scale > 1.01;
                   return next;
                 })
               }
