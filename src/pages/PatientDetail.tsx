@@ -63,7 +63,7 @@ const PatientDetail = () => {
   const patientId = Number(id);
 
   const [selectedLocationId, setSelectedLocationId] = useState<number | null>(null);
-  const [bodyMapFocusSignal, setBodyMapFocusSignal] = useState(0);
+  
   const [autoCameraSignal, setAutoCameraSignal] = useState<number>(0);
   const [mapClickDialog, setMapClickDialog] = useState<{
     x: number;
