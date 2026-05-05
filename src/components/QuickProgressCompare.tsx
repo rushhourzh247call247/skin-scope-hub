@@ -438,39 +438,7 @@ const CompareLightbox = ({ pair, labels, startIndex, onClose }: CompareLightboxP
             <ChevronRight className="h-5 w-5" />
           </button>
 
-          <AnimatePresence mode="wait" initial={false}>
-            <motion.div
-              key={current.id}
-              drag="x"
-              dragConstraints={{ left: 0, right: 0 }}
-              dragElastic={0.2}
-              onDragEnd={handleDragEnd}
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              transition={{ duration: 0.15 }}
-              className="h-full w-full"
-            >
-              <TransformWrapper
-                doubleClick={{ mode: "toggle", step: 2 }}
-                pinch={{ step: 5 }}
-                wheel={{ step: 0.2 }}
-                panning={{ velocityDisabled: true }}
-              >
-                <TransformComponent
-                  wrapperStyle={{ width: "100%", height: "100%" }}
-                  contentStyle={{ width: "100%", height: "100%" }}
-                >
-                  <img
-                    src={api.resolveImageSrc(current)}
-                    alt={labels[idx]}
-                    className="h-full w-full select-none object-contain"
-                    draggable={false}
-                  />
-                </TransformComponent>
-              </TransformWrapper>
-            </motion.div>
-          </AnimatePresence>
+          <SwipePager pair={pair} labels={labels} idx={idx} setIdx={setIdx} />
         </div>
 
         <div className="border-t border-border/40 bg-card/60 px-4 py-2 text-center text-[11px] text-muted-foreground safe-area-bottom">
