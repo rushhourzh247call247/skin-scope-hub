@@ -143,7 +143,7 @@ const QuickProgressCompare = ({ images, getDaysDiff }: QuickProgressCompareProps
       <div className="flex items-center justify-between gap-2">
         <h4 className="text-xs font-semibold text-foreground uppercase tracking-wider flex items-center gap-2">
           <GitCompareArrows className="h-3.5 w-3.5 text-amber-500" />
-          {t('patientDetail.progressComparison')}
+          {t('imageCompare.title', 'Vergleich')}
         </h4>
         <div className="flex items-center gap-1 rounded-lg bg-muted p-0.5">
           <button
