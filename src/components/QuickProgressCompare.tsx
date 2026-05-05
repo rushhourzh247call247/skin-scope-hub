@@ -349,6 +349,7 @@ const QuickProgressCompare = ({ images, getDaysDiff }: QuickProgressCompareProps
     {lightboxIdx !== null && createPortal(
       <CompareLightbox
         pair={[left, right]}
+        labels={[leftLabel, rightLabel]}
         startIndex={lightboxIdx}
         onClose={() => setLightboxIdx(null)}
       />,
@@ -360,6 +361,7 @@ const QuickProgressCompare = ({ images, getDaysDiff }: QuickProgressCompareProps
 
 interface CompareLightboxProps {
   pair: [LocationImage, LocationImage];
+  labels: [string, string];
   startIndex: 0 | 1;
   onClose: () => void;
 }
