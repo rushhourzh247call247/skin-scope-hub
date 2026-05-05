@@ -448,4 +448,68 @@ const CompareLightbox = ({ pair, labels, startIndex, onClose }: CompareLightboxP
     </AnimatePresence>
   );
 };
+
+interface SwipePagerProps {
+  pair: [LocationImage, LocationImage];
+  labels: [string, string];
+  idx: 0 | 1;
+  setIdx: (n: 0 | 1) => void;
+}
+
+const SwipePager = ({ pair, labels, idx, setIdx }: SwipePagerProps) => {
+  const [zoomed, setZoomed] = useState<[boolean, boolean]>([false, false]);
+  const anyZoomed = zoomed[0] || zoomed[1];
+
+  return (
+    <div className="relative h-full w-full overflow-hidden">
+      <motion.div
+        className="flex h-full"
+        style={{ width: "200%" }}
+        animate={{ x: `${idx * -50}%` }}
+        transition={{ type: "spring", stiffness: 300, damping: 32, mass: 0.6 }}
+        drag={anyZoomed ? false : "x"}
+        dragDirectionLock
+        dragConstraints={{ left: 0, right: 0 }}
+        dragElastic={0.15}
+        onDragEnd={(_, info) => {
+          const threshold = 60;
+          const velocity = info.velocity.x;
+          if ((info.offset.x < -threshold || velocity < -400) && idx === 0) setIdx(1);
+          else if ((info.offset.x > threshold || velocity > 400) && idx === 1) setIdx(0);
+        }}
+      >
+        {pair.map((img, i) => (
+          <div key={img.id} className="flex h-full w-1/2 items-center justify-center px-2">
+            <TransformWrapper
+              doubleClick={{ mode: "toggle", step: 2 }}
+              pinch={{ step: 5 }}
+              wheel={{ step: 0.2 }}
+              panning={{ velocityDisabled: true }}
+              onTransformed={(_, state) =>
+                setZoomed((prev) => {
+                  const next: [boolean, boolean] = [prev[0], prev[1]];
+                  next[i] = state.scale > 1.01;
+                  return next;
+                })
+              }
+            >
+              <TransformComponent
+                wrapperStyle={{ width: "100%", height: "100%" }}
+                contentStyle={{ width: "100%", height: "100%" }}
+              >
+                <img
+                  src={api.resolveImageSrc(img)}
+                  alt={labels[i]}
+                  className="h-full w-full select-none object-contain"
+                  draggable={false}
+                />
+              </TransformComponent>
+            </TransformWrapper>
+          </div>
+        ))}
+      </motion.div>
+    </div>
+  );
+};
+
 export default QuickProgressCompare;
