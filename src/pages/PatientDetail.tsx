@@ -108,6 +108,8 @@ const PatientDetail = () => {
   const lastBodyFocusedLocationRef = useRef<number | null>(null);
   const ignoreNextSpotClickRef = useRef(false);
   const [zoneUploadTargetId, setZoneUploadTargetId] = useState<number | null>(null);
+  const [lightboxOpen, setLightboxOpen] = useState(false);
+  const [compareSignal, setCompareSignal] = useState(0);
 
   const selectLocation = (locationId: number | null, scrollToDetail = false) => {
     setMapClickDialog(null);
