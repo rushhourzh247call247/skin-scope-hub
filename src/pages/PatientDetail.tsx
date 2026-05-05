@@ -1096,9 +1096,24 @@ const PatientDetail = () => {
                               }}
                               onCreateSpotAndLink={async (name, pinCoords, overviewLocId) => {
                                 try {
+                                  // Inherit 3D anchor from the zone so the new spot appears on the 3D body map
+                                  const zone = overviewLocations.find(l => l.id === overviewLocId);
+                                  // Small offset based on pin position on the zone photo so multiple pins
+                                  // don't stack perfectly on the same 3D point (~1.5cm spread).
+                                  const offsetX = ((pinCoords.x_pct ?? 50) - 50) / 1000; // ~±0.05 units
+                                  const offsetY = -((pinCoords.y_pct ?? 50) - 50) / 1000;
                                   const newLoc = await api.createLocation(patientId, {
                                     name: name || "Neuer Spot",
-                                    x: 0, y: 0, view: "front", type: "spot",
+                                    x: zone?.x ?? 0,
+                                    y: zone?.y ?? 0,
+                                    view: zone?.view ?? "front",
+                                    type: "spot",
+                                    x3d: zone?.x3d != null ? zone.x3d + offsetX : undefined,
+                                    y3d: zone?.y3d != null ? zone.y3d + offsetY : undefined,
+                                    z3d: zone?.z3d,
+                                    nx: zone?.nx,
+                                    ny: zone?.ny,
+                                    nz: zone?.nz,
                                   });
                                   await api.createOverviewPin(overviewLocId, {
                                     linked_location_id: newLoc.id,
