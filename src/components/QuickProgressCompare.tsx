@@ -1,6 +1,8 @@
-import { useState, useEffect, useRef, useMemo } from "react";
+import { useState, useEffect, useRef, useMemo, useCallback } from "react";
 import { useTranslation } from "react-i18next";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence, PanInfo } from "framer-motion";
+import { createPortal } from "react-dom";
+import { TransformWrapper, TransformComponent } from "react-zoom-pan-pinch";
 import {
   GitCompareArrows,
   Layers,
@@ -11,6 +13,10 @@ import {
   Move,
   ChevronDown,
   Calendar,
+  X,
+  ChevronLeft,
+  ChevronRight,
+  ZoomIn,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Slider } from "@/components/ui/slider";
