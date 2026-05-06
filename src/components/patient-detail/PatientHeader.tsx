@@ -1,6 +1,6 @@
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
-import { ArrowLeft, MapPin, Camera, FileDown, ClipboardList, Eye } from "lucide-react";
+import { ArrowLeft, MapPin, Camera, FileDown, ClipboardList, Eye, MapPinned } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
@@ -53,6 +53,11 @@ export default function PatientHeader({ patient, activeTab, setActiveTab, locati
                   <span>{formatDate(patient.birth_date, "dd.MM.yyyy")}</span>
                 </>
               )}
+              <span className="opacity-50">·</span>
+              <span className="inline-flex items-center gap-0.5 font-medium text-primary">
+                <MapPinned className="h-3 w-3" />
+                {locationCount} {t('common.spots')}
+              </span>
             </div>
           </div>
         </div>
