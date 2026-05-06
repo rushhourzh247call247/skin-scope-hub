@@ -11,6 +11,7 @@ import ImageCompare from "@/components/ImageCompare";
 import AbcdeForm from "@/components/AbcdeForm";
 import { toast } from "sonner";
 import { useLifecycle } from "@/hooks/use-lifecycle";
+import { useIsMobile } from "@/hooks/use-mobile";
 import {
   AlertDialog,
   AlertDialogAction,
