@@ -11,6 +11,7 @@ import ImageCompare from "@/components/ImageCompare";
 import AbcdeForm from "@/components/AbcdeForm";
 import { toast } from "sonner";
 import { useLifecycle } from "@/hooks/use-lifecycle";
+import { useIsMobile } from "@/hooks/use-mobile";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -39,6 +40,7 @@ const ImageGallery = ({ locationId, patientId, images, locationName, locationTyp
   const { t } = useTranslation();
   const queryClient = useQueryClient();
   const { isReadOnly, readOnlyTooltip } = useLifecycle();
+  const isMobile = useIsMobile();
   const fileRef = useRef<HTMLInputElement>(null);
   const cameraRef = useRef<HTMLInputElement>(null);
   const [uploading, setUploading] = useState(false);
@@ -225,25 +227,27 @@ const ImageGallery = ({ locationId, patientId, images, locationName, locationTyp
           <input ref={fileRef} type="file" accept="image/*" className="hidden" onChange={handleUpload} disabled={isReadOnly || uploading} />
           <input ref={cameraRef} type="file" accept="image/*" capture="environment" className="hidden" onChange={handleUpload} disabled={isReadOnly || uploading} />
 
-          {/* Camera (mobile-friendly: opens phone camera directly) */}
-          <Button
-            size="sm"
-            variant="default"
-            onClick={() => cameraRef.current?.click()}
-            disabled={uploading || isReadOnly}
-            title={isReadOnly ? readOnlyTooltip : t('imageGallery.takePhoto') ?? 'Foto aufnehmen'}
-            className="gap-1.5"
-          >
-            <Camera className="h-3.5 w-3.5" />
-            <span>{t('imageGallery.takePhoto') ?? 'Foto'}</span>
-          </Button>
+          {/* Camera — mobile only */}
+          {isMobile && (
+            <Button
+              size="sm"
+              variant="default"
+              onClick={() => cameraRef.current?.click()}
+              disabled={uploading || isReadOnly}
+              title={isReadOnly ? readOnlyTooltip : t('imageGallery.takePhoto') ?? 'Foto aufnehmen'}
+              className="gap-1.5"
+            >
+              <Camera className="h-3.5 w-3.5" />
+              <span>{t('imageGallery.takePhoto') ?? 'Foto'}</span>
+            </Button>
+          )}
           {/* Upload from gallery / file system */}
-          <Button size="sm" variant="outline" onClick={() => fileRef.current?.click()} disabled={uploading || isReadOnly} title={isReadOnly ? readOnlyTooltip : undefined} className="gap-1.5">
+          <Button size="sm" variant={isMobile ? "outline" : "default"} onClick={() => fileRef.current?.click()} disabled={uploading || isReadOnly} title={isReadOnly ? readOnlyTooltip : undefined} className="gap-1.5">
             <Upload className="h-3.5 w-3.5" />
             <span>{uploading ? t('imageGallery.uploading') : t('imageGallery.uploadImage')}</span>
           </Button>
-          {/* QR — for transferring from another device */}
-          {onQrUpload && locationType === "spot" && (
+          {/* QR — desktop only, for transferring from another device */}
+          {!isMobile && onQrUpload && locationType === "spot" && (
             <Button size="sm" variant="outline" onClick={onQrUpload} disabled={isReadOnly} title={isReadOnly ? readOnlyTooltip : undefined} className="gap-1.5">
               <QrCode className="h-3.5 w-3.5" />
               <span>QR</span>
