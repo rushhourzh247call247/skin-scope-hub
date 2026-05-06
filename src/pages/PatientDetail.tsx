@@ -754,6 +754,9 @@ const PatientDetail = () => {
               })()}
               
               requestMarkType={requestedMarkType}
+              editSpotId={editPositionSpotId}
+              onEditSpotMove={handleEditSpotMove}
+              onEditSpotMoveEnd={handleEditSpotMoveEnd}
             />
           </div>
 
