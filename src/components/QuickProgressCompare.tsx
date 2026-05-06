@@ -442,7 +442,7 @@ const CompareLightbox = ({ pair, labels, startIndex, onClose }: CompareLightboxP
         </div>
 
         <div className="border-t border-border/40 bg-card/60 px-4 py-2 text-center text-[11px] text-muted-foreground safe-area-bottom">
-          Doppeltippen zum Zoomen · Wischen zum Wechseln
+          Doppeltippen zum Zoomen · Oben auf Älter/Neuer tippen zum Wechseln
         </div>
       </motion.div>
     </AnimatePresence>
