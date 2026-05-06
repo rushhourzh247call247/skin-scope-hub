@@ -39,9 +39,10 @@ interface OverviewPhotoProps {
   onDelete?: (locationId: number) => void;
   onQrUpload?: (locationId: number) => void;
   onCreateSpotAndLink?: (name: string, pinCoords: { x_pct: number; y_pct: number }, overviewLocationId: number) => void;
+  onMovePin?: (pinId: number, x_pct: number, y_pct: number, overviewLocationId: number) => void;
 }
 
-const OverviewPhoto = ({ overviewLocation, spotLocations, patientId, onNavigateToSpot, onCompareSpot, onDelete, onQrUpload, onCreateSpotAndLink }: OverviewPhotoProps) => {
+const OverviewPhoto = ({ overviewLocation, spotLocations, patientId, onNavigateToSpot, onCompareSpot, onDelete, onQrUpload, onCreateSpotAndLink, onMovePin }: OverviewPhotoProps) => {
   const { t } = useTranslation();
   const queryClient = useQueryClient();
   const fileRef = useRef<HTMLInputElement>(null);
