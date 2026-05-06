@@ -185,6 +185,33 @@ const PatientDetail = () => {
     }
   }, [selectedLocationId]);
 
+  const handleZoneListClick = (zoneId: number) => {
+    const isMobile = window.matchMedia("(max-width: 1023px)").matches;
+    const alreadySelected = selectedLocationId === zoneId && sidebarTab === "zones";
+    const bodyAlreadyFocused = lastBodyFocusedLocationRef.current === zoneId;
+
+    if (alreadySelected && (!isMobile || (mobileMapExpanded && bodyAlreadyFocused))) {
+      // Second tap → switch to "uebersicht" tab and scroll to main image
+      setActiveTab("uebersicht");
+      setMobileMapExpanded(true);
+      window.setTimeout(() => {
+        const el = document.getElementById(`zone-${zoneId}`);
+        if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
+        else detailContentRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+      }, 80);
+      return;
+    }
+
+    // First tap → focus body map on zone, highlight its spots
+    setSidebarTab("zones");
+    setSelectedLocationId(zoneId);
+    setActiveTab("uebersicht");
+    if (isMobile) {
+      lastBodyFocusedLocationRef.current = zoneId;
+      setMobileMapExpanded(true);
+    }
+  };
+
   const handleZoneSidebarUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (isReadOnly) {
       toast.error(readOnlyTooltip);
@@ -682,6 +709,11 @@ const PatientDetail = () => {
                 return { id: z.id, name: z.name, x: pfn(z.x), y: pfn(z.y), x3d: pfn(z.x3d), y3d: pfn(z.y3d), z3d: pfn(z.z3d), nx: pfn(z.nx), ny: pfn(z.ny), nz: pfn(z.nz), view: z.view };
               })}
               selectedZoneId={activeTab === "uebersicht" ? selectedLocationId : null}
+              highlightedSpotIds={(() => {
+                if (sidebarTab !== "zones" || !selectedLocationId) return null;
+                const zoneEntry = allZonePins.find(zp => zp.zoneId === selectedLocationId);
+                return zoneEntry ? zoneEntry.pins.map(p => p.linked_location_id) : [];
+              })()}
               
               requestMarkType={requestedMarkType}
             />
@@ -845,7 +877,7 @@ const PatientDetail = () => {
                     >
                       <button
                         className="flex items-center gap-2.5 flex-1 min-w-0 text-left"
-                        onClick={() => { setSelectedLocationId(loc.id); setActiveTab("uebersicht"); }}
+                        onClick={() => handleZoneListClick(loc.id)}
                       >
                         {firstImg ? (
                           <img src={api.resolveImageSrc(firstImg)} alt={loc.name} className="h-6 w-6 rounded object-cover shrink-0" />

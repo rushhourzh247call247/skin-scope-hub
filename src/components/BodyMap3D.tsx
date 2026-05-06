@@ -76,6 +76,8 @@ interface BodyMap3DProps {
   isPlacementMode?: boolean;
   zoneOverlays?: ZoneOverlay[];
   selectedZoneId?: number | null;
+  /** When set, only these spot IDs are visually highlighted; others are dimmed. */
+  highlightedSpotIds?: number[] | null;
   focusSignal?: number;
   /** External request to activate a specific mark mode (e.g. "zone"). Increments to re-trigger. */
   requestMarkType?: { type: MarkType; nonce: number } | null;
@@ -986,7 +988,7 @@ function LoadingFallback() {
 }
 
 /* ─── Scene ─── */
-function Scene({ markers, selectedLocationId, onMapClick, onMarkerClick, onMarkerPhotoClick, classificationFilter, previewMarker, isPlacementMode, onPreviewMove, preset, gender, markMode, markType, resetKey, zoneOverlays, selectedZoneId }: BodyMap3DProps & { preset: CameraPreset; gender: Gender; markMode: boolean; markType: MarkType; resetKey: number }) {
+function Scene({ markers, selectedLocationId, onMapClick, onMarkerClick, onMarkerPhotoClick, classificationFilter, previewMarker, isPlacementMode, onPreviewMove, preset, gender, markMode, markType, resetKey, zoneOverlays, selectedZoneId, highlightedSpotIds }: BodyMap3DProps & { preset: CameraPreset; gender: Gender; markMode: boolean; markType: MarkType; resetKey: number }) {
   const [isDraggingSpot, setIsDraggingSpot] = useState(false);
   const [hoverInfo, setHoverInfo] = useState<{ point: THREE.Vector3; y3d: number; x3d: number; z3d: number; zone: string } | null>(null);
 
@@ -1104,6 +1106,10 @@ function Scene({ markers, selectedLocationId, onMapClick, onMarkerClick, onMarke
         const isHighRisk = HIGH_RISK_CLASSIFICATIONS.includes(cls);
         const hasCoords = m.x != null && m.y != null;
         if (!hasCoords && m.x3d == null) return null; // skip markers without any position
+        // When a zone is active, only show spots that belong to it
+        if (highlightedSpotIds && highlightedSpotIds.length > 0 && !highlightedSpotIds.includes(m.id)) {
+          return null;
+        }
         return (
           <SurfaceProjectedGroup
             key={`spot-${m.id}`}
