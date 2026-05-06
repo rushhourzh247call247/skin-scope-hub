@@ -218,11 +218,8 @@ const ImageGallery = ({ locationId, patientId, images, locationName, locationTyp
       <div className="flex items-center justify-between gap-2 flex-wrap">
         <h4 className="text-sm font-medium text-foreground">{t('imageGallery.title', { count: images.length })}</h4>
         <div className="flex items-center gap-1.5 flex-wrap">
-          {images.length >= 2 && (
-            <Button size="sm" variant="outline" onClick={() => setCompareMode(true)}>
-              <GitCompareArrows className="mr-1.5 h-3.5 w-3.5" /> {t('imageGallery.compare')}
-            </Button>
-          )}
+          {/* Vergleich-Button entfernt — Vergleich erfolgt zentral oben via QuickProgressCompare.
+              ImageCompare bleibt erreichbar via triggerCompareSignal (z.B. aus Lightbox). */}
           {/* Hidden file inputs */}
           <input ref={fileRef} type="file" accept="image/*" className="hidden" onChange={handleUpload} disabled={isReadOnly || uploading} />
           <input ref={cameraRef} type="file" accept="image/*" capture="environment" className="hidden" onChange={handleUpload} disabled={isReadOnly || uploading} />
