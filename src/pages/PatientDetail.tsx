@@ -30,6 +30,7 @@ import RiskProgression from "@/components/RiskProgression";
 import QrUploadDialog from "@/components/QrUploadDialog";
 import OverviewPhoto from "@/components/OverviewPhoto";
 import BatchPhotoSession from "@/components/patient-detail/BatchPhotoSession";
+import ZoneCreatorDialog from "@/components/patient-detail/ZoneCreatorDialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
@@ -67,6 +68,7 @@ const PatientDetail = () => {
 
   const [selectedLocationId, setSelectedLocationId] = useState<number | null>(null);
   const [batchPhotoOpen, setBatchPhotoOpen] = useState(false);
+  const [zoneCreatorOpen, setZoneCreatorOpen] = useState(false);
   
   const [autoCameraSignal, setAutoCameraSignal] = useState<number>(0);
   const [mapClickDialog, setMapClickDialog] = useState<{
