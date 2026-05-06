@@ -564,6 +564,44 @@ const PatientDetail = () => {
     setLocationName(getAnatomicalName(point3d[0], point3d[1], point3d[2], view));
   };
 
+  // ─── Edit-position mode for an existing spot on the body ───
+  const [editPositionSpotId, setEditPositionSpotId] = useState<number | null>(null);
+  const editSpotPendingRef = useRef<{
+    x: number; y: number; view: "front" | "back";
+    x3d: number; y3d: number; z3d: number;
+    nx: number; ny: number; nz: number;
+  } | null>(null);
+
+  const handleEditSpotMove = (
+    _id: number,
+    x: number,
+    y: number,
+    view: "front" | "back",
+    point3d: [number, number, number],
+    normal3d: [number, number, number],
+  ) => {
+    editSpotPendingRef.current = {
+      x, y, view,
+      x3d: point3d[0], y3d: point3d[1], z3d: point3d[2],
+      nx: normal3d[0], ny: normal3d[1], nz: normal3d[2],
+    };
+  };
+
+  const handleEditSpotMoveEnd = async (id: number) => {
+    const data = editSpotPendingRef.current;
+    if (!data) return;
+    editSpotPendingRef.current = null;
+    try {
+      await api.updateLocationCoords(id, data);
+      toast.success(t('patientDetail.spotPositionUpdated', { defaultValue: 'Position aktualisiert' }));
+      queryClient.invalidateQueries({ queryKey: ["full-patient", patientId] });
+      queryClient.invalidateQueries({ queryKey: ["all-zone-pins", patientId] });
+    } catch (e) {
+      toast.error(t('common.error'));
+    }
+  };
+
+
   const handleCreateLocation = () => {
     if (!mapClickDialog) return;
     if (isReadOnly) {
