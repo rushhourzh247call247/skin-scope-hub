@@ -438,7 +438,7 @@ const PatientDetail = () => {
     setSidebarTab("zones");
     setActiveTab("spots");
     setMobileMapExpanded(true);
-    setRequestedMarkType({ type: "zone", nonce: Date.now() });
+    setZoneCreatorOpen(true);
     toast.info(t('patientDetail.guidedStartToast'));
   };
 
@@ -673,12 +673,9 @@ const PatientDetail = () => {
                       variant="default"
                       className="h-7 text-[11px] flex-1"
                       onClick={() => {
-                        // Cancel the in-progress spot placement and switch the body map to Zone mode.
-                        // The user will then click on the map to place the zone.
                         setMapClickDialog(null);
                         setLocationName("");
-                        setRequestedMarkType({ type: "zone", nonce: Date.now() });
-                        toast.info(t('patientDetail.overviewFirstAction') + " — " + t('bodyMap3d.clickToSetZone'));
+                        setZoneCreatorOpen(true);
                       }}
                     >
                       {t('patientDetail.overviewFirstAction')}
