@@ -172,6 +172,7 @@ const OverviewPhoto = ({ overviewLocation, spotLocations, patientId, onNavigateT
     dragMovedRef.current = false;
     const startX = e.clientX;
     const startY = e.clientY;
+    let lastPos: { x_pct: number; y_pct: number } | null = null;
 
     const move = (ev: PointerEvent) => {
       const rect = el.getBoundingClientRect();
@@ -180,20 +181,19 @@ const OverviewPhoto = ({ overviewLocation, spotLocations, patientId, onNavigateT
       if (Math.abs(ev.clientX - startX) > 4 || Math.abs(ev.clientY - startY) > 4) {
         dragMovedRef.current = true;
       }
-      setDragPos({ x_pct, y_pct });
+      lastPos = { x_pct, y_pct };
+      setDragPos(lastPos);
     };
-    const up = (ev: PointerEvent) => {
+    const up = () => {
       window.removeEventListener('pointermove', move);
       window.removeEventListener('pointerup', up);
       try { target.releasePointerCapture(e.pointerId); } catch {}
       const moved = dragMovedRef.current;
-      const finalPos = dragPosRef.current;
       setDraggingPinId(null);
       setDragPos(null);
-      if (moved && finalPos) {
-        movePinMutation.mutate({ pinId, x_pct: finalPos.x_pct, y_pct: finalPos.y_pct });
+      if (moved && lastPos) {
+        movePinMutation.mutate({ pinId, x_pct: lastPos.x_pct, y_pct: lastPos.y_pct });
       } else {
-        // treat as click → delete confirm
         setDeleteTarget(pinId);
       }
     };
