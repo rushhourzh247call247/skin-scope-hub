@@ -39,9 +39,10 @@ interface OverviewPhotoProps {
   onDelete?: (locationId: number) => void;
   onQrUpload?: (locationId: number) => void;
   onCreateSpotAndLink?: (name: string, pinCoords: { x_pct: number; y_pct: number }, overviewLocationId: number) => void;
+  onMovePin?: (pinId: number, x_pct: number, y_pct: number, overviewLocationId: number) => void;
 }
 
-const OverviewPhoto = ({ overviewLocation, spotLocations, patientId, onNavigateToSpot, onCompareSpot, onDelete, onQrUpload, onCreateSpotAndLink }: OverviewPhotoProps) => {
+const OverviewPhoto = ({ overviewLocation, spotLocations, patientId, onNavigateToSpot, onCompareSpot, onDelete, onQrUpload, onCreateSpotAndLink, onMovePin }: OverviewPhotoProps) => {
   const { t } = useTranslation();
   const queryClient = useQueryClient();
   const fileRef = useRef<HTMLInputElement>(null);
@@ -59,6 +60,9 @@ const OverviewPhoto = ({ overviewLocation, spotLocations, patientId, onNavigateT
   const [hoveredPin, setHoveredPin] = useState<number | null>(null);
   const [openPinId, setOpenPinId] = useState<number | null>(null);
   const [spotUploading, setSpotUploading] = useState(false);
+  const [draggingPinId, setDraggingPinId] = useState<number | null>(null);
+  const [dragPos, setDragPos] = useState<{ x_pct: number; y_pct: number } | null>(null);
+  const dragMovedRef = useRef(false);
 
   const [isRenaming, setIsRenaming] = useState(false);
   const [renameValue, setRenameValue] = useState("");
@@ -139,6 +143,63 @@ const OverviewPhoto = ({ overviewLocation, spotLocations, patientId, onNavigateT
       toast.success(t('overviewPhoto.pinRemoved'));
     },
   });
+
+  const movePinMutation = useMutation({
+    mutationFn: async ({ pinId, x_pct, y_pct }: { pinId: number; x_pct: number; y_pct: number }) => {
+      await api.updateOverviewPin(pinId, { x_pct, y_pct });
+      const pin = pins.find((p: OverviewPin) => p.id === pinId);
+      if (pin?.linked_location_id && onMovePin) {
+        onMovePin(pinId, x_pct, y_pct, overviewLocation.id);
+      }
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["overview-pins", overviewLocation.id] });
+      queryClient.invalidateQueries({ queryKey: ["full-patient", patientId] });
+      queryClient.invalidateQueries({ queryKey: ["all-zone-pins", patientId] });
+      toast.success(t('overviewPhoto.pinMoved', { defaultValue: 'Pin verschoben' }));
+    },
+  });
+
+  const startPinDrag = useCallback((pinId: number, e: React.PointerEvent) => {
+    if (!editMode) return;
+    e.stopPropagation();
+    e.preventDefault();
+    const el = containerRef.current;
+    if (!el) return;
+    const target = e.currentTarget as HTMLElement;
+    try { target.setPointerCapture(e.pointerId); } catch {}
+    setDraggingPinId(pinId);
+    dragMovedRef.current = false;
+    const startX = e.clientX;
+    const startY = e.clientY;
+    let lastPos: { x_pct: number; y_pct: number } | null = null;
+
+    const move = (ev: PointerEvent) => {
+      const rect = el.getBoundingClientRect();
+      const x_pct = Math.max(0, Math.min(100, ((ev.clientX - rect.left) / rect.width) * 100));
+      const y_pct = Math.max(0, Math.min(100, ((ev.clientY - rect.top) / rect.height) * 100));
+      if (Math.abs(ev.clientX - startX) > 4 || Math.abs(ev.clientY - startY) > 4) {
+        dragMovedRef.current = true;
+      }
+      lastPos = { x_pct, y_pct };
+      setDragPos(lastPos);
+    };
+    const up = () => {
+      window.removeEventListener('pointermove', move);
+      window.removeEventListener('pointerup', up);
+      try { target.releasePointerCapture(e.pointerId); } catch {}
+      const moved = dragMovedRef.current;
+      setDraggingPinId(null);
+      setDragPos(null);
+      if (moved && lastPos) {
+        movePinMutation.mutate({ pinId, x_pct: lastPos.x_pct, y_pct: lastPos.y_pct });
+      } else {
+        setDeleteTarget(pinId);
+      }
+    };
+    window.addEventListener('pointermove', move);
+    window.addEventListener('pointerup', up);
+  }, [editMode, movePinMutation]);
 
   const uploadMutation = useMutation({
     mutationFn: (file: File) => api.uploadImage(overviewLocation.id, file),
@@ -396,7 +457,15 @@ const OverviewPhoto = ({ overviewLocation, spotLocations, patientId, onNavigateT
         </div>
       )}
 
-      {/* Zoom controls */}
+      {editMode && (
+        <div className="flex items-center gap-2 rounded-md bg-amber-500/10 border border-amber-500/30 px-3 py-2 text-xs text-amber-700 dark:text-amber-300">
+          <Move className="h-4 w-4 shrink-0" />
+          <span>{t('overviewPhoto.editInstruction', { defaultValue: 'Pin ziehen, um Position zu korrigieren · Klicken zum Löschen' })}</span>
+          <Button size="sm" variant="ghost" className="ml-auto h-6 px-2" onClick={() => setEditMode(false)}>
+            <X className="h-3 w-3" />
+          </Button>
+        </div>
+      )}
       {zoomLevel !== 1 && (
         <div className="flex items-center gap-1.5 mb-1">
           <Button
@@ -514,14 +583,17 @@ const OverviewPhoto = ({ overviewLocation, spotLocations, patientId, onNavigateT
           const labelOffsetX = labelOffset.x;
           const labelOffsetY = labelOffset.y;
 
+          const isDragging = draggingPinId === pin.id;
+          const px = isDragging && dragPos ? dragPos.x_pct : pin.x_pct;
+          const py = isDragging && dragPos ? dragPos.y_pct : pin.y_pct;
           return (
             <div key={pin.id}>
               {/* Tiny crosshair at the exact lesion point – minimal occlusion */}
               <div
                 className="absolute z-10 pointer-events-none transition-opacity"
                 style={{
-                  left: `${pin.x_pct}%`,
-                  top: `${pin.y_pct}%`,
+                  left: `${px}%`,
+                  top: `${py}%`,
                   transform: "translate(-50%, -50%)",
                   opacity: Math.max(0, 1 - (zoomLevel - 1) * 0.2),
                 }}
@@ -538,8 +610,8 @@ const OverviewPhoto = ({ overviewLocation, spotLocations, patientId, onNavigateT
               <div
                 className="absolute z-[9] pointer-events-none transition-opacity"
                 style={{
-                  left: `${pin.x_pct}%`,
-                  top: `${pin.y_pct}%`,
+                  left: `${px}%`,
+                  top: `${py}%`,
                   width: `${Math.abs(labelOffsetX)}px`,
                   height: `${Math.abs(labelOffsetY)}px`,
                   transform: `translate(${labelOffsetX > 0 ? '0' : `${labelOffsetX}px`}, ${labelOffsetY > 0 ? '0' : `${labelOffsetY}px`})`,
@@ -562,21 +634,27 @@ const OverviewPhoto = ({ overviewLocation, spotLocations, patientId, onNavigateT
 
               {editMode ? (
                 <button
-                  className="absolute z-10 transition-all hover:scale-110 cursor-pointer"
+                  className={cn(
+                    "absolute z-10 transition-all touch-none select-none",
+                    isDragging ? "cursor-grabbing scale-110" : "cursor-grab hover:scale-110"
+                  )}
                   style={{
-                    left: `${pin.x_pct}%`,
-                    top: `${pin.y_pct}%`,
-                    transform: `translate(calc(-50% + ${labelOffsetX}px), calc(-50% + ${labelOffsetY}px))`,
+                    left: `${px}%`,
+                    top: `${py}%`,
+                    transform: isDragging
+                      ? `translate(-50%, -50%)`
+                      : `translate(calc(-50% + ${labelOffsetX}px), calc(-50% + ${labelOffsetY}px))`,
                     opacity: Math.max(0.15, 1 - (zoomLevel - 1) * 0.2),
                   }}
-                  onClick={(e) => { e.stopPropagation(); setDeleteTarget(pin.id); }}
-                  title={t('overviewPhoto.clickToRemovePin')}
+                  onPointerDown={(e) => startPinDrag(pin.id, e)}
+                  onClick={(e) => e.stopPropagation()}
+                  title={t('overviewPhoto.dragOrClickToRemove', { defaultValue: 'Ziehen zum Verschieben · Klicken zum Löschen' })}
                 >
                   <span
                     className="flex items-center gap-1 rounded-full text-[9px] font-bold text-white shadow-md border border-white/50 px-2 py-0.5"
-                    style={{ backgroundColor: "#ef4444" }}
+                    style={{ backgroundColor: isDragging ? color : "#ef4444" }}
                   >
-                    <Trash2 className="h-3 w-3 text-white" />
+                    {isDragging ? <Move className="h-3 w-3 text-white" /> : <Trash2 className="h-3 w-3 text-white" />}
                     <span className="truncate max-w-[60px]">{spot?.name || pin.label || "Spot"}</span>
                   </span>
                 </button>
