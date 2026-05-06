@@ -575,14 +575,17 @@ const OverviewPhoto = ({ overviewLocation, spotLocations, patientId, onNavigateT
           const labelOffsetX = labelOffset.x;
           const labelOffsetY = labelOffset.y;
 
+          const isDragging = draggingPinId === pin.id;
+          const px = isDragging && dragPos ? dragPos.x_pct : pin.x_pct;
+          const py = isDragging && dragPos ? dragPos.y_pct : pin.y_pct;
           return (
             <div key={pin.id}>
               {/* Tiny crosshair at the exact lesion point – minimal occlusion */}
               <div
                 className="absolute z-10 pointer-events-none transition-opacity"
                 style={{
-                  left: `${pin.x_pct}%`,
-                  top: `${pin.y_pct}%`,
+                  left: `${px}%`,
+                  top: `${py}%`,
                   transform: "translate(-50%, -50%)",
                   opacity: Math.max(0, 1 - (zoomLevel - 1) * 0.2),
                 }}
@@ -599,8 +602,8 @@ const OverviewPhoto = ({ overviewLocation, spotLocations, patientId, onNavigateT
               <div
                 className="absolute z-[9] pointer-events-none transition-opacity"
                 style={{
-                  left: `${pin.x_pct}%`,
-                  top: `${pin.y_pct}%`,
+                  left: `${px}%`,
+                  top: `${py}%`,
                   width: `${Math.abs(labelOffsetX)}px`,
                   height: `${Math.abs(labelOffsetY)}px`,
                   transform: `translate(${labelOffsetX > 0 ? '0' : `${labelOffsetX}px`}, ${labelOffsetY > 0 ? '0' : `${labelOffsetY}px`})`,
@@ -623,21 +626,27 @@ const OverviewPhoto = ({ overviewLocation, spotLocations, patientId, onNavigateT
 
               {editMode ? (
                 <button
-                  className="absolute z-10 transition-all hover:scale-110 cursor-pointer"
+                  className={cn(
+                    "absolute z-10 transition-all touch-none select-none",
+                    isDragging ? "cursor-grabbing scale-110" : "cursor-grab hover:scale-110"
+                  )}
                   style={{
-                    left: `${pin.x_pct}%`,
-                    top: `${pin.y_pct}%`,
-                    transform: `translate(calc(-50% + ${labelOffsetX}px), calc(-50% + ${labelOffsetY}px))`,
+                    left: `${px}%`,
+                    top: `${py}%`,
+                    transform: isDragging
+                      ? `translate(-50%, -50%)`
+                      : `translate(calc(-50% + ${labelOffsetX}px), calc(-50% + ${labelOffsetY}px))`,
                     opacity: Math.max(0.15, 1 - (zoomLevel - 1) * 0.2),
                   }}
-                  onClick={(e) => { e.stopPropagation(); setDeleteTarget(pin.id); }}
-                  title={t('overviewPhoto.clickToRemovePin')}
+                  onPointerDown={(e) => startPinDrag(pin.id, e)}
+                  onClick={(e) => e.stopPropagation()}
+                  title={t('overviewPhoto.dragOrClickToRemove', { defaultValue: 'Ziehen zum Verschieben · Klicken zum Löschen' })}
                 >
                   <span
                     className="flex items-center gap-1 rounded-full text-[9px] font-bold text-white shadow-md border border-white/50 px-2 py-0.5"
-                    style={{ backgroundColor: "#ef4444" }}
+                    style={{ backgroundColor: isDragging ? color : "#ef4444" }}
                   >
-                    <Trash2 className="h-3 w-3 text-white" />
+                    {isDragging ? <Move className="h-3 w-3 text-white" /> : <Trash2 className="h-3 w-3 text-white" />}
                     <span className="truncate max-w-[60px]">{spot?.name || pin.label || "Spot"}</span>
                   </span>
                 </button>
