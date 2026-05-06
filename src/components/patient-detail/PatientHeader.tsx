@@ -1,6 +1,6 @@
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
-import { ArrowLeft, MapPin, Camera, FileDown, ClipboardList, Eye, MapPinned } from "lucide-react";
+import { ArrowLeft, MapPin, Camera, FileDown, ClipboardList, Eye, MapPinned, CameraIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
@@ -16,9 +16,11 @@ interface PatientHeaderProps {
   setActiveTab: (tab: TabKey) => void;
   locationCount: number;
   totalImages: number;
+  onStartBatchPhoto?: () => void;
+  batchPhotoDisabled?: boolean;
 }
 
-export default function PatientHeader({ patient, activeTab, setActiveTab, locationCount, totalImages }: PatientHeaderProps) {
+export default function PatientHeader({ patient, activeTab, setActiveTab, locationCount, totalImages, onStartBatchPhoto, batchPhotoDisabled }: PatientHeaderProps) {
   const { t } = useTranslation();
   const navigate = useNavigate();
 
@@ -61,6 +63,21 @@ export default function PatientHeader({ patient, activeTab, setActiveTab, locati
             </div>
           </div>
         </div>
+
+        {onStartBatchPhoto && locationCount > 0 && (
+          <Button
+            size="sm"
+            variant="default"
+            onClick={onStartBatchPhoto}
+            disabled={batchPhotoDisabled}
+            className="ml-auto lg:ml-0 gap-1.5 h-8 px-2.5 lg:h-9 lg:px-3 shrink-0"
+            title="Alle Spots nacheinander fotografieren"
+          >
+            <CameraIcon className="h-3.5 w-3.5" />
+            <span className="hidden sm:inline text-xs">Alle Spots fotografieren</span>
+            <span className="sm:hidden text-xs">Verlauf</span>
+          </Button>
+        )}
 
         <div className="ml-auto hidden lg:flex items-center gap-1.5 shrink-0">
           <div className="flex items-center gap-1 rounded-lg bg-muted p-1">
