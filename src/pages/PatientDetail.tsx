@@ -172,10 +172,18 @@ const PatientDetail = () => {
     if (!scrollToDetailAfterCollapseRef.current || mobileMapExpanded) return;
     scrollToDetailAfterCollapseRef.current = false;
     const timer = window.setTimeout(() => {
+      if (detailContentRef.current) detailContentRef.current.scrollTop = 0;
       detailContentRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
     }, 320);
     return () => window.clearTimeout(timer);
   }, [mobileMapExpanded, selectedLocationId]);
+
+  // Reset detail scroll to top whenever the selected spot changes (mobile focus)
+  useEffect(() => {
+    if (selectedLocationId && detailContentRef.current) {
+      detailContentRef.current.scrollTop = 0;
+    }
+  }, [selectedLocationId]);
 
   const handleZoneSidebarUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (isReadOnly) {
