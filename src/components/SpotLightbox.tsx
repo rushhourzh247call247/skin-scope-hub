@@ -55,7 +55,9 @@ const SpotLightbox = ({ open, onClose, images, locationName, onCompare }: SpotLi
 
   if (!open || sorted.length === 0) return null;
 
-  const current = sorted[index];
+  const safeIndex = Math.min(Math.max(0, index), sorted.length - 1);
+  const current = sorted[safeIndex];
+  if (!current) return null;
 
   const handleDragEnd = (_: unknown, info: PanInfo) => {
     if (info.offset.x < -60) go(1);
