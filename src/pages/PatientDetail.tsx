@@ -579,7 +579,7 @@ const PatientDetail = () => {
         patient={patient}
         activeTab={activeTab}
         setActiveTab={setActiveTab}
-        locationCount={locations.length}
+        locationCount={locations.filter((l: any) => l.type !== "region").length}
         totalImages={totalImages}
         onStartBatchPhoto={() => setBatchPhotoOpen(true)}
         batchPhotoDisabled={isReadOnly}
