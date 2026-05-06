@@ -409,6 +409,7 @@ const PatientDetail = () => {
 
   const locations = (patient?.locations ?? []).filter((l: any) => !l.deleted_at);
   const spotLocations = locations.filter(l => l.type !== "overview");
+  const visibleSpotLocations = locations.filter((l: any) => (l.type ?? "spot") !== "overview" && l.type !== "region");
   const overviewLocations = locations.filter(l => l.type === "overview");
   const linkedSpotLocations = [
     ...spotLocations,
@@ -579,7 +580,7 @@ const PatientDetail = () => {
         patient={patient}
         activeTab={activeTab}
         setActiveTab={setActiveTab}
-        locationCount={locations.filter((l: any) => l.type !== "region").length}
+        locationCount={visibleSpotLocations.length}
         totalImages={totalImages}
         onStartBatchPhoto={() => setBatchPhotoOpen(true)}
         batchPhotoDisabled={isReadOnly}
@@ -802,7 +803,7 @@ const PatientDetail = () => {
                 )}
               >
                 <MapPin className="h-3 w-3" />
-                {t('patientDetail.sidebarTab.spots')} ({spotLocations.filter(l => l.type !== "region").length})
+                {t('patientDetail.sidebarTab.spots')} ({visibleSpotLocations.length})
               </button>
               <button
                 onClick={() => setSidebarTab("zones")}
