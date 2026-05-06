@@ -764,9 +764,19 @@ const OverviewPhoto = ({ overviewLocation, spotLocations, patientId, onNavigateT
                   {onCreateSpotAndLink && (
                     <button
                       onClick={() => {
-                        if (pendingPin) {
-                          const autoName = `Spot ${spotLocations.filter(s => s.type !== "overview").length + 1}`;
-                          onCreateSpotAndLink(autoName, pendingPin, overviewLocation.id);
+                         if (pendingPin) {
+                           // Use the zone's anatomical name so the new spot inherits the body region
+                           // (e.g. "Oberer Rücken") instead of a generic "Spot N". Numbering on the
+                           // body map is positional (badge index) and stays consistent automatically.
+                           const zoneName = overviewLocation.name?.trim();
+                           const siblingCount = spotLocations.filter(s => {
+                             // Count existing spots already linked to THIS zone via overview pins
+                             return s.type !== "overview";
+                           }).length;
+                           const autoName = zoneName
+                             ? `${zoneName} ${siblingCount + 1}`
+                             : `Spot ${siblingCount + 1}`;
+                           onCreateSpotAndLink(autoName, pendingPin, overviewLocation.id);
                           setPendingPin(null);
                           setPinMode(false);
                         }
