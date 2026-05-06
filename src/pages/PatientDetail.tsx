@@ -1481,7 +1481,7 @@ const PatientDetail = () => {
                   </div>
                 </div>
 
-                {/* 1. ImageGallery zuerst — schneller Zugriff auf Kamera/Upload/QR direkt nach Spot-Öffnung */}
+                {/* 1. Toolbar (Kamera/Upload/QR) ganz oben — schneller Zugriff direkt nach Spot-Öffnung */}
                 <ImageGallery
                   locationId={selectedLocation.id}
                   patientId={patientId}
@@ -1493,9 +1493,10 @@ const PatientDetail = () => {
                   onQrUpload={() => { setQrLocationId(selectedLocation.id); setQrDialogOpen(true); }}
                   triggerCameraSignal={autoCameraSignal}
                   triggerCompareSignal={compareSignal}
+                  section="toolbar"
                 />
 
-                {/* 2. Vergleich (Progress-Comparison) — direkt nach Bildern */}
+                {/* 2. Vergleich (Progress-Comparison) — direkt nach Toolbar */}
                 {selectedLocation.type !== "region" && (selectedLocation.images?.length ?? 0) >= 2 && (
                   <div id={`spot-comparison-${selectedLocation.id}`} className="scroll-mt-24">
                     <QuickProgressCompare
@@ -1504,6 +1505,18 @@ const PatientDetail = () => {
                     />
                   </div>
                 )}
+
+                {/* 3. Bild-Grid mit Notiz/ABCDE — unter dem Vergleich */}
+                <ImageGallery
+                  locationId={selectedLocation.id}
+                  patientId={patientId}
+                  images={selectedLocation.images ?? []}
+                  locationName={translateAnatomyName(selectedLocation.name) || (selectedLocation.type === "region" ? "Region" : `Spot #${selectedLocation.id}`)}
+                  locationType={selectedLocation.type || "spot"}
+                  patientName={patient.name}
+                  patientBirthDate={patient.birth_date}
+                  section="grid"
+                />
 
                 {/* 3. Klassifikation + Status (zusammen, weiter unten) */}
                 {selectedLocation.type !== "region" && (() => {

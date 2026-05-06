@@ -34,9 +34,10 @@ interface ImageGalleryProps {
   onQrUpload?: () => void;
   triggerCameraSignal?: number;
   triggerCompareSignal?: number;
+  section?: "all" | "toolbar" | "grid";
 }
 
-const ImageGallery = ({ locationId, patientId, images, locationName, locationType = "spot", patientName, patientBirthDate, onQrUpload, triggerCameraSignal, triggerCompareSignal }: ImageGalleryProps) => {
+const ImageGallery = ({ locationId, patientId, images, locationName, locationType = "spot", patientName, patientBirthDate, onQrUpload, triggerCameraSignal, triggerCompareSignal, section = "all" }: ImageGalleryProps) => {
   const { t } = useTranslation();
   const queryClient = useQueryClient();
   const { isReadOnly, readOnlyTooltip } = useLifecycle();
@@ -213,8 +214,12 @@ const ImageGallery = ({ locationId, patientId, images, locationName, locationTyp
     (a, b) => new Date(b.created_at ?? 0).getTime() - new Date(a.created_at ?? 0).getTime()
   );
 
+  const showToolbar = section === "all" || section === "toolbar";
+  const showGrid = section === "all" || section === "grid";
+
   return (
     <div className="space-y-4">
+      {showToolbar && (
       <div className="flex items-center justify-between gap-2 flex-wrap">
         <h4 className="text-sm font-medium text-foreground">{t('imageGallery.title', { count: images.length })}</h4>
         <div className="flex items-center gap-1.5 flex-wrap">
@@ -252,8 +257,9 @@ const ImageGallery = ({ locationId, patientId, images, locationName, locationTyp
           )}
         </div>
       </div>
+      )}
 
-      {sorted.length === 0 ? (
+      {showGrid && (sorted.length === 0 ? (
         <div className="flex flex-col items-center justify-center rounded-md border border-dashed py-10 text-muted-foreground">
           <ImageIcon className="mb-2 h-8 w-8" />
           <p className="text-sm">{t('imageGallery.noImages')}</p>
@@ -344,7 +350,7 @@ const ImageGallery = ({ locationId, patientId, images, locationName, locationTyp
             </div>
           ))}
         </div>
-      )}
+      ))}
       <AlertDialog open={deleteTarget !== null} onOpenChange={(open) => !open && setDeleteTarget(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>
