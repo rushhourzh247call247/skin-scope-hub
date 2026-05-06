@@ -40,6 +40,7 @@ const ImageGallery = ({ locationId, patientId, images, locationName, locationTyp
   const { t } = useTranslation();
   const queryClient = useQueryClient();
   const { isReadOnly, readOnlyTooltip } = useLifecycle();
+  const isMobile = useIsMobile();
   const fileRef = useRef<HTMLInputElement>(null);
   const cameraRef = useRef<HTMLInputElement>(null);
   const [uploading, setUploading] = useState(false);
