@@ -133,20 +133,52 @@ const QuickProgressCompare = ({ images, getDaysDiff }: QuickProgressCompareProps
 
   if (!left || !right) return null;
 
-  const renderSelector = (id: number, onChange: (n: number) => void, label: string) => (
-    <Select value={String(id)} onValueChange={(v) => onChange(Number(v))}>
-      <SelectTrigger className="h-7 text-[10px]">
-        <SelectValue placeholder={label} />
-      </SelectTrigger>
-      <SelectContent>
-        {sorted.map((img, i) => (
-          <SelectItem key={img.id} value={String(img.id)} className="text-xs">
-            #{i + 1} · {img.created_at ? formatDate(img.created_at, "dd.MM.yy") : "–"}
-          </SelectItem>
-        ))}
-      </SelectContent>
-    </Select>
-  );
+  const renderSelector = (id: number, onChange: (n: number) => void, label: string) => {
+    const current = sorted.find((s) => s.id === id);
+    const currentIdx = sorted.findIndex((s) => s.id === id);
+    return (
+      <Select value={String(id)} onValueChange={(v) => onChange(Number(v))}>
+        <SelectTrigger className="h-12 text-[10px] pl-1.5 pr-2 [&>span]:flex [&>span]:items-center [&>span]:gap-2 [&>span]:min-w-0">
+          <SelectValue placeholder={label}>
+            {current && (
+              <>
+                <img
+                  src={api.resolveImageSrc(current)}
+                  alt=""
+                  className="h-9 w-9 shrink-0 rounded object-cover border"
+                />
+                <span className="flex flex-col items-start min-w-0 leading-tight">
+                  <span className="text-[10px] font-semibold text-foreground">#{currentIdx + 1}</span>
+                  <span className="text-[10px] text-muted-foreground tabular-nums truncate">
+                    {current.created_at ? formatDate(current.created_at, "dd.MM.yy") : "–"}
+                  </span>
+                </span>
+              </>
+            )}
+          </SelectValue>
+        </SelectTrigger>
+        <SelectContent>
+          {sorted.map((img, i) => (
+            <SelectItem key={img.id} value={String(img.id)} className="text-xs pl-8 pr-2 py-1.5">
+              <div className="flex items-center gap-2">
+                <img
+                  src={api.resolveImageSrc(img)}
+                  alt=""
+                  className="h-8 w-8 shrink-0 rounded object-cover border"
+                />
+                <div className="flex flex-col leading-tight">
+                  <span className="text-[11px] font-semibold">#{i + 1}</span>
+                  <span className="text-[10px] text-muted-foreground tabular-nums">
+                    {img.created_at ? formatDate(img.created_at, "dd.MM.yy") : "–"}
+                  </span>
+                </div>
+              </div>
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
+    );
+  };
 
   return (
     <motion.div
