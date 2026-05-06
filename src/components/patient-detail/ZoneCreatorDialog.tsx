@@ -1,11 +1,21 @@
 import { useMemo, useState } from "react";
-import { Camera, X } from "lucide-react";
+import { Camera, X, Check, ChevronsUpDown } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import {
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+} from "@/components/ui/command";
 import { ANATOMICAL_ZONES } from "@/lib/anatomyLookup";
 import { translateAnatomyName } from "@/lib/anatomyTranslation";
 import { getZoneAnchorFromName } from "@/lib/zoneAnchorLookup";
+import { cn } from "@/lib/utils";
 import type { Gender } from "@/types/patient";
 
 interface ZoneCreatorDialogProps {
@@ -24,25 +34,84 @@ interface ZoneCreatorDialogProps {
   isCreating?: boolean;
 }
 
-/**
- * Two-step creator for a new zone (overview photo region):
- *   1. Pick body part from dropdown
- *   2. Confirm — backend coords resolved automatically from calibration data
- *
- * Replaces the older "click on the 3D body" workflow for zones.
- */
+/** Anatomical groups — clinical mental model (top → bottom). */
+const ZONE_GROUPS: { label: string; zones: string[] }[] = [
+  {
+    label: "Kopf & Gesicht",
+    zones: [
+      "Stirn", "Linke Augenbraue", "Rechte Augenbraue",
+      "Linke Augenregion", "Rechte Augenregion", "Nasenwurzel",
+      "Nase", "Linke Wange", "Rechte Wange",
+      "Mund", "Kinn", "Linkes Ohr", "Rechtes Ohr",
+      "Hinterkopf", "Hinterkopf (unterer)",
+    ],
+  },
+  { label: "Hals & Nacken", zones: ["Hals", "Nacken"] },
+  {
+    label: "Schultern",
+    zones: [
+      "Linke Schulter", "Rechte Schulter",
+      "Linke Schulter (dorsal)", "Rechte Schulter (dorsal)",
+    ],
+  },
+  {
+    label: "Brust & Rücken",
+    zones: [
+      "Obere Brust", "Brust", "Bauch", "Unterbauch",
+      "Oberer Rücken", "Mittlerer Rücken", "Unterer Rücken",
+    ],
+  },
+  {
+    label: "Becken & Gesäß",
+    zones: [
+      "Linke Hüfte", "Rechte Hüfte",
+      "Gesäß", "Linke Gesäßhälfte", "Rechte Gesäßhälfte",
+    ],
+  },
+  {
+    label: "Arme & Hände",
+    zones: [
+      "Linker Oberarm", "Rechter Oberarm",
+      "Linker Unterarm", "Rechter Unterarm",
+      "Linke Hand", "Rechte Hand",
+    ],
+  },
+  {
+    label: "Beine & Füße",
+    zones: [
+      "Linker Oberschenkel", "Rechter Oberschenkel",
+      "Linker Oberschenkel (distal)", "Rechter Oberschenkel (distal)",
+      "Linker Oberschenkel (dorsal)", "Rechter Oberschenkel (dorsal)",
+      "Linkes Knie", "Rechtes Knie",
+      "Linke Kniekehle", "Rechte Kniekehle",
+      "Linker Unterschenkel", "Rechter Unterschenkel",
+      "Linke Wade", "Rechte Wade",
+      "Linker Fuß", "Rechter Fuß",
+      "Linke Ferse", "Rechte Ferse",
+    ],
+  },
+];
+
 const ZoneCreatorDialog = ({ open, onOpenChange, gender, onCreate, isCreating }: ZoneCreatorDialogProps) => {
   const [selectedZone, setSelectedZone] = useState<string>("");
+  const [popoverOpen, setPopoverOpen] = useState(false);
 
-  const zones = useMemo(() => {
-    return ANATOMICAL_ZONES.map(z => ({
-      value: z,
-      label: translateAnatomyName(z),
-      anchor: getZoneAnchorFromName(z, gender),
-    })).filter(z => z.anchor !== null);
+  const groups = useMemo(() => {
+    return ZONE_GROUPS.map(g => ({
+      label: g.label,
+      items: g.zones
+        .filter(z => ANATOMICAL_ZONES.includes(z as typeof ANATOMICAL_ZONES[number]))
+        .map(z => ({
+          value: z,
+          label: translateAnatomyName(z),
+          anchor: getZoneAnchorFromName(z, gender),
+        }))
+        .filter(z => z.anchor !== null),
+    })).filter(g => g.items.length > 0);
   }, [gender]);
 
   const anchor = selectedZone ? getZoneAnchorFromName(selectedZone, gender) : null;
+  const selectedLabel = selectedZone ? translateAnatomyName(selectedZone) : "";
 
   const handleConfirm = () => {
     if (!selectedZone || !anchor) return;
@@ -75,20 +144,50 @@ const ZoneCreatorDialog = ({ open, onOpenChange, gender, onCreate, isCreating }:
 
         <div className="space-y-4 pt-2">
           <div className="space-y-2">
-            <Label className="text-xs font-medium">
-              Welcher Körperteil?
-            </Label>
-            <select
-              value={selectedZone}
-              onChange={(e) => setSelectedZone(e.target.value)}
-              autoFocus
-              className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-            >
-              <option value="">– Körperteil auswählen –</option>
-              {zones.map(z => (
-                <option key={z.value} value={z.value}>{z.label}</option>
-              ))}
-            </select>
+            <Label className="text-xs font-medium">Welcher Körperteil?</Label>
+            <Popover open={popoverOpen} onOpenChange={setPopoverOpen}>
+              <PopoverTrigger asChild>
+                <Button
+                  variant="outline"
+                  role="combobox"
+                  aria-expanded={popoverOpen}
+                  className="w-full justify-between font-normal"
+                >
+                  {selectedLabel || "– Körperteil suchen oder wählen –"}
+                  <ChevronsUpDown className="h-4 w-4 opacity-50 shrink-0 ml-2" />
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-[--radix-popover-trigger-width] p-0" align="start">
+                <Command>
+                  <CommandInput placeholder="Körperteil suchen…" autoFocus />
+                  <CommandList className="max-h-[320px]">
+                    <CommandEmpty>Nichts gefunden.</CommandEmpty>
+                    {groups.map(group => (
+                      <CommandGroup key={group.label} heading={group.label}>
+                        {group.items.map(item => (
+                          <CommandItem
+                            key={item.value}
+                            value={`${item.label} ${item.value}`}
+                            onSelect={() => {
+                              setSelectedZone(item.value);
+                              setPopoverOpen(false);
+                            }}
+                          >
+                            <Check
+                              className={cn(
+                                "mr-2 h-4 w-4",
+                                selectedZone === item.value ? "opacity-100" : "opacity-0"
+                              )}
+                            />
+                            {item.label}
+                          </CommandItem>
+                        ))}
+                      </CommandGroup>
+                    ))}
+                  </CommandList>
+                </Command>
+              </PopoverContent>
+            </Popover>
             <p className="text-[11px] text-muted-foreground">
               Die Zone wird automatisch an der passenden Stelle auf dem Body markiert.
               Anschliessend können Sie ein Foto hochladen und Pins setzen — diese erscheinen automatisch auf dem 3D-Body.
