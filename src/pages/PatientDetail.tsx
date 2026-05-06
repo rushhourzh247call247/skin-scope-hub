@@ -141,11 +141,9 @@ const PatientDetail = () => {
       scrollToDetailAfterCollapseRef.current = false;
 
       if (imgCount >= 2) {
-        // Scroll to the upper Quick-Compare block (already shows oldest vs newest with full tools)
+        // Scroll so the spot header is visible at the top, with comparison directly below
         window.setTimeout(() => {
-          const el = document.getElementById(`spot-comparison-${locationId}`);
-          if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
-          else detailContentRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+          detailContentRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
         }, 80);
       } else if (imgCount === 1) {
         // Single image: enlarge in lightbox
@@ -174,10 +172,18 @@ const PatientDetail = () => {
     if (!scrollToDetailAfterCollapseRef.current || mobileMapExpanded) return;
     scrollToDetailAfterCollapseRef.current = false;
     const timer = window.setTimeout(() => {
+      if (detailContentRef.current) detailContentRef.current.scrollTop = 0;
       detailContentRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
     }, 320);
     return () => window.clearTimeout(timer);
   }, [mobileMapExpanded, selectedLocationId]);
+
+  // Reset detail scroll to top whenever the selected spot changes (mobile focus)
+  useEffect(() => {
+    if (selectedLocationId && detailContentRef.current) {
+      detailContentRef.current.scrollTop = 0;
+    }
+  }, [selectedLocationId]);
 
   const handleZoneSidebarUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (isReadOnly) {
