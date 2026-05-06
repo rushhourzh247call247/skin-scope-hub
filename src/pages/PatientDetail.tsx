@@ -1480,17 +1480,7 @@ const PatientDetail = () => {
                   </div>
                 </div>
 
-                {/* 1. Vergleich (Progress-Comparison) — direkt unter Bilder, am wichtigsten */}
-                {selectedLocation.type !== "region" && (selectedLocation.images?.length ?? 0) >= 2 && (
-                  <div id={`spot-comparison-${selectedLocation.id}`} className="scroll-mt-24">
-                    <QuickProgressCompare
-                      images={selectedLocation.images ?? []}
-                      getDaysDiff={getDaysDiff}
-                    />
-                  </div>
-                )}
-
-                {/* 2. ImageGallery (mit Kamera/Upload/QR Buttons) */}
+                {/* 1. ImageGallery zuerst — schneller Zugriff auf Kamera/Upload/QR direkt nach Spot-Öffnung */}
                 <ImageGallery
                   locationId={selectedLocation.id}
                   patientId={patientId}
@@ -1503,6 +1493,16 @@ const PatientDetail = () => {
                   triggerCameraSignal={autoCameraSignal}
                   triggerCompareSignal={compareSignal}
                 />
+
+                {/* 2. Vergleich (Progress-Comparison) — direkt nach Bildern */}
+                {selectedLocation.type !== "region" && (selectedLocation.images?.length ?? 0) >= 2 && (
+                  <div id={`spot-comparison-${selectedLocation.id}`} className="scroll-mt-24">
+                    <QuickProgressCompare
+                      images={selectedLocation.images ?? []}
+                      getDaysDiff={getDaysDiff}
+                    />
+                  </div>
+                )}
 
                 {/* 3. Klassifikation + Status (zusammen, weiter unten) */}
                 {selectedLocation.type !== "region" && (() => {
