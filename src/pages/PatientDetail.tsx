@@ -29,6 +29,7 @@ import QuickProgressCompare from "@/components/QuickProgressCompare";
 import RiskProgression from "@/components/RiskProgression";
 import QrUploadDialog from "@/components/QrUploadDialog";
 import OverviewPhoto from "@/components/OverviewPhoto";
+import BatchPhotoSession from "@/components/patient-detail/BatchPhotoSession";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
