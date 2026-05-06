@@ -30,6 +30,7 @@ import RiskProgression from "@/components/RiskProgression";
 import QrUploadDialog from "@/components/QrUploadDialog";
 import OverviewPhoto from "@/components/OverviewPhoto";
 import BatchPhotoSession from "@/components/patient-detail/BatchPhotoSession";
+import ZoneCreatorDialog from "@/components/patient-detail/ZoneCreatorDialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
@@ -67,6 +68,7 @@ const PatientDetail = () => {
 
   const [selectedLocationId, setSelectedLocationId] = useState<number | null>(null);
   const [batchPhotoOpen, setBatchPhotoOpen] = useState(false);
+  const [zoneCreatorOpen, setZoneCreatorOpen] = useState(false);
   
   const [autoCameraSignal, setAutoCameraSignal] = useState<number>(0);
   const [mapClickDialog, setMapClickDialog] = useState<{
@@ -436,7 +438,7 @@ const PatientDetail = () => {
     setSidebarTab("zones");
     setActiveTab("spots");
     setMobileMapExpanded(true);
-    setRequestedMarkType({ type: "zone", nonce: Date.now() });
+    setZoneCreatorOpen(true);
     toast.info(t('patientDetail.guidedStartToast'));
   };
 
@@ -562,6 +564,26 @@ const PatientDetail = () => {
         spots={locations.filter(l => (l.type ?? "spot") !== "overview") as any}
       />
 
+      <ZoneCreatorDialog
+        open={zoneCreatorOpen}
+        onOpenChange={setZoneCreatorOpen}
+        gender={patient.gender}
+        isCreating={createLocationMutation.isPending}
+        onCreate={(data) => {
+          createLocationMutation.mutate({
+            name: `Zone ${overviewLocations.length + 1} – ${data.name}`,
+            x: data.x,
+            y: data.y,
+            view: data.view,
+            type: "overview",
+            x3d: data.x3d,
+            y3d: data.y3d,
+            z3d: data.z3d,
+          });
+          setZoneCreatorOpen(false);
+        }}
+      />
+
       {/* Main Content */}
       <div className="flex-1 flex flex-col lg:flex-row overflow-hidden">
         {/* Left: Body Map */}
@@ -671,12 +693,9 @@ const PatientDetail = () => {
                       variant="default"
                       className="h-7 text-[11px] flex-1"
                       onClick={() => {
-                        // Cancel the in-progress spot placement and switch the body map to Zone mode.
-                        // The user will then click on the map to place the zone.
                         setMapClickDialog(null);
                         setLocationName("");
-                        setRequestedMarkType({ type: "zone", nonce: Date.now() });
-                        toast.info(t('patientDetail.overviewFirstAction') + " — " + t('bodyMap3d.clickToSetZone'));
+                        setZoneCreatorOpen(true);
                       }}
                     >
                       {t('patientDetail.overviewFirstAction')}
@@ -774,7 +793,7 @@ const PatientDetail = () => {
               <div className="space-y-1 mb-3">
                 <button
                   disabled={isReadOnly}
-                  onClick={() => setRequestedMarkType({ type: "zone", nonce: Date.now() })}
+                  onClick={() => setZoneCreatorOpen(true)}
                   className="flex w-full items-center justify-center gap-1.5 rounded-md border-2 border-dashed border-blue-500/40 bg-blue-50/50 dark:bg-blue-950/20 px-2.5 py-2 text-xs font-semibold text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-950/40 transition-all disabled:opacity-30 disabled:cursor-not-allowed mb-2"
                   title={isReadOnly ? readOnlyTooltip : undefined}
                 >
