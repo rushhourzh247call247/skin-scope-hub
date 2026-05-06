@@ -183,6 +183,8 @@ const PatientDetail = () => {
     if (selectedLocationId && detailContentRef.current) {
       detailContentRef.current.scrollTop = 0;
     }
+    // Cancel position-edit when switching to a different spot
+    setEditPositionSpotId((prev) => (prev != null && prev !== selectedLocationId ? null : prev));
   }, [selectedLocationId]);
 
   const handleZoneListClick = (zoneId: number) => {
@@ -564,6 +566,44 @@ const PatientDetail = () => {
     setLocationName(getAnatomicalName(point3d[0], point3d[1], point3d[2], view));
   };
 
+  // ─── Edit-position mode for an existing spot on the body ───
+  const [editPositionSpotId, setEditPositionSpotId] = useState<number | null>(null);
+  const editSpotPendingRef = useRef<{
+    x: number; y: number; view: "front" | "back";
+    x3d: number; y3d: number; z3d: number;
+    nx: number; ny: number; nz: number;
+  } | null>(null);
+
+  const handleEditSpotMove = (
+    _id: number,
+    x: number,
+    y: number,
+    view: "front" | "back",
+    point3d: [number, number, number],
+    normal3d: [number, number, number],
+  ) => {
+    editSpotPendingRef.current = {
+      x, y, view,
+      x3d: point3d[0], y3d: point3d[1], z3d: point3d[2],
+      nx: normal3d[0], ny: normal3d[1], nz: normal3d[2],
+    };
+  };
+
+  const handleEditSpotMoveEnd = async (id: number) => {
+    const data = editSpotPendingRef.current;
+    if (!data) return;
+    editSpotPendingRef.current = null;
+    try {
+      await api.updateLocationCoords(id, data);
+      toast.success(t('patientDetail.spotPositionUpdated', { defaultValue: 'Position aktualisiert' }));
+      queryClient.invalidateQueries({ queryKey: ["full-patient", patientId] });
+      queryClient.invalidateQueries({ queryKey: ["all-zone-pins", patientId] });
+    } catch (e) {
+      toast.error(t('common.error'));
+    }
+  };
+
+
   const handleCreateLocation = () => {
     if (!mapClickDialog) return;
     if (isReadOnly) {
@@ -716,6 +756,9 @@ const PatientDetail = () => {
               })()}
               
               requestMarkType={requestedMarkType}
+              editSpotId={editPositionSpotId}
+              onEditSpotMove={handleEditSpotMove}
+              onEditSpotMoveEnd={handleEditSpotMoveEnd}
             />
           </div>
 
@@ -1538,6 +1581,26 @@ const PatientDetail = () => {
                       </p>
                     </div>
                   </div>
+                  {selectedLocation.type !== "region" && !isReadOnly && (
+                    <Button
+                      size="sm"
+                      variant={editPositionSpotId === selectedLocation.id ? "default" : "outline"}
+                      onClick={() => {
+                        const turningOn = editPositionSpotId !== selectedLocation.id;
+                        setEditPositionSpotId(turningOn ? selectedLocation.id : null);
+                        if (turningOn) {
+                          setMobileMapExpanded(true);
+                          toast.info(t('patientDetail.dragSpotHint', { defaultValue: 'Pin auf dem 3D-Körper an die richtige Stelle ziehen.' }));
+                        }
+                      }}
+                      className="gap-1.5"
+                    >
+                      <Move className="h-3.5 w-3.5" />
+                      {editPositionSpotId === selectedLocation.id
+                        ? t('common.done', { defaultValue: 'Fertig' })
+                        : t('patientDetail.editPosition', { defaultValue: 'Position' })}
+                    </Button>
+                  )}
                 </div>
 
                 {/* 1. Toolbar (Kamera/Upload/QR) ganz oben — schneller Zugriff direkt nach Spot-Öffnung */}

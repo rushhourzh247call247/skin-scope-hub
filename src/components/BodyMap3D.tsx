@@ -78,6 +78,19 @@ interface BodyMap3DProps {
   selectedZoneId?: number | null;
   /** When set, only these spot IDs are visually highlighted; others are dimmed. */
   highlightedSpotIds?: number[] | null;
+  /** When set, this spot's marker is replaced by a draggable handle on the body surface. */
+  editSpotId?: number | null;
+  /** Called while dragging the edit-spot handle. */
+  onEditSpotMove?: (
+    id: number,
+    x: number,
+    y: number,
+    view: "front" | "back",
+    point3d: [number, number, number],
+    normal3d: [number, number, number],
+  ) => void;
+  /** Called once when drag ends — use to persist & toast. */
+  onEditSpotMoveEnd?: (id: number) => void;
   focusSignal?: number;
   /** External request to activate a specific mark mode (e.g. "zone"). Increments to re-trigger. */
   requestMarkType?: { type: MarkType; nonce: number } | null;
@@ -988,7 +1001,7 @@ function LoadingFallback() {
 }
 
 /* ─── Scene ─── */
-function Scene({ markers, selectedLocationId, onMapClick, onMarkerClick, onMarkerPhotoClick, classificationFilter, previewMarker, isPlacementMode, onPreviewMove, preset, gender, markMode, markType, resetKey, zoneOverlays, selectedZoneId, highlightedSpotIds }: BodyMap3DProps & { preset: CameraPreset; gender: Gender; markMode: boolean; markType: MarkType; resetKey: number }) {
+function Scene({ markers, selectedLocationId, onMapClick, onMarkerClick, onMarkerPhotoClick, classificationFilter, previewMarker, isPlacementMode, onPreviewMove, preset, gender, markMode, markType, resetKey, zoneOverlays, selectedZoneId, highlightedSpotIds, editSpotId, onEditSpotMove, onEditSpotMoveEnd }: BodyMap3DProps & { preset: CameraPreset; gender: Gender; markMode: boolean; markType: MarkType; resetKey: number }) {
   const [isDraggingSpot, setIsDraggingSpot] = useState(false);
   const [hoverInfo, setHoverInfo] = useState<{ point: THREE.Vector3; y3d: number; x3d: number; z3d: number; zone: string } | null>(null);
 
@@ -1106,6 +1119,8 @@ function Scene({ markers, selectedLocationId, onMapClick, onMarkerClick, onMarke
         const isHighRisk = HIGH_RISK_CLASSIFICATIONS.includes(cls);
         const hasCoords = m.x != null && m.y != null;
         if (!hasCoords && m.x3d == null) return null; // skip markers without any position
+        // Hide the marker that is currently being edited — it gets a draggable handle below
+        if (editSpotId != null && m.id === editSpotId) return null;
         // When a zone is active, only show spots that belong to it
         if (highlightedSpotIds && highlightedSpotIds.length > 0 && !highlightedSpotIds.includes(m.id)) {
           return null;
@@ -1191,6 +1206,32 @@ function Scene({ markers, selectedLocationId, onMapClick, onMarkerClick, onMarke
           />
         </SurfaceProjectedGroup>
       )}
+
+      {/* Edit-mode draggable handle for an existing spot */}
+      {editSpotId != null && (() => {
+        const m = markers.find((x) => x.id === editSpotId);
+        if (!m) return null;
+        const hasCoords = m.x != null && m.y != null;
+        if (!hasCoords && m.x3d == null) return null;
+        const view = m.view ?? "front";
+        const approx: [number, number, number] = (m.x3d != null && m.y3d != null && m.z3d != null)
+          ? [m.x3d, m.y3d, m.z3d]
+          : coords2Dto3D(m.x as number, m.y as number, view);
+        return (
+          <DraggableSpotPreview
+            key={`edit-${editSpotId}`}
+            initialPosition={approx}
+            view={view}
+            storedPosition={m.x3d != null && m.y3d != null && m.z3d != null ? [m.x3d, m.y3d, m.z3d] : undefined}
+            storedNormal={m.nx != null && m.ny != null && m.nz != null && (m.nx !== 0 || m.ny !== 0 || m.nz !== 0) ? [m.nx, m.ny, m.nz] : undefined}
+            onMove={(x, y, v, p3d, n3d) => onEditSpotMove?.(editSpotId, x, y, v, p3d, n3d)}
+            onDragStateChange={(d) => {
+              setIsDraggingSpot(d);
+              if (!d) onEditSpotMoveEnd?.(editSpotId);
+            }}
+          />
+        );
+      })()}
 
       <CameraAnimator preset={preset} resetKey={resetKey} disableControls={isDraggingSpot} />
     </>
