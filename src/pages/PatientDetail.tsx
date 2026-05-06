@@ -564,6 +564,26 @@ const PatientDetail = () => {
         spots={locations.filter(l => (l.type ?? "spot") !== "overview") as any}
       />
 
+      <ZoneCreatorDialog
+        open={zoneCreatorOpen}
+        onOpenChange={setZoneCreatorOpen}
+        gender={patient.gender}
+        isCreating={createLocationMutation.isPending}
+        onCreate={(data) => {
+          createLocationMutation.mutate({
+            name: `Zone ${overviewLocations.length + 1} – ${data.name}`,
+            x: data.x,
+            y: data.y,
+            view: data.view,
+            type: "overview",
+            x3d: data.x3d,
+            y3d: data.y3d,
+            z3d: data.z3d,
+          });
+          setZoneCreatorOpen(false);
+        }}
+      />
+
       {/* Main Content */}
       <div className="flex-1 flex flex-col lg:flex-row overflow-hidden">
         {/* Left: Body Map */}
