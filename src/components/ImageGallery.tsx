@@ -257,8 +257,9 @@ const ImageGallery = ({ locationId, patientId, images, locationName, locationTyp
           )}
         </div>
       </div>
+      )}
 
-      {sorted.length === 0 ? (
+      {showGrid && (sorted.length === 0 ? (
         <div className="flex flex-col items-center justify-center rounded-md border border-dashed py-10 text-muted-foreground">
           <ImageIcon className="mb-2 h-8 w-8" />
           <p className="text-sm">{t('imageGallery.noImages')}</p>
