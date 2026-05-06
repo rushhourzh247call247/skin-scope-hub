@@ -66,6 +66,7 @@ const PatientDetail = () => {
   const patientId = Number(id);
 
   const [selectedLocationId, setSelectedLocationId] = useState<number | null>(null);
+  const [batchPhotoOpen, setBatchPhotoOpen] = useState(false);
   
   const [autoCameraSignal, setAutoCameraSignal] = useState<number>(0);
   const [mapClickDialog, setMapClickDialog] = useState<{
@@ -550,6 +551,15 @@ const PatientDetail = () => {
         setActiveTab={setActiveTab}
         locationCount={locations.length}
         totalImages={totalImages}
+        onStartBatchPhoto={() => setBatchPhotoOpen(true)}
+        batchPhotoDisabled={isReadOnly}
+      />
+
+      <BatchPhotoSession
+        open={batchPhotoOpen}
+        onOpenChange={setBatchPhotoOpen}
+        patientId={patientId}
+        spots={locations.filter(l => (l.type ?? "spot") === "spot") as any}
       />
 
       {/* Main Content */}
