@@ -556,7 +556,7 @@
     "deleteOverview": "Übersichtsfoto löschen",
     "clickToRemovePin": "Klicken zum Löschen",
     "deletePinTitle": "Pin entfernen?",
-    "deletePinDesc": "Dieser Pin wird vom Übersichtsfoto entfernt. Der verknüpfte Spot bleibt erhalten."
+    "deletePinDesc": "Dieser Pin und der verknüpfte Spot werden in den Papierkorb verschoben."
   },
   "pdfExport": {
     "dialogTitle": "PDF-Bericht erstellen",

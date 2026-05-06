@@ -556,7 +556,7 @@
     "deleteOverview": "Supprimer la photo d'ensemble",
     "clickToRemovePin": "Cliquer pour supprimer",
     "deletePinTitle": "Supprimer le pin ?",
-    "deletePinDesc": "Ce pin sera retiré de la photo d'ensemble. Le point lié sera conservé."
+    "deletePinDesc": "Ce pin et le point lié seront déplacés dans la corbeille."
   },
   "pdfExport": {
     "title": "Export PDF",

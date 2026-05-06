@@ -556,7 +556,7 @@
     "deleteOverview": "Delete overview photo",
     "clickToRemovePin": "Click to delete",
     "deletePinTitle": "Remove pin?",
-    "deletePinDesc": "This pin will be removed from the overview photo. The linked spot will remain."
+    "deletePinDesc": "This pin and its linked spot will be moved to the trash."
   },
   "pdfExport": {
     "dialogTitle": "Create PDF Report",
