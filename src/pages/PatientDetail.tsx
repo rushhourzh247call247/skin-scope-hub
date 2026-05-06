@@ -713,8 +713,24 @@ const PatientDetail = () => {
           <div className={cn(
             "transition-all duration-300",
             mobileMapExpanded ? "h-[300px] lg:h-[450px]" : "h-0 overflow-hidden lg:h-[450px]",
-            mapClickDialog && mobileMapExpanded && "h-[350px] lg:h-[560px]"
+            mapClickDialog && mobileMapExpanded && "h-[350px] lg:h-[560px]",
+            // Mobile fullscreen when repositioning a spot
+            editPositionSpotId != null && "max-lg:fixed max-lg:inset-0 max-lg:z-[60] max-lg:h-[100dvh] max-lg:w-screen max-lg:bg-background max-lg:pt-14"
           )} ref={bodyMapRef}>
+            {editPositionSpotId != null && (
+              <div className="lg:hidden fixed top-0 left-0 right-0 z-[61] flex items-center justify-between gap-2 bg-card/95 backdrop-blur border-b px-3 py-2 shadow-sm">
+                <div className="flex items-center gap-2 min-w-0">
+                  <Move className="h-4 w-4 text-primary shrink-0" />
+                  <span className="text-sm font-semibold truncate">
+                    {t('patientDetail.dragSpotHint', { defaultValue: 'Pin auf dem 3D-Körper an die richtige Stelle ziehen.' })}
+                  </span>
+                </div>
+                <Button size="sm" onClick={() => setEditPositionSpotId(null)} className="shrink-0 gap-1.5">
+                  <X className="h-3.5 w-3.5" />
+                  {t('common.done', { defaultValue: 'Fertig' })}
+                </Button>
+              </div>
+            )}
             <BodyMap3D
               markers={spotLocations.map((l) => {
                 const pf = (v: any) => v != null ? parseFloat(String(v)) : null;
