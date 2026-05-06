@@ -60,6 +60,9 @@ const OverviewPhoto = ({ overviewLocation, spotLocations, patientId, onNavigateT
   const [hoveredPin, setHoveredPin] = useState<number | null>(null);
   const [openPinId, setOpenPinId] = useState<number | null>(null);
   const [spotUploading, setSpotUploading] = useState(false);
+  const [draggingPinId, setDraggingPinId] = useState<number | null>(null);
+  const [dragPos, setDragPos] = useState<{ x_pct: number; y_pct: number } | null>(null);
+  const dragMovedRef = useRef(false);
 
   const [isRenaming, setIsRenaming] = useState(false);
   const [renameValue, setRenameValue] = useState("");
