@@ -772,6 +772,14 @@ const PatientDetail = () => {
             {/* Zones list - shown when zones tab active */}
             {sidebarTab === "zones" && (
               <div className="space-y-1 mb-3">
+                <button
+                  disabled={isReadOnly}
+                  onClick={() => setRequestedMarkType({ type: "zone", nonce: Date.now() })}
+                  className="flex w-full items-center justify-center gap-1.5 rounded-md border-2 border-dashed border-blue-500/40 bg-blue-50/50 dark:bg-blue-950/20 px-2.5 py-2 text-xs font-semibold text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-950/40 transition-all disabled:opacity-30 disabled:cursor-not-allowed mb-2"
+                  title={isReadOnly ? readOnlyTooltip : undefined}
+                >
+                  <Camera className="h-3.5 w-3.5" /> + {t('overviewPhoto.createFirstZone', { defaultValue: 'Neue Zone' })}
+                </button>
                 {overviewLocations.length > 0 ? overviewLocations.map((loc) => {
                   const firstImg = loc.images?.[0];
                   const zoneEntry = allZonePins.find(zp => zp.zoneId === loc.id);
