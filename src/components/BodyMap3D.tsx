@@ -78,6 +78,19 @@ interface BodyMap3DProps {
   selectedZoneId?: number | null;
   /** When set, only these spot IDs are visually highlighted; others are dimmed. */
   highlightedSpotIds?: number[] | null;
+  /** When set, this spot's marker is replaced by a draggable handle on the body surface. */
+  editSpotId?: number | null;
+  /** Called while dragging the edit-spot handle. */
+  onEditSpotMove?: (
+    id: number,
+    x: number,
+    y: number,
+    view: "front" | "back",
+    point3d: [number, number, number],
+    normal3d: [number, number, number],
+  ) => void;
+  /** Called once when drag ends — use to persist & toast. */
+  onEditSpotMoveEnd?: (id: number) => void;
   focusSignal?: number;
   /** External request to activate a specific mark mode (e.g. "zone"). Increments to re-trigger. */
   requestMarkType?: { type: MarkType; nonce: number } | null;
