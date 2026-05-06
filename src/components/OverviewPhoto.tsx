@@ -457,7 +457,15 @@ const OverviewPhoto = ({ overviewLocation, spotLocations, patientId, onNavigateT
         </div>
       )}
 
-      {/* Zoom controls */}
+      {editMode && (
+        <div className="flex items-center gap-2 rounded-md bg-amber-500/10 border border-amber-500/30 px-3 py-2 text-xs text-amber-700 dark:text-amber-300">
+          <Move className="h-4 w-4 shrink-0" />
+          <span>{t('overviewPhoto.editInstruction', { defaultValue: 'Pin ziehen, um Position zu korrigieren · Klicken zum Löschen' })}</span>
+          <Button size="sm" variant="ghost" className="ml-auto h-6 px-2" onClick={() => setEditMode(false)}>
+            <X className="h-3 w-3" />
+          </Button>
+        </div>
+      )}
       {zoomLevel !== 1 && (
         <div className="flex items-center gap-1.5 mb-1">
           <Button
