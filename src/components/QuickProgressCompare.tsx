@@ -458,7 +458,6 @@ interface SwipePagerProps {
 
 const SwipePager = ({ pair, labels, idx, setIdx }: SwipePagerProps) => {
   const [zoomed, setZoomed] = useState<[boolean, boolean]>([false, false]);
-  const anyZoomed = zoomed[0] || zoomed[1];
 
   return (
     <div className="relative h-full w-full overflow-hidden">
