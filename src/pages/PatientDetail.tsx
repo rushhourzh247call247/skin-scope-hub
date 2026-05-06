@@ -682,6 +682,11 @@ const PatientDetail = () => {
                 return { id: z.id, name: z.name, x: pfn(z.x), y: pfn(z.y), x3d: pfn(z.x3d), y3d: pfn(z.y3d), z3d: pfn(z.z3d), nx: pfn(z.nx), ny: pfn(z.ny), nz: pfn(z.nz), view: z.view };
               })}
               selectedZoneId={activeTab === "uebersicht" ? selectedLocationId : null}
+              highlightedSpotIds={(() => {
+                if (sidebarTab !== "zones" || !selectedLocationId) return null;
+                const zoneEntry = allZonePins.find(zp => zp.zoneId === selectedLocationId);
+                return zoneEntry ? zoneEntry.pins.map(p => p.linked_location_id) : [];
+              })()}
               
               requestMarkType={requestedMarkType}
             />
