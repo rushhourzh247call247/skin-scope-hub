@@ -144,7 +144,62 @@ const OverviewPhoto = ({ overviewLocation, spotLocations, patientId, onNavigateT
     },
   });
 
-  const uploadMutation = useMutation({
+  const movePinMutation = useMutation({
+    mutationFn: async ({ pinId, x_pct, y_pct }: { pinId: number; x_pct: number; y_pct: number }) => {
+      await api.updateOverviewPin(pinId, { x_pct, y_pct });
+      const pin = pins.find((p: OverviewPin) => p.id === pinId);
+      if (pin?.linked_location_id && onMovePin) {
+        onMovePin(pinId, x_pct, y_pct, overviewLocation.id);
+      }
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["overview-pins", overviewLocation.id] });
+      queryClient.invalidateQueries({ queryKey: ["full-patient", patientId] });
+      queryClient.invalidateQueries({ queryKey: ["all-zone-pins", patientId] });
+      toast.success(t('overviewPhoto.pinMoved', { defaultValue: 'Pin verschoben' }));
+    },
+  });
+
+  const startPinDrag = useCallback((pinId: number, e: React.PointerEvent) => {
+    if (!editMode) return;
+    e.stopPropagation();
+    e.preventDefault();
+    const el = containerRef.current;
+    if (!el) return;
+    const target = e.currentTarget as HTMLElement;
+    try { target.setPointerCapture(e.pointerId); } catch {}
+    setDraggingPinId(pinId);
+    dragMovedRef.current = false;
+    const startX = e.clientX;
+    const startY = e.clientY;
+
+    const move = (ev: PointerEvent) => {
+      const rect = el.getBoundingClientRect();
+      const x_pct = Math.max(0, Math.min(100, ((ev.clientX - rect.left) / rect.width) * 100));
+      const y_pct = Math.max(0, Math.min(100, ((ev.clientY - rect.top) / rect.height) * 100));
+      if (Math.abs(ev.clientX - startX) > 4 || Math.abs(ev.clientY - startY) > 4) {
+        dragMovedRef.current = true;
+      }
+      setDragPos({ x_pct, y_pct });
+    };
+    const up = (ev: PointerEvent) => {
+      window.removeEventListener('pointermove', move);
+      window.removeEventListener('pointerup', up);
+      try { target.releasePointerCapture(e.pointerId); } catch {}
+      const moved = dragMovedRef.current;
+      const finalPos = dragPosRef.current;
+      setDraggingPinId(null);
+      setDragPos(null);
+      if (moved && finalPos) {
+        movePinMutation.mutate({ pinId, x_pct: finalPos.x_pct, y_pct: finalPos.y_pct });
+      } else {
+        // treat as click → delete confirm
+        setDeleteTarget(pinId);
+      }
+    };
+    window.addEventListener('pointermove', move);
+    window.addEventListener('pointerup', up);
+  }, [editMode, movePinMutation]);
     mutationFn: (file: File) => api.uploadImage(overviewLocation.id, file),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["full-patient", patientId] });
