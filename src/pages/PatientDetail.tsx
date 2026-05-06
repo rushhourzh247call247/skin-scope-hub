@@ -183,6 +183,8 @@ const PatientDetail = () => {
     if (selectedLocationId && detailContentRef.current) {
       detailContentRef.current.scrollTop = 0;
     }
+    // Cancel position-edit when switching to a different spot
+    setEditPositionSpotId((prev) => (prev != null && prev !== selectedLocationId ? null : prev));
   }, [selectedLocationId]);
 
   const handleZoneListClick = (zoneId: number) => {
