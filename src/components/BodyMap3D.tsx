@@ -1119,6 +1119,8 @@ function Scene({ markers, selectedLocationId, onMapClick, onMarkerClick, onMarke
         const isHighRisk = HIGH_RISK_CLASSIFICATIONS.includes(cls);
         const hasCoords = m.x != null && m.y != null;
         if (!hasCoords && m.x3d == null) return null; // skip markers without any position
+        // Hide the marker that is currently being edited — it gets a draggable handle below
+        if (editSpotId != null && m.id === editSpotId) return null;
         // When a zone is active, only show spots that belong to it
         if (highlightedSpotIds && highlightedSpotIds.length > 0 && !highlightedSpotIds.includes(m.id)) {
           return null;
