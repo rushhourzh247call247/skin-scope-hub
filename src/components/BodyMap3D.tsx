@@ -1207,6 +1207,32 @@ function Scene({ markers, selectedLocationId, onMapClick, onMarkerClick, onMarke
         </SurfaceProjectedGroup>
       )}
 
+      {/* Edit-mode draggable handle for an existing spot */}
+      {editSpotId != null && (() => {
+        const m = markers.find((x) => x.id === editSpotId);
+        if (!m) return null;
+        const hasCoords = m.x != null && m.y != null;
+        if (!hasCoords && m.x3d == null) return null;
+        const view = m.view ?? "front";
+        const approx: [number, number, number] = (m.x3d != null && m.y3d != null && m.z3d != null)
+          ? [m.x3d, m.y3d, m.z3d]
+          : coords2Dto3D(m.x as number, m.y as number, view);
+        return (
+          <DraggableSpotPreview
+            key={`edit-${editSpotId}`}
+            initialPosition={approx}
+            view={view}
+            storedPosition={m.x3d != null && m.y3d != null && m.z3d != null ? [m.x3d, m.y3d, m.z3d] : undefined}
+            storedNormal={m.nx != null && m.ny != null && m.nz != null && (m.nx !== 0 || m.ny !== 0 || m.nz !== 0) ? [m.nx, m.ny, m.nz] : undefined}
+            onMove={(x, y, v, p3d, n3d) => onEditSpotMove?.(editSpotId, x, y, v, p3d, n3d)}
+            onDragStateChange={(d) => {
+              setIsDraggingSpot(d);
+              if (!d) onEditSpotMoveEnd?.(editSpotId);
+            }}
+          />
+        );
+      })()}
+
       <CameraAnimator preset={preset} resetKey={resetKey} disableControls={isDraggingSpot} />
     </>
   );
