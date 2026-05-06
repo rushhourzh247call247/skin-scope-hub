@@ -1579,6 +1579,26 @@ const PatientDetail = () => {
                       </p>
                     </div>
                   </div>
+                  {selectedLocation.type !== "region" && !isReadOnly && (
+                    <Button
+                      size="sm"
+                      variant={editPositionSpotId === selectedLocation.id ? "default" : "outline"}
+                      onClick={() => {
+                        const turningOn = editPositionSpotId !== selectedLocation.id;
+                        setEditPositionSpotId(turningOn ? selectedLocation.id : null);
+                        if (turningOn) {
+                          setMobileMapExpanded(true);
+                          toast.info(t('patientDetail.dragSpotHint', { defaultValue: 'Pin auf dem 3D-Körper an die richtige Stelle ziehen.' }));
+                        }
+                      }}
+                      className="gap-1.5"
+                    >
+                      <Move className="h-3.5 w-3.5" />
+                      {editPositionSpotId === selectedLocation.id
+                        ? t('common.done', { defaultValue: 'Fertig' })
+                        : t('patientDetail.editPosition', { defaultValue: 'Position' })}
+                    </Button>
+                  )}
                 </div>
 
                 {/* 1. Toolbar (Kamera/Upload/QR) ganz oben — schneller Zugriff direkt nach Spot-Öffnung */}
