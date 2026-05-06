@@ -123,9 +123,18 @@ const OverviewPhoto = ({ overviewLocation, spotLocations, patientId, onNavigateT
   });
 
   const deletePinMutation = useMutation({
-    mutationFn: (pinId: number) => api.deleteOverviewPin(pinId),
+    mutationFn: async (pinId: number) => {
+      // Cascade: also soft-delete the linked spot so it disappears from the spot list & body map.
+      const pin = pins.find((p: OverviewPin) => p.id === pinId);
+      await api.deleteOverviewPin(pinId);
+      if (pin?.linked_location_id) {
+        try { await api.softDeleteLocation(pin.linked_location_id); } catch {}
+      }
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["overview-pins", overviewLocation.id] });
+      queryClient.invalidateQueries({ queryKey: ["full-patient", patientId] });
+      queryClient.invalidateQueries({ queryKey: ["trashed-locations", patientId] });
       setDeleteTarget(null);
       toast.success(t('overviewPhoto.pinRemoved'));
     },
