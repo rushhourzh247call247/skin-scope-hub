@@ -157,10 +157,18 @@ const ZoneCreatorDialog = ({ open, onOpenChange, gender, onCreate, isCreating }:
                   <ChevronsUpDown className="h-4 w-4 opacity-50 shrink-0 ml-2" />
                 </Button>
               </PopoverTrigger>
-              <PopoverContent className="w-[--radix-popover-trigger-width] p-0" align="start">
+              <PopoverContent
+                className="w-[--radix-popover-trigger-width] p-0"
+                align="start"
+                onWheel={(e) => e.stopPropagation()}
+                onTouchMove={(e) => e.stopPropagation()}
+              >
                 <Command>
                   <CommandInput placeholder="Körperteil suchen…" autoFocus />
-                  <CommandList className="max-h-[320px]">
+                  <CommandList
+                    className="max-h-[min(60vh,320px)] overflow-y-auto overscroll-contain"
+                    style={{ WebkitOverflowScrolling: "touch", touchAction: "pan-y" }}
+                  >
                     <CommandEmpty>Nichts gefunden.</CommandEmpty>
                     {groups.map(group => (
                       <CommandGroup key={group.label} heading={group.label}>
