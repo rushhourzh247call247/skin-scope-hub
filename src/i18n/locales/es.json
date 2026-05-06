@@ -556,7 +556,7 @@
     "deleteOverview": "Eliminar foto panorámica",
     "clickToRemovePin": "Clic para eliminar",
     "deletePinTitle": "¿Eliminar pin?",
-    "deletePinDesc": "Este pin se eliminará de la foto panorámica. El punto vinculado se mantendrá."
+    "deletePinDesc": "Este pin y el punto vinculado se moverán a la papelera."
   },
   "pdfExport": {
     "title": "Exportación PDF",

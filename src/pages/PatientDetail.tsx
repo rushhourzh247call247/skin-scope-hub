@@ -348,10 +348,38 @@ const PatientDetail = () => {
   });
 
   const softDeleteMutation = useMutation({
-    mutationFn: (locationId: number) => api.softDeleteLocation(locationId),
+    mutationFn: async (locationId: number) => {
+      const loc = locations.find(l => l.id === locationId);
+      // Case 1: deleting a ZONE → cascade-trash all linked spots + delete all pins
+      if (loc?.type === "overview") {
+        try {
+          const zonePins = await api.getOverviewPins(locationId);
+          for (const pin of zonePins) {
+            try { await api.deleteOverviewPin(pin.id); } catch {}
+            if (pin.linked_location_id) {
+              try { await api.softDeleteLocation(pin.linked_location_id); } catch {}
+            }
+          }
+        } catch {}
+      } else {
+        // Case 2: deleting a SPOT → also remove any pins pointing to it (across all zones)
+        try {
+          for (const zone of overviewLocations) {
+            const zonePins = await api.getOverviewPins(zone.id);
+            for (const pin of zonePins) {
+              if (pin.linked_location_id === locationId) {
+                try { await api.deleteOverviewPin(pin.id); } catch {}
+              }
+            }
+          }
+        } catch {}
+      }
+      return api.softDeleteLocation(locationId);
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["full-patient", patientId] });
       queryClient.invalidateQueries({ queryKey: ["trashed-locations", patientId] });
+      queryClient.invalidateQueries({ queryKey: ["all-zone-pins", patientId] });
       if (selectedLocationId === deleteConfirmId) setSelectedLocationId(null);
       setDeleteConfirmId(null);
     },
