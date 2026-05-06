@@ -1106,6 +1106,10 @@ function Scene({ markers, selectedLocationId, onMapClick, onMarkerClick, onMarke
         const isHighRisk = HIGH_RISK_CLASSIFICATIONS.includes(cls);
         const hasCoords = m.x != null && m.y != null;
         if (!hasCoords && m.x3d == null) return null; // skip markers without any position
+        // When a zone is active, only show spots that belong to it
+        if (highlightedSpotIds && highlightedSpotIds.length > 0 && !highlightedSpotIds.includes(m.id)) {
+          return null;
+        }
         return (
           <SurfaceProjectedGroup
             key={`spot-${m.id}`}
