@@ -265,34 +265,16 @@ const ImageGallery = ({ locationId, patientId, images, locationName, locationTyp
           <p className="text-sm">{t('imageGallery.noImages')}</p>
         </div>
       ) : (
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-          {sorted.map((img) => (
-            <div key={img.id} className="relative space-y-2 rounded-lg border bg-card p-2">
-              <div className="absolute right-2 top-2 z-10 flex gap-1">
-                <Button
-                  size="icon"
-                  variant="secondary"
-                  className="h-8 w-8 rounded-full shadow-md opacity-80 hover:opacity-100"
-                  onClick={() => handleImageExport(img)}
-                  disabled={isReadOnly}
-                  title={isReadOnly ? readOnlyTooltip : t('common.export')}
-                >
-                  <Download className="h-4 w-4" />
-                </Button>
-                <Button
-                  size="icon"
-                  variant="destructive"
-                  className="h-8 w-8 rounded-full shadow-md opacity-80 hover:opacity-100"
-                  onClick={() => setDeleteTarget(img.id)}
-                  disabled={isReadOnly}
-                  title={isReadOnly ? readOnlyTooltip : t('common.delete')}
-                >
-                  <Trash2 className="h-4 w-4" />
-                </Button>
-              </div>
-              {locationType === "spot" ? (
-                <div className="flex flex-col items-center gap-1.5">
-                  <div className="relative h-20 w-20 overflow-hidden rounded-full border-2 border-border shadow-sm">
+        <div className="space-y-2">
+          {sorted.map((img, idx) => {
+            const isLatest = idx === 0;
+            return (
+              <div
+                key={img.id}
+                className="group relative flex gap-3 rounded-lg border bg-card p-2.5 transition-shadow hover:shadow-sm"
+              >
+                <div className="relative shrink-0">
+                  <div className={`relative h-20 w-20 overflow-hidden rounded-md border ${isLatest ? "ring-2 ring-primary/40" : ""}`}>
                     <img
                       src={api.resolveImageSrc(img)}
                       alt={`${t('imageGallery.recording')} #${img.id}`}
@@ -300,55 +282,77 @@ const ImageGallery = ({ locationId, patientId, images, locationName, locationTyp
                       loading="lazy"
                     />
                   </div>
-                  <span className="text-[10px] text-muted-foreground tabular-nums">
-                    {img.created_at ? formatDate(img.created_at, "dd.MM.yy") : "–"}
-                  </span>
-                </div>
-              ) : (
-                <div>
-                  <div className="aspect-[3/4] overflow-hidden rounded-md">
-                    <img
-                      src={api.resolveImageSrc(img)}
-                      alt={`${t('imageGallery.recording')} #${img.id}`}
-                      className="h-full w-full object-cover"
-                      loading="lazy"
-                    />
-                  </div>
-                  <div className="flex items-center gap-1 px-1 py-1.5 text-xs text-muted-foreground">
-                    <Calendar className="h-3 w-3" />
-                    <span className="tabular-nums">
-                      {img.created_at ? formatDate(img.created_at, "dd.MM.yyyy") : "–"}
+                  {isLatest && (
+                    <span className="absolute -top-1.5 -left-1.5 rounded-full bg-primary px-1.5 py-0.5 text-[8px] font-bold uppercase tracking-wider text-primary-foreground shadow">
+                      {t('imageGallery.latest', 'Aktuell')}
                     </span>
-                  </div>
+                  )}
                 </div>
-              )}
 
-              <Textarea
-                placeholder={t('imageGallery.notePlaceholder')}
-                className="min-h-[36px] h-9 text-[11px] resize-none bg-muted/30 border-muted"
-                value={noteValues[img.id] ?? ""}
-                onChange={(e) => handleNoteChange(img.id, e.target.value)}
-                rows={1}
-                disabled={isReadOnly}
-                title={isReadOnly ? readOnlyTooltip : undefined}
-              />
+                <div className="flex min-w-0 flex-1 flex-col gap-1.5">
+                  <div className="flex items-start justify-between gap-2">
+                    <div className="flex flex-col leading-tight min-w-0">
+                      <span className="text-xs font-semibold text-foreground tabular-nums">
+                        {img.created_at ? formatDate(img.created_at, "dd. MMM yyyy") : "–"}
+                      </span>
+                      <span className="text-[10px] text-muted-foreground">
+                        #{sorted.length - idx} · {t('imageGallery.recording')}
+                      </span>
+                    </div>
+                    <div className="flex shrink-0 gap-1 opacity-70 transition-opacity group-hover:opacity-100">
+                      <Button
+                        size="icon"
+                        variant="ghost"
+                        className="h-7 w-7"
+                        onClick={() => handleImageExport(img)}
+                        disabled={isReadOnly}
+                        title={isReadOnly ? readOnlyTooltip : t('common.export')}
+                      >
+                        <Download className="h-3.5 w-3.5" />
+                      </Button>
+                      <Button
+                        size="icon"
+                        variant="ghost"
+                        className="h-7 w-7 text-destructive hover:bg-destructive/10 hover:text-destructive"
+                        onClick={() => setDeleteTarget(img.id)}
+                        disabled={isReadOnly}
+                        title={isReadOnly ? readOnlyTooltip : t('common.delete')}
+                      >
+                        <Trash2 className="h-3.5 w-3.5" />
+                      </Button>
+                    </div>
+                  </div>
 
-              <AbcdeForm
-                imageId={img.id}
-                patientId={patientId}
-                initialData={{
-                  abc_asymmetry: img.abc_asymmetry ?? undefined,
-                  abc_border: img.abc_border ?? undefined,
-                  abc_color: img.abc_color ?? undefined,
-                  abc_diameter: img.abc_diameter ?? undefined,
-                  abc_evolution: img.abc_evolution ?? undefined,
-                  risk_score: img.risk_score ?? undefined,
-                  risk_level: img.risk_level ?? undefined,
-                }}
-                disabled={isReadOnly}
-              />
-            </div>
-          ))}
+                  <Textarea
+                    placeholder={t('imageGallery.notePlaceholder')}
+                    className="min-h-[28px] h-7 text-[11px] resize-none bg-muted/30 border-muted px-2 py-1"
+                    value={noteValues[img.id] ?? ""}
+                    onChange={(e) => handleNoteChange(img.id, e.target.value)}
+                    rows={1}
+                    disabled={isReadOnly}
+                    title={isReadOnly ? readOnlyTooltip : undefined}
+                  />
+
+                  {locationType === "spot" && (
+                    <AbcdeForm
+                      imageId={img.id}
+                      patientId={patientId}
+                      initialData={{
+                        abc_asymmetry: img.abc_asymmetry ?? undefined,
+                        abc_border: img.abc_border ?? undefined,
+                        abc_color: img.abc_color ?? undefined,
+                        abc_diameter: img.abc_diameter ?? undefined,
+                        abc_evolution: img.abc_evolution ?? undefined,
+                        risk_score: img.risk_score ?? undefined,
+                        risk_level: img.risk_level ?? undefined,
+                      }}
+                      disabled={isReadOnly}
+                    />
+                  )}
+                </div>
+              </div>
+            );
+          })}
         </div>
       ))}
       <AlertDialog open={deleteTarget !== null} onOpenChange={(open) => !open && setDeleteTarget(null)}>
