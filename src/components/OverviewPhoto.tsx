@@ -769,13 +769,30 @@ const OverviewPhoto = ({ overviewLocation, spotLocations, patientId, onNavigateT
                            // (e.g. "Oberer Rücken") instead of a generic "Spot N". Numbering on the
                            // body map is positional (badge index) and stays consistent automatically.
                            const zoneName = overviewLocation.name?.trim();
-                           const siblingCount = spotLocations.filter(s => {
-                             // Count existing spots already linked to THIS zone via overview pins
-                             return s.type !== "overview";
-                           }).length;
+                           // Count only spots actually linked to THIS zone via existing pins,
+                           // and only those that are not trashed/deactivated. Then find the
+                           // lowest free sequential number so deletions don't create gaps like "Bauch 8".
+                           const linkedSpotIds = new Set(
+                             pins
+                               .map((p: OverviewPin) => p.linked_location_id)
+                               .filter((id): id is number => !!id)
+                           );
+                           const usedNumbers = new Set<number>();
+                           const escapeRe = (s: string) => s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+                           const nameRe = zoneName
+                             ? new RegExp(`^${escapeRe(zoneName)}\\s+(\\d+)$`)
+                             : null;
+                           spotLocations.forEach(s => {
+                             if (!linkedSpotIds.has(s.id)) return;
+                             if ((s as any).deactivated_at || (s as any).trashed_at) return;
+                             const m = nameRe ? s.name?.match(nameRe) : null;
+                             if (m) usedNumbers.add(parseInt(m[1], 10));
+                           });
+                           let next = 1;
+                           while (usedNumbers.has(next)) next++;
                            const autoName = zoneName
-                             ? `${zoneName} ${siblingCount + 1}`
-                             : `Spot ${siblingCount + 1}`;
+                             ? `${zoneName} ${next}`
+                             : `Spot ${next}`;
                            onCreateSpotAndLink(autoName, pendingPin, overviewLocation.id);
                           setPendingPin(null);
                           setPinMode(false);
