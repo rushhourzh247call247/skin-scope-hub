@@ -214,8 +214,12 @@ const ImageGallery = ({ locationId, patientId, images, locationName, locationTyp
     (a, b) => new Date(b.created_at ?? 0).getTime() - new Date(a.created_at ?? 0).getTime()
   );
 
+  const showToolbar = section === "all" || section === "toolbar";
+  const showGrid = section === "all" || section === "grid";
+
   return (
     <div className="space-y-4">
+      {showToolbar && (
       <div className="flex items-center justify-between gap-2 flex-wrap">
         <h4 className="text-sm font-medium text-foreground">{t('imageGallery.title', { count: images.length })}</h4>
         <div className="flex items-center gap-1.5 flex-wrap">
