@@ -141,11 +141,9 @@ const PatientDetail = () => {
       scrollToDetailAfterCollapseRef.current = false;
 
       if (imgCount >= 2) {
-        // Scroll to the upper Quick-Compare block (already shows oldest vs newest with full tools)
+        // Scroll so the spot header is visible at the top, with comparison directly below
         window.setTimeout(() => {
-          const el = document.getElementById(`spot-comparison-${locationId}`);
-          if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
-          else detailContentRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+          detailContentRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
         }, 80);
       } else if (imgCount === 1) {
         // Single image: enlarge in lightbox
