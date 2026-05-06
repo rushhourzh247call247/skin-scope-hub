@@ -350,7 +350,7 @@ const ImageGallery = ({ locationId, patientId, images, locationName, locationTyp
             </div>
           ))}
         </div>
-      )}
+      ))}
       <AlertDialog open={deleteTarget !== null} onOpenChange={(open) => !open && setDeleteTarget(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>
