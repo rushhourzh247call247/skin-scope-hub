@@ -76,6 +76,8 @@ interface BodyMap3DProps {
   isPlacementMode?: boolean;
   zoneOverlays?: ZoneOverlay[];
   selectedZoneId?: number | null;
+  /** When set, only these spot IDs are visually highlighted; others are dimmed. */
+  highlightedSpotIds?: number[] | null;
   focusSignal?: number;
   /** External request to activate a specific mark mode (e.g. "zone"). Increments to re-trigger. */
   requestMarkType?: { type: MarkType; nonce: number } | null;
