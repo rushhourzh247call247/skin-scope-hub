@@ -1327,62 +1327,73 @@ const BodyMap3D: React.FC<BodyMap3DProps> = (props) => {
 
 
         {/* Bottom controls */}
-        <div className="absolute bottom-2 left-2 flex items-center gap-1.5">
+        <div className="absolute bottom-2 left-2 right-2 flex items-center gap-1.5 flex-wrap">
           <button
             onClick={() => { setActiveRegion("full"); setResetCounter(c => c + 1); setFocusKey(k => k + 1); props.onMarkerClick?.(null); }}
-            className="flex h-7 items-center gap-1 rounded-md border border-border/50 bg-card/80 px-2 text-[10px] text-muted-foreground transition-all hover:text-foreground"
+            className="flex h-8 items-center gap-1 rounded-md border border-border/50 bg-card/90 px-2.5 text-[11px] text-muted-foreground transition-all hover:text-foreground"
           >
             <RotateCcw className="h-3 w-3" /> {i18n.t('common.reset')}
           </button>
 
-          {/* Spot mark mode toggle */}
-          <button
-            onClick={() => { setMarkMode(markType === "spot" ? !markMode : true); setMarkType("spot"); }}
-            title={i18n.t('bodyMap3d.markSpot')}
-            className={cn(
-              "flex h-7 items-center gap-1.5 rounded-md px-2.5 text-[10px] font-medium transition-all",
-              markMode && markType === "spot"
-                ? "bg-primary text-primary-foreground shadow-md"
-                : "border border-border/50 bg-card/80 text-muted-foreground hover:text-foreground"
-            )}
-          >
-            <MapPin className="h-3 w-3" />
-            {i18n.t('bodyMap.spotMode')}
-          </button>
+          <div className="ml-auto flex items-center gap-1.5">
+            {/* Spot mark mode toggle */}
+            <button
+              onClick={() => { setMarkMode(markType === "spot" ? !markMode : true); setMarkType("spot"); }}
+              title={i18n.t('bodyMap3d.markSpot')}
+              className={cn(
+                "flex h-8 items-center gap-1.5 rounded-md px-3 text-[11px] font-semibold transition-all shadow-sm",
+                markMode && markType === "spot"
+                  ? "bg-primary text-primary-foreground shadow-md ring-2 ring-primary/40"
+                  : "border border-primary/30 bg-card/95 text-primary hover:bg-primary/10"
+              )}
+            >
+              <MapPin className="h-3.5 w-3.5" />
+              {markMode && markType === "spot" ? i18n.t('common.cancel', { defaultValue: 'Abbrechen' }) : `+ ${i18n.t('bodyMap.spotMode')}`}
+            </button>
 
-          {/* Zone mark mode toggle */}
-          <button
-            onClick={() => { setMarkMode(markType === "zone" ? !markMode : true); setMarkType("zone"); }}
-            title={i18n.t('bodyMap3d.markZone', { defaultValue: 'Mark zone' })}
-            className={cn(
-              "flex h-7 items-center gap-1.5 rounded-md px-2.5 text-[10px] font-medium transition-all",
-              markMode && markType === "zone"
-                ? "bg-blue-600 text-white shadow-md"
-                : "border border-border/50 bg-card/80 text-muted-foreground hover:text-foreground"
-            )}
-          >
-            <Camera className="h-3 w-3" />
-            Zone
-          </button>
-
+            {/* Zone mark mode toggle */}
+            <button
+              onClick={() => { setMarkMode(markType === "zone" ? !markMode : true); setMarkType("zone"); }}
+              title={i18n.t('bodyMap3d.markZone', { defaultValue: 'Mark zone' })}
+              className={cn(
+                "flex h-8 items-center gap-1.5 rounded-md px-3 text-[11px] font-semibold transition-all shadow-sm",
+                markMode && markType === "zone"
+                  ? "bg-blue-600 text-white shadow-md ring-2 ring-blue-400/50"
+                  : "border border-blue-500/30 bg-card/95 text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-950/30"
+              )}
+            >
+              <Camera className="h-3.5 w-3.5" />
+              {markMode && markType === "zone" ? i18n.t('common.cancel', { defaultValue: 'Abbrechen' }) : `+ Zone`}
+            </button>
+          </div>
         </div>
 
-        {/* Mark mode indicator */}
+        {/* Mark mode indicator — prominent banner */}
         {markMode && (
           <div className={cn(
-            "absolute top-2 left-1/2 -translate-x-1/2 rounded-full px-3 py-1 text-[10px] font-semibold shadow-lg animate-pulse",
+            "absolute top-2 left-1/2 -translate-x-1/2 flex items-center gap-2 rounded-full px-4 py-2 text-xs font-semibold shadow-xl border-2",
             markType === "region"
-              ? "bg-amber-500 text-white"
+              ? "bg-amber-500 text-white border-amber-300"
               : markType === "zone"
-              ? "bg-blue-600 text-white"
-              : "bg-primary text-primary-foreground"
+              ? "bg-blue-600 text-white border-blue-300"
+              : "bg-primary text-primary-foreground border-primary/40"
           )}>
+            <span className="relative flex h-2.5 w-2.5">
+              <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-white opacity-75" />
+              <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-white" />
+            </span>
             {markType === "region"
               ? i18n.t('bodyMap3d.clickToSetRegion')
               : markType === "zone"
               ? i18n.t('bodyMap3d.clickToSetZone')
               : i18n.t('bodyMap3d.clickToSetSpot')
             }
+            <button
+              onClick={() => setMarkMode(false)}
+              className="ml-1 rounded-full bg-white/20 hover:bg-white/30 px-2 py-0.5 text-[10px]"
+            >
+              ✕
+            </button>
           </div>
         )}
 
