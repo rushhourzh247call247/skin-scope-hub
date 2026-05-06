@@ -442,7 +442,7 @@ const CompareLightbox = ({ pair, labels, startIndex, onClose }: CompareLightboxP
         </div>
 
         <div className="border-t border-border/40 bg-card/60 px-4 py-2 text-center text-[11px] text-muted-foreground safe-area-bottom">
-          Doppeltippen zum Zoomen · Wischen zum Wechseln
+          Doppeltippen zum Zoomen · Oben auf Älter/Neuer tippen zum Wechseln
         </div>
       </motion.div>
     </AnimatePresence>
@@ -458,7 +458,6 @@ interface SwipePagerProps {
 
 const SwipePager = ({ pair, labels, idx, setIdx }: SwipePagerProps) => {
   const [zoomed, setZoomed] = useState<[boolean, boolean]>([false, false]);
-  const anyZoomed = zoomed[0] || zoomed[1];
 
   return (
     <div className="relative h-full w-full overflow-hidden">
@@ -467,15 +466,6 @@ const SwipePager = ({ pair, labels, idx, setIdx }: SwipePagerProps) => {
         style={{ width: "200%" }}
         animate={{ x: `${idx * -50}%` }}
         transition={{ type: "spring", stiffness: 300, damping: 32, mass: 0.6 }}
-        drag={anyZoomed ? false : "x"}
-        dragConstraints={{ left: 0, right: 0 }}
-        dragElastic={0.25}
-        onDragEnd={(_, info) => {
-          const threshold = 40;
-          const velocity = info.velocity.x;
-          if ((info.offset.x < -threshold || velocity < -250) && idx === 0) setIdx(1);
-          else if ((info.offset.x > threshold || velocity > 250) && idx === 1) setIdx(0);
-        }}
       >
         {pair.map((img, i) => (
           <div key={img.id} className="flex h-full w-1/2 items-center justify-center px-2">
