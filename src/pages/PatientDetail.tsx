@@ -559,7 +559,7 @@ const PatientDetail = () => {
         open={batchPhotoOpen}
         onOpenChange={setBatchPhotoOpen}
         patientId={patientId}
-        spots={locations.filter(l => (l.type ?? "spot") === "spot") as any}
+        spots={locations.filter(l => (l.type ?? "spot") !== "overview") as any}
       />
 
       {/* Main Content */}
