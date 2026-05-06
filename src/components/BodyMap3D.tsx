@@ -1335,37 +1335,14 @@ const BodyMap3D: React.FC<BodyMap3DProps> = (props) => {
             <RotateCcw className="h-3 w-3" /> {i18n.t('common.reset')}
           </button>
 
-          <div className="ml-auto flex items-center gap-1.5">
-            {/* Spot mark mode toggle */}
+          {markMode && (
             <button
-              onClick={() => { setMarkMode(markType === "spot" ? !markMode : true); setMarkType("spot"); }}
-              title={i18n.t('bodyMap3d.markSpot')}
-              className={cn(
-                "flex h-8 items-center gap-1.5 rounded-md px-3 text-[11px] font-semibold transition-all shadow-sm",
-                markMode && markType === "spot"
-                  ? "bg-primary text-primary-foreground shadow-md ring-2 ring-primary/40"
-                  : "border border-primary/30 bg-card/95 text-primary hover:bg-primary/10"
-              )}
+              onClick={() => setMarkMode(false)}
+              className="ml-auto flex h-8 items-center gap-1 rounded-md border border-border/50 bg-card/90 px-2.5 text-[11px] text-muted-foreground transition-all hover:text-foreground"
             >
-              <MapPin className="h-3.5 w-3.5" />
-              {markMode && markType === "spot" ? i18n.t('common.cancel', { defaultValue: 'Abbrechen' }) : `+ ${i18n.t('bodyMap.spotMode')}`}
+              ✕ {i18n.t('common.cancel', { defaultValue: 'Abbrechen' })}
             </button>
-
-            {/* Zone mark mode toggle */}
-            <button
-              onClick={() => { setMarkMode(markType === "zone" ? !markMode : true); setMarkType("zone"); }}
-              title={i18n.t('bodyMap3d.markZone', { defaultValue: 'Mark zone' })}
-              className={cn(
-                "flex h-8 items-center gap-1.5 rounded-md px-3 text-[11px] font-semibold transition-all shadow-sm",
-                markMode && markType === "zone"
-                  ? "bg-blue-600 text-white shadow-md ring-2 ring-blue-400/50"
-                  : "border border-blue-500/30 bg-card/95 text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-950/30"
-              )}
-            >
-              <Camera className="h-3.5 w-3.5" />
-              {markMode && markType === "zone" ? i18n.t('common.cancel', { defaultValue: 'Abbrechen' }) : `+ Zone`}
-            </button>
-          </div>
+          )}
         </div>
 
         {/* Mark mode indicator — prominent banner */}
