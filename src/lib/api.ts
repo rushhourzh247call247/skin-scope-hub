@@ -441,6 +441,8 @@ export const api = {
     request<any>(`/locations/${locationId}`, { method: 'PUT', body: JSON.stringify({ name }) }),
   updateLocationStatus: (locationId: number, op_status: string) =>
     request<any>(`/locations/${locationId}`, { method: 'PUT', body: JSON.stringify({ op_status }) }),
+  updateLocationCoords: (locationId: number, data: { x?: number; y?: number; x3d?: number; y3d?: number; z3d?: number; nx?: number; ny?: number; nz?: number }) =>
+    request<any>(`/locations/${locationId}`, { method: 'PUT', body: JSON.stringify(data) }),
 
   // Classification
   updateClassification: (locationId: number, classification: LesionClassification) =>
