@@ -877,7 +877,7 @@ const PatientDetail = () => {
                     >
                       <button
                         className="flex items-center gap-2.5 flex-1 min-w-0 text-left"
-                        onClick={() => { setSelectedLocationId(loc.id); setActiveTab("uebersicht"); }}
+                        onClick={() => handleZoneListClick(loc.id)}
                       >
                         {firstImg ? (
                           <img src={api.resolveImageSrc(firstImg)} alt={loc.name} className="h-6 w-6 rounded object-cover shrink-0" />
