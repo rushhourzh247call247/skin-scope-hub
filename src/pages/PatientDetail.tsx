@@ -1363,6 +1363,27 @@ const PatientDetail = () => {
                                   toast.error(t("patientDetail.spotCreateError"));
                                 }
                               }}
+                              onMovePin={async (pinId, x_pct, y_pct, overviewLocId) => {
+                                // Mirror the pin move onto the linked spot's 3D anchor
+                                const zone = overviewLocations.find(l => l.id === overviewLocId);
+                                const zoneEntry = allZonePins.find(zp => zp.zoneId === overviewLocId);
+                                const pin = zoneEntry?.pins.find((p: any) => p.id === pinId);
+                                if (!zone || !pin?.linked_location_id) return;
+                                if (zone.x3d == null || zone.y3d == null) return;
+                                const SPREAD = 0.36;
+                                const offsetX = (((x_pct ?? 50) - 50) / 100) * SPREAD;
+                                const offsetY = -(((y_pct ?? 50) - 50) / 100) * SPREAD;
+                                try {
+                                  await api.updateLocationCoords(pin.linked_location_id, {
+                                    x3d: zone.x3d + offsetX,
+                                    y3d: zone.y3d + offsetY,
+                                    z3d: zone.z3d,
+                                  });
+                                  queryClient.invalidateQueries({ queryKey: ["full-patient", patientId] });
+                                } catch {
+                                  toast.error(t("patientDetail.spotCreateError"));
+                                }
+                              }}
                             />
                             </div>
                           ))}
