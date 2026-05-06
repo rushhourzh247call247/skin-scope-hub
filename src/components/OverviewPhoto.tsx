@@ -200,6 +200,8 @@ const OverviewPhoto = ({ overviewLocation, spotLocations, patientId, onNavigateT
     window.addEventListener('pointermove', move);
     window.addEventListener('pointerup', up);
   }, [editMode, movePinMutation]);
+
+  const uploadMutation = useMutation({
     mutationFn: (file: File) => api.uploadImage(overviewLocation.id, file),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["full-patient", patientId] });
