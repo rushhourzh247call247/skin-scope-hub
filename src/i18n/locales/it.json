@@ -93,6 +93,12 @@
     "tooManyAttempts": "Troppi tentativi di accesso. Attendi {{minutes}} minuto/i.",
     "locked": "Bloccato",
     "lockedCountdown": "Bloccato ({{countdown}})",
+    "next": "Avanti",
+    "pmaName": {
+      "label": "Il tuo nome (AM)",
+      "placeholder": "es. Sarah",
+      "hint": "Salvato come informazione di audit per upload e cartelle pazienti."
+    },
     "twoFactor": {
       "subtitle": "Inserisci il codice dalla tua app Authenticator",
       "codeLabel": "Codice a 6 cifre",
