@@ -137,27 +137,92 @@ const SpotLightbox = ({ open, onClose, images, locationName, onCompare, initialI
             </button>
           )}
 
-          <AnimatePresence mode="wait" initial={false}>
-            <motion.div
+          <div
+            className="flex h-full w-full touch-none items-center justify-center overflow-hidden p-4"
+            onWheel={(e) => {
+              e.preventDefault();
+              const delta = -e.deltaY * 0.0015;
+              setZoom(z => {
+                const nz = Math.min(5, Math.max(1, z + delta * z));
+                if (nz === 1) setPan({ x: 0, y: 0 });
+                return nz;
+              });
+            }}
+            onDoubleClick={() => {
+              setZoom(z => (z > 1 ? 1 : 2));
+              setPan({ x: 0, y: 0 });
+            }}
+            onTouchStart={(e) => {
+              if (e.touches.length === 2) {
+                const dx = e.touches[0].clientX - e.touches[1].clientX;
+                const dy = e.touches[0].clientY - e.touches[1].clientY;
+                pinchRef.current = { startDist: Math.hypot(dx, dy), startZoom: zoom, startPan: pan };
+              } else if (e.touches.length === 1 && zoom > 1) {
+                panRef.current = { startX: e.touches[0].clientX, startY: e.touches[0].clientY, startPan: pan };
+              } else if (e.touches.length === 1) {
+                touchStartX.current = e.touches[0].clientX;
+              }
+            }}
+            onTouchMove={(e) => {
+              if (e.touches.length === 2 && pinchRef.current) {
+                e.preventDefault();
+                const dx = e.touches[0].clientX - e.touches[1].clientX;
+                const dy = e.touches[0].clientY - e.touches[1].clientY;
+                const dist = Math.hypot(dx, dy);
+                const ratio = dist / pinchRef.current.startDist;
+                const nz = Math.min(5, Math.max(1, pinchRef.current.startZoom * ratio));
+                setZoom(nz);
+                if (nz === 1) setPan({ x: 0, y: 0 });
+              } else if (e.touches.length === 1 && panRef.current && zoom > 1) {
+                e.preventDefault();
+                const dx = e.touches[0].clientX - panRef.current.startX;
+                const dy = e.touches[0].clientY - panRef.current.startY;
+                setPan({ x: panRef.current.startPan.x + dx, y: panRef.current.startPan.y + dy });
+              }
+            }}
+            onTouchEnd={(e) => {
+              if (e.touches.length < 2) pinchRef.current = null;
+              if (e.touches.length === 0) {
+                if (zoom <= 1 && touchStartX.current != null) {
+                  const dx = (e.changedTouches[0]?.clientX ?? touchStartX.current) - touchStartX.current;
+                  if (dx < -60) go(1);
+                  else if (dx > 60) go(-1);
+                }
+                touchStartX.current = null;
+                panRef.current = null;
+              }
+            }}
+            onPointerDown={(e) => {
+              if (e.pointerType === "mouse" && zoom > 1) {
+                panRef.current = { startX: e.clientX, startY: e.clientY, startPan: pan };
+                (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
+              }
+            }}
+            onPointerMove={(e) => {
+              if (e.pointerType === "mouse" && panRef.current && zoom > 1) {
+                const dx = e.clientX - panRef.current.startX;
+                const dy = e.clientY - panRef.current.startY;
+                setPan({ x: panRef.current.startPan.x + dx, y: panRef.current.startPan.y + dy });
+              }
+            }}
+            onPointerUp={(e) => {
+              if (e.pointerType === "mouse") panRef.current = null;
+            }}
+            style={{ cursor: zoom > 1 ? (panRef.current ? "grabbing" : "grab") : "default" }}
+          >
+            <img
               key={current.id}
-              drag="x"
-              dragConstraints={{ left: 0, right: 0 }}
-              dragElastic={0.2}
-              onDragEnd={handleDragEnd}
-              initial={{ opacity: 0, scale: 0.96 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.96 }}
-              transition={{ duration: 0.15 }}
-              className="flex h-full w-full touch-pan-y items-center justify-center p-4"
-            >
-              <img
-                src={api.resolveImageSrc(current)}
-                alt={`${t('imageGallery.recording')} ${index + 1}`}
-                className="h-full w-full select-none rounded-lg object-contain shadow-2xl"
-                draggable={false}
-              />
-            </motion.div>
-          </AnimatePresence>
+              src={api.resolveImageSrc(current)}
+              alt={`${t('imageGallery.recording')} ${index + 1}`}
+              className="max-h-full max-w-full select-none rounded-lg object-contain shadow-2xl"
+              draggable={false}
+              style={{
+                transform: `translate(${pan.x}px, ${pan.y}px) scale(${zoom})`,
+                transformOrigin: "center center",
+                transition: panRef.current || pinchRef.current ? "none" : "transform 0.15s ease-out",
+              }}
+            />
+          </div>
         </div>
 
         {/* Footer: meta + history dots */}
