@@ -469,6 +469,12 @@ export const api = {
   deleteImage: (imageId: number) =>
     request<{ success: boolean }>(`/images/${imageId}`, { method: 'DELETE' }),
 
+  moveImage: (imageId: number, targetLocationId: number) =>
+    request<{ success: boolean }>(`/images/${imageId}/move`, {
+      method: 'PUT',
+      body: JSON.stringify({ target_location_id: targetLocationId }),
+    }),
+
   // Image notes
   updateImageNote: (imageId: number, note: string) =>
     request<any>(`/images/${imageId}/note`, { method: 'PUT', body: JSON.stringify({ note }) }),
