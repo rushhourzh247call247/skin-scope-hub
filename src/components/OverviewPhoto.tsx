@@ -666,9 +666,9 @@ const OverviewPhoto = ({ overviewLocation, spotLocations, patientId, onNavigateT
                 >
                   <span
                     className="flex items-center justify-center rounded-full text-[10px] font-bold text-white shadow-md border-2 border-white"
-                    style={{ width: 26, height: 26, backgroundColor: isDragging ? color : "#ef4444" }}
+                    style={{ width: 26, height: 26, backgroundColor: color }}
                   >
-                    {isDragging ? <Move className="h-3.5 w-3.5" /> : <Trash2 className="h-3.5 w-3.5" />}
+                    <Move className="h-3.5 w-3.5" />
                   </span>
                 </button>
               ) : (
