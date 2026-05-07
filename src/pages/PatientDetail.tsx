@@ -678,6 +678,7 @@ const PatientDetail = () => {
         onOpenChange={setBatchPhotoOpen}
         patientId={patientId}
         spots={locations.filter(l => (l.type ?? "spot") !== "overview") as any}
+        gender={patient.gender}
       />
 
       <ZoneCreatorDialog
