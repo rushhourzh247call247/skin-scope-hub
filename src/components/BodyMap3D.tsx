@@ -1448,9 +1448,11 @@ const BodyMap3D: React.FC<BodyMap3DProps> = (props) => {
         )}
 
         {/* 3D Badge */}
-        <div className="absolute left-2 top-2 rounded-md border border-primary/20 bg-primary/10 px-2 py-0.5 text-[10px] font-semibold text-primary">
-          3D
-        </div>
+        {!props.embedded && (
+          <div className="absolute left-2 top-2 rounded-md border border-primary/20 bg-primary/10 px-2 py-0.5 text-[10px] font-semibold text-primary">
+            3D
+          </div>
+        )}
 
         {/* Classification Legend / Filter */}
         {(() => {
