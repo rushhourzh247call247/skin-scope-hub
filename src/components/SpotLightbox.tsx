@@ -38,6 +38,11 @@ const SpotLightbox = ({ open, onClose, images, locationName, onCompare, initialI
   );
   const [index, setIndex] = useState(sorted.length - 1);
   const touchStartX = useRef<number | null>(null);
+  const [zoom, setZoom] = useState(1);
+  const [pan, setPan] = useState({ x: 0, y: 0 });
+  const pinchRef = useRef<{ startDist: number; startZoom: number; startPan: { x: number; y: number } } | null>(null);
+  const panRef = useRef<{ startX: number; startY: number; startPan: { x: number; y: number } } | null>(null);
+  const resetZoom = useCallback(() => { setZoom(1); setPan({ x: 0, y: 0 }); }, []);
 
   useEffect(() => {
     if (!open) return;
