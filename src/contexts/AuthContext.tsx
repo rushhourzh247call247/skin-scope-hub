@@ -126,20 +126,21 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     };
   }, [performLogout, syncCurrentUser]);
 
-  const setSession = useCallback((u: User, t: string) => {
-    setUser(u);
+  const setSession = useCallback((u: User, t: string, displayName?: string | null) => {
+    const userWithDisplay = displayName ? { ...u, display_name: displayName } : u;
+    setUser(userWithDisplay);
     setToken(t);
     api.setToken(t);
     sessionStorage.setItem("auth_token", t);
-    sessionStorage.setItem("auth_user", JSON.stringify(u));
+    sessionStorage.setItem("auth_user", JSON.stringify(userWithDisplay));
 
-    if (!hasLifecycleData(u)) {
+    if (!hasLifecycleData(userWithDisplay)) {
       void syncCurrentUser().catch(() => undefined);
     }
   }, [syncCurrentUser]);
 
-  const login = useCallback(async (email: string, password: string) => {
-    const res = await api.login({ email, password });
+  const login = useCallback(async (email: string, password: string, displayName?: string) => {
+    const res = await api.login({ email, password, ...(displayName ? { display_name: displayName } : {}) });
     return res;
   }, []);
 
