@@ -166,7 +166,7 @@ const Login = () => {
                     required
                     value={displayName}
                     onChange={(e) => setDisplayName(e.target.value)}
-                    placeholder="z. B. Sandra"
+                    placeholder="z. B. Sarah"
                     autoFocus
                     disabled={isLocked}
                   />
