@@ -78,6 +78,10 @@ interface BodyMap3DProps {
   selectedZoneId?: number | null;
   /** When set, only these spot IDs are visually highlighted; others are dimmed. */
   highlightedSpotIds?: number[] | null;
+  /** When true, non-selected spots render dimmed (faded) instead of hidden. */
+  dimNonSelected?: boolean;
+  /** When true, hides all UI overlays (filter, badge, controls) for embed/preview use. */
+  embedded?: boolean;
   /** When set, this spot's marker is replaced by a draggable handle on the body surface. */
   editSpotId?: number | null;
   /** Called while dragging the edit-spot handle. */
