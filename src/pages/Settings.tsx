@@ -235,29 +235,29 @@ const Settings = () => {
         </CardHeader>
         <CardContent>
           {twoFactorEnabled ? (
-            <div className="flex items-center justify-between rounded-lg border border-primary/20 bg-primary/5 p-4">
-              <div className="flex items-center gap-3">
-                <ShieldCheck className="h-6 w-6 text-primary" />
-                <div>
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 rounded-lg border border-primary/20 bg-primary/5 p-4">
+              <div className="flex items-start gap-3 min-w-0">
+                <ShieldCheck className="h-6 w-6 text-primary shrink-0" />
+                <div className="min-w-0">
                   <p className="font-medium text-foreground">{t("settings.twoFactor.active")}</p>
                   <p className="text-sm text-muted-foreground">{t("settings.twoFactor.activeDescription")}</p>
                 </div>
               </div>
-              <Button variant="outline" size="sm" onClick={handleDisable2FA} disabled={isReadOnly} title={isReadOnly ? readOnlyTooltip : undefined} className="text-destructive hover:bg-destructive/10">
+              <Button variant="outline" size="sm" onClick={handleDisable2FA} disabled={isReadOnly} title={isReadOnly ? readOnlyTooltip : undefined} className="text-destructive hover:bg-destructive/10 w-full sm:w-auto shrink-0">
                 <ShieldOff className="mr-2 h-4 w-4" />
                 {t("settings.twoFactor.disable")}
               </Button>
             </div>
           ) : (
-            <div className="flex items-center justify-between rounded-lg border p-4">
-              <div className="flex items-center gap-3">
-                <Shield className="h-6 w-6 text-muted-foreground" />
-                <div>
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 rounded-lg border p-4">
+              <div className="flex items-start gap-3 min-w-0">
+                <Shield className="h-6 w-6 text-muted-foreground shrink-0" />
+                <div className="min-w-0">
                   <p className="font-medium text-foreground">{t("settings.twoFactor.inactive")}</p>
                   <p className="text-sm text-muted-foreground">{t("settings.twoFactor.inactiveDescription")}</p>
                 </div>
               </div>
-              <Button onClick={handleEnable2FA} disabled={isReadOnly || setupLoading} title={isReadOnly ? readOnlyTooltip : undefined} size="sm">
+              <Button onClick={handleEnable2FA} disabled={isReadOnly || setupLoading} title={isReadOnly ? readOnlyTooltip : undefined} size="sm" className="w-full sm:w-auto shrink-0">
                 <Lock className="mr-2 h-4 w-4" />
                 {setupLoading ? t("settings.twoFactor.enableLoading") : t("settings.twoFactor.enable")}
               </Button>
