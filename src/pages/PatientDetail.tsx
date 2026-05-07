@@ -1009,15 +1009,16 @@ const PatientDetail = () => {
             const renderSpotItem = (loc: typeof visibleSpots[0], i: number) => (
               <div
                 key={loc.id}
+                ref={selectedLocationId === loc.id ? selectedSpotListItemRef : undefined}
                 className={cn(
-                  "group flex w-full items-center gap-2.5 rounded-md px-2.5 py-2 text-left transition-all text-xs",
+                  "group flex w-full items-center gap-2 rounded-md px-2 py-1 text-left transition-all text-xs",
                   selectedLocationId === loc.id
-                    ? "bg-primary/10 text-primary border border-primary/20"
-                    : "hover:bg-muted text-foreground border border-transparent"
+                    ? "bg-primary/10 text-primary ring-1 ring-primary/25"
+                    : "hover:bg-muted text-foreground"
                 )}
               >
                 <button
-                  className="flex flex-1 touch-manipulation items-center gap-2.5 min-w-0"
+                  className="flex min-w-0 flex-1 touch-manipulation items-center gap-2"
                   onClick={() => handleSpotListClick(loc.id)}
                 >
                   {(() => {
@@ -1036,9 +1037,8 @@ const PatientDetail = () => {
                       </div>
                     );
                   })()}
-                  <div className="min-w-0 flex-1">
-                    <div className="flex items-center gap-1.5">
-                      <p className="truncate font-medium">{translateAnatomyName(loc.name) || `Spot ${i + 1}`}</p>
+                  <div className="flex min-w-0 flex-1 items-center gap-1.5">
+                    <p className="truncate font-medium">{translateAnatomyName(loc.name) || `Spot ${i + 1}`}</p>
                       {(() => {
                         const cls = (loc as any).classification as LesionClassification | undefined;
                         if (!cls || cls === "unclassified") return null;
@@ -1074,10 +1074,6 @@ const PatientDetail = () => {
                           </span>
                         );
                       })()}
-                    </div>
-                    <p className="text-[10px] text-muted-foreground">
-                      {loc.images?.length ?? 0} {t('common.images')} · {loc.view === "back" ? t('common.backSide') : t('common.front')}
-                    </p>
                   </div>
                 </button>
                 <button
