@@ -10,6 +10,8 @@ import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import type { Location, LocationImage } from "@/types/patient";
 import { formatDate } from "@/lib/dateUtils";
+import { FrontBody, BackBody } from "@/components/BodyMapSvg";
+import { getAnatomicalName } from "@/lib/anatomyLookup";
 
 type SpotLoc = Location & { images: LocationImage[] };
 
@@ -199,30 +201,91 @@ export default function BatchPhotoSession({ open, onOpenChange, patientId, spots
             </div>
           ) : !currentSpot ? null : (
             <div className="space-y-4">
-              {/* Spot info card */}
-              <div className="rounded-lg border bg-card p-3 flex items-center gap-3">
-                {lastImageBySpot[currentSpot.id] ? (
-                  <img
-                    src={api.resolveImageSrc(lastImageBySpot[currentSpot.id]!)}
-                    alt=""
-                    className="h-14 w-14 rounded-full object-cover border-2 border-primary/30"
-                  />
-                ) : (
-                  <div className="h-14 w-14 rounded-full bg-muted flex items-center justify-center">
-                    <Camera className="h-5 w-5 text-muted-foreground" />
+              {/* Spot info card with reference photo + mini body map */}
+              {(() => {
+                const lastImg = lastImageBySpot[currentSpot.id];
+                const view = (currentSpot.view ?? "front") as "front" | "back";
+                const anatomical = (typeof currentSpot.x3d === 'number' && typeof currentSpot.y3d === 'number' && typeof currentSpot.z3d === 'number')
+                  ? getAnatomicalName(currentSpot.x3d, currentSpot.y3d, currentSpot.z3d, view)
+                  : null;
+                // 2D marker pos (x,y in 0-100 percentages stored on location)
+                const markerX = typeof currentSpot.x === 'number' ? currentSpot.x : 50;
+                const markerY = typeof currentSpot.y === 'number' ? currentSpot.y : 50;
+                return (
+                  <div className="rounded-lg border bg-card p-3 space-y-3">
+                    {/* Header: spot number badge + name + anatomy */}
+                    <div className="flex items-center gap-2">
+                      <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-primary text-primary-foreground text-sm font-bold tabular-nums">
+                        {index + 1}
+                      </div>
+                      <div className="min-w-0 flex-1">
+                        <p className="text-sm font-semibold truncate">
+                          {currentSpot.name || `Spot #${currentSpot.id}`}
+                        </p>
+                        {anatomical && (
+                          <p className="text-[11px] text-primary font-medium truncate">
+                            {anatomical} · {view === 'front' ? 'Vorne' : 'Hinten'}
+                          </p>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Visual orientation: reference photo + mini body map */}
+                    <div className="grid grid-cols-[1fr_auto] gap-3">
+                      <div className="relative rounded-md overflow-hidden bg-muted aspect-square border">
+                        {lastImg ? (
+                          <>
+                            <img
+                              src={api.resolveImageSrc(lastImg)}
+                              alt=""
+                              className="h-full w-full object-cover"
+                            />
+                            <div className="absolute bottom-0 inset-x-0 bg-gradient-to-t from-black/80 to-transparent px-2 py-1">
+                              <p className="text-[10px] text-white font-medium">
+                                Letztes Foto · {lastImg.created_at ? formatDate(lastImg.created_at, 'dd.MM.yyyy') : '–'}
+                              </p>
+                            </div>
+                          </>
+                        ) : (
+                          <div className="h-full w-full flex flex-col items-center justify-center text-muted-foreground gap-1">
+                            <Camera className="h-6 w-6" />
+                            <span className="text-[10px]">Erstes Foto</span>
+                          </div>
+                        )}
+                      </div>
+                      {/* Mini body map */}
+                      <div className="relative w-20 rounded-md border bg-background overflow-hidden">
+                        <svg viewBox="0 0 200 500" className="h-full w-full">
+                          <g opacity="0.5">
+                            {view === 'front' ? <FrontBody /> : <BackBody />}
+                          </g>
+                          {/* Marker */}
+                          <circle
+                            cx={(markerX / 100) * 200}
+                            cy={(markerY / 100) * 500}
+                            r="14"
+                            fill="hsl(var(--primary))"
+                            opacity="0.25"
+                          >
+                            <animate attributeName="r" values="10;18;10" dur="1.6s" repeatCount="indefinite" />
+                          </circle>
+                          <circle
+                            cx={(markerX / 100) * 200}
+                            cy={(markerY / 100) * 500}
+                            r="6"
+                            fill="hsl(var(--primary))"
+                            stroke="white"
+                            strokeWidth="2"
+                          />
+                        </svg>
+                        <div className="absolute top-1 left-1 right-1 text-center text-[9px] font-semibold uppercase tracking-wide text-muted-foreground bg-background/80 rounded">
+                          {view === 'front' ? 'Vorne' : 'Hinten'}
+                        </div>
+                      </div>
+                    </div>
                   </div>
-                )}
-                <div className="min-w-0 flex-1">
-                  <p className="text-sm font-semibold truncate">
-                    {currentSpot.name || `Spot #${currentSpot.id}`}
-                  </p>
-                  <p className="text-[11px] text-muted-foreground">
-                    {lastImageBySpot[currentSpot.id]?.created_at
-                      ? `Letztes Foto: ${formatDate(lastImageBySpot[currentSpot.id]!.created_at!, 'dd.MM.yyyy')}`
-                      : 'Noch kein Foto'}
-                  </p>
-                </div>
-              </div>
+                );
+              })()}
 
               {/* Preview area */}
               {previewUrl ? (

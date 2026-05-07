@@ -457,4 +457,5 @@ const BackBody = () => (
   </g>
 );
 
+export { FrontBody, BackBody };
 export default BodyMapSvg;
