@@ -159,19 +159,19 @@ const Login = () => {
               </div>
               {needsDisplayName && (
                 <div className="space-y-2 rounded-md border border-primary/30 bg-primary/5 p-3">
-                  <Label htmlFor="display-name">Dein Name (PMA)</Label>
+                  <Label htmlFor="display-name">{t("login.pmaName.label")}</Label>
                   <Input
                     id="display-name"
                     type="text"
                     required
                     value={displayName}
                     onChange={(e) => setDisplayName(e.target.value)}
-                    placeholder="z. B. Sarah"
+                    placeholder={t("login.pmaName.placeholder")}
                     autoFocus
                     disabled={isLocked}
                   />
                   <p className="text-[11px] text-muted-foreground">
-                    Wird bei Uploads und Patientenanlagen als Audit-Information gespeichert.
+                    {t("login.pmaName.hint")}
                   </p>
                 </div>
               )}
@@ -180,7 +180,7 @@ const Login = () => {
                   ? t("login.lockedCountdown", { countdown: formatCountdown(countdown) })
                   : loading
                     ? t("login.submitting")
-                    : <><LogIn className="mr-2 h-4 w-4" /> {needsDisplayName ? "Weiter" : t("login.submit")}</>}
+                    : <><LogIn className="mr-2 h-4 w-4" /> {needsDisplayName ? t("login.next") : t("login.submit")}</>}
               </Button>
             </form>
           ) : (

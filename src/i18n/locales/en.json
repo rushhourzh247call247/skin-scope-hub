@@ -93,6 +93,12 @@
     "tooManyAttempts": "Too many login attempts. Please wait {{minutes}} minute(s).",
     "locked": "Locked",
     "lockedCountdown": "Locked ({{countdown}})",
+    "next": "Continue",
+    "pmaName": {
+      "label": "Your name (MA)",
+      "placeholder": "e.g. Sarah",
+      "hint": "Saved as audit information for uploads and patient records."
+    },
     "twoFactor": {
       "subtitle": "Enter the code from your Authenticator app",
       "codeLabel": "6-digit code",

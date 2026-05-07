@@ -93,6 +93,12 @@
     "tooManyAttempts": "Trop de tentatives. Veuillez attendre {{minutes}} minute(s).",
     "locked": "Bloqué",
     "lockedCountdown": "Bloqué ({{countdown}})",
+    "next": "Continuer",
+    "pmaName": {
+      "label": "Votre nom (AM)",
+      "placeholder": "p. ex. Sarah",
+      "hint": "Enregistré comme information d'audit pour les téléchargements et dossiers patients."
+    },
     "twoFactor": {
       "subtitle": "Entrez le code de votre application Authenticator",
       "codeLabel": "Code à 6 chiffres",
