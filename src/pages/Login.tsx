@@ -67,19 +67,23 @@ const Login = () => {
     setError("");
     setLoading(true);
     try {
-      const res = await login(email, password);
+      const res = await login(email, password, needsDisplayName ? displayName.trim() : undefined);
       if (res.user?.two_factor_enabled) {
         setPendingUser(res.user);
         setPendingToken(res.token);
         api.setToken(res.token);
         setNeeds2FA(true);
       } else {
-        setSession(res.user, res.token);
-        navigate("/");
+        setSession(res.user, res.token, res.display_name ?? null);
+        // PMA → direkt zur Patientenliste
+        navigate(res.user?.role === "pma" ? "/patients" : "/");
       }
     } catch (err: any) {
       if (err?.status === 429) {
         handleRateLimitError(err);
+      } else if (err?.status === 422 && err?.payload?.requires_display_name) {
+        setNeedsDisplayName(true);
+        setError("");
       } else if (err?.suspended) {
         setError(err.message || t("login.accountSuspended"));
       } else {
