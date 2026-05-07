@@ -31,6 +31,94 @@ const Settings = () => {
   const [confirmPassword, setConfirmPassword] = useState("");
   const [passwordLoading, setPasswordLoading] = useState(false);
 
+  // PMA-Account-Verwaltung (für Admin/Arzt der Firma)
+  const canManagePma = user?.role === "admin" || user?.role === "user";
+  const [pmaAccount, setPmaAccount] = useState<any | null>(null);
+  const [pmaLoading, setPmaLoading] = useState(false);
+  const [pmaCreateOpen, setPmaCreateOpen] = useState(false);
+  const [pmaPwOpen, setPmaPwOpen] = useState(false);
+  const [pmaEmail, setPmaEmail] = useState("");
+  const [pmaPassword, setPmaPassword] = useState("");
+  const [pmaNewPassword, setPmaNewPassword] = useState("");
+
+  useEffect(() => {
+    if (!canManagePma) return;
+    api.getPmaAccount().then((res) => setPmaAccount(res.pma_account)).catch(() => {});
+  }, [canManagePma]);
+
+  const refreshPma = async () => {
+    try {
+      const res = await api.getPmaAccount();
+      setPmaAccount(res.pma_account);
+    } catch {}
+  };
+
+  const handleCreatePma = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (pmaPassword.length < 6) {
+      toast.error("Passwort mindestens 6 Zeichen");
+      return;
+    }
+    setPmaLoading(true);
+    try {
+      await api.createPmaAccount({ email: pmaEmail, password: pmaPassword, name: "PMA" });
+      toast.success("PMA-Account angelegt");
+      setPmaCreateOpen(false);
+      setPmaEmail("");
+      setPmaPassword("");
+      await refreshPma();
+    } catch (err: any) {
+      toast.error(err?.message || "Anlegen fehlgeschlagen");
+    } finally {
+      setPmaLoading(false);
+    }
+  };
+
+  const handleChangePmaPassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (pmaNewPassword.length < 6) {
+      toast.error("Passwort mindestens 6 Zeichen");
+      return;
+    }
+    setPmaLoading(true);
+    try {
+      await api.updatePmaAccount({ password: pmaNewPassword });
+      toast.success("PMA-Passwort geändert (alle Sessions invalidiert)");
+      setPmaPwOpen(false);
+      setPmaNewPassword("");
+    } catch (err: any) {
+      toast.error(err?.message || "Aktualisierung fehlgeschlagen");
+    } finally {
+      setPmaLoading(false);
+    }
+  };
+
+  const handleTogglePmaSuspend = async () => {
+    setPmaLoading(true);
+    try {
+      await api.updatePmaAccount({ suspended: !pmaAccount?.suspended_at });
+      await refreshPma();
+      toast.success(pmaAccount?.suspended_at ? "PMA-Account aktiviert" : "PMA-Account deaktiviert");
+    } catch (err: any) {
+      toast.error(err?.message || "Aktualisierung fehlgeschlagen");
+    } finally {
+      setPmaLoading(false);
+    }
+  };
+
+  const handleDeletePma = async () => {
+    setPmaLoading(true);
+    try {
+      await api.deletePmaAccount();
+      setPmaAccount(null);
+      toast.success("PMA-Account gelöscht");
+    } catch (err: any) {
+      toast.error(err?.message || "Löschen fehlgeschlagen");
+    } finally {
+      setPmaLoading(false);
+    }
+  };
+
   const handleEnable2FA = async () => {
     setSetupLoading(true);
     try {
