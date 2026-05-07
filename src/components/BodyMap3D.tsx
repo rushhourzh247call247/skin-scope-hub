@@ -1129,6 +1129,24 @@ function Scene({ markers, selectedLocationId, onMapClick, onMarkerClick, onMarke
         if (highlightedSpotIds && highlightedSpotIds.length > 0 && !highlightedSpotIds.includes(m.id)) {
           return null;
         }
+        const isSelected = m.id === selectedLocationId;
+        // Dimmed mode: non-selected spots become tiny faint dots so the active spot stands out
+        if (dimNonSelected && !isSelected) {
+          return (
+            <SurfaceProjectedGroup
+              key={`spot-dim-${m.id}`}
+              approxPosition={hasCoords ? coords2Dto3D(m.x, m.y, m.view) : [m.x3d!, m.y3d!, m.z3d!]}
+              view={m.view}
+              storedPosition={m.x3d != null && m.y3d != null && m.z3d != null ? [m.x3d, m.y3d, m.z3d] : undefined}
+              storedNormal={m.nx != null && m.ny != null && m.nz != null && (m.nx !== 0 || m.ny !== 0 || m.nz !== 0) ? [m.nx, m.ny, m.nz] : undefined}
+            >
+              <mesh>
+                <circleGeometry args={[0.012, 16]} />
+                <meshBasicMaterial color={m.classificationColor || "#94a3b8"} transparent opacity={0.35} depthTest={false} side={THREE.DoubleSide} />
+              </mesh>
+            </SurfaceProjectedGroup>
+          );
+        }
         return (
           <SurfaceProjectedGroup
             key={`spot-${m.id}`}
@@ -1142,7 +1160,7 @@ function Scene({ markers, selectedLocationId, onMapClick, onMarkerClick, onMarke
               name={translateAnatomyName(m.name)}
               index={i}
               labelOffset={spotLabelOffsets.get(m.id)}
-              isSelected={m.id === selectedLocationId}
+              isSelected={isSelected}
               onClick={() => onMarkerClick?.(m.id)}
               imageCount={m.imageCount}
               findingCount={m.findingCount}
