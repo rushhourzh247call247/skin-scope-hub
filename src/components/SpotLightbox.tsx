@@ -8,6 +8,7 @@ import { cn } from "@/lib/utils";
 import { api } from "@/lib/api";
 import { formatDate } from "@/lib/dateUtils";
 import type { LocationImage } from "@/types/patient";
+import { useAuth } from "@/contexts/AuthContext";
 
 interface SpotLightboxProps {
   open: boolean;
@@ -27,6 +28,8 @@ const riskColor = (level?: string | null) => {
 
 const SpotLightbox = ({ open, onClose, images, locationName, onCompare }: SpotLightboxProps) => {
   const { t } = useTranslation();
+  const { user } = useAuth();
+  const isPma = user?.role === "pma";
   const sorted = useMemo(
     () => [...images].sort((a, b) => new Date(a.created_at ?? 0).getTime() - new Date(b.created_at ?? 0).getTime()),
     [images],
@@ -84,7 +87,7 @@ const SpotLightbox = ({ open, onClose, images, locationName, onCompare }: SpotLi
               {t('imageGallery.recording')} {index + 1} / {sorted.length}
             </p>
           </div>
-          {sorted.length >= 2 && onCompare && (
+          {sorted.length >= 2 && onCompare && !isPma && (
             <Button size="sm" variant="outline" onClick={onCompare} className="gap-1.5">
               <GitCompareArrows className="h-3.5 w-3.5" />
               <span>{t('imageGallery.compare')}</span>
@@ -153,7 +156,7 @@ const SpotLightbox = ({ open, onClose, images, locationName, onCompare }: SpotLi
             <span className="tabular-nums">
               {current.created_at ? formatDate(current.created_at, "dd.MM.yyyy") : "–"}
             </span>
-            {current.risk_level && (
+            {current.risk_level && !isPma && (
               <>
                 <span className="mx-1 opacity-40">•</span>
                 <span className="capitalize">{current.risk_level}</span>
@@ -169,7 +172,7 @@ const SpotLightbox = ({ open, onClose, images, locationName, onCompare }: SpotLi
                 className={cn(
                   "h-2 rounded-full transition-all",
                   i === index ? "w-6" : "w-2 opacity-50 hover:opacity-80",
-                  riskColor(img.risk_level),
+                  isPma ? "bg-muted-foreground/40" : riskColor(img.risk_level),
                 )}
               />
             ))}

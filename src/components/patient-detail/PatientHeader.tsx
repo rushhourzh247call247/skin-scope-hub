@@ -18,19 +18,23 @@ interface PatientHeaderProps {
   totalImages: number;
   onStartBatchPhoto?: () => void;
   batchPhotoDisabled?: boolean;
+  hideClinicalTabs?: boolean;
 }
 
-export default function PatientHeader({ patient, activeTab, setActiveTab, locationCount, totalImages, onStartBatchPhoto, batchPhotoDisabled }: PatientHeaderProps) {
+export default function PatientHeader({ patient, activeTab, setActiveTab, locationCount, totalImages, onStartBatchPhoto, batchPhotoDisabled, hideClinicalTabs }: PatientHeaderProps) {
   const { t } = useTranslation();
   const navigate = useNavigate();
 
-  const tabs = [
+  const allTabs = [
     { key: "akte" as const, icon: ClipboardList, label: t('patientDetail.tabs.chart') },
     { key: "spots" as const, icon: MapPin, label: t('patientDetail.tabs.spots') },
     { key: "uebersicht" as const, icon: Eye, label: t('patientDetail.tabs.overview') },
     { key: "fotos" as const, icon: Camera, label: t('patientDetail.tabs.photos') },
     { key: "berichte" as const, icon: FileDown, label: t('patientDetail.tabs.reports') },
   ];
+  const tabs = hideClinicalTabs
+    ? allTabs.filter(t => t.key === "spots" || t.key === "uebersicht" || t.key === "fotos")
+    : allTabs;
 
   return (
     <div className="border-b bg-card px-3 py-2 lg:px-4 lg:py-3">
