@@ -151,18 +151,36 @@ const Login = () => {
               )}
               <div className="space-y-2">
                 <Label htmlFor="email">{t("login.email")}</Label>
-                <Input id="email" type="email" required value={email} onChange={(e) => setEmail(e.target.value)} placeholder={t("login.emailPlaceholder")} disabled={isLocked} />
+                <Input id="email" type="email" required value={email} onChange={(e) => { setEmail(e.target.value); setNeedsDisplayName(false); }} placeholder={t("login.emailPlaceholder")} disabled={isLocked || needsDisplayName} />
               </div>
               <div className="space-y-2">
                 <Label htmlFor="password">{t("login.password")}</Label>
-                <Input id="password" type="password" required value={password} onChange={(e) => setPassword(e.target.value)} placeholder={t("login.passwordPlaceholder")} disabled={isLocked} />
+                <Input id="password" type="password" required value={password} onChange={(e) => { setPassword(e.target.value); setNeedsDisplayName(false); }} placeholder={t("login.passwordPlaceholder")} disabled={isLocked || needsDisplayName} />
               </div>
-              <Button className="w-full" type="submit" disabled={loading || isLocked}>
+              {needsDisplayName && (
+                <div className="space-y-2 rounded-md border border-primary/30 bg-primary/5 p-3">
+                  <Label htmlFor="display-name">Dein Name (PMA)</Label>
+                  <Input
+                    id="display-name"
+                    type="text"
+                    required
+                    value={displayName}
+                    onChange={(e) => setDisplayName(e.target.value)}
+                    placeholder="z. B. Sandra"
+                    autoFocus
+                    disabled={isLocked}
+                  />
+                  <p className="text-[11px] text-muted-foreground">
+                    Wird bei Uploads und Patientenanlagen als Audit-Information gespeichert.
+                  </p>
+                </div>
+              )}
+              <Button className="w-full" type="submit" disabled={loading || isLocked || (needsDisplayName && displayName.trim() === "")}>
                 {isLocked
                   ? t("login.lockedCountdown", { countdown: formatCountdown(countdown) })
                   : loading
                     ? t("login.submitting")
-                    : <><LogIn className="mr-2 h-4 w-4" /> {t("login.submit")}</>}
+                    : <><LogIn className="mr-2 h-4 w-4" /> {needsDisplayName ? "Weiter" : t("login.submit")}</>}
               </Button>
             </form>
           ) : (
