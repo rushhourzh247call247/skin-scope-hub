@@ -60,6 +60,7 @@ import {
 const PatientDetail = () => {
   const { t } = useTranslation();
   const { user } = useAuth();
+  const isPma = user?.role === "pma";
   const { isReadOnly, readOnlyTooltip } = useLifecycle();
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
@@ -658,6 +659,7 @@ const PatientDetail = () => {
         totalImages={totalImages}
         onStartBatchPhoto={() => setBatchPhotoOpen(true)}
         batchPhotoDisabled={isReadOnly}
+        hideClinicalTabs={isPma}
       />
 
       <BatchPhotoSession
@@ -1655,8 +1657,8 @@ const PatientDetail = () => {
                   section="toolbar"
                 />
 
-                {/* 2. Vergleich (Progress-Comparison) — direkt nach Toolbar */}
-                {selectedLocation.type !== "region" && (selectedLocation.images?.length ?? 0) >= 2 && (
+                {/* 2. Vergleich (Progress-Comparison) — nur für medizinisches Personal */}
+                {!isPma && selectedLocation.type !== "region" && (selectedLocation.images?.length ?? 0) >= 2 && (
                   <div id={`spot-comparison-${selectedLocation.id}`} className="scroll-mt-24">
                     <QuickProgressCompare
                       images={selectedLocation.images ?? []}
@@ -1678,7 +1680,7 @@ const PatientDetail = () => {
                 />
 
                 {/* 3. Klassifikation + Status (zusammen, weiter unten) */}
-                {selectedLocation.type !== "region" && (() => {
+                {!isPma && selectedLocation.type !== "region" && (() => {
                   const currentCls = (selectedLocation as any).classification as LesionClassification || "unclassified";
                   const currentInfo = LESION_CLASSIFICATIONS[currentCls];
                   return (
@@ -1726,7 +1728,8 @@ const PatientDetail = () => {
                   );
                 })()}
 
-                {/* 4. Findings */}
+                {/* 4. Findings — nur für medizinisches Personal */}
+                {!isPma && (
                 <div className="rounded-lg border bg-card p-4 space-y-3">
                   <h4 className="text-xs font-semibold text-foreground uppercase tracking-wider">{t('patientDetail.findingsTitle')}</h4>
 
@@ -1794,9 +1797,10 @@ const PatientDetail = () => {
                     </Button>
                   </div>
                 </div>
+                )}
 
-                {/* 5. Risk Progression — ganz unten */}
-                {(selectedLocation.images?.length ?? 0) > 0 && (
+                {/* 5. Risk Progression — nur für medizinisches Personal */}
+                {!isPma && (selectedLocation.images?.length ?? 0) > 0 && (
                   <RiskProgression
                     images={selectedLocation.images ?? []}
                     locationName={translateAnatomyName(selectedLocation.name) || `Spot #${selectedLocation.id}`}
