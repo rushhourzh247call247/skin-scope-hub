@@ -166,7 +166,7 @@ const SpotLightbox = ({ open, onClose, images, locationName, onCompare, initialI
             {current.created_by_label && (
               <>
                 <span className="mx-1 opacity-40">•</span>
-                <span>{current.created_by_label}</span>
+                <span>{formatCreatedByLabel(current.created_by_label)}</span>
               </>
             )}
             {current.risk_level && !isPma && (
