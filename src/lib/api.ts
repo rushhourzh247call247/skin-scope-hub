@@ -264,9 +264,18 @@ export const api = {
   setToken,
 
   // Auth
-  login: (data: { email: string; password: string }) =>
-    request<{ user: any; token: string }>('/login', { method: 'POST', body: JSON.stringify(data) }),
+  login: (data: { email: string; password: string; display_name?: string }) =>
+    request<{ user: any; token: string; display_name?: string | null }>('/login', { method: 'POST', body: JSON.stringify(data) }),
   me: () => request<{ user: any }>('/me'),
+
+  // PMA shared account management (admin/user of own company)
+  getPmaAccount: () => request<{ pma_account: any | null }>('/company/pma-account'),
+  createPmaAccount: (data: { email: string; password: string; name?: string }) =>
+    request<{ success: boolean; pma_account: any }>('/company/pma-account', { method: 'POST', body: JSON.stringify(data) }),
+  updatePmaAccount: (data: { password?: string; suspended?: boolean }) =>
+    request<{ success: boolean }>('/company/pma-account', { method: 'PUT', body: JSON.stringify(data) }),
+  deletePmaAccount: () =>
+    request<{ success: boolean }>('/company/pma-account', { method: 'DELETE' }),
 
   // Public: Contact form (no auth required) — Double-Opt-in via E-Mail-Bestätigung
   submitContactRequest: (data: {
