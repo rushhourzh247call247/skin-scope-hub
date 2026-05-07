@@ -348,6 +348,16 @@ const ImageGallery = ({ locationId, patientId, images, locationName, locationTyp
                       <Button
                         size="icon"
                         variant="ghost"
+                        className="h-7 w-7"
+                        onClick={() => { setMoveTarget(img.id); setMoveSearch(""); }}
+                        disabled={isReadOnly}
+                        title={isReadOnly ? readOnlyTooltip : t('imageGallery.move', 'Zu anderem Spot verschieben')}
+                      >
+                        <MoveRight className="h-3.5 w-3.5" />
+                      </Button>
+                      <Button
+                        size="icon"
+                        variant="ghost"
                         className="h-7 w-7 text-destructive hover:bg-destructive/10 hover:text-destructive"
                         onClick={() => setDeleteTarget(img.id)}
                         disabled={isReadOnly}
