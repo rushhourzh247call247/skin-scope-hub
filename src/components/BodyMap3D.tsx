@@ -1455,7 +1455,7 @@ const BodyMap3D: React.FC<BodyMap3DProps> = (props) => {
         )}
 
         {/* Classification Legend / Filter */}
-        {(() => {
+        {!props.embedded && (() => {
           const classificationCounts: Partial<Record<LesionClassification, number>> = {};
           props.markers.filter(m => m.type !== "region").forEach(m => {
             const cls = (m.classification as LesionClassification) || "unclassified";
