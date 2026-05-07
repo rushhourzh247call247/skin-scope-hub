@@ -67,6 +67,20 @@ const AccountantRedirect = ({ children }: { children: React.ReactNode }) => {
   return <>{children}</>;
 };
 
+// PMA: leitet Dashboard etc. auf Patientenliste um
+const PmaRedirect = ({ children }: { children: React.ReactNode }) => {
+  const { user } = useAuth();
+  if (user?.role === "pma") return <Navigate to="/patients" replace />;
+  return <>{children}</>;
+};
+
+// Routen, die für PMA komplett gesperrt sind (clinical features)
+const NoPmaRoute = ({ children }: { children: React.ReactNode }) => {
+  const { user } = useAuth();
+  if (user?.role === "pma") return <Navigate to="/patients" replace />;
+  return <>{children}</>;
+};
+
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <AuthProvider>
