@@ -146,7 +146,7 @@ const SpotLightbox = ({ open, onClose, images, locationName, onCompare, initialI
               <img
                 src={api.resolveImageSrc(current)}
                 alt={`${t('imageGallery.recording')} ${index + 1}`}
-                className="max-h-full max-w-full select-none rounded-lg object-contain shadow-2xl"
+                className="h-full w-full select-none rounded-lg object-contain shadow-2xl"
                 draggable={false}
               />
             </motion.div>
