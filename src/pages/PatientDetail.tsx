@@ -116,6 +116,7 @@ const PatientDetail = () => {
   const scrollToDetailAfterCollapseRef = useRef(false);
   const lastBodyFocusedLocationRef = useRef<number | null>(null);
   const ignoreNextSpotClickRef = useRef(false);
+  const suppressSpotChangeScrollRef = useRef(false);
   const [zoneUploadTargetId, setZoneUploadTargetId] = useState<number | null>(null);
   const [lightboxOpen, setLightboxOpen] = useState(false);
   const [lightboxImageId, setLightboxImageId] = useState<number | null>(null);
