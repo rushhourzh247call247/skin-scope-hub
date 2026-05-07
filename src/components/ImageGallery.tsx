@@ -313,16 +313,21 @@ const ImageGallery = ({ locationId, patientId, images, locationName, locationTyp
                 className="group relative flex gap-3 rounded-lg border bg-card p-2.5 transition-shadow hover:shadow-sm"
               >
                 <div className="relative shrink-0">
-                  <div className={`relative h-20 w-20 overflow-hidden rounded-md border ${isLatest ? "ring-2 ring-primary/40" : ""}`}>
+                  <button
+                    type="button"
+                    onClick={() => onImageClick?.(img)}
+                    className={`relative h-20 w-20 overflow-hidden rounded-md border ${isLatest ? "ring-2 ring-primary/40" : ""} ${onImageClick ? "cursor-zoom-in hover:opacity-90 transition-opacity" : ""}`}
+                    aria-label={t('imageGallery.openFullscreen', 'Vollbild')}
+                  >
                     <img
                       src={api.resolveImageSrc(img)}
                       alt={`${t('imageGallery.recording')} #${img.id}`}
                       className="h-full w-full object-cover"
                       loading="lazy"
                     />
-                  </div>
+                  </button>
                   {isLatest && (
-                    <span className="absolute -top-1.5 -left-1.5 rounded-full bg-primary px-1.5 py-0.5 text-[8px] font-bold uppercase tracking-wider text-primary-foreground shadow">
+                    <span className="absolute -top-1.5 -left-1.5 rounded-full bg-primary px-1.5 py-0.5 text-[8px] font-bold uppercase tracking-wider text-primary-foreground shadow pointer-events-none">
                       {t('imageGallery.latest', 'Aktuell')}
                     </span>
                   )}
