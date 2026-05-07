@@ -23,6 +23,7 @@ export function AppSidebar() {
   const { isReadOnly, readOnlyTooltip } = useLifecycle();
   const isAdmin = user?.role === "admin";
   const isAccountant = user?.role === "accountant";
+  const isPma = user?.role === "pma";
   const [unreadTickets, setUnreadTickets] = useState(0);
   const [unreadInquiries, setUnreadInquiries] = useState(0);
   const [appVersion, setAppVersion] = useState<string | null>(null);
