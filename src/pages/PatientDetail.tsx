@@ -191,7 +191,9 @@ const PatientDetail = () => {
 
   // Reset detail scroll to top whenever the selected spot changes (mobile focus)
   useEffect(() => {
-    if (selectedLocationId && detailContentRef.current) {
+    if (suppressSpotChangeScrollRef.current) {
+      suppressSpotChangeScrollRef.current = false;
+    } else if (selectedLocationId && detailContentRef.current) {
       detailContentRef.current.scrollTop = 0;
       // Also reset window scroll on mobile so the patient header stays visible
       if (window.matchMedia("(max-width: 1023px)").matches) {
