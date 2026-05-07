@@ -420,6 +420,62 @@ const ImageGallery = ({ locationId, patientId, images, locationName, locationTyp
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      <Dialog open={moveTarget !== null} onOpenChange={(open) => { if (!open) { setMoveTarget(null); setMoveSearch(""); } }}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>{t('imageGallery.moveTitle', 'Aufnahme verschieben')}</DialogTitle>
+            <DialogDescription>
+              {t('imageGallery.moveDescription', 'Wähle den Ziel-Spot. Datum, Notiz und ABCDE-Bewertung bleiben erhalten.')}
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-3">
+            <div className="relative">
+              <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+              <Input
+                placeholder={t('imageGallery.moveSearch', 'Spot suchen...')}
+                value={moveSearch}
+                onChange={(e) => setMoveSearch(e.target.value)}
+                className="pl-8"
+                autoFocus
+              />
+            </div>
+            <ScrollArea className="h-72 rounded-md border">
+              {moveCandidates.length === 0 ? (
+                <div className="flex h-full items-center justify-center p-6 text-sm text-muted-foreground">
+                  {t('imageGallery.moveNoSpots', 'Keine anderen Spots vorhanden')}
+                </div>
+              ) : (
+                <div className="divide-y">
+                  {moveCandidates.map((loc) => (
+                    <button
+                      key={loc.id}
+                      type="button"
+                      disabled={moveMutation.isPending}
+                      onClick={() => moveTarget && moveMutation.mutate({ imageId: moveTarget, targetLocationId: loc.id })}
+                      className="flex w-full items-center justify-between gap-3 px-3 py-2 text-left text-sm transition-colors hover:bg-accent disabled:opacity-50"
+                    >
+                      <div className="min-w-0 flex-1">
+                        <div className="truncate font-medium">{loc.name || `Spot #${loc.id}`}</div>
+                        <div className="text-[11px] text-muted-foreground">
+                          {(loc.type ?? 'spot') === 'region' ? t('common.zone', 'Zone') : t('common.spot', 'Spot')}
+                          {loc.images?.length ? ` · ${loc.images.length} ${t('imageGallery.recording')}` : ''}
+                        </div>
+                      </div>
+                      <MoveRight className="h-4 w-4 shrink-0 text-muted-foreground" />
+                    </button>
+                  ))}
+                </div>
+              )}
+            </ScrollArea>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => { setMoveTarget(null); setMoveSearch(""); }}>
+              {t('common.cancel')}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
