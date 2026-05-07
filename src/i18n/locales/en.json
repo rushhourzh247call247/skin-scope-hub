@@ -562,7 +562,11 @@
     "deleteOverview": "Delete overview photo",
     "clickToRemovePin": "Click to delete",
     "deletePinTitle": "Remove pin?",
-    "deletePinDesc": "This pin and its linked spot will be moved to the trash."
+    "deletePinDesc": "This pin and its linked spot will be moved to the trash.",
+    "editInstruction": "Drag pin to correct position · Click to remove",
+    "dragOrClickToRemove": "Drag to move · Click to remove",
+    "panHint": "Hold right mouse button to pan",
+    "zoomPanHint": "Mouse wheel to zoom · Right click to pan"
   },
   "pdfExport": {
     "dialogTitle": "Create PDF Report",

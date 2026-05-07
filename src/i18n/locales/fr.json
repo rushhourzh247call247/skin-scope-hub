@@ -562,7 +562,11 @@
     "deleteOverview": "Supprimer la photo d'ensemble",
     "clickToRemovePin": "Cliquer pour supprimer",
     "deletePinTitle": "Supprimer le pin ?",
-    "deletePinDesc": "Ce pin et le point lié seront déplacés dans la corbeille."
+    "deletePinDesc": "Ce pin et le point lié seront déplacés dans la corbeille.",
+    "editInstruction": "Glissez le pin pour corriger la position · Cliquez pour supprimer",
+    "dragOrClickToRemove": "Glisser pour déplacer · Cliquer pour supprimer",
+    "panHint": "Maintenez le clic droit pour déplacer",
+    "zoomPanHint": "Molette pour zoomer · Clic droit pour déplacer"
   },
   "pdfExport": {
     "title": "Export PDF",
