@@ -1678,13 +1678,12 @@ const PatientDetail = () => {
                   )}
                 </div>
 
-                {/* Spot-Navigator: Dropdown + Vor/Zurück — wechselt ohne Scroll-Reset */}
+                {/* Spot-Navigator: Dropdown + Vor/Zurück — wechselt wie 1. Klick (Body sichtbar, dann 2. Klick für Vergleich) */}
                 {selectedLocation.type !== "region" && spotLocations.length > 1 && (() => {
                   const currentIdx = spotLocations.findIndex(s => s.id === selectedLocation.id);
                   const goTo = (idx: number) => {
                     if (idx < 0 || idx >= spotLocations.length) return;
-                    suppressSpotChangeScrollRef.current = true;
-                    setSelectedLocationId(spotLocations[idx].id);
+                    handleSpotListClick(spotLocations[idx].id);
                   };
                   return (
                     <div className="flex items-center gap-1.5 rounded-md border bg-muted/30 p-1.5">
@@ -1700,10 +1699,7 @@ const PatientDetail = () => {
                       </Button>
                       <Select
                         value={String(selectedLocation.id)}
-                        onValueChange={(v) => {
-                          suppressSpotChangeScrollRef.current = true;
-                          setSelectedLocationId(Number(v));
-                        }}
+                        onValueChange={(v) => handleSpotListClick(Number(v))}
                       >
                         <SelectTrigger className="h-8 flex-1 text-xs">
                           <SelectValue />
