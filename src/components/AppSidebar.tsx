@@ -23,6 +23,7 @@ export function AppSidebar() {
   const { isReadOnly, readOnlyTooltip } = useLifecycle();
   const isAdmin = user?.role === "admin";
   const isAccountant = user?.role === "accountant";
+  const isPma = user?.role === "pma";
   const [unreadTickets, setUnreadTickets] = useState(0);
   const [unreadInquiries, setUnreadInquiries] = useState(0);
   const [appVersion, setAppVersion] = useState<string | null>(null);
@@ -92,13 +93,19 @@ export function AppSidebar() {
     { title: t("nav.settings"), url: "/settings", icon: Settings },
   ];
 
-  const mainNav = [
-    { title: t("nav.dashboard"), url: "/", icon: LayoutDashboard },
-    { title: t("nav.patients"), url: "/patients", icon: Users },
-    { title: t("nav.newPatient"), url: "/new-patient", icon: UserPlus },
-    { title: t("nav.tickets"), url: "/tickets", icon: TicketCheck },
-    { title: t("nav.settings"), url: "/settings", icon: Settings },
-  ];
+  const mainNav = isPma
+    ? [
+        { title: t("nav.patients"), url: "/patients", icon: Users },
+        { title: t("nav.newPatient"), url: "/new-patient", icon: UserPlus },
+        { title: t("nav.settings"), url: "/settings", icon: Settings },
+      ]
+    : [
+        { title: t("nav.dashboard"), url: "/", icon: LayoutDashboard },
+        { title: t("nav.patients"), url: "/patients", icon: Users },
+        { title: t("nav.newPatient"), url: "/new-patient", icon: UserPlus },
+        { title: t("nav.tickets"), url: "/tickets", icon: TicketCheck },
+        { title: t("nav.settings"), url: "/settings", icon: Settings },
+      ];
 
   const adminNav = [
     { title: t("nav.companies"), url: "/companies", icon: Building2 },

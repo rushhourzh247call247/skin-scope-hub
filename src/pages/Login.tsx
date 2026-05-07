@@ -31,6 +31,10 @@ const Login = () => {
   const [totpCode, setTotpCode] = useState("");
   const [verifying2FA, setVerifying2FA] = useState(false);
 
+  // PMA shared-account: zweiter Schritt "Dein Name"
+  const [needsDisplayName, setNeedsDisplayName] = useState(false);
+  const [displayName, setDisplayName] = useState("");
+
   const [lockedUntil, setLockedUntil] = useState<number | null>(null);
   const [countdown, setCountdown] = useState(0);
 
@@ -63,19 +67,23 @@ const Login = () => {
     setError("");
     setLoading(true);
     try {
-      const res = await login(email, password);
+      const res = await login(email, password, needsDisplayName ? displayName.trim() : undefined);
       if (res.user?.two_factor_enabled) {
         setPendingUser(res.user);
         setPendingToken(res.token);
         api.setToken(res.token);
         setNeeds2FA(true);
       } else {
-        setSession(res.user, res.token);
-        navigate("/");
+        setSession(res.user, res.token, res.display_name ?? null);
+        // PMA → direkt zur Patientenliste
+        navigate(res.user?.role === "pma" ? "/patients" : "/");
       }
     } catch (err: any) {
       if (err?.status === 429) {
         handleRateLimitError(err);
+      } else if (err?.status === 422 && err?.payload?.requires_display_name) {
+        setNeedsDisplayName(true);
+        setError("");
       } else if (err?.suspended) {
         setError(err.message || t("login.accountSuspended"));
       } else {
@@ -143,18 +151,36 @@ const Login = () => {
               )}
               <div className="space-y-2">
                 <Label htmlFor="email">{t("login.email")}</Label>
-                <Input id="email" type="email" required value={email} onChange={(e) => setEmail(e.target.value)} placeholder={t("login.emailPlaceholder")} disabled={isLocked} />
+                <Input id="email" type="email" required value={email} onChange={(e) => { setEmail(e.target.value); setNeedsDisplayName(false); }} placeholder={t("login.emailPlaceholder")} disabled={isLocked || needsDisplayName} />
               </div>
               <div className="space-y-2">
                 <Label htmlFor="password">{t("login.password")}</Label>
-                <Input id="password" type="password" required value={password} onChange={(e) => setPassword(e.target.value)} placeholder={t("login.passwordPlaceholder")} disabled={isLocked} />
+                <Input id="password" type="password" required value={password} onChange={(e) => { setPassword(e.target.value); setNeedsDisplayName(false); }} placeholder={t("login.passwordPlaceholder")} disabled={isLocked || needsDisplayName} />
               </div>
-              <Button className="w-full" type="submit" disabled={loading || isLocked}>
+              {needsDisplayName && (
+                <div className="space-y-2 rounded-md border border-primary/30 bg-primary/5 p-3">
+                  <Label htmlFor="display-name">Dein Name (PMA)</Label>
+                  <Input
+                    id="display-name"
+                    type="text"
+                    required
+                    value={displayName}
+                    onChange={(e) => setDisplayName(e.target.value)}
+                    placeholder="z. B. Sandra"
+                    autoFocus
+                    disabled={isLocked}
+                  />
+                  <p className="text-[11px] text-muted-foreground">
+                    Wird bei Uploads und Patientenanlagen als Audit-Information gespeichert.
+                  </p>
+                </div>
+              )}
+              <Button className="w-full" type="submit" disabled={loading || isLocked || (needsDisplayName && displayName.trim() === "")}>
                 {isLocked
                   ? t("login.lockedCountdown", { countdown: formatCountdown(countdown) })
                   : loading
                     ? t("login.submitting")
-                    : <><LogIn className="mr-2 h-4 w-4" /> {t("login.submit")}</>}
+                    : <><LogIn className="mr-2 h-4 w-4" /> {needsDisplayName ? "Weiter" : t("login.submit")}</>}
               </Button>
             </form>
           ) : (

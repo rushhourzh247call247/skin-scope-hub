@@ -10,6 +10,8 @@ interface User {
   company_id?: number;
   role?: string;
   two_factor_enabled?: boolean;
+  is_shared_account?: boolean;
+  display_name?: string | null;
   company_name?: string;
   company_lifecycle_status?: "active" | "read_only" | "archived" | "pending_deletion";
   company_read_only_until?: string | null;
@@ -22,10 +24,11 @@ interface AuthContextType {
   token: string | null;
   isAuthenticated: boolean;
   isLoading: boolean;
-  login: (email: string, password: string) => Promise<{ user: User; token: string }>;
-  setSession: (user: User, token: string) => void;
+  login: (email: string, password: string, displayName?: string) => Promise<{ user: User; token: string; display_name?: string | null }>;
+  setSession: (user: User, token: string, displayName?: string | null) => void;
   logout: () => void;
 }
+
 
 const AuthContext = createContext<AuthContextType | null>(null);
 
@@ -123,20 +126,21 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     };
   }, [performLogout, syncCurrentUser]);
 
-  const setSession = useCallback((u: User, t: string) => {
-    setUser(u);
+  const setSession = useCallback((u: User, t: string, displayName?: string | null) => {
+    const userWithDisplay = displayName ? { ...u, display_name: displayName } : u;
+    setUser(userWithDisplay);
     setToken(t);
     api.setToken(t);
     sessionStorage.setItem("auth_token", t);
-    sessionStorage.setItem("auth_user", JSON.stringify(u));
+    sessionStorage.setItem("auth_user", JSON.stringify(userWithDisplay));
 
-    if (!hasLifecycleData(u)) {
+    if (!hasLifecycleData(userWithDisplay)) {
       void syncCurrentUser().catch(() => undefined);
     }
   }, [syncCurrentUser]);
 
-  const login = useCallback(async (email: string, password: string) => {
-    const res = await api.login({ email, password });
+  const login = useCallback(async (email: string, password: string, displayName?: string) => {
+    const res = await api.login({ email, password, ...(displayName ? { display_name: displayName } : {}) });
     return res;
   }, []);
 
