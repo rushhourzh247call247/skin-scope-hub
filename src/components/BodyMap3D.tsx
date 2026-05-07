@@ -348,13 +348,11 @@ const SpotMarker = React.forwardRef<THREE.Group, SpotMarkerProps>(function SpotM
           <div
             className={cn(
               "flex items-center justify-center rounded-full text-[8px] font-bold shadow-md border",
-              isSelected
-                ? "bg-sky-500 text-white border-sky-400 min-w-[18px] h-[18px]"
-                : isHighRisk
-                  ? "bg-destructive text-white border-red-400 min-w-[16px] h-[16px]"
-                  : "bg-card text-foreground border-border min-w-[16px] h-[16px]"
+              isHighRisk
+                ? "bg-destructive text-white border-red-400"
+                : "bg-sky-500 text-white border-sky-400",
+              isSelected ? "min-w-[20px] h-[20px] ring-2 ring-sky-300/70" : "min-w-[16px] h-[16px]"
             )}
-            style={{ borderColor: isSelected ? undefined : color }}
           >
             {index != null ? index + 1 : ((imageCount ?? 0) > 0 ? imageCount : "•")}
           </div>
