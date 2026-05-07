@@ -12,6 +12,7 @@ import AbcdeForm from "@/components/AbcdeForm";
 import { toast } from "sonner";
 import { useLifecycle } from "@/hooks/use-lifecycle";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { useAuth } from "@/contexts/AuthContext";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -53,6 +54,8 @@ const ImageGallery = ({ locationId, patientId, images, locationName, locationTyp
   const queryClient = useQueryClient();
   const { isReadOnly, readOnlyTooltip } = useLifecycle();
   const isMobile = useIsMobile();
+  const { user } = useAuth();
+  const isPma = user?.role === "pma";
   const fileRef = useRef<HTMLInputElement>(null);
   const cameraRef = useRef<HTMLInputElement>(null);
   const [uploading, setUploading] = useState(false);
@@ -378,7 +381,7 @@ const ImageGallery = ({ locationId, patientId, images, locationName, locationTyp
                     title={isReadOnly ? readOnlyTooltip : undefined}
                   />
 
-                  {locationType === "spot" && (
+                  {locationType === "spot" && !isPma && (
                     <AbcdeForm
                       imageId={img.id}
                       patientId={patientId}
