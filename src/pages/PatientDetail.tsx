@@ -1599,27 +1599,41 @@ const PatientDetail = () => {
                         <span className="text-xs">{t('common.back', { defaultValue: 'Zurück' })}</span>
                       </Button>
                     )}
-                    <div className={cn(
-                      "flex h-8 w-8 items-center justify-center text-sm font-bold",
-                      selectedLocation.type === "region"
-                        ? "rounded bg-amber-500 text-white"
-                        : "rounded-full bg-primary text-primary-foreground"
-                    )}>
-                      {selectedLocation.type === "region" ? <Square className="h-4 w-4" /> : <MapPin className="h-4 w-4" />}
-                    </div>
-                    <div>
-                      <h2 className="text-lg font-semibold text-foreground flex items-center gap-2">
-                        {translateAnatomyName(selectedLocation.name) || (selectedLocation.type === "region" ? "Region" : `Spot #${selectedLocation.id}`)}
-                        {selectedLocation.type === "region" && (
-                          <Badge variant="outline" className="text-[10px] text-amber-600 border-amber-300">Region</Badge>
-                        )}
-                      </h2>
-                      <p className="text-xs text-muted-foreground flex items-center gap-2">
-                        <span>{selectedLocation.view === "back" ? t('common.backSide') : t('common.front')}</span>
-                        <span>·</span>
-                        <span>{selectedLocation.images?.length ?? 0} {t('patientDetail.recordings')}</span>
-                      </p>
-                    </div>
+                    {(() => {
+                      const spotNumber = selectedLocation.type !== "region"
+                        ? spotLocations.findIndex(s => s.id === selectedLocation.id) + 1
+                        : 0;
+                      return (
+                        <>
+                          <div className={cn(
+                            "flex h-8 min-w-8 px-2 items-center justify-center text-sm font-bold",
+                            selectedLocation.type === "region"
+                              ? "rounded bg-amber-500 text-white"
+                              : "rounded-full bg-primary text-primary-foreground"
+                          )}>
+                            {selectedLocation.type === "region"
+                              ? <Square className="h-4 w-4" />
+                              : (spotNumber > 0 ? spotNumber : <MapPin className="h-4 w-4" />)}
+                          </div>
+                          <div>
+                            <h2 className="text-lg font-semibold text-foreground flex items-center gap-2">
+                              {selectedLocation.type !== "region" && spotNumber > 0 && (
+                                <span className="text-muted-foreground">Spot {spotNumber} ·</span>
+                              )}
+                              {translateAnatomyName(selectedLocation.name) || (selectedLocation.type === "region" ? "Region" : `Spot #${selectedLocation.id}`)}
+                              {selectedLocation.type === "region" && (
+                                <Badge variant="outline" className="text-[10px] text-amber-600 border-amber-300">Region</Badge>
+                              )}
+                            </h2>
+                            <p className="text-xs text-muted-foreground flex items-center gap-2">
+                              <span>{selectedLocation.view === "back" ? t('common.backSide') : t('common.front')}</span>
+                              <span>·</span>
+                              <span>{selectedLocation.images?.length ?? 0} {t('patientDetail.recordings')}</span>
+                            </p>
+                          </div>
+                        </>
+                      );
+                    })()}
                   </div>
                   {selectedLocation.type !== "region" && !isReadOnly && (
                     <Button
