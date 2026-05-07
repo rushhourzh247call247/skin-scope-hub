@@ -25,7 +25,7 @@ interface BatchPhotoSessionProps {
 
 type Status = "pending" | "captured" | "skipped";
 
-export default function BatchPhotoSession({ open, onOpenChange, patientId, spots }: BatchPhotoSessionProps) {
+export default function BatchPhotoSession({ open, onOpenChange, patientId, spots, gender }: BatchPhotoSessionProps) {
   const { t } = useTranslation();
   const queryClient = useQueryClient();
   const cameraRef = useRef<HTMLInputElement>(null);
