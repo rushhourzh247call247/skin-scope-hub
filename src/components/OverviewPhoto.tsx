@@ -682,7 +682,7 @@ const OverviewPhoto = ({ overviewLocation, spotLocations, patientId, onNavigateT
                         transform: `translate(calc(-50% + ${labelOffsetX}px), calc(-50% + ${labelOffsetY}px))`,
                         opacity: Math.max(0.2, 1 - (zoomLevel - 1) * 0.2),
                       }}
-                      onClick={(e) => { e.stopPropagation(); setOpenPinId(pin.id); }}
+                      onClick={(e) => { e.stopPropagation(); onNavigateToSpot(pin.linked_location_id); }}
                       onMouseEnter={() => setHoveredPin(pin.id)}
                       onMouseLeave={() => setHoveredPin(null)}
                       title={spot?.name || pin.label || `Spot #${pin.linked_location_id}`}
