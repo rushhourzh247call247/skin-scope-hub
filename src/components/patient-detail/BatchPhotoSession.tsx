@@ -131,8 +131,7 @@ export default function BatchPhotoSession({ open, onOpenChange, patientId, spots
     if (previewUrl) URL.revokeObjectURL(previewUrl);
     setPreviewUrl(null);
     setPendingFile(null);
-    // Auto-open useEffect re-fires when previewUrl becomes null and reopens the camera.
-    // Do NOT call openCamera here as well — double-open cancels the file picker on mobile.
+    setTimeout(() => openCamera(), 100);
   };
 
   const handleSkip = () => {
