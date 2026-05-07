@@ -10,6 +10,8 @@ import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import type { Location, LocationImage } from "@/types/patient";
 import { formatDate } from "@/lib/dateUtils";
+import { FrontBody, BackBody } from "@/components/BodyMapSvg";
+import { getAnatomicalName } from "@/lib/anatomyLookup";
 
 type SpotLoc = Location & { images: LocationImage[] };
 
