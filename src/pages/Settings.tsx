@@ -295,6 +295,134 @@ const Settings = () => {
         </CardContent>
       </Card>
 
+      {/* PMA-Account-Verwaltung (Admin / Arzt) */}
+      {canManagePma && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <UserCog className="h-5 w-5 text-primary" />
+              PMA-Zugang (Praxis-Assistenz)
+            </CardTitle>
+            <CardDescription>
+              Geteilter Login für Ihre Praxis-Assistentinnen. Erlaubt mehrere gleichzeitige Logins,
+              verbraucht keine Lizenz, kein Zugriff auf medizinische Bewertung oder Bildvergleich.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            {!pmaAccount ? (
+              <div className="flex items-center justify-between rounded-lg border p-4">
+                <div className="flex items-center gap-3">
+                  <UserCog className="h-6 w-6 text-muted-foreground" />
+                  <div>
+                    <p className="font-medium text-foreground">Noch kein PMA-Account</p>
+                    <p className="text-sm text-muted-foreground">Legen Sie einen geteilten Zugang für Ihre PMAs an.</p>
+                  </div>
+                </div>
+                <Button size="sm" onClick={() => setPmaCreateOpen(true)} disabled={isReadOnly}>
+                  <Plus className="mr-2 h-4 w-4" /> Anlegen
+                </Button>
+              </div>
+            ) : (
+              <div className="space-y-3">
+                <div className="flex items-center justify-between rounded-lg border border-primary/20 bg-primary/5 p-4">
+                  <div className="flex items-center gap-3">
+                    <UserCog className="h-6 w-6 text-primary" />
+                    <div>
+                      <p className="font-medium text-foreground">{pmaAccount.email}</p>
+                      <p className="text-sm text-muted-foreground">
+                        {pmaAccount.suspended_at
+                          ? "Deaktiviert — kein Login möglich"
+                          : "Aktiv — PMAs können sich einloggen"}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+                <div className="flex flex-wrap gap-2">
+                  <Button size="sm" variant="outline" onClick={() => setPmaPwOpen(true)} disabled={isReadOnly || pmaLoading}>
+                    <KeyRound className="mr-2 h-4 w-4" /> Passwort ändern
+                  </Button>
+                  <Button size="sm" variant="outline" onClick={handleTogglePmaSuspend} disabled={isReadOnly || pmaLoading}>
+                    {pmaAccount.suspended_at ? (
+                      <><PlayCircle className="mr-2 h-4 w-4" /> Aktivieren</>
+                    ) : (
+                      <><PauseCircle className="mr-2 h-4 w-4" /> Deaktivieren</>
+                    )}
+                  </Button>
+                  <AlertDialog>
+                    <AlertDialogTrigger asChild>
+                      <Button size="sm" variant="outline" className="text-destructive hover:bg-destructive/10" disabled={isReadOnly || pmaLoading}>
+                        <Trash2 className="mr-2 h-4 w-4" /> Löschen
+                      </Button>
+                    </AlertDialogTrigger>
+                    <AlertDialogContent>
+                      <AlertDialogHeader>
+                        <AlertDialogTitle>PMA-Account löschen?</AlertDialogTitle>
+                        <AlertDialogDescription>
+                          Der geteilte PMA-Zugang wird unwiderruflich entfernt. Bestehende Patienten und Fotos bleiben erhalten.
+                        </AlertDialogDescription>
+                      </AlertDialogHeader>
+                      <AlertDialogFooter>
+                        <AlertDialogCancel>Abbrechen</AlertDialogCancel>
+                        <AlertDialogAction onClick={handleDeletePma} className="bg-destructive hover:bg-destructive/90">
+                          Endgültig löschen
+                        </AlertDialogAction>
+                      </AlertDialogFooter>
+                    </AlertDialogContent>
+                  </AlertDialog>
+                </div>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      )}
+
+      {/* PMA Create Dialog */}
+      <Dialog open={pmaCreateOpen} onOpenChange={setPmaCreateOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>PMA-Zugang anlegen</DialogTitle>
+            <DialogDescription>
+              Email + Passwort für den geteilten Praxis-Assistenz-Login.
+              Beim Login muss die PMA zusätzlich ihren Namen eingeben (Audit-Trail).
+            </DialogDescription>
+          </DialogHeader>
+          <form onSubmit={handleCreatePma} className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="pma-email">Email</Label>
+              <Input id="pma-email" type="email" required value={pmaEmail} onChange={(e) => setPmaEmail(e.target.value)} placeholder="pma@praxis-xyz.ch" />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="pma-pw">Passwort (min. 6 Zeichen)</Label>
+              <Input id="pma-pw" type="password" required minLength={6} value={pmaPassword} onChange={(e) => setPmaPassword(e.target.value)} />
+            </div>
+            <Button type="submit" className="w-full" disabled={pmaLoading}>
+              {pmaLoading ? "Lege an..." : "Anlegen"}
+            </Button>
+          </form>
+        </DialogContent>
+      </Dialog>
+
+      {/* PMA Password Change Dialog */}
+      <Dialog open={pmaPwOpen} onOpenChange={setPmaPwOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>PMA-Passwort ändern</DialogTitle>
+            <DialogDescription>
+              Alle aktiven PMA-Sessions werden sofort beendet.
+            </DialogDescription>
+          </DialogHeader>
+          <form onSubmit={handleChangePmaPassword} className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="pma-new-pw">Neues Passwort (min. 6 Zeichen)</Label>
+              <Input id="pma-new-pw" type="password" required minLength={6} value={pmaNewPassword} onChange={(e) => setPmaNewPassword(e.target.value)} autoFocus />
+            </div>
+            <Button type="submit" className="w-full" disabled={pmaLoading}>
+              {pmaLoading ? "Speichere..." : "Passwort setzen"}
+            </Button>
+          </form>
+        </DialogContent>
+      </Dialog>
+
       {/* 2FA Setup Dialog */}
       <Dialog open={setupOpen} onOpenChange={setSetupOpen}>
         <DialogContent className="sm:max-w-md">
