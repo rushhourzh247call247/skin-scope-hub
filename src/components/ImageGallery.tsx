@@ -3,7 +3,7 @@ import { useTranslation } from "react-i18next";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { api } from "@/lib/api";
 import type { LocationImage } from "@/types/patient";
-import { Upload, Calendar, ImageIcon, GitCompareArrows, Trash2, Download, Camera, QrCode } from "lucide-react";
+import { Upload, Calendar, ImageIcon, GitCompareArrows, Trash2, Download, Camera, QrCode, MoveRight, Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { formatDate } from "@/lib/dateUtils";
@@ -22,6 +22,17 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import type { FullPatient } from "@/types/patient";
 
 interface ImageGalleryProps {
   locationId: number;
@@ -48,6 +59,8 @@ const ImageGallery = ({ locationId, patientId, images, locationName, locationTyp
   const [compareMode, setCompareMode] = useState(false);
   const [noteValues, setNoteValues] = useState<Record<number, string>>({});
   const [deleteTarget, setDeleteTarget] = useState<number | null>(null);
+  const [moveTarget, setMoveTarget] = useState<number | null>(null);
+  const [moveSearch, setMoveSearch] = useState("");
   const debounceTimers = useRef<Record<number, ReturnType<typeof setTimeout>>>({});
 
   useEffect(() => {
@@ -118,6 +131,28 @@ const ImageGallery = ({ locationId, patientId, images, locationName, locationTyp
       setDeleteTarget(null);
     },
   });
+
+  const moveMutation = useMutation({
+    mutationFn: ({ imageId, targetLocationId }: { imageId: number; targetLocationId: number }) =>
+      api.moveImage(imageId, targetLocationId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["full-patient", patientId] });
+      toast.success(t('imageGallery.moved', 'Aufnahme verschoben'));
+      setMoveTarget(null);
+      setMoveSearch("");
+    },
+    onError: () => {
+      toast.error(t('imageGallery.moveError', 'Verschieben fehlgeschlagen'));
+    },
+  });
+
+  const fullPatient = queryClient.getQueryData<FullPatient>(["full-patient", patientId]);
+  const moveCandidates = (fullPatient?.locations ?? [])
+    .filter((loc) => loc.id !== locationId && (loc.type ?? "spot") !== "overview")
+    .filter((loc) => {
+      if (!moveSearch.trim()) return true;
+      return (loc.name ?? "").toLowerCase().includes(moveSearch.toLowerCase());
+    });
 
   const handleNoteChange = useCallback((imageId: number, value: string) => {
     if (isReadOnly) return;
@@ -313,6 +348,16 @@ const ImageGallery = ({ locationId, patientId, images, locationName, locationTyp
                       <Button
                         size="icon"
                         variant="ghost"
+                        className="h-7 w-7"
+                        onClick={() => { setMoveTarget(img.id); setMoveSearch(""); }}
+                        disabled={isReadOnly}
+                        title={isReadOnly ? readOnlyTooltip : t('imageGallery.move', 'Zu anderem Spot verschieben')}
+                      >
+                        <MoveRight className="h-3.5 w-3.5" />
+                      </Button>
+                      <Button
+                        size="icon"
+                        variant="ghost"
                         className="h-7 w-7 text-destructive hover:bg-destructive/10 hover:text-destructive"
                         onClick={() => setDeleteTarget(img.id)}
                         disabled={isReadOnly}
@@ -375,6 +420,62 @@ const ImageGallery = ({ locationId, patientId, images, locationName, locationTyp
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      <Dialog open={moveTarget !== null} onOpenChange={(open) => { if (!open) { setMoveTarget(null); setMoveSearch(""); } }}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>{t('imageGallery.moveTitle', 'Aufnahme verschieben')}</DialogTitle>
+            <DialogDescription>
+              {t('imageGallery.moveDescription', 'Wähle den Ziel-Spot. Datum, Notiz und ABCDE-Bewertung bleiben erhalten.')}
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-3">
+            <div className="relative">
+              <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+              <Input
+                placeholder={t('imageGallery.moveSearch', 'Spot suchen...')}
+                value={moveSearch}
+                onChange={(e) => setMoveSearch(e.target.value)}
+                className="pl-8"
+                autoFocus
+              />
+            </div>
+            <ScrollArea className="h-72 rounded-md border">
+              {moveCandidates.length === 0 ? (
+                <div className="flex h-full items-center justify-center p-6 text-sm text-muted-foreground">
+                  {t('imageGallery.moveNoSpots', 'Keine anderen Spots vorhanden')}
+                </div>
+              ) : (
+                <div className="divide-y">
+                  {moveCandidates.map((loc) => (
+                    <button
+                      key={loc.id}
+                      type="button"
+                      disabled={moveMutation.isPending}
+                      onClick={() => moveTarget && moveMutation.mutate({ imageId: moveTarget, targetLocationId: loc.id })}
+                      className="flex w-full items-center justify-between gap-3 px-3 py-2 text-left text-sm transition-colors hover:bg-accent disabled:opacity-50"
+                    >
+                      <div className="min-w-0 flex-1">
+                        <div className="truncate font-medium">{loc.name || `Spot #${loc.id}`}</div>
+                        <div className="text-[11px] text-muted-foreground">
+                          {(loc.type ?? 'spot') === 'region' ? t('common.zone', 'Zone') : t('common.spot', 'Spot')}
+                          {loc.images?.length ? ` · ${loc.images.length} ${t('imageGallery.recording')}` : ''}
+                        </div>
+                      </div>
+                      <MoveRight className="h-4 w-4 shrink-0 text-muted-foreground" />
+                    </button>
+                  ))}
+                </div>
+              )}
+            </ScrollArea>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => { setMoveTarget(null); setMoveSearch(""); }}>
+              {t('common.cancel')}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
