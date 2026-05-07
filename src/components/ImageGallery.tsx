@@ -132,6 +132,28 @@ const ImageGallery = ({ locationId, patientId, images, locationName, locationTyp
     },
   });
 
+  const moveMutation = useMutation({
+    mutationFn: ({ imageId, targetLocationId }: { imageId: number; targetLocationId: number }) =>
+      api.moveImage(imageId, targetLocationId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["full-patient", patientId] });
+      toast.success(t('imageGallery.moved', 'Aufnahme verschoben'));
+      setMoveTarget(null);
+      setMoveSearch("");
+    },
+    onError: () => {
+      toast.error(t('imageGallery.moveError', 'Verschieben fehlgeschlagen'));
+    },
+  });
+
+  const fullPatient = queryClient.getQueryData<FullPatient>(["full-patient", patientId]);
+  const moveCandidates = (fullPatient?.locations ?? [])
+    .filter((loc) => loc.id !== locationId && (loc.type ?? "spot") !== "overview")
+    .filter((loc) => {
+      if (!moveSearch.trim()) return true;
+      return (loc.name ?? "").toLowerCase().includes(moveSearch.toLowerCase());
+    });
+
   const handleNoteChange = useCallback((imageId: number, value: string) => {
     if (isReadOnly) return;
 
