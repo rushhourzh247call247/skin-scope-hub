@@ -343,7 +343,7 @@ const ImageGallery = ({ locationId, patientId, images, locationName, locationTyp
                       </span>
                       <span className="text-[10px] text-muted-foreground">
                         #{sorted.length - idx} · {t('imageGallery.recording')}
-                        {img.created_by_label ? ` · ${img.created_by_label}` : ""}
+                        {img.created_by_label ? ` · ${formatCreatedByLabel(img.created_by_label)}` : ""}
                       </span>
                     </div>
                     <div className="flex shrink-0 gap-1 opacity-70 transition-opacity group-hover:opacity-100">
