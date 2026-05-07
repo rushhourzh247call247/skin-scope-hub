@@ -47,9 +47,10 @@ interface ImageGalleryProps {
   triggerCameraSignal?: number;
   triggerCompareSignal?: number;
   section?: "all" | "toolbar" | "grid";
+  onImageClick?: (image: LocationImage) => void;
 }
 
-const ImageGallery = ({ locationId, patientId, images, locationName, locationType = "spot", patientName, patientBirthDate, onQrUpload, triggerCameraSignal, triggerCompareSignal, section = "all" }: ImageGalleryProps) => {
+const ImageGallery = ({ locationId, patientId, images, locationName, locationType = "spot", patientName, patientBirthDate, onQrUpload, triggerCameraSignal, triggerCompareSignal, section = "all", onImageClick }: ImageGalleryProps) => {
   const { t } = useTranslation();
   const queryClient = useQueryClient();
   const { isReadOnly, readOnlyTooltip } = useLifecycle();
