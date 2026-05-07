@@ -7,6 +7,7 @@ import { Upload, Calendar, ImageIcon, GitCompareArrows, Trash2, Download, Camera
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { formatDate } from "@/lib/dateUtils";
+import { formatCreatedByLabel } from "@/lib/createdByLabel";
 import ImageCompare from "@/components/ImageCompare";
 import AbcdeForm from "@/components/AbcdeForm";
 import { toast } from "sonner";
