@@ -12,7 +12,8 @@ import { useState, useRef, useEffect } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useLifecycle } from "@/hooks/use-lifecycle";
 import type { LesionClassification as LesionClassificationType } from "@/types/patient";
-import { ArrowLeft, MapPin, Plus, Calendar, ImageIcon, User, Hash, Activity, Mail, Phone, Pencil, Trash2, Save, X, Square, GitCompareArrows, Move, Camera, Tag, QrCode, Undo2, AlertTriangle, FileDown, Loader2, Eye, ChevronDown, Upload, ClipboardList, Lock } from "lucide-react";
+import { ArrowLeft, MapPin, Plus, Calendar, ImageIcon, User, Hash, Activity, Mail, Phone, Pencil, Trash2, Save, X, Square, GitCompareArrows, Move, Camera, Tag, QrCode, Undo2, AlertTriangle, FileDown, Loader2, Eye, ChevronDown, ChevronLeft, ChevronRight, Upload, ClipboardList, Lock } from "lucide-react";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import PatientAkte from "@/components/PatientAkte";
 import PatientHeader from "@/components/patient-detail/PatientHeader";
 import MobileBottomNav from "@/components/patient-detail/MobileBottomNav";
@@ -115,6 +116,7 @@ const PatientDetail = () => {
   const scrollToDetailAfterCollapseRef = useRef(false);
   const lastBodyFocusedLocationRef = useRef<number | null>(null);
   const ignoreNextSpotClickRef = useRef(false);
+  const suppressSpotChangeScrollRef = useRef(false);
   const [zoneUploadTargetId, setZoneUploadTargetId] = useState<number | null>(null);
   const [lightboxOpen, setLightboxOpen] = useState(false);
   const [lightboxImageId, setLightboxImageId] = useState<number | null>(null);
@@ -189,7 +191,9 @@ const PatientDetail = () => {
 
   // Reset detail scroll to top whenever the selected spot changes (mobile focus)
   useEffect(() => {
-    if (selectedLocationId && detailContentRef.current) {
+    if (suppressSpotChangeScrollRef.current) {
+      suppressSpotChangeScrollRef.current = false;
+    } else if (selectedLocationId && detailContentRef.current) {
       detailContentRef.current.scrollTop = 0;
       // Also reset window scroll on mobile so the patient header stays visible
       if (window.matchMedia("(max-width: 1023px)").matches) {
@@ -1673,6 +1677,63 @@ const PatientDetail = () => {
                     </Button>
                   )}
                 </div>
+
+                {/* Spot-Navigator: Dropdown + Vor/Zurück — wechselt ohne Scroll-Reset */}
+                {selectedLocation.type !== "region" && spotLocations.length > 1 && (() => {
+                  const currentIdx = spotLocations.findIndex(s => s.id === selectedLocation.id);
+                  const goTo = (idx: number) => {
+                    if (idx < 0 || idx >= spotLocations.length) return;
+                    suppressSpotChangeScrollRef.current = true;
+                    setSelectedLocationId(spotLocations[idx].id);
+                  };
+                  return (
+                    <div className="flex items-center gap-1.5 rounded-md border bg-muted/30 p-1.5">
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        className="h-8 w-8 p-0 shrink-0"
+                        onClick={() => goTo(currentIdx - 1)}
+                        disabled={currentIdx <= 0}
+                        title="Vorheriger Spot"
+                      >
+                        <ChevronLeft className="h-4 w-4" />
+                      </Button>
+                      <Select
+                        value={String(selectedLocation.id)}
+                        onValueChange={(v) => {
+                          suppressSpotChangeScrollRef.current = true;
+                          setSelectedLocationId(Number(v));
+                        }}
+                      >
+                        <SelectTrigger className="h-8 flex-1 text-xs">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {spotLocations.map((s, i) => (
+                            <SelectItem key={s.id} value={String(s.id)} className="text-xs">
+                              <span className="tabular-nums text-muted-foreground mr-1.5">#{i + 1}</span>
+                              {translateAnatomyName(s.name) || `Spot ${i + 1}`}
+                              <span className="text-muted-foreground ml-1.5">· {s.images?.length ?? 0} {t('common.images')}</span>
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <span className="text-[10px] text-muted-foreground tabular-nums px-1 shrink-0">
+                        {currentIdx + 1}/{spotLocations.length}
+                      </span>
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        className="h-8 w-8 p-0 shrink-0"
+                        onClick={() => goTo(currentIdx + 1)}
+                        disabled={currentIdx >= spotLocations.length - 1}
+                        title="Nächster Spot"
+                      >
+                        <ChevronRight className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  );
+                })()}
 
                 {/* 1. Toolbar (Kamera/Upload/QR) ganz oben — schneller Zugriff direkt nach Spot-Öffnung */}
                 <ImageGallery
