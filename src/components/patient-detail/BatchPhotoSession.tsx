@@ -61,6 +61,13 @@ export default function BatchPhotoSession({ open, onOpenChange, patientId, spots
     };
   }, [previewUrl]);
 
+  // Auto-scroll to preview when a photo was just captured
+  useEffect(() => {
+    if (previewUrl && previewRef.current) {
+      previewRef.current.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+  }, [previewUrl]);
+
   const lastImageBySpot = useMemo(() => {
     const map: Record<number, LocationImage | undefined> = {};
     spots.forEach(s => {
