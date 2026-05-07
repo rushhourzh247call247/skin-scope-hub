@@ -562,7 +562,11 @@
     "deleteOverview": "Eliminar foto panorámica",
     "clickToRemovePin": "Clic para eliminar",
     "deletePinTitle": "¿Eliminar pin?",
-    "deletePinDesc": "Este pin y el punto vinculado se moverán a la papelera."
+    "deletePinDesc": "Este pin y el punto vinculado se moverán a la papelera.",
+    "editInstruction": "Arrastra el pin para corregir la posición · Clic para eliminar",
+    "dragOrClickToRemove": "Arrastrar para mover · Clic para eliminar",
+    "panHint": "Mantén pulsado el botón derecho para mover",
+    "zoomPanHint": "Rueda del ratón para zoom · Clic derecho para mover"
   },
   "pdfExport": {
     "title": "Exportación PDF",
