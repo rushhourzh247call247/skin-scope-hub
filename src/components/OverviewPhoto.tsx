@@ -172,13 +172,29 @@ const OverviewPhoto = ({ overviewLocation, spotLocations, patientId, onNavigateT
     dragMovedRef.current = false;
     const startX = e.clientX;
     const startY = e.clientY;
+
+    // Precision-Drag: Pin folgt dem Finger mit Offset (Pin schwebt über Fingerspitze),
+    // damit der Finger die Position nicht verdeckt. Auf Touch-Geräten grosser Offset.
+    const isTouch = e.pointerType === "touch";
+    const rectInit = el.getBoundingClientRect();
+    const pin = pins.find((p: OverviewPin) => p.id === pinId);
+    // Delta zwischen Finger-Anfasspunkt und Pin-Mittelpunkt — wird beim Drag beibehalten
+    const pinClientX = pin ? rectInit.left + (pin.x_pct / 100) * rectInit.width : startX;
+    const pinClientY = pin ? rectInit.top + (pin.y_pct / 100) * rectInit.height : startY;
+    const grabDX = pinClientX - startX;
+    // Auf Touch zusätzlich 60px nach oben verschieben, damit Pin sichtbar bleibt
+    const grabDY = (pinClientY - startY) + (isTouch ? -60 : 0);
+    const moveThreshold = isTouch ? 8 : 4;
+
     let lastPos: { x_pct: number; y_pct: number } | null = null;
 
     const move = (ev: PointerEvent) => {
       const rect = el.getBoundingClientRect();
-      const x_pct = Math.max(0, Math.min(100, ((ev.clientX - rect.left) / rect.width) * 100));
-      const y_pct = Math.max(0, Math.min(100, ((ev.clientY - rect.top) / rect.height) * 100));
-      if (Math.abs(ev.clientX - startX) > 4 || Math.abs(ev.clientY - startY) > 4) {
+      const targetX = ev.clientX + grabDX;
+      const targetY = ev.clientY + grabDY;
+      const x_pct = Math.max(0, Math.min(100, ((targetX - rect.left) / rect.width) * 100));
+      const y_pct = Math.max(0, Math.min(100, ((targetY - rect.top) / rect.height) * 100));
+      if (Math.abs(ev.clientX - startX) > moveThreshold || Math.abs(ev.clientY - startY) > moveThreshold) {
         dragMovedRef.current = true;
       }
       lastPos = { x_pct, y_pct };
@@ -199,7 +215,7 @@ const OverviewPhoto = ({ overviewLocation, spotLocations, patientId, onNavigateT
     };
     window.addEventListener('pointermove', move);
     window.addEventListener('pointerup', up);
-  }, [editMode, movePinMutation]);
+  }, [editMode, movePinMutation, pins]);
 
   const uploadMutation = useMutation({
     mutationFn: (file: File) => api.uploadImage(overviewLocation.id, file),
