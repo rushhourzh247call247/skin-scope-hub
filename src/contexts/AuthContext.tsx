@@ -10,11 +10,23 @@ interface User {
   company_id?: number;
   role?: string;
   two_factor_enabled?: boolean;
+  is_shared_account?: boolean;
+  display_name?: string | null;
   company_name?: string;
   company_lifecycle_status?: "active" | "read_only" | "archived" | "pending_deletion";
   company_read_only_until?: string | null;
   company_archive_opt_in?: boolean;
   company_archive_until?: string | null;
+}
+
+interface AuthContextType {
+  user: User | null;
+  token: string | null;
+  isAuthenticated: boolean;
+  isLoading: boolean;
+  login: (email: string, password: string, displayName?: string) => Promise<{ user: User; token: string; display_name?: string | null }>;
+  setSession: (user: User, token: string, displayName?: string | null) => void;
+  logout: () => void;
 }
 
 interface AuthContextType {
