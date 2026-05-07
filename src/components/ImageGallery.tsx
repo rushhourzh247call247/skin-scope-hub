@@ -217,7 +217,7 @@ const ImageGallery = ({ locationId, patientId, images, locationName, locationTyp
           details.push(formatDate(img.created_at, "dd.MM.yyyy"));
         } catch {}
       }
-      if (img.created_by_label) details.push(img.created_by_label);
+      if (img.created_by_label) details.push(formatCreatedByLabel(img.created_by_label));
       ctx.fillText(details.join("  •  "), 12, fontSize + 8 + fontSize * 1.1);
 
       ctx.drawImage(imgEl, 0, barHeight);
