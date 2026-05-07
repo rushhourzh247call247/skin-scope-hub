@@ -97,6 +97,7 @@ export function AppSidebar() {
     ? [
         { title: t("nav.patients"), url: "/patients", icon: Users },
         { title: t("nav.newPatient"), url: "/new-patient", icon: UserPlus },
+        { title: t("nav.tickets"), url: "/tickets", icon: TicketCheck },
         { title: t("nav.settings"), url: "/settings", icon: Settings },
       ]
     : [
