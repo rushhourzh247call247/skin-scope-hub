@@ -1398,23 +1398,25 @@ const BodyMap3D: React.FC<BodyMap3DProps> = (props) => {
 
 
         {/* Bottom controls */}
-        <div className="absolute bottom-2 left-2 right-2 flex items-center gap-1.5 flex-wrap">
-          <button
-            onClick={() => { setActiveRegion("full"); setResetCounter(c => c + 1); setFocusKey(k => k + 1); props.onMarkerClick?.(null); }}
-            className="flex h-8 items-center gap-1 rounded-md border border-border/50 bg-card/90 px-2.5 text-[11px] text-muted-foreground transition-all hover:text-foreground"
-          >
-            <RotateCcw className="h-3 w-3" /> {i18n.t('common.reset')}
-          </button>
-
-          {markMode && (
+        {!props.embedded && (
+          <div className="absolute bottom-2 left-2 right-2 flex items-center gap-1.5 flex-wrap">
             <button
-              onClick={() => setMarkMode(false)}
-              className="ml-auto flex h-8 items-center gap-1 rounded-md border border-border/50 bg-card/90 px-2.5 text-[11px] text-muted-foreground transition-all hover:text-foreground"
+              onClick={() => { setActiveRegion("full"); setResetCounter(c => c + 1); setFocusKey(k => k + 1); props.onMarkerClick?.(null); }}
+              className="flex h-8 items-center gap-1 rounded-md border border-border/50 bg-card/90 px-2.5 text-[11px] text-muted-foreground transition-all hover:text-foreground"
             >
-              ✕ {i18n.t('common.cancel', { defaultValue: 'Abbrechen' })}
+              <RotateCcw className="h-3 w-3" /> {i18n.t('common.reset')}
             </button>
-          )}
-        </div>
+
+            {markMode && (
+              <button
+                onClick={() => setMarkMode(false)}
+                className="ml-auto flex h-8 items-center gap-1 rounded-md border border-border/50 bg-card/90 px-2.5 text-[11px] text-muted-foreground transition-all hover:text-foreground"
+              >
+                ✕ {i18n.t('common.cancel', { defaultValue: 'Abbrechen' })}
+              </button>
+            )}
+          </div>
+        )}
 
         {/* Mark mode indicator — prominent banner */}
         {markMode && (
