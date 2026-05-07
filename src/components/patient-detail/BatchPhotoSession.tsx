@@ -91,14 +91,8 @@ export default function BatchPhotoSession({ open, onOpenChange, patientId, spots
     cameraRef.current?.click();
   };
 
-  // Auto-open camera when reaching a new pending spot
-  useEffect(() => {
-    if (!open || done || !currentSpot) return;
-    if (statuses[currentSpot.id]) return; // already handled
-    if (previewUrl) return; // already captured, awaiting decision
-    const t = setTimeout(() => openCamera(), 200);
-    return () => clearTimeout(t);
-  }, [open, done, currentSpot, statuses, previewUrl]);
+  // Note: Camera does NOT auto-open on spot change — PMA needs to verify which
+  // spot is shown on the body map first. Only re-opens automatically after "Wiederholen".
 
   const handleFile = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
