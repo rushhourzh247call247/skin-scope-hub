@@ -1678,6 +1678,63 @@ const PatientDetail = () => {
                   )}
                 </div>
 
+                {/* Spot-Navigator: Dropdown + Vor/Zurück — wechselt ohne Scroll-Reset */}
+                {selectedLocation.type !== "region" && spotLocations.length > 1 && (() => {
+                  const currentIdx = spotLocations.findIndex(s => s.id === selectedLocation.id);
+                  const goTo = (idx: number) => {
+                    if (idx < 0 || idx >= spotLocations.length) return;
+                    suppressSpotChangeScrollRef.current = true;
+                    setSelectedLocationId(spotLocations[idx].id);
+                  };
+                  return (
+                    <div className="flex items-center gap-1.5 rounded-md border bg-muted/30 p-1.5">
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        className="h-8 w-8 p-0 shrink-0"
+                        onClick={() => goTo(currentIdx - 1)}
+                        disabled={currentIdx <= 0}
+                        title="Vorheriger Spot"
+                      >
+                        <ChevronLeft className="h-4 w-4" />
+                      </Button>
+                      <Select
+                        value={String(selectedLocation.id)}
+                        onValueChange={(v) => {
+                          suppressSpotChangeScrollRef.current = true;
+                          setSelectedLocationId(Number(v));
+                        }}
+                      >
+                        <SelectTrigger className="h-8 flex-1 text-xs">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {spotLocations.map((s, i) => (
+                            <SelectItem key={s.id} value={String(s.id)} className="text-xs">
+                              <span className="tabular-nums text-muted-foreground mr-1.5">#{i + 1}</span>
+                              {translateAnatomyName(s.name) || `Spot ${i + 1}`}
+                              <span className="text-muted-foreground ml-1.5">· {s.images?.length ?? 0} {t('common.images')}</span>
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <span className="text-[10px] text-muted-foreground tabular-nums px-1 shrink-0">
+                        {currentIdx + 1}/{spotLocations.length}
+                      </span>
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        className="h-8 w-8 p-0 shrink-0"
+                        onClick={() => goTo(currentIdx + 1)}
+                        disabled={currentIdx >= spotLocations.length - 1}
+                        title="Nächster Spot"
+                      >
+                        <ChevronRight className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  );
+                })()}
+
                 {/* 1. Toolbar (Kamera/Upload/QR) ganz oben — schneller Zugriff direkt nach Spot-Öffnung */}
                 <ImageGallery
                   locationId={selectedLocation.id}
