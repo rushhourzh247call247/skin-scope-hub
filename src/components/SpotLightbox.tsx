@@ -76,10 +76,6 @@ const SpotLightbox = ({ open, onClose, images, locationName, onCompare, initialI
   const current = sorted[safeIndex];
   if (!current) return null;
 
-  const handleDragEnd = (_: unknown, info: PanInfo) => {
-    if (info.offset.x < -60) go(1);
-    else if (info.offset.x > 60) go(-1);
-  };
 
   return createPortal(
     <AnimatePresence>
