@@ -113,6 +113,7 @@ const PatientDetail = () => {
   const zoneFileRef = useRef<HTMLInputElement>(null);
   const bodyMapRef = useRef<HTMLDivElement>(null);
   const detailContentRef = useRef<HTMLDivElement>(null);
+  const selectedSpotListItemRef = useRef<HTMLDivElement>(null);
   const scrollToDetailAfterCollapseRef = useRef(false);
   const lastBodyFocusedLocationRef = useRef<number | null>(null);
   const ignoreNextSpotClickRef = useRef(false);
@@ -164,6 +165,7 @@ const PatientDetail = () => {
     }
 
     setMapClickDialog(null);
+    suppressSpotChangeScrollRef.current = true;
     setSelectedLocationId(locationId);
     setActiveTab("spots");
 
@@ -188,6 +190,11 @@ const PatientDetail = () => {
   useEffect(() => {
     window.scrollTo({ top: 0, left: 0 });
   }, []);
+
+  useEffect(() => {
+    if (!selectedLocationId || !selectedSpotListItemRef.current) return;
+    selectedSpotListItemRef.current.scrollIntoView({ block: "nearest" });
+  }, [selectedLocationId]);
 
   // Reset detail scroll to top whenever the selected spot changes (mobile focus)
   useEffect(() => {
@@ -1002,15 +1009,16 @@ const PatientDetail = () => {
             const renderSpotItem = (loc: typeof visibleSpots[0], i: number) => (
               <div
                 key={loc.id}
+                ref={selectedLocationId === loc.id ? selectedSpotListItemRef : undefined}
                 className={cn(
-                  "group flex w-full items-center gap-2.5 rounded-md px-2.5 py-2 text-left transition-all text-xs",
+                  "group flex w-full items-center gap-2 rounded-md px-2 py-1 text-left transition-all text-xs",
                   selectedLocationId === loc.id
-                    ? "bg-primary/10 text-primary border border-primary/20"
-                    : "hover:bg-muted text-foreground border border-transparent"
+                    ? "bg-primary/10 text-primary ring-1 ring-primary/25"
+                    : "hover:bg-muted text-foreground"
                 )}
               >
                 <button
-                  className="flex flex-1 touch-manipulation items-center gap-2.5 min-w-0"
+                  className="flex min-w-0 flex-1 touch-manipulation items-center gap-2"
                   onClick={() => handleSpotListClick(loc.id)}
                 >
                   {(() => {
@@ -1029,9 +1037,8 @@ const PatientDetail = () => {
                       </div>
                     );
                   })()}
-                  <div className="min-w-0 flex-1">
-                    <div className="flex items-center gap-1.5">
-                      <p className="truncate font-medium">{translateAnatomyName(loc.name) || `Spot ${i + 1}`}</p>
+                  <div className="flex min-w-0 flex-1 items-center gap-1.5">
+                    <p className="truncate font-medium">{translateAnatomyName(loc.name) || `Spot ${i + 1}`}</p>
                       {(() => {
                         const cls = (loc as any).classification as LesionClassification | undefined;
                         if (!cls || cls === "unclassified") return null;
@@ -1067,10 +1074,6 @@ const PatientDetail = () => {
                           </span>
                         );
                       })()}
-                    </div>
-                    <p className="text-[10px] text-muted-foreground">
-                      {loc.images?.length ?? 0} {t('common.images')} · {loc.view === "back" ? t('common.backSide') : t('common.front')}
-                    </p>
                   </div>
                 </button>
                 <button
@@ -1103,7 +1106,7 @@ const PatientDetail = () => {
                     <p className="text-[10px] mt-1 text-center">{t('patientDetail.clickBodyMapInstruction')}</p>
                   </div>
                 ) : (
-                  <div className="h-[260px] overflow-y-auto overscroll-contain rounded-lg border-2 border-border bg-card p-2 space-y-1 shadow-inner">
+                  <div className="h-[168px] overflow-y-auto overscroll-contain rounded-lg border border-border bg-card p-1.5 space-y-1 shadow-inner">
                     {/* Free spots (not linked to any zone) */}
                     {freeSpots.map((loc) => {
                       const idx = globalIndex++;
@@ -1112,8 +1115,8 @@ const PatientDetail = () => {
 
                     {/* Zone-grouped spots */}
                     {Array.from(zoneGroups.entries()).map(([zoneName, spots]) => (
-                      <div key={zoneName} className="mt-2">
-                        <div className="flex items-center gap-1.5 px-2 py-1 mb-1">
+                      <div key={zoneName} className="mt-1.5">
+                        <div className="flex items-center gap-1.5 px-2 py-0.5">
                           <Camera className="h-3 w-3 text-muted-foreground" />
                           <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
                             {t('patientDetail.fromZone', { zone: translateAnatomyName(zoneName) })}
