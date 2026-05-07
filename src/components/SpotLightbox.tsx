@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { api } from "@/lib/api";
 import { formatDate } from "@/lib/dateUtils";
+import { formatCreatedByLabel } from "@/lib/createdByLabel";
 import type { LocationImage } from "@/types/patient";
 import { useAuth } from "@/contexts/AuthContext";
 
@@ -166,7 +167,7 @@ const SpotLightbox = ({ open, onClose, images, locationName, onCompare, initialI
             {current.created_by_label && (
               <>
                 <span className="mx-1 opacity-40">•</span>
-                <span>{current.created_by_label}</span>
+                <span>{formatCreatedByLabel(current.created_by_label)}</span>
               </>
             )}
             {current.risk_level && !isPma && (

@@ -7,6 +7,7 @@ import { Upload, Calendar, ImageIcon, GitCompareArrows, Trash2, Download, Camera
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { formatDate } from "@/lib/dateUtils";
+import { formatCreatedByLabel } from "@/lib/createdByLabel";
 import ImageCompare from "@/components/ImageCompare";
 import AbcdeForm from "@/components/AbcdeForm";
 import { toast } from "sonner";
@@ -216,7 +217,7 @@ const ImageGallery = ({ locationId, patientId, images, locationName, locationTyp
           details.push(formatDate(img.created_at, "dd.MM.yyyy"));
         } catch {}
       }
-      if (img.created_by_label) details.push(img.created_by_label);
+      if (img.created_by_label) details.push(formatCreatedByLabel(img.created_by_label));
       ctx.fillText(details.join("  •  "), 12, fontSize + 8 + fontSize * 1.1);
 
       ctx.drawImage(imgEl, 0, barHeight);
@@ -342,7 +343,7 @@ const ImageGallery = ({ locationId, patientId, images, locationName, locationTyp
                       </span>
                       <span className="text-[10px] text-muted-foreground">
                         #{sorted.length - idx} · {t('imageGallery.recording')}
-                        {img.created_by_label ? ` · ${img.created_by_label}` : ""}
+                        {img.created_by_label ? ` · ${formatCreatedByLabel(img.created_by_label)}` : ""}
                       </span>
                     </div>
                     <div className="flex shrink-0 gap-1 opacity-70 transition-opacity group-hover:opacity-100">
