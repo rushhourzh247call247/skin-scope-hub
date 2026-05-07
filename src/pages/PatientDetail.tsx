@@ -85,6 +85,7 @@ const PatientDetail = () => {
   } | null>(null);
   const [locationName, setLocationName] = useState("");
   const [activeTab, setActiveTab] = useState<"akte" | "spots" | "fotos" | "uebersicht" | "berichte">("spots");
+  const [spotBackTarget, setSpotBackTarget] = useState<{ tab: "akte" | "spots" | "fotos" | "uebersicht" | "berichte"; zoneId: number | null } | null>(null);
   const [sidebarTab, setSidebarTab] = useState<"spots" | "zones">("spots");
   const [newFindingText, setNewFindingText] = useState("");
   const [regionWidth, setRegionWidth] = useState(40);
@@ -1256,6 +1257,7 @@ const PatientDetail = () => {
                 <PatientAkte
                   patient={patient}
                   onNavigateToSpot={(locationId) => {
+                    setSpotBackTarget({ tab: "akte", zoneId: null });
                     setSelectedLocationId(locationId);
                     setActiveTab("spots");
                   }}
@@ -1339,10 +1341,12 @@ const PatientDetail = () => {
                               spotLocations={linkedSpotLocations}
                               patientId={patientId}
                               onNavigateToSpot={(spotId) => {
+                                setSpotBackTarget({ tab: "uebersicht", zoneId: loc.id });
                                 setSelectedLocationId(spotId);
                                 setActiveTab("spots");
                               }}
                               onCompareSpot={(spotId) => {
+                                setSpotBackTarget({ tab: "uebersicht", zoneId: loc.id });
                                 setSelectedLocationId(spotId);
                                 setActiveTab("spots");
                                 setTimeout(() => {
@@ -1574,7 +1578,24 @@ const PatientDetail = () => {
                 className="space-y-6"
               >
                 <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-3">
+                  <div className="flex items-center gap-2">
+                    {spotBackTarget && (
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        className="gap-1 h-8 px-2"
+                        onClick={() => {
+                          const target = spotBackTarget;
+                          setSpotBackTarget(null);
+                          setSelectedLocationId(target.zoneId);
+                          setActiveTab(target.tab);
+                        }}
+                        title={t('patientDetail.backToList', { defaultValue: 'Zurück' })}
+                      >
+                        <ArrowLeft className="h-4 w-4" />
+                        <span className="text-xs">{t('common.back', { defaultValue: 'Zurück' })}</span>
+                      </Button>
+                    )}
                     <div className={cn(
                       "flex h-8 w-8 items-center justify-center text-sm font-bold",
                       selectedLocation.type === "region"
