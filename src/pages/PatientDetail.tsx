@@ -116,6 +116,7 @@ const PatientDetail = () => {
   const ignoreNextSpotClickRef = useRef(false);
   const [zoneUploadTargetId, setZoneUploadTargetId] = useState<number | null>(null);
   const [lightboxOpen, setLightboxOpen] = useState(false);
+  const [lightboxImageId, setLightboxImageId] = useState<number | null>(null);
   const [compareSignal, setCompareSignal] = useState(0);
 
   const selectLocation = (locationId: number | null, scrollToDetail = false) => {
@@ -1677,6 +1678,7 @@ const PatientDetail = () => {
                   patientName={patient.name}
                   patientBirthDate={patient.birth_date}
                   section="grid"
+                  onImageClick={(img) => { setLightboxImageId(img.id); setLightboxOpen(true); }}
                 />
 
                 {/* 3. Klassifikation + Status (zusammen, weiter unten) */}
@@ -1839,11 +1841,13 @@ const PatientDetail = () => {
       {selectedLocation && (
         <SpotLightbox
           open={lightboxOpen}
-          onClose={() => setLightboxOpen(false)}
+          onClose={() => { setLightboxOpen(false); setLightboxImageId(null); }}
           images={selectedLocation.images ?? []}
           locationName={translateAnatomyName(selectedLocation.name) || `Spot #${selectedLocation.id}`}
+          initialImageId={lightboxImageId}
           onCompare={() => {
             setLightboxOpen(false);
+            setLightboxImageId(null);
             setActiveTab("spots");
             setCompareSignal(s => s + 1);
             window.setTimeout(() => {

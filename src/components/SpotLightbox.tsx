@@ -16,6 +16,7 @@ interface SpotLightboxProps {
   images: LocationImage[];
   locationName: string;
   onCompare?: () => void;
+  initialImageId?: number | null;
 }
 
 const riskColor = (level?: string | null) => {
@@ -26,7 +27,7 @@ const riskColor = (level?: string | null) => {
   return "bg-muted-foreground/40";
 };
 
-const SpotLightbox = ({ open, onClose, images, locationName, onCompare }: SpotLightboxProps) => {
+const SpotLightbox = ({ open, onClose, images, locationName, onCompare, initialImageId }: SpotLightboxProps) => {
   const { t } = useTranslation();
   const { user } = useAuth();
   const isPma = user?.role === "pma";
@@ -38,8 +39,14 @@ const SpotLightbox = ({ open, onClose, images, locationName, onCompare }: SpotLi
   const touchStartX = useRef<number | null>(null);
 
   useEffect(() => {
-    if (open) setIndex(Math.max(0, sorted.length - 1));
-  }, [open, sorted.length]);
+    if (!open) return;
+    if (initialImageId != null) {
+      const i = sorted.findIndex(im => im.id === initialImageId);
+      setIndex(i >= 0 ? i : Math.max(0, sorted.length - 1));
+    } else {
+      setIndex(Math.max(0, sorted.length - 1));
+    }
+  }, [open, sorted, initialImageId]);
 
   const go = useCallback((dir: -1 | 1) => {
     setIndex(i => Math.min(sorted.length - 1, Math.max(0, i + dir)));
