@@ -1106,28 +1106,39 @@ const PatientDetail = () => {
                     <p className="text-[10px] mt-1 text-center">{t('patientDetail.clickBodyMapInstruction')}</p>
                   </div>
                 ) : (
-                  <div className="h-[168px] overflow-y-auto overscroll-contain rounded-lg border border-border bg-card p-1.5 space-y-1 shadow-inner">
-                    {/* Free spots (not linked to any zone) */}
-                    {freeSpots.map((loc) => {
-                      const idx = globalIndex++;
-                      return renderSpotItem(loc, idx);
-                    })}
-
-                    {/* Zone-grouped spots */}
-                    {Array.from(zoneGroups.entries()).map(([zoneName, spots]) => (
-                      <div key={zoneName} className="mt-1.5">
-                        <div className="flex items-center gap-1.5 px-2 py-0.5">
-                          <Camera className="h-3 w-3 text-muted-foreground" />
-                          <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
-                            {t('patientDetail.fromZone', { zone: translateAnatomyName(zoneName) })}
-                          </span>
-                        </div>
-                        {spots.map((loc) => {
-                          const idx = globalIndex++;
-                          return renderSpotItem(loc, idx);
-                        })}
+                  <div className="relative">
+                    {visibleSpots.length > 3 && (
+                      <div className="mb-1 flex items-center justify-end gap-1 px-1 text-[10px] font-medium text-muted-foreground">
+                        <ChevronsUpDown className="h-3 w-3" />
+                        <span>{t('patientDetail.scrollHint', { defaultValue: 'scrollen' })}</span>
                       </div>
-                    ))}
+                    )}
+                    <div className="h-[168px] overflow-y-auto overscroll-contain rounded-lg border border-border bg-card p-1.5 space-y-1 shadow-inner [scrollbar-width:thin] [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-muted-foreground/40">
+                      {/* Free spots (not linked to any zone) */}
+                      {freeSpots.map((loc) => {
+                        const idx = globalIndex++;
+                        return renderSpotItem(loc, idx);
+                      })}
+
+                      {/* Zone-grouped spots */}
+                      {Array.from(zoneGroups.entries()).map(([zoneName, spots]) => (
+                        <div key={zoneName} className="mt-1.5">
+                          <div className="flex items-center gap-1.5 px-2 py-0.5">
+                            <Camera className="h-3 w-3 text-muted-foreground" />
+                            <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
+                              {t('patientDetail.fromZone', { zone: translateAnatomyName(zoneName) })}
+                            </span>
+                          </div>
+                          {spots.map((loc) => {
+                            const idx = globalIndex++;
+                            return renderSpotItem(loc, idx);
+                          })}
+                        </div>
+                      ))}
+                    </div>
+                    {visibleSpots.length > 3 && (
+                      <div className="pointer-events-none absolute inset-x-0 bottom-0 h-6 rounded-b-lg bg-gradient-to-t from-card to-transparent" />
+                    )}
                   </div>
                 )}
               </div>
