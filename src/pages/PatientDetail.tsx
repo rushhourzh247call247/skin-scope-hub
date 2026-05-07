@@ -1106,7 +1106,7 @@ const PatientDetail = () => {
                     <p className="text-[10px] mt-1 text-center">{t('patientDetail.clickBodyMapInstruction')}</p>
                   </div>
                 ) : (
-                  <div className="h-[260px] overflow-y-auto overscroll-contain rounded-lg border-2 border-border bg-card p-2 space-y-1 shadow-inner">
+                  <div className="h-[168px] overflow-y-auto overscroll-contain rounded-lg border border-border bg-card p-1.5 space-y-1 shadow-inner">
                     {/* Free spots (not linked to any zone) */}
                     {freeSpots.map((loc) => {
                       const idx = globalIndex++;
@@ -1115,8 +1115,8 @@ const PatientDetail = () => {
 
                     {/* Zone-grouped spots */}
                     {Array.from(zoneGroups.entries()).map(([zoneName, spots]) => (
-                      <div key={zoneName} className="mt-2">
-                        <div className="flex items-center gap-1.5 px-2 py-1 mb-1">
+                      <div key={zoneName} className="mt-1.5">
+                        <div className="flex items-center gap-1.5 px-2 py-0.5">
                           <Camera className="h-3 w-3 text-muted-foreground" />
                           <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
                             {t('patientDetail.fromZone', { zone: translateAnatomyName(zoneName) })}
