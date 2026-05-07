@@ -35,6 +35,7 @@ export default function BatchPhotoSession({ open, onOpenChange, patientId, spots
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [pendingFile, setPendingFile] = useState<File | null>(null);
   const [done, setDone] = useState(false);
+  const previewRef = useRef<HTMLDivElement>(null);
 
   const currentSpot = spots[index];
   const total = spots.length;
@@ -283,30 +284,13 @@ export default function BatchPhotoSession({ open, onOpenChange, patientId, spots
                       </div>
                     </div>
 
-                    {/* Axis coordinates — helps unique identification */}
-                    {has3d && (
-                      <div className="flex flex-wrap gap-1.5 text-[10px] font-mono">
-                        <span className="rounded bg-muted px-1.5 py-0.5 text-muted-foreground">
-                          X <span className="text-foreground tabular-nums">{currentSpot.x3d!.toFixed(2)}</span>
-                        </span>
-                        <span className="rounded bg-muted px-1.5 py-0.5 text-muted-foreground">
-                          Y <span className="text-foreground tabular-nums">{currentSpot.y3d!.toFixed(2)}</span>
-                        </span>
-                        <span className="rounded bg-muted px-1.5 py-0.5 text-muted-foreground">
-                          Z <span className="text-foreground tabular-nums">{currentSpot.z3d!.toFixed(2)}</span>
-                        </span>
-                        <span className="rounded bg-muted px-1.5 py-0.5 text-muted-foreground">
-                          {currentSpot.x3d! < 0 ? 'rechte' : 'linke'} Körperhälfte
-                        </span>
-                      </div>
-                    )}
                   </div>
                 );
               })()}
 
               {/* Preview area */}
               {previewUrl ? (
-                <div className="space-y-3">
+                <div ref={previewRef} className="space-y-3 scroll-mt-4">
                   <div className="relative rounded-lg overflow-hidden bg-black aspect-square">
                     <img src={previewUrl} alt="Vorschau" className="h-full w-full object-contain" />
                   </div>
