@@ -216,6 +216,7 @@ const ImageGallery = ({ locationId, patientId, images, locationName, locationTyp
           details.push(formatDate(img.created_at, "dd.MM.yyyy"));
         } catch {}
       }
+      if (img.created_by_label) details.push(img.created_by_label);
       ctx.fillText(details.join("  •  "), 12, fontSize + 8 + fontSize * 1.1);
 
       ctx.drawImage(imgEl, 0, barHeight);
@@ -341,6 +342,7 @@ const ImageGallery = ({ locationId, patientId, images, locationName, locationTyp
                       </span>
                       <span className="text-[10px] text-muted-foreground">
                         #{sorted.length - idx} · {t('imageGallery.recording')}
+                        {img.created_by_label ? ` · ${img.created_by_label}` : ""}
                       </span>
                     </div>
                     <div className="flex shrink-0 gap-1 opacity-70 transition-opacity group-hover:opacity-100">

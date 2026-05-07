@@ -163,6 +163,12 @@ const SpotLightbox = ({ open, onClose, images, locationName, onCompare, initialI
             <span className="tabular-nums">
               {current.created_at ? formatDate(current.created_at, "dd.MM.yyyy") : "–"}
             </span>
+            {current.created_by_label && (
+              <>
+                <span className="mx-1 opacity-40">•</span>
+                <span>{current.created_by_label}</span>
+              </>
+            )}
             {current.risk_level && !isPma && (
               <>
                 <span className="mx-1 opacity-40">•</span>
