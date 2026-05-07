@@ -1103,7 +1103,7 @@ const PatientDetail = () => {
                     <p className="text-[10px] mt-1 text-center">{t('patientDetail.clickBodyMapInstruction')}</p>
                   </div>
                 ) : (
-                  <>
+                  <div className="max-h-[280px] overflow-y-auto overscroll-contain rounded-md border border-border/40 bg-muted/20 p-1.5 space-y-1">
                     {/* Free spots (not linked to any zone) */}
                     {freeSpots.map((loc) => {
                       const idx = globalIndex++;
@@ -1125,7 +1125,7 @@ const PatientDetail = () => {
                         })}
                       </div>
                     ))}
-                  </>
+                  </div>
                 )}
               </div>
             );
