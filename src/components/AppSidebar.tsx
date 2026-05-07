@@ -16,8 +16,8 @@ import {
 
 export function AppSidebar() {
   const { t } = useTranslation();
-  const { state } = useSidebar();
-  const collapsed = state === "collapsed";
+  const { state, isMobile } = useSidebar();
+  const collapsed = !isMobile && state === "collapsed";
   const location = useLocation();
   const { user, logout } = useAuth();
   const { isReadOnly, readOnlyTooltip } = useLifecycle();
