@@ -21,6 +21,7 @@ import { Slider } from "@/components/ui/slider";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { formatDate } from "@/lib/dateUtils";
+import { formatCreatedByLabel } from "@/lib/createdByLabel";
 import BodyMap3D from "@/components/BodyMap3D";
 import ImageGallery from "@/components/ImageGallery";
 import ImageCompare from "@/components/ImageCompare";
