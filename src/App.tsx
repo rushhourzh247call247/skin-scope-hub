@@ -96,7 +96,7 @@ const App = () => (
             <Route path="/contact-confirm" element={<ContactConfirm />} />
             <Route path="/contact/confirm" element={<ContactConfirm />} />
             <Route path="/calibrate" element={<Calibrate />} />
-            <Route path="/" element={<ProtectedPage><AccountantRedirect><Dashboard /></AccountantRedirect></ProtectedPage>} />
+            <Route path="/" element={<ProtectedPage><AccountantRedirect><PmaRedirect><Dashboard /></PmaRedirect></AccountantRedirect></ProtectedPage>} />
             <Route path="/patients" element={<ProtectedPage><AccountantRedirect><PatientList /></AccountantRedirect></ProtectedPage>} />
             <Route path="/new-patient" element={<ProtectedPage><AccountantRedirect><NewPatient /></AccountantRedirect></ProtectedPage>} />
             <Route path="/patient/:id" element={<ProtectedPage><AccountantRedirect><PatientDetail /></AccountantRedirect></ProtectedPage>} />
@@ -106,7 +106,7 @@ const App = () => (
             <Route path="/settings" element={<ProtectedPage><Settings /></ProtectedPage>} />
             <Route path="/system-docs" element={<ProtectedPage><AdminRoute><SystemDocs /></AdminRoute></ProtectedPage>} />
             <Route path="/contracts" element={<ProtectedPage><FinanceRoute><ContractGenerator /></FinanceRoute></ProtectedPage>} />
-            <Route path="/tickets" element={<ProtectedPage><AccountantRedirect><Tickets /></AccountantRedirect></ProtectedPage>} />
+            <Route path="/tickets" element={<ProtectedPage><AccountantRedirect><NoPmaRoute><Tickets /></NoPmaRoute></AccountantRedirect></ProtectedPage>} />
             {/* Finance routes - accessible by admin and accountant */}
             <Route path="/finance" element={<ProtectedPage><FinanceRoute><FinanceDashboard /></FinanceRoute></ProtectedPage>} />
             <Route path="/finance/invoices" element={<ProtectedPage><FinanceRoute><InvoiceManagement /></FinanceRoute></ProtectedPage>} />
