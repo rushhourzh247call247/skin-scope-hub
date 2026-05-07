@@ -1518,16 +1518,18 @@ const BodyMap3D: React.FC<BodyMap3DProps> = (props) => {
         })()}
       </div>
 
-      <p className="mt-2 text-center text-[10px] text-muted-foreground">
-        {markMode
-          ? markType === "region"
-            ? i18n.t('bodyMap3d.regionModeHelp')
-            : markType === "zone"
-            ? i18n.t('bodyMap3d.zoneModeHelp')
-            : i18n.t('bodyMap3d.spotModeHelp')
-          : i18n.t('bodyMap3d.defaultHelp')
-        }
-      </p>
+      {!props.embedded && (
+        <p className="mt-2 text-center text-[10px] text-muted-foreground">
+          {markMode
+            ? markType === "region"
+              ? i18n.t('bodyMap3d.regionModeHelp')
+              : markType === "zone"
+              ? i18n.t('bodyMap3d.zoneModeHelp')
+              : i18n.t('bodyMap3d.spotModeHelp')
+            : i18n.t('bodyMap3d.defaultHelp')
+          }
+        </p>
+      )}
     </div>
   );
 };
