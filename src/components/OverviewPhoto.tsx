@@ -172,13 +172,29 @@ const OverviewPhoto = ({ overviewLocation, spotLocations, patientId, onNavigateT
     dragMovedRef.current = false;
     const startX = e.clientX;
     const startY = e.clientY;
+
+    // Precision-Drag: Pin folgt dem Finger mit Offset (Pin schwebt über Fingerspitze),
+    // damit der Finger die Position nicht verdeckt. Auf Touch-Geräten grosser Offset.
+    const isTouch = e.pointerType === "touch";
+    const rectInit = el.getBoundingClientRect();
+    const pin = pins.find((p: OverviewPin) => p.id === pinId);
+    // Delta zwischen Finger-Anfasspunkt und Pin-Mittelpunkt — wird beim Drag beibehalten
+    const pinClientX = pin ? rectInit.left + (pin.x_pct / 100) * rectInit.width : startX;
+    const pinClientY = pin ? rectInit.top + (pin.y_pct / 100) * rectInit.height : startY;
+    const grabDX = pinClientX - startX;
+    // Auf Touch zusätzlich 60px nach oben verschieben, damit Pin sichtbar bleibt
+    const grabDY = (pinClientY - startY) + (isTouch ? -60 : 0);
+    const moveThreshold = isTouch ? 8 : 4;
+
     let lastPos: { x_pct: number; y_pct: number } | null = null;
 
     const move = (ev: PointerEvent) => {
       const rect = el.getBoundingClientRect();
-      const x_pct = Math.max(0, Math.min(100, ((ev.clientX - rect.left) / rect.width) * 100));
-      const y_pct = Math.max(0, Math.min(100, ((ev.clientY - rect.top) / rect.height) * 100));
-      if (Math.abs(ev.clientX - startX) > 4 || Math.abs(ev.clientY - startY) > 4) {
+      const targetX = ev.clientX + grabDX;
+      const targetY = ev.clientY + grabDY;
+      const x_pct = Math.max(0, Math.min(100, ((targetX - rect.left) / rect.width) * 100));
+      const y_pct = Math.max(0, Math.min(100, ((targetY - rect.top) / rect.height) * 100));
+      if (Math.abs(ev.clientX - startX) > moveThreshold || Math.abs(ev.clientY - startY) > moveThreshold) {
         dragMovedRef.current = true;
       }
       lastPos = { x_pct, y_pct };
@@ -199,7 +215,7 @@ const OverviewPhoto = ({ overviewLocation, spotLocations, patientId, onNavigateT
     };
     window.addEventListener('pointermove', move);
     window.addEventListener('pointerup', up);
-  }, [editMode, movePinMutation]);
+  }, [editMode, movePinMutation, pins]);
 
   const uploadMutation = useMutation({
     mutationFn: (file: File) => api.uploadImage(overviewLocation.id, file),
@@ -636,14 +652,12 @@ const OverviewPhoto = ({ overviewLocation, spotLocations, patientId, onNavigateT
                 <button
                   className={cn(
                     "absolute z-10 transition-all touch-none select-none",
-                    isDragging ? "cursor-grabbing scale-110" : "cursor-grab hover:scale-110"
+                    isDragging ? "cursor-grabbing scale-125" : "cursor-grab hover:scale-110"
                   )}
                   style={{
                     left: `${px}%`,
                     top: `${py}%`,
-                    transform: isDragging
-                      ? `translate(-50%, -50%)`
-                      : `translate(calc(-50% + ${labelOffsetX}px), calc(-50% + ${labelOffsetY}px))`,
+                    transform: `translate(-50%, -50%)`,
                     opacity: Math.max(0.15, 1 - (zoomLevel - 1) * 0.2),
                   }}
                   onPointerDown={(e) => startPinDrag(pin.id, e)}
@@ -651,34 +665,33 @@ const OverviewPhoto = ({ overviewLocation, spotLocations, patientId, onNavigateT
                   title={t('overviewPhoto.dragOrClickToRemove', { defaultValue: 'Ziehen zum Verschieben · Klicken zum Löschen' })}
                 >
                   <span
-                    className="flex items-center gap-1 rounded-full text-[9px] font-bold text-white shadow-md border border-white/50 px-2 py-0.5"
-                    style={{ backgroundColor: isDragging ? color : "#ef4444" }}
+                    className="flex items-center justify-center rounded-full text-[10px] font-bold text-white shadow-md border-2 border-white"
+                    style={{ width: 26, height: 26, backgroundColor: isDragging ? color : "#ef4444" }}
                   >
-                    {isDragging ? <Move className="h-3 w-3 text-white" /> : <Trash2 className="h-3 w-3 text-white" />}
-                    <span className="truncate max-w-[60px]">{spot?.name || pin.label || "Spot"}</span>
+                    {isDragging ? <Move className="h-3.5 w-3.5" /> : <Trash2 className="h-3.5 w-3.5" />}
                   </span>
                 </button>
               ) : (
                 <Popover open={openPinId === pin.id} onOpenChange={(open) => { if (!open) setOpenPinId(null); }}>
                   <PopoverTrigger asChild>
                     <button
-                      className="absolute z-10 transition-all hover:scale-110 hover:!opacity-100 cursor-pointer"
+                      className="absolute z-10 transition-all hover:scale-125 hover:!opacity-100 cursor-pointer"
                       style={{
                         left: `${pin.x_pct}%`,
                         top: `${pin.y_pct}%`,
                         transform: `translate(calc(-50% + ${labelOffsetX}px), calc(-50% + ${labelOffsetY}px))`,
-                        opacity: Math.max(0.15, 1 - (zoomLevel - 1) * 0.2),
+                        opacity: Math.max(0.2, 1 - (zoomLevel - 1) * 0.2),
                       }}
-                      onClick={(e) => { e.stopPropagation(); onNavigateToSpot(pin.linked_location_id); }}
+                      onClick={(e) => { e.stopPropagation(); setOpenPinId(pin.id); }}
                       onMouseEnter={() => setHoveredPin(pin.id)}
                       onMouseLeave={() => setHoveredPin(null)}
                       title={spot?.name || pin.label || `Spot #${pin.linked_location_id}`}
                     >
                       <span
-                        className="flex items-center gap-1 rounded-full text-[9px] font-bold text-white shadow-md border border-white/50 px-2 py-0.5 whitespace-nowrap max-w-[100px]"
-                        style={{ backgroundColor: color }}
+                        className="flex items-center justify-center rounded-full text-[10px] font-bold text-white shadow-md border-2 border-white"
+                        style={{ width: 22, height: 22, backgroundColor: color }}
                       >
-                        <span className="truncate">{spot?.name || pin.label || "Spot"}</span>
+                        {i + 1}
                       </span>
                     </button>
                   </PopoverTrigger>
