@@ -120,7 +120,7 @@ export function AppSidebar() {
   const isActive = (path: string) => location.pathname === path;
 
   return (
-    <Sidebar collapsible="icon">
+    <Sidebar collapsible="offcanvas">
       <SidebarContent className="bg-sidebar">
         <div className="flex h-14 items-center border-b border-sidebar-border px-4">
           {collapsed ? (
