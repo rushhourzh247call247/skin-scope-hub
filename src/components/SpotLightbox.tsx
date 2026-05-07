@@ -56,6 +56,7 @@ const SpotLightbox = ({ open, onClose, images, locationName, onCompare, initialI
 
   const go = useCallback((dir: -1 | 1) => {
     setIndex(i => Math.min(sorted.length - 1, Math.max(0, i + dir)));
+    setZoom(1); setPan({ x: 0, y: 0 });
   }, [sorted.length]);
 
   useEffect(() => {
