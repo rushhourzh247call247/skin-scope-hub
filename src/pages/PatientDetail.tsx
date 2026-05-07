@@ -1632,7 +1632,7 @@ const PatientDetail = () => {
                               {selectedLocation.created_by_label && (
                                 <>
                                   <span>·</span>
-                                  <span title={t('patientDetail.createdBy', { defaultValue: 'Angelegt von' }) as string}>{selectedLocation.created_by_label}</span>
+                                  <span title={t('patientDetail.createdBy', { defaultValue: 'Angelegt von' }) as string}>{formatCreatedByLabel(selectedLocation.created_by_label)}</span>
                                 </>
                               )}
                             </p>
