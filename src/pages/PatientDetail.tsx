@@ -1678,6 +1678,7 @@ const PatientDetail = () => {
                   patientName={patient.name}
                   patientBirthDate={patient.birth_date}
                   section="grid"
+                  onImageClick={(img) => { setLightboxImageId(img.id); setLightboxOpen(true); }}
                 />
 
                 {/* 3. Klassifikation + Status (zusammen, weiter unten) */}
