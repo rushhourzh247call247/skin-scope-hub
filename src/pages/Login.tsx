@@ -31,6 +31,10 @@ const Login = () => {
   const [totpCode, setTotpCode] = useState("");
   const [verifying2FA, setVerifying2FA] = useState(false);
 
+  // PMA shared-account: zweiter Schritt "Dein Name"
+  const [needsDisplayName, setNeedsDisplayName] = useState(false);
+  const [displayName, setDisplayName] = useState("");
+
   const [lockedUntil, setLockedUntil] = useState<number | null>(null);
   const [countdown, setCountdown] = useState(0);
 
