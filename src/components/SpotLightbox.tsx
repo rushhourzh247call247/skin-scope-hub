@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { api } from "@/lib/api";
 import { formatDate } from "@/lib/dateUtils";
+import { formatCreatedByLabel } from "@/lib/createdByLabel";
 import type { LocationImage } from "@/types/patient";
 import { useAuth } from "@/contexts/AuthContext";
 
