@@ -3,7 +3,7 @@ import { useTranslation } from "react-i18next";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { api } from "@/lib/api";
 import type { LocationImage } from "@/types/patient";
-import { Upload, Calendar, ImageIcon, GitCompareArrows, Trash2, Download, Camera, QrCode } from "lucide-react";
+import { Upload, Calendar, ImageIcon, GitCompareArrows, Trash2, Download, Camera, QrCode, MoveRight, Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { formatDate } from "@/lib/dateUtils";
