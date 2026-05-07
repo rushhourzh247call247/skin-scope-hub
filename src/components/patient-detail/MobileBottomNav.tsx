@@ -1,6 +1,7 @@
 import { useTranslation } from "react-i18next";
 import { MapPin, Camera, FileDown, ClipboardList } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useAuth } from "@/contexts/AuthContext";
 
 type TabKey = "akte" | "spots" | "fotos" | "uebersicht" | "berichte";
 
@@ -11,13 +12,16 @@ interface MobileBottomNavProps {
 
 export default function MobileBottomNav({ activeTab, setActiveTab }: MobileBottomNavProps) {
   const { t } = useTranslation();
+  const { user } = useAuth();
+  const isPma = user?.role === "pma";
 
-  const tabs = [
+  const allTabs = [
     { key: "akte" as const, icon: ClipboardList, label: t('patientDetail.bottomNav.chart') },
     { key: "spots" as const, icon: MapPin, label: t('patientDetail.bottomNav.spots') },
     { key: "fotos" as const, icon: Camera, label: t('patientDetail.bottomNav.photos') },
     { key: "berichte" as const, icon: FileDown, label: t('patientDetail.bottomNav.reports') },
   ];
+  const tabs = isPma ? allTabs.filter(t => t.key === "spots" || t.key === "fotos") : allTabs;
 
   return (
     <div className="fixed bottom-0 left-0 right-0 z-50 border-t bg-card/95 backdrop-blur-sm lg:hidden safe-area-bottom">
