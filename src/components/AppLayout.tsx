@@ -10,9 +10,9 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
         <AppSidebar />
         <div className="flex-1 flex flex-col min-w-0">
           <LifecycleBanner />
-          <header className="h-14 flex items-center border-b bg-card px-4 lg:hidden">
+          <header className="h-14 flex items-center border-b bg-card px-4">
             <SidebarTrigger />
-            <DermLogo size="sm" showIcon={false} className="ml-3" />
+            <DermLogo size="sm" showIcon={false} className="ml-3 lg:hidden" />
           </header>
           <main className="flex-1 overflow-hidden">{children}</main>
         </div>
