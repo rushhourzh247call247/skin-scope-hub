@@ -93,6 +93,12 @@
     "tooManyAttempts": "Zu viele Anmeldeversuche. Bitte warten Sie {{minutes}} Minute(n).",
     "locked": "Gesperrt",
     "lockedCountdown": "Gesperrt ({{countdown}})",
+    "next": "Weiter",
+    "pmaName": {
+      "label": "Dein Name (PMA)",
+      "placeholder": "z. B. Sarah",
+      "hint": "Wird bei Uploads und Patientenanlagen als Audit-Information gespeichert."
+    },
     "twoFactor": {
       "subtitle": "Geben Sie den Code aus Ihrer Authenticator-App ein",
       "codeLabel": "6-stelliger Code",
