@@ -1257,6 +1257,7 @@ const PatientDetail = () => {
                 <PatientAkte
                   patient={patient}
                   onNavigateToSpot={(locationId) => {
+                    setSpotBackTarget({ tab: "akte", zoneId: null });
                     setSelectedLocationId(locationId);
                     setActiveTab("spots");
                   }}
