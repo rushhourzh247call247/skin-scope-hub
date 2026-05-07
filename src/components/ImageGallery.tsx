@@ -59,6 +59,8 @@ const ImageGallery = ({ locationId, patientId, images, locationName, locationTyp
   const [compareMode, setCompareMode] = useState(false);
   const [noteValues, setNoteValues] = useState<Record<number, string>>({});
   const [deleteTarget, setDeleteTarget] = useState<number | null>(null);
+  const [moveTarget, setMoveTarget] = useState<number | null>(null);
+  const [moveSearch, setMoveSearch] = useState("");
   const debounceTimers = useRef<Record<number, ReturnType<typeof setTimeout>>>({});
 
   useEffect(() => {
