@@ -87,7 +87,7 @@ const SpotLightbox = ({ open, onClose, images, locationName, onCompare }: SpotLi
               {t('imageGallery.recording')} {index + 1} / {sorted.length}
             </p>
           </div>
-          {sorted.length >= 2 && onCompare && (
+          {sorted.length >= 2 && onCompare && !isPma && (
             <Button size="sm" variant="outline" onClick={onCompare} className="gap-1.5">
               <GitCompareArrows className="h-3.5 w-3.5" />
               <span>{t('imageGallery.compare')}</span>
