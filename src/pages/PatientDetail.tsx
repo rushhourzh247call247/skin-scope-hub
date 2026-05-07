@@ -182,10 +182,19 @@ const PatientDetail = () => {
     return () => window.clearTimeout(timer);
   }, [mobileMapExpanded, selectedLocationId]);
 
+  // Ensure window starts at top when patient detail mounts (mobile: header was scrolled out)
+  useEffect(() => {
+    window.scrollTo({ top: 0, left: 0 });
+  }, []);
+
   // Reset detail scroll to top whenever the selected spot changes (mobile focus)
   useEffect(() => {
     if (selectedLocationId && detailContentRef.current) {
       detailContentRef.current.scrollTop = 0;
+      // Also reset window scroll on mobile so the patient header stays visible
+      if (window.matchMedia("(max-width: 1023px)").matches) {
+        window.scrollTo({ top: 0, left: 0 });
+      }
     }
     // Cancel position-edit when switching to a different spot
     setEditPositionSpotId((prev) => (prev != null && prev !== selectedLocationId ? null : prev));
