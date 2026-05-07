@@ -494,13 +494,13 @@ const OverviewPhoto = ({ overviewLocation, spotLocations, patientId, onNavigateT
             {Math.round(zoomLevel * 100)}% – Reset
           </Button>
           <span className="text-[10px] text-muted-foreground">
-            Rechte Maustaste gedrückt halten zum Verschieben
+            {t('overviewPhoto.panHint', { defaultValue: 'Rechte Maustaste gedrückt halten zum Verschieben' })}
           </span>
         </div>
       )}
       {zoomLevel === 1 && (
         <p className="text-[10px] text-muted-foreground mb-1">
-          Mausrad zum Zoomen · Rechte Maustaste zum Verschieben
+          {t('overviewPhoto.zoomPanHint', { defaultValue: 'Mausrad zum Zoomen · Rechte Maustaste zum Verschieben' })}
         </p>
       )}
 
