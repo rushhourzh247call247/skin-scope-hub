@@ -80,9 +80,16 @@ const DE_TO_KEY: Record<string, string> = {
  */
 export function translateAnatomyName(germanName: string | null | undefined): string {
   if (!germanName) return "";
-  const key = DE_TO_KEY[germanName];
-  if (!key) return germanName; // custom name or unknown → show as-is
-  return i18n.t(key);
+  const direct = DE_TO_KEY[germanName];
+  if (direct) return i18n.t(direct);
+  // Composite zone names like "Zone 1 – Bauch" → translate trailing part after "– "
+  const m = germanName.match(/^(Zone\s+\d+)\s+[–-]\s+(.+)$/);
+  if (m) {
+    const tailKey = DE_TO_KEY[m[2]];
+    const tail = tailKey ? i18n.t(tailKey) : m[2];
+    return `${m[1]} – ${tail}`;
+  }
+  return germanName;
 }
 
 /**
