@@ -562,7 +562,11 @@
     "deleteOverview": "Übersichtsfoto löschen",
     "clickToRemovePin": "Klicken zum Löschen",
     "deletePinTitle": "Pin entfernen?",
-    "deletePinDesc": "Dieser Pin und der verknüpfte Spot werden in den Papierkorb verschoben."
+    "deletePinDesc": "Dieser Pin und der verknüpfte Spot werden in den Papierkorb verschoben.",
+    "editInstruction": "Pin ziehen, um Position zu korrigieren · Klicken zum Löschen",
+    "dragOrClickToRemove": "Ziehen zum Verschieben · Klicken zum Löschen",
+    "panHint": "Rechte Maustaste gedrückt halten zum Verschieben",
+    "zoomPanHint": "Mausrad zum Zoomen · Rechte Maustaste zum Verschieben"
   },
   "pdfExport": {
     "dialogTitle": "PDF-Bericht erstellen",
