@@ -1011,20 +1011,7 @@ const PatientDetail = () => {
               >
                 <button
                   className="flex flex-1 touch-manipulation items-center gap-2.5 min-w-0"
-                  onPointerDown={(e) => {
-                    if (e.pointerType === "mouse") return;
-                    ignoreNextSpotClickRef.current = true;
-                    e.preventDefault();
-                    e.stopPropagation();
-                    handleSpotListClick(loc.id);
-                  }}
-                  onClick={() => {
-                    if (ignoreNextSpotClickRef.current) {
-                      ignoreNextSpotClickRef.current = false;
-                      return;
-                    }
-                    handleSpotListClick(loc.id);
-                  }}
+                  onClick={() => handleSpotListClick(loc.id)}
                 >
                   {(() => {
                     const cls = (loc as any).classification as LesionClassification | undefined;
