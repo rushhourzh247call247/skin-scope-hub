@@ -113,6 +113,7 @@ const PatientDetail = () => {
   const zoneFileRef = useRef<HTMLInputElement>(null);
   const bodyMapRef = useRef<HTMLDivElement>(null);
   const detailContentRef = useRef<HTMLDivElement>(null);
+  const selectedSpotListItemRef = useRef<HTMLDivElement>(null);
   const scrollToDetailAfterCollapseRef = useRef(false);
   const lastBodyFocusedLocationRef = useRef<number | null>(null);
   const ignoreNextSpotClickRef = useRef(false);
@@ -164,6 +165,7 @@ const PatientDetail = () => {
     }
 
     setMapClickDialog(null);
+    suppressSpotChangeScrollRef.current = true;
     setSelectedLocationId(locationId);
     setActiveTab("spots");
 
@@ -188,6 +190,11 @@ const PatientDetail = () => {
   useEffect(() => {
     window.scrollTo({ top: 0, left: 0 });
   }, []);
+
+  useEffect(() => {
+    if (!selectedLocationId || !selectedSpotListItemRef.current) return;
+    selectedSpotListItemRef.current.scrollIntoView({ block: "nearest" });
+  }, [selectedLocationId]);
 
   // Reset detail scroll to top whenever the selected spot changes (mobile focus)
   useEffect(() => {
