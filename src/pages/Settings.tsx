@@ -224,7 +224,8 @@ const Settings = () => {
         </CardContent>
       </Card>
 
-      {/* 2FA Card */}
+      {/* 2FA Card — nicht für PMA (Shared-Account) */}
+      {user?.role !== "pma" && (
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
@@ -265,6 +266,7 @@ const Settings = () => {
           )}
         </CardContent>
       </Card>
+      )}
 
       {/* Password Change Card */}
       <Card>
