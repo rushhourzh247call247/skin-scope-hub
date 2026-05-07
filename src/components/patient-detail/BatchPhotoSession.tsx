@@ -8,9 +8,9 @@ import { Progress } from "@/components/ui/progress";
 import { api } from "@/lib/api";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
-import type { Location, LocationImage } from "@/types/patient";
+import type { Location, LocationImage, Gender } from "@/types/patient";
 import { formatDate } from "@/lib/dateUtils";
-import { FrontBody, BackBody } from "@/components/BodyMapSvg";
+import BodyMap3D from "@/components/BodyMap3D";
 import { getAnatomicalName } from "@/lib/anatomyLookup";
 
 type SpotLoc = Location & { images: LocationImage[] };
@@ -20,6 +20,7 @@ interface BatchPhotoSessionProps {
   onOpenChange: (open: boolean) => void;
   patientId: number;
   spots: SpotLoc[];
+  gender?: Gender;
 }
 
 type Status = "pending" | "captured" | "skipped";
