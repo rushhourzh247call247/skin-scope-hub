@@ -1841,11 +1841,13 @@ const PatientDetail = () => {
       {selectedLocation && (
         <SpotLightbox
           open={lightboxOpen}
-          onClose={() => setLightboxOpen(false)}
+          onClose={() => { setLightboxOpen(false); setLightboxImageId(null); }}
           images={selectedLocation.images ?? []}
           locationName={translateAnatomyName(selectedLocation.name) || `Spot #${selectedLocation.id}`}
+          initialImageId={lightboxImageId}
           onCompare={() => {
             setLightboxOpen(false);
+            setLightboxImageId(null);
             setActiveTab("spots");
             setCompareSignal(s => s + 1);
             window.setTimeout(() => {
