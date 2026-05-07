@@ -1341,10 +1341,12 @@ const PatientDetail = () => {
                               spotLocations={linkedSpotLocations}
                               patientId={patientId}
                               onNavigateToSpot={(spotId) => {
+                                setSpotBackTarget({ tab: "uebersicht", zoneId: loc.id });
                                 setSelectedLocationId(spotId);
                                 setActiveTab("spots");
                               }}
                               onCompareSpot={(spotId) => {
+                                setSpotBackTarget({ tab: "uebersicht", zoneId: loc.id });
                                 setSelectedLocationId(spotId);
                                 setActiveTab("spots");
                                 setTimeout(() => {
