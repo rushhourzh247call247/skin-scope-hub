@@ -1625,10 +1625,16 @@ const PatientDetail = () => {
                                 <Badge variant="outline" className="text-[10px] text-amber-600 border-amber-300">Region</Badge>
                               )}
                             </h2>
-                            <p className="text-xs text-muted-foreground flex items-center gap-2">
+                            <p className="text-xs text-muted-foreground flex items-center gap-2 flex-wrap">
                               <span>{selectedLocation.view === "back" ? t('common.backSide') : t('common.front')}</span>
                               <span>·</span>
                               <span>{selectedLocation.images?.length ?? 0} {t('patientDetail.recordings')}</span>
+                              {selectedLocation.created_by_label && (
+                                <>
+                                  <span>·</span>
+                                  <span title={t('patientDetail.createdBy', { defaultValue: 'Angelegt von' }) as string}>{selectedLocation.created_by_label}</span>
+                                </>
+                              )}
                             </p>
                           </div>
                         </>
