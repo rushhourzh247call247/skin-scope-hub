@@ -1363,6 +1363,10 @@ const PatientDetail = () => {
                                 setSpotBackTarget({ tab: "uebersicht", zoneId: loc.id });
                                 setSelectedLocationId(spotId);
                                 setActiveTab("spots");
+                                setMobileMapExpanded(true);
+                                window.setTimeout(() => {
+                                  detailContentRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+                                }, 120);
                               }}
                               onCompareSpot={(spotId) => {
                                 setSpotBackTarget({ tab: "uebersicht", zoneId: loc.id });
