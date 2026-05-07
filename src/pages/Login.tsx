@@ -180,7 +180,7 @@ const Login = () => {
                   ? t("login.lockedCountdown", { countdown: formatCountdown(countdown) })
                   : loading
                     ? t("login.submitting")
-                    : <><LogIn className="mr-2 h-4 w-4" /> {needsDisplayName ? "Weiter" : t("login.submit")}</>}
+                    : <><LogIn className="mr-2 h-4 w-4" /> {needsDisplayName ? t("login.next") : t("login.submit")}</>}
               </Button>
             </form>
           ) : (
