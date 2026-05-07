@@ -35,6 +35,7 @@ export interface Patient {
   notes?: string;
   created_at?: string;
   updated_at?: string;
+  created_by_label?: string | null;
 }
 
 export interface AiAnalysis {
@@ -60,6 +61,7 @@ export interface LocationImage {
   risk_level?: string | null;
   created_at?: string;
   updated_at?: string;
+  created_by_label?: string | null;
 }
 
 export interface Location {
@@ -82,6 +84,7 @@ export interface Location {
   op_status?: "none" | "praesens" | "post";
   created_at?: string;
   updated_at?: string;
+  created_by_label?: string | null;
   images?: LocationImage[];
 }
 
