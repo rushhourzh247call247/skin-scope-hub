@@ -8,9 +8,9 @@ import { Progress } from "@/components/ui/progress";
 import { api } from "@/lib/api";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
-import type { Location, LocationImage } from "@/types/patient";
+import type { Location, LocationImage, Gender } from "@/types/patient";
 import { formatDate } from "@/lib/dateUtils";
-import { FrontBody, BackBody } from "@/components/BodyMapSvg";
+import BodyMap3D from "@/components/BodyMap3D";
 import { getAnatomicalName } from "@/lib/anatomyLookup";
 
 type SpotLoc = Location & { images: LocationImage[] };
@@ -20,11 +20,12 @@ interface BatchPhotoSessionProps {
   onOpenChange: (open: boolean) => void;
   patientId: number;
   spots: SpotLoc[];
+  gender?: Gender;
 }
 
 type Status = "pending" | "captured" | "skipped";
 
-export default function BatchPhotoSession({ open, onOpenChange, patientId, spots }: BatchPhotoSessionProps) {
+export default function BatchPhotoSession({ open, onOpenChange, patientId, spots, gender }: BatchPhotoSessionProps) {
   const { t } = useTranslation();
   const queryClient = useQueryClient();
   const cameraRef = useRef<HTMLInputElement>(null);
@@ -201,16 +202,29 @@ export default function BatchPhotoSession({ open, onOpenChange, patientId, spots
             </div>
           ) : !currentSpot ? null : (
             <div className="space-y-4">
-              {/* Spot info card with reference photo + mini body map */}
+              {/* Spot info card with reference photo + 3D body orientation */}
               {(() => {
                 const lastImg = lastImageBySpot[currentSpot.id];
                 const view = (currentSpot.view ?? "front") as "front" | "back";
-                const anatomical = (typeof currentSpot.x3d === 'number' && typeof currentSpot.y3d === 'number' && typeof currentSpot.z3d === 'number')
-                  ? getAnatomicalName(currentSpot.x3d, currentSpot.y3d, currentSpot.z3d, view)
+                const has3d = typeof currentSpot.x3d === 'number' && typeof currentSpot.y3d === 'number' && typeof currentSpot.z3d === 'number';
+                const anatomical = has3d
+                  ? getAnatomicalName(currentSpot.x3d!, currentSpot.y3d!, currentSpot.z3d!, view)
                   : null;
-                // 2D marker pos (x,y in 0-100 percentages stored on location)
-                const markerX = typeof currentSpot.x === 'number' ? currentSpot.x : 50;
-                const markerY = typeof currentSpot.y === 'number' ? currentSpot.y : 50;
+                const mapMarkers = spots.map(s => ({
+                  id: s.id,
+                  x: s.x,
+                  y: s.y,
+                  x3d: s.x3d,
+                  y3d: s.y3d,
+                  z3d: s.z3d,
+                  nx: s.nx,
+                  ny: s.ny,
+                  nz: s.nz,
+                  name: s.name,
+                  view: (s.view ?? 'front') as 'front' | 'back',
+                  type: 'spot' as const,
+                  classification: s.classification,
+                }));
                 return (
                   <div className="rounded-lg border bg-card p-3 space-y-3">
                     {/* Header: spot number badge + name + anatomy */}
@@ -230,8 +244,8 @@ export default function BatchPhotoSession({ open, onOpenChange, patientId, spots
                       </div>
                     </div>
 
-                    {/* Visual orientation: reference photo + mini body map */}
-                    <div className="grid grid-cols-[1fr_auto] gap-3">
+                    {/* Visual orientation: reference photo + real 3D body map */}
+                    <div className="grid grid-cols-[1fr_140px] gap-3">
                       <div className="relative rounded-md overflow-hidden bg-muted aspect-square border">
                         {lastImg ? (
                           <>
@@ -253,36 +267,39 @@ export default function BatchPhotoSession({ open, onOpenChange, patientId, spots
                           </div>
                         )}
                       </div>
-                      {/* Mini body map */}
-                      <div className="relative w-20 rounded-md border bg-background overflow-hidden">
-                        <svg viewBox="0 0 200 500" className="h-full w-full">
-                          <g opacity="0.5">
-                            {view === 'front' ? <FrontBody /> : <BackBody />}
-                          </g>
-                          {/* Marker */}
-                          <circle
-                            cx={(markerX / 100) * 200}
-                            cy={(markerY / 100) * 500}
-                            r="14"
-                            fill="hsl(var(--primary))"
-                            opacity="0.25"
-                          >
-                            <animate attributeName="r" values="10;18;10" dur="1.6s" repeatCount="indefinite" />
-                          </circle>
-                          <circle
-                            cx={(markerX / 100) * 200}
-                            cy={(markerY / 100) * 500}
-                            r="6"
-                            fill="hsl(var(--primary))"
-                            stroke="white"
-                            strokeWidth="2"
-                          />
-                        </svg>
-                        <div className="absolute top-1 left-1 right-1 text-center text-[9px] font-semibold uppercase tracking-wide text-muted-foreground bg-background/80 rounded">
+                      {/* Real 3D body map — active spot focused, others dimmed */}
+                      <div className="relative h-[220px] rounded-md border bg-background overflow-hidden">
+                        <BodyMap3D
+                          markers={mapMarkers as any}
+                          selectedLocationId={currentSpot.id}
+                          gender={gender ?? 'male'}
+                          dimNonSelected
+                          embedded
+                          focusSignal={currentSpot.id}
+                        />
+                        <div className="pointer-events-none absolute top-1 left-1 right-1 text-center text-[9px] font-semibold uppercase tracking-wide text-muted-foreground bg-background/80 rounded">
                           {view === 'front' ? 'Vorne' : 'Hinten'}
                         </div>
                       </div>
                     </div>
+
+                    {/* Axis coordinates — helps unique identification */}
+                    {has3d && (
+                      <div className="flex flex-wrap gap-1.5 text-[10px] font-mono">
+                        <span className="rounded bg-muted px-1.5 py-0.5 text-muted-foreground">
+                          X <span className="text-foreground tabular-nums">{currentSpot.x3d!.toFixed(2)}</span>
+                        </span>
+                        <span className="rounded bg-muted px-1.5 py-0.5 text-muted-foreground">
+                          Y <span className="text-foreground tabular-nums">{currentSpot.y3d!.toFixed(2)}</span>
+                        </span>
+                        <span className="rounded bg-muted px-1.5 py-0.5 text-muted-foreground">
+                          Z <span className="text-foreground tabular-nums">{currentSpot.z3d!.toFixed(2)}</span>
+                        </span>
+                        <span className="rounded bg-muted px-1.5 py-0.5 text-muted-foreground">
+                          {currentSpot.x3d! < 0 ? 'rechte' : 'linke'} Körperhälfte
+                        </span>
+                      </div>
+                    )}
                   </div>
                 );
               })()}

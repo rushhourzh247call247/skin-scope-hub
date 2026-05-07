@@ -78,6 +78,10 @@ interface BodyMap3DProps {
   selectedZoneId?: number | null;
   /** When set, only these spot IDs are visually highlighted; others are dimmed. */
   highlightedSpotIds?: number[] | null;
+  /** When true, non-selected spots render dimmed (faded) instead of hidden. */
+  dimNonSelected?: boolean;
+  /** When true, hides all UI overlays (filter, badge, controls) for embed/preview use. */
+  embedded?: boolean;
   /** When set, this spot's marker is replaced by a draggable handle on the body surface. */
   editSpotId?: number | null;
   /** Called while dragging the edit-spot handle. */
@@ -1001,7 +1005,7 @@ function LoadingFallback() {
 }
 
 /* ─── Scene ─── */
-function Scene({ markers, selectedLocationId, onMapClick, onMarkerClick, onMarkerPhotoClick, classificationFilter, previewMarker, isPlacementMode, onPreviewMove, preset, gender, markMode, markType, resetKey, zoneOverlays, selectedZoneId, highlightedSpotIds, editSpotId, onEditSpotMove, onEditSpotMoveEnd }: BodyMap3DProps & { preset: CameraPreset; gender: Gender; markMode: boolean; markType: MarkType; resetKey: number }) {
+function Scene({ markers, selectedLocationId, onMapClick, onMarkerClick, onMarkerPhotoClick, classificationFilter, previewMarker, isPlacementMode, onPreviewMove, preset, gender, markMode, markType, resetKey, zoneOverlays, selectedZoneId, highlightedSpotIds, dimNonSelected, editSpotId, onEditSpotMove, onEditSpotMoveEnd }: BodyMap3DProps & { preset: CameraPreset; gender: Gender; markMode: boolean; markType: MarkType; resetKey: number }) {
   const [isDraggingSpot, setIsDraggingSpot] = useState(false);
   const [hoverInfo, setHoverInfo] = useState<{ point: THREE.Vector3; y3d: number; x3d: number; z3d: number; zone: string } | null>(null);
 
@@ -1125,6 +1129,24 @@ function Scene({ markers, selectedLocationId, onMapClick, onMarkerClick, onMarke
         if (highlightedSpotIds && highlightedSpotIds.length > 0 && !highlightedSpotIds.includes(m.id)) {
           return null;
         }
+        const isSelected = m.id === selectedLocationId;
+        // Dimmed mode: non-selected spots become tiny faint dots so the active spot stands out
+        if (dimNonSelected && !isSelected) {
+          return (
+            <SurfaceProjectedGroup
+              key={`spot-dim-${m.id}`}
+              approxPosition={hasCoords ? coords2Dto3D(m.x, m.y, m.view) : [m.x3d!, m.y3d!, m.z3d!]}
+              view={m.view}
+              storedPosition={m.x3d != null && m.y3d != null && m.z3d != null ? [m.x3d, m.y3d, m.z3d] : undefined}
+              storedNormal={m.nx != null && m.ny != null && m.nz != null && (m.nx !== 0 || m.ny !== 0 || m.nz !== 0) ? [m.nx, m.ny, m.nz] : undefined}
+            >
+              <mesh>
+                <circleGeometry args={[0.012, 16]} />
+                <meshBasicMaterial color={m.classificationColor || "#94a3b8"} transparent opacity={0.35} depthTest={false} side={THREE.DoubleSide} />
+              </mesh>
+            </SurfaceProjectedGroup>
+          );
+        }
         return (
           <SurfaceProjectedGroup
             key={`spot-${m.id}`}
@@ -1138,7 +1160,7 @@ function Scene({ markers, selectedLocationId, onMapClick, onMarkerClick, onMarke
               name={translateAnatomyName(m.name)}
               index={i}
               labelOffset={spotLabelOffsets.get(m.id)}
-              isSelected={m.id === selectedLocationId}
+              isSelected={isSelected}
               onClick={() => onMarkerClick?.(m.id)}
               imageCount={m.imageCount}
               findingCount={m.findingCount}
@@ -1354,7 +1376,8 @@ const BodyMap3D: React.FC<BodyMap3DProps> = (props) => {
   return (
     <div className="flex h-full flex-col" style={{ isolation: "isolate", position: "relative", zIndex: 0 }}>
       <div className={cn(
-        "relative min-h-[300px] flex-1 overflow-hidden rounded-lg border bg-gradient-to-b from-muted/20 via-muted/40 to-muted/60",
+        "relative flex-1 overflow-hidden rounded-lg border bg-gradient-to-b from-muted/20 via-muted/40 to-muted/60",
+        !props.embedded && "min-h-[300px]",
         markMode && (markType === "region" ? "ring-2 ring-amber-500/50" : "ring-2 ring-primary/50"),
         props.isPlacementMode && "ring-2 ring-green-500/50"
       )}>
@@ -1368,29 +1391,33 @@ const BodyMap3D: React.FC<BodyMap3DProps> = (props) => {
         </Canvas>
 
         {/* Gender indicator */}
-        <div className="absolute left-2 top-10 rounded-md border border-border/50 bg-card/85 px-2 py-1 text-[10px] font-semibold text-muted-foreground">
-          {gender === "female" ? `♀ ${i18n.t('common.female')}` : `♂ ${i18n.t('common.male')}`}
-        </div>
+        {!props.embedded && (
+          <div className="absolute left-2 top-10 rounded-md border border-border/50 bg-card/85 px-2 py-1 text-[10px] font-semibold text-muted-foreground">
+            {gender === "female" ? `♀ ${i18n.t('common.female')}` : `♂ ${i18n.t('common.male')}`}
+          </div>
+        )}
 
 
         {/* Bottom controls */}
-        <div className="absolute bottom-2 left-2 right-2 flex items-center gap-1.5 flex-wrap">
-          <button
-            onClick={() => { setActiveRegion("full"); setResetCounter(c => c + 1); setFocusKey(k => k + 1); props.onMarkerClick?.(null); }}
-            className="flex h-8 items-center gap-1 rounded-md border border-border/50 bg-card/90 px-2.5 text-[11px] text-muted-foreground transition-all hover:text-foreground"
-          >
-            <RotateCcw className="h-3 w-3" /> {i18n.t('common.reset')}
-          </button>
-
-          {markMode && (
+        {!props.embedded && (
+          <div className="absolute bottom-2 left-2 right-2 flex items-center gap-1.5 flex-wrap">
             <button
-              onClick={() => setMarkMode(false)}
-              className="ml-auto flex h-8 items-center gap-1 rounded-md border border-border/50 bg-card/90 px-2.5 text-[11px] text-muted-foreground transition-all hover:text-foreground"
+              onClick={() => { setActiveRegion("full"); setResetCounter(c => c + 1); setFocusKey(k => k + 1); props.onMarkerClick?.(null); }}
+              className="flex h-8 items-center gap-1 rounded-md border border-border/50 bg-card/90 px-2.5 text-[11px] text-muted-foreground transition-all hover:text-foreground"
             >
-              ✕ {i18n.t('common.cancel', { defaultValue: 'Abbrechen' })}
+              <RotateCcw className="h-3 w-3" /> {i18n.t('common.reset')}
             </button>
-          )}
-        </div>
+
+            {markMode && (
+              <button
+                onClick={() => setMarkMode(false)}
+                className="ml-auto flex h-8 items-center gap-1 rounded-md border border-border/50 bg-card/90 px-2.5 text-[11px] text-muted-foreground transition-all hover:text-foreground"
+              >
+                ✕ {i18n.t('common.cancel', { defaultValue: 'Abbrechen' })}
+              </button>
+            )}
+          </div>
+        )}
 
         {/* Mark mode indicator — prominent banner */}
         {markMode && (
@@ -1422,12 +1449,14 @@ const BodyMap3D: React.FC<BodyMap3DProps> = (props) => {
         )}
 
         {/* 3D Badge */}
-        <div className="absolute left-2 top-2 rounded-md border border-primary/20 bg-primary/10 px-2 py-0.5 text-[10px] font-semibold text-primary">
-          3D
-        </div>
+        {!props.embedded && (
+          <div className="absolute left-2 top-2 rounded-md border border-primary/20 bg-primary/10 px-2 py-0.5 text-[10px] font-semibold text-primary">
+            3D
+          </div>
+        )}
 
         {/* Classification Legend / Filter */}
-        {(() => {
+        {!props.embedded && (() => {
           const classificationCounts: Partial<Record<LesionClassification, number>> = {};
           props.markers.filter(m => m.type !== "region").forEach(m => {
             const cls = (m.classification as LesionClassification) || "unclassified";
@@ -1490,16 +1519,18 @@ const BodyMap3D: React.FC<BodyMap3DProps> = (props) => {
         })()}
       </div>
 
-      <p className="mt-2 text-center text-[10px] text-muted-foreground">
-        {markMode
-          ? markType === "region"
-            ? i18n.t('bodyMap3d.regionModeHelp')
-            : markType === "zone"
-            ? i18n.t('bodyMap3d.zoneModeHelp')
-            : i18n.t('bodyMap3d.spotModeHelp')
-          : i18n.t('bodyMap3d.defaultHelp')
-        }
-      </p>
+      {!props.embedded && (
+        <p className="mt-2 text-center text-[10px] text-muted-foreground">
+          {markMode
+            ? markType === "region"
+              ? i18n.t('bodyMap3d.regionModeHelp')
+              : markType === "zone"
+              ? i18n.t('bodyMap3d.zoneModeHelp')
+              : i18n.t('bodyMap3d.spotModeHelp')
+            : i18n.t('bodyMap3d.defaultHelp')
+          }
+        </p>
+      )}
     </div>
   );
 };
