@@ -428,7 +428,7 @@ export default function Tickets() {
         </div>
 
         {/* ───── RIGHT: Chat view ───── */}
-        <div className={`flex-1 flex flex-col min-w-0 ${!selected ? "hidden lg:flex" : "flex"}`}>
+        <div className={`flex-1 flex flex-col min-w-0 min-h-0 overflow-hidden ${!selected ? "hidden lg:flex" : "flex"}`}>
           {selected ? (
             <>
               {/* Chat header */}
