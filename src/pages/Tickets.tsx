@@ -187,11 +187,15 @@ export default function Tickets() {
   const handleReply = useCallback(async () => {
     if (!replyText.trim() || !selected) return;
     setSending(true);
+    // Blur first so iOS dismisses keyboard cleanly without shifting the layout
+    if (textareaRef.current) textareaRef.current.blur();
     try {
       await api.replyTicket(selected.id, replyText.trim());
       setReplyText("");
       await refreshSelected(selected.id);
       if (textareaRef.current) textareaRef.current.style.height = "auto";
+      // Reset window scroll in case iOS Safari shifted the page
+      window.scrollTo(0, 0);
     } catch (e: any) {
       toast({ title: t("tickets.error"), description: e.message, variant: "destructive" });
     } finally { setSending(false); }
