@@ -462,7 +462,7 @@ export default function Tickets() {
                 <div className="flex justify-center mb-4">
                   <div className="bg-card/90 backdrop-blur-sm rounded-lg px-3 py-1.5 shadow-sm">
                     <p className="text-[11px] text-muted-foreground text-center">
-                      {t("tickets.createdOn")} {formatChatDate(selected.created_at)} {t("tickets.at")} {formatTime(selected.created_at)}
+                      Erstellt {formatSmartCreated(selected.created_at)}
                       {selected.priority === "urgent" && " · 🔴 " + t("tickets.urgent")}
                     </p>
                   </div>
