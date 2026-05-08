@@ -45,6 +45,20 @@ function formatChatDate(d: string) {
   } catch { return d; }
 }
 
+function formatSmartCreated(d: string) {
+  try {
+    const date = new Date(d);
+    const now = new Date();
+    const diffMs = now.getTime() - date.getTime();
+    const diffMin = Math.floor(diffMs / 60000);
+    if (diffMin < 1) return "gerade eben";
+    if (diffMin < 60) return `vor ${diffMin} ${diffMin === 1 ? "Minute" : "Minuten"}`;
+    if (isToday(date)) return `heute, ${format(date, "HH:mm")}`;
+    if (isYesterday(date)) return `gestern, ${format(date, "HH:mm")}`;
+    return format(date, "dd.MM.yyyy, HH:mm", { locale: de });
+  } catch { return d; }
+}
+
 function formatListDate(d: string) {
   try {
     const date = new Date(d);
