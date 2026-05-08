@@ -45,6 +45,20 @@ function formatChatDate(d: string) {
   } catch { return d; }
 }
 
+function formatSmartCreated(d: string) {
+  try {
+    const date = new Date(d);
+    const now = new Date();
+    const diffMs = now.getTime() - date.getTime();
+    const diffMin = Math.floor(diffMs / 60000);
+    if (diffMin < 1) return "gerade eben";
+    if (diffMin < 60) return `vor ${diffMin} ${diffMin === 1 ? "Minute" : "Minuten"}`;
+    if (isToday(date)) return `heute, ${format(date, "HH:mm")}`;
+    if (isYesterday(date)) return `gestern, ${format(date, "HH:mm")}`;
+    return format(date, "dd.MM.yyyy, HH:mm", { locale: de });
+  } catch { return d; }
+}
+
 function formatListDate(d: string) {
   try {
     const date = new Date(d);
@@ -448,7 +462,7 @@ export default function Tickets() {
                 <div className="flex justify-center mb-4">
                   <div className="bg-card/90 backdrop-blur-sm rounded-lg px-3 py-1.5 shadow-sm">
                     <p className="text-[11px] text-muted-foreground text-center">
-                      {t("tickets.createdOn")} {formatChatDate(selected.created_at)} {t("tickets.at")} {formatTime(selected.created_at)}
+                      Erstellt {formatSmartCreated(selected.created_at)}
                       {selected.priority === "urgent" && " · 🔴 " + t("tickets.urgent")}
                     </p>
                   </div>
