@@ -62,9 +62,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const syncCurrentUser = useCallback(async () => {
     const res = await api.me();
-    setUser(res.user);
-    sessionStorage.setItem("auth_user", JSON.stringify(res.user));
-    return res.user;
+    let savedDisplayName: string | null = null;
+    try {
+      savedDisplayName = (JSON.parse(sessionStorage.getItem("auth_user") || "{}") as User).display_name ?? null;
+    } catch {
+      savedDisplayName = null;
+    }
+    const userWithDisplay = savedDisplayName && !res.user?.display_name
+      ? { ...res.user, display_name: savedDisplayName }
+      : res.user;
+    setUser(userWithDisplay);
+    sessionStorage.setItem("auth_user", JSON.stringify(userWithDisplay));
+    return userWithDisplay;
   }, []);
 
   // Listen for user activity
