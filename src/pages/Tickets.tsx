@@ -365,7 +365,7 @@ export default function Tickets() {
                           )}
                         </div>
                       </div>
-                      {isAdmin && ticket.company_name && (
+                      {ticket.company_name && (
                         <p className="text-[10px] text-muted-foreground/70 mt-0.5 truncate">{ticket.company_name}</p>
                       )}
                     </div>
