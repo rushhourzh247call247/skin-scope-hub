@@ -557,15 +557,15 @@ export default function Tickets() {
                     <p className="text-sm text-muted-foreground">{readOnlyTooltip}</p>
                   </div>
                 ) : (
-                  <div className="border-t border-border bg-card px-2 sm:px-3 py-2 shrink-0">
-                    <div className="flex items-end gap-2">
+                  <div className="border-t border-border bg-card px-2 sm:px-3 py-2 shrink-0 min-w-0">
+                    <div className="flex items-end gap-2 min-w-0">
                       <textarea
                         ref={textareaRef}
                         value={replyText}
                         onChange={handleTextareaChange}
                         placeholder={t("tickets.writePlaceholder")}
                         rows={1}
-                        className="flex-1 resize-none rounded-2xl border border-input bg-muted/30 px-3 sm:px-4 py-2 text-sm leading-relaxed
+                        className="flex-1 min-w-0 w-0 resize-none rounded-2xl border border-input bg-muted/30 px-3 sm:px-4 py-2 text-sm leading-relaxed
                           placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring
                           max-h-[120px] min-h-[40px]"
                         onKeyDown={e => {
