@@ -393,7 +393,7 @@ export default function Tickets() {
                   <p className="text-sm font-semibold truncate">{selected.subject}</p>
                   <p className="text-[11px] text-muted-foreground truncate">
                     {selected.user_name}
-                    {isAdmin && selected.company_name && ` · ${selected.company_name}`}
+                    {selected.company_name && ` · ${selected.company_name}`}
                     {" · "}Ticket #{selected.id}
                   </p>
                 </div>
