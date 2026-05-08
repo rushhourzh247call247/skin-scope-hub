@@ -187,11 +187,15 @@ export default function Tickets() {
   const handleReply = useCallback(async () => {
     if (!replyText.trim() || !selected) return;
     setSending(true);
+    // Blur first so iOS dismisses keyboard cleanly without shifting the layout
+    if (textareaRef.current) textareaRef.current.blur();
     try {
       await api.replyTicket(selected.id, replyText.trim());
       setReplyText("");
       await refreshSelected(selected.id);
       if (textareaRef.current) textareaRef.current.style.height = "auto";
+      // Reset window scroll in case iOS Safari shifted the page
+      window.scrollTo(0, 0);
     } catch (e: any) {
       toast({ title: t("tickets.error"), description: e.message, variant: "destructive" });
     } finally { setSending(false); }
@@ -248,8 +252,8 @@ export default function Tickets() {
   const groups = selected ? groupByDate(selected.messages || []) : [];
 
   return (
-    <div className="h-full flex flex-col">
-      <div className="flex-1 flex min-h-0 border border-border rounded-none sm:rounded-xl overflow-hidden shadow-sm sm:m-4">
+    <div className="h-full flex flex-col overflow-hidden min-w-0">
+      <div className="flex-1 flex min-h-0 min-w-0 border border-border rounded-none sm:rounded-xl overflow-hidden shadow-sm sm:m-4">
 
         {/* ───── LEFT: Conversation list ───── */}
         <div className={`w-full lg:w-[380px] lg:max-w-[380px] shrink-0 flex flex-col border-r border-border bg-card
@@ -424,7 +428,7 @@ export default function Tickets() {
         </div>
 
         {/* ───── RIGHT: Chat view ───── */}
-        <div className={`flex-1 flex flex-col min-w-0 ${!selected ? "hidden lg:flex" : "flex"}`}>
+        <div className={`flex-1 flex flex-col min-w-0 min-h-0 overflow-hidden ${!selected ? "hidden lg:flex" : "flex"}`}>
           {selected ? (
             <>
               {/* Chat header */}
@@ -553,15 +557,15 @@ export default function Tickets() {
                     <p className="text-sm text-muted-foreground">{readOnlyTooltip}</p>
                   </div>
                 ) : (
-                  <div className="border-t border-border bg-card px-2 sm:px-3 py-2 shrink-0">
-                    <div className="flex items-end gap-2">
+                  <div className="border-t border-border bg-card px-2 sm:px-3 py-2 shrink-0 min-w-0">
+                    <div className="flex items-end gap-2 min-w-0">
                       <textarea
                         ref={textareaRef}
                         value={replyText}
                         onChange={handleTextareaChange}
                         placeholder={t("tickets.writePlaceholder")}
                         rows={1}
-                        className="flex-1 resize-none rounded-2xl border border-input bg-muted/30 px-3 sm:px-4 py-2 text-sm leading-relaxed
+                        className="flex-1 min-w-0 w-0 resize-none rounded-2xl border border-input bg-muted/30 px-3 sm:px-4 py-2 text-sm leading-relaxed
                           placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring
                           max-h-[120px] min-h-[40px]"
                         onKeyDown={e => {
