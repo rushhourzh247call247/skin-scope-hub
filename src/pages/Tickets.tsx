@@ -203,7 +203,7 @@ export default function Tickets() {
   }, [refreshSelected, fetchTickets, toast, t]);
 
   const handleReopen = useCallback(async (id: number) => {
-    try { await api.reopenTicket(id); await refreshSelected(id); await fetchTickets(); toast({ title: t("tickets.reopened") }); }
+    try { await api.reopenTicket(id); await refreshSelected(id); await fetchTickets(); setView("active"); toast({ title: t("tickets.reopened") }); }
     catch (e: any) { toast({ title: t("tickets.error"), description: e.message, variant: "destructive" }); }
   }, [refreshSelected, fetchTickets, toast, t]);
 
