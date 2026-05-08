@@ -320,13 +320,39 @@ export default function Tickets() {
           </div>
 
           {/* Search */}
-          <div className="px-3 py-2 border-b border-border shrink-0">
+          <div className="px-3 py-2 border-b border-border shrink-0 space-y-2">
             <div className="relative">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input
                 value={searchQuery} onChange={e => setSearchQuery(e.target.value)}
                 placeholder={t("tickets.search")} className="pl-9 h-9 text-sm bg-muted/50 border-0"
               />
+            </div>
+            <div className="flex gap-1 bg-muted/40 rounded-lg p-1">
+              <button
+                onClick={() => setView("active")}
+                className={`flex-1 text-xs font-medium py-1.5 rounded-md transition-colors flex items-center justify-center gap-1.5
+                  ${view === "active" ? "bg-card shadow-sm text-foreground" : "text-muted-foreground hover:text-foreground"}`}
+              >
+                Aktuell
+                {activeUnread > 0 && (
+                  <span className="flex h-4 min-w-4 items-center justify-center rounded-full bg-primary text-[9px] font-bold text-primary-foreground px-1">
+                    {activeUnread}
+                  </span>
+                )}
+              </button>
+              <button
+                onClick={() => setView("closed")}
+                className={`flex-1 text-xs font-medium py-1.5 rounded-md transition-colors flex items-center justify-center gap-1.5
+                  ${view === "closed" ? "bg-card shadow-sm text-foreground" : "text-muted-foreground hover:text-foreground"}`}
+              >
+                Erledigt
+                {closedUnread > 0 && (
+                  <span className="flex h-4 min-w-4 items-center justify-center rounded-full bg-destructive text-[9px] font-bold text-destructive-foreground px-1">
+                    {closedUnread}
+                  </span>
+                )}
+              </button>
             </div>
           </div>
 
