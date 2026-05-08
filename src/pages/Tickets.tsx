@@ -98,6 +98,7 @@ export default function Tickets() {
   const [replyText, setReplyText] = useState("");
   const [sending, setSending] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
+  const [view, setView] = useState<"active" | "closed">("active");
   const [createOpen, setCreateOpen] = useState(false);
   const [newSubject, setNewSubject] = useState("");
   const [newMessage, setNewMessage] = useState("");
