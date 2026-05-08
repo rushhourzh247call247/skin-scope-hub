@@ -233,7 +233,13 @@ export default function Tickets() {
       || String(t.id).includes(q);
   });
 
-  const sortedTickets = [...filtered].sort((a, b) => {
+  const activeTickets = filtered.filter(t => t.status !== "closed");
+  const closedTickets = filtered.filter(t => t.status === "closed");
+  const closedUnread = closedTickets.reduce((s, t) => s + (t.unread_count ?? 0), 0);
+  const activeUnread = activeTickets.reduce((s, t) => s + (t.unread_count ?? 0), 0);
+  const visibleTickets = view === "active" ? activeTickets : closedTickets;
+
+  const sortedTickets = [...visibleTickets].sort((a, b) => {
     const aTime = a.last_message_at || a.updated_at || a.created_at;
     const bTime = b.last_message_at || b.updated_at || b.created_at;
     return new Date(bTime).getTime() - new Date(aTime).getTime();
