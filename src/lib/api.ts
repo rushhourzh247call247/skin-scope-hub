@@ -755,10 +755,16 @@ export const api = {
     request<any[]>('/tickets'),
   getTicket: (id: number) =>
     request<any>(`/tickets/${id}`),
-  createTicket: (data: { subject: string; message: string; priority: 'normal' | 'urgent' }) =>
-    request<any>('/tickets', { method: 'POST', body: JSON.stringify(data) }),
-  replyTicket: (ticketId: number, message: string) =>
-    request<any>(`/tickets/${ticketId}/reply`, { method: 'POST', body: JSON.stringify({ message }) }),
+  createTicket: (data: { subject: string; message: string; priority: 'normal' | 'urgent' }) => {
+    const u = sessionStorage.getItem('auth_user');
+    const display_name = u ? (JSON.parse(u)?.display_name || undefined) : undefined;
+    return request<any>('/tickets', { method: 'POST', body: JSON.stringify({ ...data, ...(display_name ? { display_name } : {}) }) });
+  },
+  replyTicket: (ticketId: number, message: string) => {
+    const u = sessionStorage.getItem('auth_user');
+    const display_name = u ? (JSON.parse(u)?.display_name || undefined) : undefined;
+    return request<any>(`/tickets/${ticketId}/reply`, { method: 'POST', body: JSON.stringify({ message, ...(display_name ? { display_name } : {}) }) });
+  },
   markTicketRead: (ticketId: number) =>
     request<any>(`/tickets/${ticketId}/read`, { method: 'PUT' }),
   closeTicket: (ticketId: number) =>
