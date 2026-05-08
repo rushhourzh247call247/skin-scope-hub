@@ -98,6 +98,7 @@ export default function Tickets() {
   const [replyText, setReplyText] = useState("");
   const [sending, setSending] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
+  const [view, setView] = useState<"active" | "closed">("active");
   const [createOpen, setCreateOpen] = useState(false);
   const [newSubject, setNewSubject] = useState("");
   const [newMessage, setNewMessage] = useState("");
@@ -202,7 +203,7 @@ export default function Tickets() {
   }, [refreshSelected, fetchTickets, toast, t]);
 
   const handleReopen = useCallback(async (id: number) => {
-    try { await api.reopenTicket(id); await refreshSelected(id); await fetchTickets(); toast({ title: t("tickets.reopened") }); }
+    try { await api.reopenTicket(id); await refreshSelected(id); await fetchTickets(); setView("active"); toast({ title: t("tickets.reopened") }); }
     catch (e: any) { toast({ title: t("tickets.error"), description: e.message, variant: "destructive" }); }
   }, [refreshSelected, fetchTickets, toast, t]);
 
@@ -232,7 +233,13 @@ export default function Tickets() {
       || String(t.id).includes(q);
   });
 
-  const sortedTickets = [...filtered].sort((a, b) => {
+  const activeTickets = filtered.filter(t => t.status !== "closed");
+  const closedTickets = filtered.filter(t => t.status === "closed");
+  const closedUnread = closedTickets.reduce((s, t) => s + (t.unread_count ?? 0), 0);
+  const activeUnread = activeTickets.reduce((s, t) => s + (t.unread_count ?? 0), 0);
+  const visibleTickets = view === "active" ? activeTickets : closedTickets;
+
+  const sortedTickets = [...visibleTickets].sort((a, b) => {
     const aTime = a.last_message_at || a.updated_at || a.created_at;
     const bTime = b.last_message_at || b.updated_at || b.created_at;
     return new Date(bTime).getTime() - new Date(aTime).getTime();
@@ -313,13 +320,39 @@ export default function Tickets() {
           </div>
 
           {/* Search */}
-          <div className="px-3 py-2 border-b border-border shrink-0">
+          <div className="px-3 py-2 border-b border-border shrink-0 space-y-2">
             <div className="relative">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input
                 value={searchQuery} onChange={e => setSearchQuery(e.target.value)}
                 placeholder={t("tickets.search")} className="pl-9 h-9 text-sm bg-muted/50 border-0"
               />
+            </div>
+            <div className="flex gap-1 bg-muted/40 rounded-lg p-1">
+              <button
+                onClick={() => setView("active")}
+                className={`flex-1 text-xs font-medium py-1.5 rounded-md transition-colors flex items-center justify-center gap-1.5
+                  ${view === "active" ? "bg-card shadow-sm text-foreground" : "text-muted-foreground hover:text-foreground"}`}
+              >
+                Aktuell
+                {activeUnread > 0 && (
+                  <span className="flex h-4 min-w-4 items-center justify-center rounded-full bg-primary text-[9px] font-bold text-primary-foreground px-1">
+                    {activeUnread}
+                  </span>
+                )}
+              </button>
+              <button
+                onClick={() => setView("closed")}
+                className={`flex-1 text-xs font-medium py-1.5 rounded-md transition-colors flex items-center justify-center gap-1.5
+                  ${view === "closed" ? "bg-card shadow-sm text-foreground" : "text-muted-foreground hover:text-foreground"}`}
+              >
+                Erledigt
+                {closedUnread > 0 && (
+                  <span className="flex h-4 min-w-4 items-center justify-center rounded-full bg-destructive text-[9px] font-bold text-destructive-foreground px-1">
+                    {closedUnread}
+                  </span>
+                )}
+              </button>
             </div>
           </div>
 
