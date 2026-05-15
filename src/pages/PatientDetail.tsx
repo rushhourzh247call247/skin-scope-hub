@@ -819,6 +819,114 @@ const PatientDetail = () => {
             />
           </div>
 
+          {/* Mobile: Zone overview directly under body map (DermEngine-style stacked view) */}
+          {sidebarTab === "zones" && activeTab === "uebersicht" && selectedLocationId && (() => {
+            const loc = overviewLocations.find(z => z.id === selectedLocationId);
+            if (!loc) return null;
+            return (
+              <div className="lg:hidden mt-3 space-y-3 rounded-lg border bg-card p-2">
+                <OverviewPhoto
+                  overviewLocation={loc}
+                  spotLocations={linkedSpotLocations}
+                  patientId={patientId}
+                  onNavigateToSpot={(spotId) => {
+                    setSpotBackTarget({ tab: "uebersicht", zoneId: loc.id });
+                    setSelectedLocationId(spotId);
+                    setActiveTab("spots");
+                    setSidebarTab("spots");
+                    setMobileMapExpanded(true);
+                  }}
+                  onCompareSpot={(spotId) => {
+                    setSpotBackTarget({ tab: "uebersicht", zoneId: loc.id });
+                    setSelectedLocationId(spotId);
+                    setActiveTab("spots");
+                    setSidebarTab("spots");
+                    setTimeout(() => {
+                      document.getElementById(`spot-comparison-${spotId}`)?.scrollIntoView({ behavior: "smooth", block: "start" });
+                    }, 120);
+                  }}
+                  onDelete={(locationId) => setDeleteConfirmId(locationId)}
+                  onQrUpload={(locationId) => {
+                    setQrLocationId(locationId);
+                    setQrDialogOpen(true);
+                  }}
+                  onCreateSpotAndLink={async (name, pinCoords, overviewLocId) => {
+                    try {
+                      const zone = overviewLocations.find(z => z.id === overviewLocId);
+                      const SPREAD = 0.36;
+                      let offsetX = (((pinCoords.x_pct ?? 50) - 50) / 100) * SPREAD;
+                      let offsetY = -(((pinCoords.y_pct ?? 50) - 50) / 100) * SPREAD;
+                      if (zone?.x3d != null && zone?.y3d != null) {
+                        const zoneEntry = allZonePins.find(zp => zp.zoneId === overviewLocId);
+                        const siblingIds = new Set<number>((zoneEntry?.pins ?? []).map(p => p.linked_location_id));
+                        const siblings = locations.filter(l => siblingIds.has(l.id) && l.x3d != null && l.y3d != null);
+                        const MIN_DIST = 0.13;
+                        const tooClose = (ox: number, oy: number) =>
+                          siblings.some(s => Math.hypot((zone.x3d! + ox) - (s.x3d as number), (zone.y3d! + oy) - (s.y3d as number)) < MIN_DIST);
+                        if (tooClose(offsetX, offsetY)) {
+                          const golden = 2.39996;
+                          const startIdx = siblings.length;
+                          for (let i = 0; i < 24; i++) {
+                            const angle = (startIdx + i) * golden;
+                            const radius = 0.14 + Math.floor(i / 8) * 0.06;
+                            const ox = Math.cos(angle) * radius;
+                            const oy = Math.sin(angle) * radius;
+                            if (!tooClose(ox, oy)) { offsetX = ox; offsetY = oy; break; }
+                          }
+                        }
+                      }
+                      const newLoc = await api.createLocation(patientId, {
+                        name: name || "Neuer Spot",
+                        x: zone?.x ?? 0,
+                        y: zone?.y ?? 0,
+                        view: zone?.view ?? "front",
+                        type: "spot",
+                        x3d: zone?.x3d != null ? zone.x3d + offsetX : undefined,
+                        y3d: zone?.y3d != null ? zone.y3d + offsetY : undefined,
+                        z3d: zone?.z3d,
+                        nx: zone?.nx,
+                        ny: zone?.ny,
+                        nz: zone?.nz,
+                      });
+                      await api.createOverviewPin(overviewLocId, {
+                        linked_location_id: newLoc.id,
+                        x_pct: pinCoords.x_pct,
+                        y_pct: pinCoords.y_pct,
+                        label: name || t("patientDetail.newSpot"),
+                      });
+                      queryClient.invalidateQueries({ queryKey: ["full-patient", patientId] });
+                      queryClient.invalidateQueries({ queryKey: ["overview-pins", overviewLocId] });
+                      queryClient.invalidateQueries({ queryKey: ["all-zone-pins", patientId] });
+                      setSelectedLocationId(newLoc.id);
+                      setActiveTab("spots");
+                      setSidebarTab("spots");
+                      toast.success(t("patientDetail.spotCreated", { name: name || t("patientDetail.newSpot") }));
+                    } catch {
+                      toast.error(t("patientDetail.spotCreateError"));
+                    }
+                  }}
+                  onMovePin={async (pinId, x_pct, y_pct, overviewLocId) => {
+                    const zone = overviewLocations.find(z => z.id === overviewLocId);
+                    const zoneEntry = allZonePins.find(zp => zp.zoneId === overviewLocId);
+                    const pin = zoneEntry?.pins.find((p: any) => p.id === pinId);
+                    if (!zone || !pin?.linked_location_id || zone.x3d == null || zone.y3d == null) return;
+                    const SPREAD = 0.36;
+                    try {
+                      await api.updateLocationCoords(pin.linked_location_id, {
+                        x3d: zone.x3d + (((x_pct ?? 50) - 50) / 100) * SPREAD,
+                        y3d: zone.y3d - (((y_pct ?? 50) - 50) / 100) * SPREAD,
+                        z3d: zone.z3d,
+                      });
+                      queryClient.invalidateQueries({ queryKey: ["full-patient", patientId] });
+                    } catch {
+                      toast.error(t("patientDetail.spotCreateError"));
+                    }
+                  }}
+                />
+              </div>
+            );
+          })()}
+
           {/* Inline Spot/Region Creation Panel */}
           {mapClickDialog && (
             <div className="mt-3 rounded-lg border bg-card p-3 space-y-3 animate-in slide-in-from-top-2 duration-200">
