@@ -1636,6 +1636,35 @@ const PatientDetail = () => {
                   </div>
                 )}
 
+                {/* Mobile only: Zone overview photo on top, like DermEngine reference */}
+                {selectedSpotZone && (
+                  <div className="lg:hidden mb-4">
+                    <div className="mb-2 flex items-center gap-2">
+                      <Camera className="h-3.5 w-3.5 text-blue-500" />
+                      <span className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+                        {t('patientDetail.fromZone', { zone: translateAnatomyName(selectedSpotZone.name) || t('patientDetail.overview') })}
+                      </span>
+                    </div>
+                    <OverviewPhoto
+                      overviewLocation={selectedSpotZone}
+                      spotLocations={linkedSpotLocations}
+                      patientId={patientId}
+                      onNavigateToSpot={(spotId) => setSelectedLocationId(spotId)}
+                      onCompareSpot={(spotId) => {
+                        setSelectedLocationId(spotId);
+                        setTimeout(() => {
+                          document.getElementById(`spot-comparison-${spotId}`)?.scrollIntoView({ behavior: "smooth", block: "start" });
+                        }, 120);
+                      }}
+                      onDelete={(locationId) => setDeleteConfirmId(locationId)}
+                      onQrUpload={(locationId) => {
+                        setQrLocationId(locationId);
+                        setQrDialogOpen(true);
+                      }}
+                    />
+                  </div>
+                )}
+
                 {/* Spot detail content (existing) */}
                 <div className="space-y-6 min-w-0">
                 <div className="flex items-center justify-between">
