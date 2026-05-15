@@ -217,14 +217,16 @@ const PatientDetail = () => {
     const bodyAlreadyFocused = lastBodyFocusedLocationRef.current === zoneId;
 
     if (alreadySelected && (!isMobile || (mobileMapExpanded && bodyAlreadyFocused))) {
-      // Second tap → switch to "uebersicht" tab and scroll to main image
+      // Second tap → keep the mobile map area in place; desktop may scroll to the detail pane.
       setActiveTab("uebersicht");
       setMobileMapExpanded(true);
-      window.setTimeout(() => {
-        const el = document.getElementById(`zone-${zoneId}`);
-        if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
-        else detailContentRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
-      }, 80);
+      if (!isMobile) {
+        window.setTimeout(() => {
+          const el = document.getElementById(`zone-${zoneId}`);
+          if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
+          else detailContentRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+        }, 80);
+      }
       return;
     }
 
@@ -237,10 +239,6 @@ const PatientDetail = () => {
       // Keep body map visible so user always sees body + zone photo + pins together
       setMobileMapExpanded(true);
       suppressSpotChangeScrollRef.current = true;
-      window.setTimeout(() => {
-        const el = document.getElementById(`zone-${zoneId}`);
-        if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
-      }, 120);
     }
   };
 
