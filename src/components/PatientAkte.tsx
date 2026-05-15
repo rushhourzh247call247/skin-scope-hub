@@ -482,17 +482,6 @@ const PatientAkte = ({ patient, onNavigateToSpot }: PatientAkteProps) => {
           disabled={isReadOnly}
         />
 
-        <div className="space-y-1">
-          <Label className="text-[10px]">{t("akte.documentNotesOptional")}</Label>
-          <Input
-            value={documentNotes}
-            onChange={(e) => setDocumentNotes(e.target.value)}
-            placeholder={t("akte.documentNotesPlaceholder")}
-            className="h-8 text-xs"
-            disabled={isReadOnly}
-          />
-        </div>
-
         {documentsLoading ? (
           <p className="text-xs text-muted-foreground">{t("common.loading")}</p>
         ) : documents.length === 0 ? (
