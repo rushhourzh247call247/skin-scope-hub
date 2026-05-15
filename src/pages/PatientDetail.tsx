@@ -713,10 +713,10 @@ const PatientDetail = () => {
       />
 
       {/* Main Content */}
-      <div className="flex-1 flex flex-col lg:flex-row overflow-hidden">
+      <div className="flex-1 flex flex-col lg:flex-row lg:overflow-hidden">
         {/* Left: Body Map */}
         <div className={cn(
-          "shrink-0 border-b lg:border-b-0 lg:border-r bg-card p-2 lg:p-3 overflow-y-auto flex flex-col transition-all duration-300",
+          "border-b lg:border-b-0 lg:border-r bg-card p-2 lg:p-3 lg:overflow-y-auto flex flex-col transition-all duration-300 lg:shrink-0",
           "w-full lg:w-auto",
           mapClickDialog ? "lg:w-[480px]" : "lg:w-[360px]"
         )}>
