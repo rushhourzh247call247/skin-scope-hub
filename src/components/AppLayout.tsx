@@ -14,7 +14,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
             <SidebarTrigger />
             <DermLogo size="sm" showIcon={false} className="ml-3 lg:hidden" />
           </header>
-          <main className="flex-1 overflow-hidden">{children}</main>
+          <main className="flex-1 overflow-y-auto">{children}</main>
         </div>
       </div>
     </SidebarProvider>
