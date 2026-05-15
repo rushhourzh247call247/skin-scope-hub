@@ -1773,9 +1773,9 @@ const PatientDetail = () => {
                   section="toolbar"
                 />
 
-                {/* 2. Vergleich (Progress-Comparison) — nur für medizinisches Personal */}
+                {/* 2. Vergleich (Progress-Comparison) — nur Desktop, mobil zeigen wir kompakte Timeline-Liste */}
                 {!isPma && selectedLocation.type !== "region" && (selectedLocation.images?.length ?? 0) >= 2 && (
-                  <div id={`spot-comparison-${selectedLocation.id}`} className="scroll-mt-24">
+                  <div id={`spot-comparison-${selectedLocation.id}`} className="scroll-mt-24 hidden lg:block">
                     <QuickProgressCompare
                       images={selectedLocation.images ?? []}
                       getDaysDiff={getDaysDiff}
