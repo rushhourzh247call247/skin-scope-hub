@@ -1727,7 +1727,7 @@ const PatientDetail = () => {
                   const latest = sortedImgs[0];
                   if (!latest) return null;
                   return (
-                    <div className="hidden lg:block">
+                    <div className="hidden lg:block lg:mt-9">
                       <div className="mb-1 flex items-center gap-2">
                         <ImageIcon className="h-3.5 w-3.5 text-primary" />
                         <span className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
