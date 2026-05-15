@@ -826,6 +826,67 @@ const PatientAkte = ({ patient, onNavigateToSpot }: PatientAkteProps) => {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* Edit Master Data Dialog */}
+      <Dialog open={editMasterOpen} onOpenChange={setEditMasterOpen}>
+        <DialogContent className="max-w-md max-h-[100dvh] sm:max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>{t("akte.masterData")}</DialogTitle>
+            <DialogDescription>
+              {t("akte.editMasterDataDescription", { defaultValue: "Stammdaten des Patienten bearbeiten." })}
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-3">
+            <div className="space-y-1">
+              <Label htmlFor="em-name" className="text-xs">{t("common.name")}</Label>
+              <Input id="em-name" value={editForm.name} onChange={(e) => setEditForm(f => ({ ...f, name: e.target.value }))} />
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-1">
+                <Label htmlFor="em-bd" className="text-xs">{t("common.birthDate")}</Label>
+                <Input id="em-bd" type="date" value={editForm.birth_date} onChange={(e) => setEditForm(f => ({ ...f, birth_date: e.target.value }))} />
+              </div>
+              <div className="space-y-1">
+                <Label htmlFor="em-gender" className="text-xs">{t("common.gender")}</Label>
+                <select
+                  id="em-gender"
+                  value={editForm.gender}
+                  onChange={(e) => setEditForm(f => ({ ...f, gender: e.target.value }))}
+                  className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                >
+                  <option value="male">{t("common.male")}</option>
+                  <option value="female">{t("common.female")}</option>
+                </select>
+              </div>
+            </div>
+            <div className="space-y-1">
+              <Label htmlFor="em-ins" className="text-xs">{t("newPatient.insuranceNumber")}</Label>
+              <Input id="em-ins" value={editForm.insurance_number} onChange={(e) => setEditForm(f => ({ ...f, insurance_number: e.target.value }))} />
+            </div>
+            <div className="space-y-1">
+              <Label htmlFor="em-mail" className="text-xs">{t("common.email")}</Label>
+              <Input id="em-mail" type="email" value={editForm.email} onChange={(e) => setEditForm(f => ({ ...f, email: e.target.value }))} />
+            </div>
+            <div className="space-y-1">
+              <Label htmlFor="em-phone" className="text-xs">{t("common.phone")}</Label>
+              <Input id="em-phone" type="tel" value={editForm.phone} onChange={(e) => setEditForm(f => ({ ...f, phone: e.target.value }))} />
+            </div>
+            <div className="space-y-1">
+              <Label htmlFor="em-notes" className="text-xs">{t("common.notes")}</Label>
+              <Textarea id="em-notes" rows={3} value={editForm.notes} onChange={(e) => setEditForm(f => ({ ...f, notes: e.target.value }))} />
+            </div>
+          </div>
+          <DialogFooter className="gap-2">
+            <Button variant="ghost" onClick={() => setEditMasterOpen(false)} disabled={savingMaster}>
+              {t("common.cancel")}
+            </Button>
+            <Button onClick={saveMaster} disabled={savingMaster || isReadOnly}>
+              <Save className="h-4 w-4 mr-1" />
+              {savingMaster ? t("common.saving", { defaultValue: "Speichern…" }) : t("common.save")}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
