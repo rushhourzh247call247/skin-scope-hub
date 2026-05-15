@@ -230,10 +230,23 @@ const PatientAkte = ({ patient, onNavigateToSpot }: PatientAkteProps) => {
 
       {/* Patient Master Data */}
       <div className="rounded-lg border bg-card p-4 space-y-3">
-        <h3 className="text-xs font-semibold text-foreground uppercase tracking-wider flex items-center gap-2">
-          <User className="h-3.5 w-3.5 text-primary" />
-          {t("akte.masterData")}
-        </h3>
+        <div className="flex items-center justify-between gap-2">
+          <h3 className="text-xs font-semibold text-foreground uppercase tracking-wider flex items-center gap-2">
+            <User className="h-3.5 w-3.5 text-primary" />
+            {t("akte.masterData")}
+          </h3>
+          <Button
+            size="sm"
+            variant="ghost"
+            className="h-7 px-2 text-xs gap-1"
+            onClick={openEditMaster}
+            disabled={isReadOnly}
+            title={isReadOnly ? readOnlyTooltip : undefined}
+          >
+            <Pencil className="h-3 w-3" />
+            {t("common.edit", { defaultValue: "Bearbeiten" })}
+          </Button>
+        </div>
         <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 text-sm">
           <div>
             <span className="text-xs text-muted-foreground">{t("common.name")}</span>
