@@ -1406,43 +1406,6 @@ const BodyMap3D: React.FC<BodyMap3DProps> = (props) => {
               <RotateCcw className="h-3 w-3" /> {i18n.t('common.reset')}
             </button>
 
-            {markMode && (
-              <button
-                onClick={() => setMarkMode(false)}
-                className="ml-auto flex h-8 items-center gap-1 rounded-md border border-border/50 bg-card/90 px-2.5 text-[11px] text-muted-foreground transition-all hover:text-foreground"
-              >
-                ✕ {i18n.t('common.cancel', { defaultValue: 'Abbrechen' })}
-              </button>
-            )}
-          </div>
-        )}
-
-        {/* Mark mode indicator — prominent banner */}
-        {markMode && (
-          <div className={cn(
-            "absolute top-2 left-1/2 -translate-x-1/2 flex items-center gap-2 rounded-full px-4 py-2 text-xs font-semibold shadow-xl border-2",
-            markType === "region"
-              ? "bg-amber-500 text-white border-amber-300"
-              : markType === "zone"
-              ? "bg-blue-600 text-white border-blue-300"
-              : "bg-primary text-primary-foreground border-primary/40"
-          )}>
-            <span className="relative flex h-2.5 w-2.5">
-              <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-white opacity-75" />
-              <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-white" />
-            </span>
-            {markType === "region"
-              ? i18n.t('bodyMap3d.clickToSetRegion')
-              : markType === "zone"
-              ? i18n.t('bodyMap3d.clickToSetZone')
-              : i18n.t('bodyMap3d.clickToSetSpot')
-            }
-            <button
-              onClick={() => setMarkMode(false)}
-              className="ml-1 rounded-full bg-white/20 hover:bg-white/30 px-2 py-0.5 text-[10px]"
-            >
-              ✕
-            </button>
           </div>
         )}
 
