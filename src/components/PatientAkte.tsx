@@ -24,6 +24,9 @@ import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import {
+  Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle,
+} from "@/components/ui/dialog";
 
 interface PatientAkteProps {
   patient: FullPatient;
@@ -47,6 +50,54 @@ const PatientAkte = ({ patient, onNavigateToSpot }: PatientAkteProps) => {
   const [editingPatientNumber, setEditingPatientNumber] = useState(false);
   const [patientNumberValue, setPatientNumberValue] = useState(patient.patient_number || "");
   const [showPatientNumberConfirm, setShowPatientNumberConfirm] = useState(false);
+  const [editMasterOpen, setEditMasterOpen] = useState(false);
+  const [editForm, setEditForm] = useState({
+    name: patient.name || "",
+    birth_date: patient.birth_date ? String(patient.birth_date).slice(0, 10) : "",
+    gender: patient.gender || "male",
+    email: patient.email || "",
+    phone: patient.phone || "",
+    insurance_number: patient.insurance_number || "",
+    notes: patient.notes || "",
+  });
+  const [savingMaster, setSavingMaster] = useState(false);
+  const openEditMaster = () => {
+    setEditForm({
+      name: patient.name || "",
+      birth_date: patient.birth_date ? String(patient.birth_date).slice(0, 10) : "",
+      gender: patient.gender || "male",
+      email: patient.email || "",
+      phone: patient.phone || "",
+      insurance_number: patient.insurance_number || "",
+      notes: patient.notes || "",
+    });
+    setEditMasterOpen(true);
+  };
+  const saveMaster = async () => {
+    if (!editForm.name.trim() || !editForm.birth_date) {
+      toast.error(t("common.error"));
+      return;
+    }
+    setSavingMaster(true);
+    try {
+      await api.updatePatient(patient.id, {
+        name: editForm.name.trim(),
+        birth_date: editForm.birth_date,
+        gender: editForm.gender,
+        email: editForm.email || undefined,
+        phone: editForm.phone || undefined,
+        insurance_number: editForm.insurance_number || undefined,
+        notes: editForm.notes || undefined,
+      });
+      await queryClient.invalidateQueries({ queryKey: ["full-patient", patient.id] });
+      toast.success(t("common.save"));
+      setEditMasterOpen(false);
+    } catch (err: any) {
+      toast.error(err?.message || t("common.error"));
+    } finally {
+      setSavingMaster(false);
+    }
+  };
 
   // Queries
   const { data: appointments = [], isLoading: appointmentsLoading } = useQuery({
@@ -182,10 +233,23 @@ const PatientAkte = ({ patient, onNavigateToSpot }: PatientAkteProps) => {
 
       {/* Patient Master Data */}
       <div className="rounded-lg border bg-card p-4 space-y-3">
-        <h3 className="text-xs font-semibold text-foreground uppercase tracking-wider flex items-center gap-2">
-          <User className="h-3.5 w-3.5 text-primary" />
-          {t("akte.masterData")}
-        </h3>
+        <div className="flex items-center justify-between gap-2">
+          <h3 className="text-xs font-semibold text-foreground uppercase tracking-wider flex items-center gap-2">
+            <User className="h-3.5 w-3.5 text-primary" />
+            {t("akte.masterData")}
+          </h3>
+          <Button
+            size="sm"
+            variant="ghost"
+            className="h-7 px-2 text-xs gap-1"
+            onClick={openEditMaster}
+            disabled={isReadOnly}
+            title={isReadOnly ? readOnlyTooltip : undefined}
+          >
+            <Pencil className="h-3 w-3" />
+            {t("common.edit", { defaultValue: "Bearbeiten" })}
+          </Button>
+        </div>
         <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 text-sm">
           <div>
             <span className="text-xs text-muted-foreground">{t("common.name")}</span>
@@ -259,20 +323,20 @@ const PatientAkte = ({ patient, onNavigateToSpot }: PatientAkteProps) => {
             )}
           </div>
           {patient.email && (
-            <div className="flex items-center gap-1.5">
-              <Mail className="h-3 w-3 text-muted-foreground shrink-0" />
-              <div>
+            <div className="col-span-2 sm:col-span-3 flex items-start gap-1.5 min-w-0">
+              <Mail className="h-3 w-3 text-muted-foreground shrink-0 mt-1" />
+              <div className="min-w-0 flex-1">
                 <span className="text-xs text-muted-foreground">{t("common.email")}</span>
-                <p className="font-medium text-foreground">{patient.email}</p>
+                <p className="font-medium text-foreground break-all">{patient.email}</p>
               </div>
             </div>
           )}
           {patient.phone && (
-            <div className="flex items-center gap-1.5">
-              <Phone className="h-3 w-3 text-muted-foreground shrink-0" />
-              <div>
+            <div className="col-span-2 sm:col-span-3 flex items-start gap-1.5 min-w-0">
+              <Phone className="h-3 w-3 text-muted-foreground shrink-0 mt-1" />
+              <div className="min-w-0 flex-1">
                 <span className="text-xs text-muted-foreground">{t("common.phone")}</span>
-                <p className="font-medium text-foreground">{patient.phone}</p>
+                <p className="font-medium text-foreground break-all">{patient.phone}</p>
               </div>
             </div>
           )}
@@ -762,6 +826,67 @@ const PatientAkte = ({ patient, onNavigateToSpot }: PatientAkteProps) => {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* Edit Master Data Dialog */}
+      <Dialog open={editMasterOpen} onOpenChange={setEditMasterOpen}>
+        <DialogContent className="max-w-md max-h-[100dvh] sm:max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>{t("akte.masterData")}</DialogTitle>
+            <DialogDescription>
+              {t("akte.editMasterDataDescription", { defaultValue: "Stammdaten des Patienten bearbeiten." })}
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-3">
+            <div className="space-y-1">
+              <Label htmlFor="em-name" className="text-xs">{t("common.name")}</Label>
+              <Input id="em-name" value={editForm.name} onChange={(e) => setEditForm(f => ({ ...f, name: e.target.value }))} />
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-1">
+                <Label htmlFor="em-bd" className="text-xs">{t("common.birthDate")}</Label>
+                <Input id="em-bd" type="date" value={editForm.birth_date} onChange={(e) => setEditForm(f => ({ ...f, birth_date: e.target.value }))} />
+              </div>
+              <div className="space-y-1">
+                <Label htmlFor="em-gender" className="text-xs">{t("common.gender")}</Label>
+                <select
+                  id="em-gender"
+                  value={editForm.gender}
+                  onChange={(e) => setEditForm(f => ({ ...f, gender: e.target.value as typeof f.gender }))}
+                  className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                >
+                  <option value="male">{t("common.male")}</option>
+                  <option value="female">{t("common.female")}</option>
+                </select>
+              </div>
+            </div>
+            <div className="space-y-1">
+              <Label htmlFor="em-ins" className="text-xs">{t("newPatient.insuranceNumber")}</Label>
+              <Input id="em-ins" value={editForm.insurance_number} onChange={(e) => setEditForm(f => ({ ...f, insurance_number: e.target.value }))} />
+            </div>
+            <div className="space-y-1">
+              <Label htmlFor="em-mail" className="text-xs">{t("common.email")}</Label>
+              <Input id="em-mail" type="email" value={editForm.email} onChange={(e) => setEditForm(f => ({ ...f, email: e.target.value }))} />
+            </div>
+            <div className="space-y-1">
+              <Label htmlFor="em-phone" className="text-xs">{t("common.phone")}</Label>
+              <Input id="em-phone" type="tel" value={editForm.phone} onChange={(e) => setEditForm(f => ({ ...f, phone: e.target.value }))} />
+            </div>
+            <div className="space-y-1">
+              <Label htmlFor="em-notes" className="text-xs">{t("common.notes")}</Label>
+              <Textarea id="em-notes" rows={3} value={editForm.notes} onChange={(e) => setEditForm(f => ({ ...f, notes: e.target.value }))} />
+            </div>
+          </div>
+          <DialogFooter className="gap-2">
+            <Button variant="ghost" onClick={() => setEditMasterOpen(false)} disabled={savingMaster}>
+              {t("common.cancel")}
+            </Button>
+            <Button onClick={saveMaster} disabled={savingMaster || isReadOnly}>
+              <Save className="h-4 w-4 mr-1" />
+              {savingMaster ? t("common.saving", { defaultValue: "Speichern…" }) : t("common.save")}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
