@@ -63,6 +63,7 @@ const OverviewPhoto = ({ overviewLocation, spotLocations, patientId, onNavigateT
   const [draggingPinId, setDraggingPinId] = useState<number | null>(null);
   const [dragPos, setDragPos] = useState<{ x_pct: number; y_pct: number } | null>(null);
   const dragMovedRef = useRef(false);
+  const panMovedRef = useRef(false);
 
   const [isRenaming, setIsRenaming] = useState(false);
   const [renameValue, setRenameValue] = useState("");
@@ -254,6 +255,10 @@ const OverviewPhoto = ({ overviewLocation, spotLocations, patientId, onNavigateT
   };
 
   const handleImageClick = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
+    if (panMovedRef.current) {
+      panMovedRef.current = false;
+      return;
+    }
     if (!pinMode) return;
     // Account for the transform scale — use the inner container's natural size
     const el = containerRef.current;
@@ -264,10 +269,8 @@ const OverviewPhoto = ({ overviewLocation, spotLocations, patientId, onNavigateT
     setPendingPin({ x_pct, y_pct });
   }, [pinMode]);
 
-  // Mouse wheel zoom toward cursor position — only with Ctrl/Cmd held,
-  // so normal wheel still scrolls the page.
+  // Mouse wheel zoom toward cursor position while hovering the photo.
   const handleWheel = useCallback((e: WheelEvent) => {
-    if (!e.ctrlKey && !e.metaKey) return;
     e.preventDefault();
     const container = containerRef.current?.parentElement;
     if (!container) return;
@@ -293,19 +296,21 @@ const OverviewPhoto = ({ overviewLocation, spotLocations, patientId, onNavigateT
     });
   }, []);
 
-  // Right-click / middle-click drag to pan
+  // Left-click drag to pan when the photo is zoomed.
   const handlePanStart = useCallback((e: React.MouseEvent) => {
-    if (e.button === 2 || e.button === 1) { // right or middle click
+    if (e.button === 0 && zoomLevel > 1 && draggingPinId === null) {
       e.preventDefault();
+      panMovedRef.current = false;
       setIsPanning(true);
       panStart.current = { x: e.clientX, y: e.clientY, ox: panOffset.x, oy: panOffset.y };
     }
-  }, [panOffset]);
+  }, [draggingPinId, panOffset, zoomLevel]);
 
   const handlePanMove = useCallback((e: React.MouseEvent) => {
     if (!isPanning) return;
     const dx = e.clientX - panStart.current.x;
     const dy = e.clientY - panStart.current.y;
+    if (Math.abs(dx) > 3 || Math.abs(dy) > 3) panMovedRef.current = true;
     setPanOffset({ x: panStart.current.ox + dx, y: panStart.current.oy + dy });
   }, [isPanning]);
 
