@@ -851,7 +851,7 @@ const PatientAkte = ({ patient, onNavigateToSpot }: PatientAkteProps) => {
                 <select
                   id="em-gender"
                   value={editForm.gender}
-                  onChange={(e) => setEditForm(f => ({ ...f, gender: e.target.value }))}
+                  onChange={(e) => setEditForm(f => ({ ...f, gender: e.target.value as typeof f.gender }))}
                   className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                 >
                   <option value="male">{t("common.male")}</option>
