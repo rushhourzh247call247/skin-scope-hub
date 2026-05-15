@@ -234,14 +234,13 @@ const PatientDetail = () => {
     setActiveTab("uebersicht");
     if (isMobile) {
       lastBodyFocusedLocationRef.current = zoneId;
-      // Don't expand the body map on mobile — go straight to the zone overview content
-      setMobileMapExpanded(false);
+      // Keep body map visible so user always sees body + zone photo + pins together
+      setMobileMapExpanded(true);
       suppressSpotChangeScrollRef.current = true;
       window.setTimeout(() => {
         const el = document.getElementById(`zone-${zoneId}`);
         if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
-        else detailContentRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
-      }, 80);
+      }, 120);
     }
   };
 
