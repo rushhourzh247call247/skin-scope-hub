@@ -1719,6 +1719,39 @@ const PatientDetail = () => {
                   )}
                 </div>
 
+                {/* Desktop hero close-up — DermEngine-style large macro view of the latest photo */}
+                {(() => {
+                  const sortedImgs = [...(selectedLocation.images ?? [])].sort((a, b) =>
+                    new Date(b.created_at ?? 0).getTime() - new Date(a.created_at ?? 0).getTime()
+                  );
+                  const latest = sortedImgs[0];
+                  if (!latest) return null;
+                  return (
+                    <div className="hidden lg:block">
+                      <div className="mb-2 flex items-center justify-between">
+                        <span className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+                          {t('patientDetail.closeUp', { defaultValue: 'Nahaufnahme' })}
+                        </span>
+                        <span className="text-[11px] text-muted-foreground tabular-nums">
+                          {latest.created_at ? formatDate(latest.created_at, 'dd. MMM yyyy') : ''}
+                        </span>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => { setLightboxImageId(latest.id); setLightboxOpen(true); }}
+                        className="block w-full overflow-hidden rounded-lg border bg-muted/30 cursor-zoom-in hover:opacity-95 transition-opacity"
+                        aria-label={t('imageGallery.openFullscreen', 'Vollbild') as string}
+                      >
+                        <img
+                          src={api.resolveImageSrc(latest)}
+                          alt={`${t('imageGallery.recording')} #${latest.id}`}
+                          className="h-[420px] w-full object-contain bg-background"
+                        />
+                      </button>
+                    </div>
+                  );
+                })()}
+
                 {/* 1. Toolbar (Kamera/Upload/QR) ganz oben — schneller Zugriff direkt nach Spot-Öffnung */}
                 <ImageGallery
                   locationId={selectedLocation.id}
