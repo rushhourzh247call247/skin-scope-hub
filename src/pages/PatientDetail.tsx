@@ -1892,6 +1892,7 @@ const PatientDetail = () => {
                     locationName={translateAnatomyName(selectedLocation.name) || `Spot #${selectedLocation.id}`}
                   />
                 )}
+                </div>
               </motion.div>
             ) : (
               <motion.div
