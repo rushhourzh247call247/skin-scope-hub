@@ -1474,6 +1474,62 @@ const PatientDetail = () => {
                                 }
                               }}
                             />
+                            {(() => {
+                              const zoneEntry = allZonePins.find(zp => zp.zoneId === loc.id);
+                              const linkedIds = new Set<number>((zoneEntry?.pins ?? []).map((p: any) => p.linked_location_id));
+                              const items: { img: any; spot: any }[] = [];
+                              for (const sp of spotLocations) {
+                                if (!linkedIds.has(sp.id)) continue;
+                                for (const img of (sp.images ?? [])) items.push({ img, spot: sp });
+                              }
+                              items.sort((a, b) => new Date(b.img.created_at ?? 0).getTime() - new Date(a.img.created_at ?? 0).getTime());
+                              if (items.length === 0) return null;
+                              return (
+                                <div className="mt-4 space-y-2">
+                                  <div className="flex items-center gap-2 px-1">
+                                    <ImageIcon className="h-3.5 w-3.5 text-primary" />
+                                    <span className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+                                      {t('patientDetail.closeUp', { defaultValue: 'Nahaufnahmen' })} ({items.length})
+                                    </span>
+                                  </div>
+                                  <div className="divide-y rounded-lg border bg-card">
+                                    {items.map(({ img, spot }, idx) => {
+                                      const spotIdx = spotLocations.findIndex(s => s.id === spot.id) + 1;
+                                      return (
+                                        <button
+                                          key={`${spot.id}-${img.id}`}
+                                          type="button"
+                                          onClick={() => {
+                                            setSpotBackTarget({ tab: "uebersicht", zoneId: loc.id });
+                                            setSelectedLocationId(spot.id);
+                                            setActiveTab("spots");
+                                            setTimeout(() => {
+                                              detailContentRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+                                            }, 120);
+                                          }}
+                                          className="flex w-full items-center gap-3 px-3 py-2.5 text-left hover:bg-muted/60 transition-colors"
+                                        >
+                                          <img
+                                            src={api.resolveImageSrc(img)}
+                                            alt=""
+                                            className="h-14 w-14 shrink-0 rounded-full object-cover border"
+                                          />
+                                          <div className="min-w-0 flex-1">
+                                            <div className="text-sm font-semibold text-foreground tabular-nums">
+                                              {img.created_at ? formatDate(img.created_at, 'dd. MMM yyyy') : '—'}
+                                            </div>
+                                            <div className="text-xs text-muted-foreground truncate">
+                                              Spot {spotIdx > 0 ? spotIdx : ''} · {translateAnatomyName(spot.name) || `#${spot.id}`}
+                                            </div>
+                                          </div>
+                                          <ChevronRight className="h-4 w-4 text-muted-foreground shrink-0" />
+                                        </button>
+                                      );
+                                    })}
+                                  </div>
+                                </div>
+                              );
+                            })()}
                             </div>
                           ))}
                         </div>
