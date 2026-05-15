@@ -1015,7 +1015,9 @@ const PatientDetail = () => {
               }
             }
 
-            const renderSpotItem = (loc: typeof visibleSpots[0], i: number) => (
+            const renderSpotItem = (loc: typeof visibleSpots[0], i: number) => {
+              const zoneName = spotToZone.get(loc.id);
+              return (
               <div
                 key={loc.id}
                 ref={selectedLocationId === loc.id ? selectedSpotListItemRef : undefined}
