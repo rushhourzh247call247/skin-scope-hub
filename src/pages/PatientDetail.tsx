@@ -628,9 +628,11 @@ const PatientDetail = () => {
     editSpotPendingRef.current = null;
     try {
       await api.updateLocationCoords(id, data);
-      toast.success(t('patientDetail.spotPositionUpdated', { defaultValue: 'Position aktualisiert' }));
+      toast.success(t('patientDetail.spotPositionUpdated', { defaultValue: 'Position gespeichert' }));
       queryClient.invalidateQueries({ queryKey: ["full-patient", patientId] });
       queryClient.invalidateQueries({ queryKey: ["all-zone-pins", patientId] });
+      // Auto-exit edit mode after successful save — no need for separate "Fertig" click
+      setEditPositionSpotId(null);
     } catch (e) {
       toast.error(t('common.error'));
     }
