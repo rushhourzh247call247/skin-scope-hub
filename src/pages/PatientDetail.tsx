@@ -1727,26 +1727,32 @@ const PatientDetail = () => {
                   const latest = sortedImgs[0];
                   if (!latest) return null;
                   return (
-                    <div className="hidden lg:block">
-                      <div className="mb-2 flex items-center justify-between">
+                    <div className="hidden lg:block lg:mt-[52px]">
+                      <div className="mb-1 flex items-center gap-2">
+                        <ImageIcon className="h-3.5 w-3.5 text-primary" />
                         <span className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
                           {t('patientDetail.closeUp', { defaultValue: 'Nahaufnahme' })}
                         </span>
-                        <span className="text-[11px] text-muted-foreground tabular-nums">
+                        <span className="ml-auto text-[11px] text-muted-foreground tabular-nums">
                           {latest.created_at ? formatDate(latest.created_at, 'dd. MMM yyyy') : ''}
                         </span>
                       </div>
                       <button
                         type="button"
                         onClick={() => { setLightboxImageId(latest.id); setLightboxOpen(true); }}
-                        className="block w-full overflow-hidden rounded-lg border bg-muted/30 cursor-zoom-in hover:opacity-95 transition-opacity"
+                        className="group relative block w-full overflow-hidden rounded-lg border bg-muted shadow-sm cursor-zoom-in hover:shadow-md transition-shadow"
                         aria-label={t('imageGallery.openFullscreen', 'Vollbild') as string}
                       >
-                        <img
-                          src={api.resolveImageSrc(latest)}
-                          alt={`${t('imageGallery.recording')} #${latest.id}`}
-                          className="h-[420px] w-full object-contain bg-background"
-                        />
+                        <div className="max-h-[60vh] h-[60vh] w-full flex items-center justify-center bg-gradient-to-br from-muted/40 to-muted">
+                          <img
+                            src={api.resolveImageSrc(latest)}
+                            alt={`${t('imageGallery.recording')} #${latest.id}`}
+                            className="max-h-full max-w-full object-contain"
+                          />
+                        </div>
+                        <span className="pointer-events-none absolute top-2 left-2 rounded-full bg-primary/90 backdrop-blur px-2 py-0.5 text-[9px] font-bold uppercase tracking-wider text-primary-foreground shadow">
+                          {t('imageGallery.latest', 'Aktuell')}
+                        </span>
                       </button>
                     </div>
                   );
