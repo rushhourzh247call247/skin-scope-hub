@@ -1050,6 +1050,12 @@ const PatientDetail = () => {
                   })()}
                   <div className="flex min-w-0 flex-1 items-center gap-1.5">
                     <p className="truncate font-medium">{translateAnatomyName(loc.name) || `Spot ${i + 1}`}</p>
+                      {zoneName && (
+                        <span className="inline-flex items-center gap-0.5 rounded bg-blue-500/10 px-1 py-0.5 text-[8px] font-medium text-blue-600 dark:text-blue-400 shrink-0" title={translateAnatomyName(zoneName)}>
+                          <Camera className="h-2.5 w-2.5" />
+                          <span className="max-w-[60px] truncate">{translateAnatomyName(zoneName)}</span>
+                        </span>
+                      )}
                       {(() => {
                         const cls = (loc as any).classification as LesionClassification | undefined;
                         if (!cls || cls === "unclassified") return null;
