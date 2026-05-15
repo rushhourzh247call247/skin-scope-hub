@@ -47,6 +47,54 @@ const PatientAkte = ({ patient, onNavigateToSpot }: PatientAkteProps) => {
   const [editingPatientNumber, setEditingPatientNumber] = useState(false);
   const [patientNumberValue, setPatientNumberValue] = useState(patient.patient_number || "");
   const [showPatientNumberConfirm, setShowPatientNumberConfirm] = useState(false);
+  const [editMasterOpen, setEditMasterOpen] = useState(false);
+  const [editForm, setEditForm] = useState({
+    name: patient.name || "",
+    birth_date: patient.birth_date ? String(patient.birth_date).slice(0, 10) : "",
+    gender: patient.gender || "male",
+    email: patient.email || "",
+    phone: patient.phone || "",
+    insurance_number: patient.insurance_number || "",
+    notes: patient.notes || "",
+  });
+  const [savingMaster, setSavingMaster] = useState(false);
+  const openEditMaster = () => {
+    setEditForm({
+      name: patient.name || "",
+      birth_date: patient.birth_date ? String(patient.birth_date).slice(0, 10) : "",
+      gender: patient.gender || "male",
+      email: patient.email || "",
+      phone: patient.phone || "",
+      insurance_number: patient.insurance_number || "",
+      notes: patient.notes || "",
+    });
+    setEditMasterOpen(true);
+  };
+  const saveMaster = async () => {
+    if (!editForm.name.trim() || !editForm.birth_date) {
+      toast.error(t("common.error"));
+      return;
+    }
+    setSavingMaster(true);
+    try {
+      await api.updatePatient(patient.id, {
+        name: editForm.name.trim(),
+        birth_date: editForm.birth_date,
+        gender: editForm.gender,
+        email: editForm.email || undefined,
+        phone: editForm.phone || undefined,
+        insurance_number: editForm.insurance_number || undefined,
+        notes: editForm.notes || undefined,
+      });
+      await queryClient.invalidateQueries({ queryKey: ["full-patient", patient.id] });
+      toast.success(t("common.save"));
+      setEditMasterOpen(false);
+    } catch (err: any) {
+      toast.error(err?.message || t("common.error"));
+    } finally {
+      setSavingMaster(false);
+    }
+  };
 
   // Queries
   const { data: appointments = [], isLoading: appointmentsLoading } = useQuery({
