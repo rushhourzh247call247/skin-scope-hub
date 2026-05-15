@@ -1015,7 +1015,9 @@ const PatientDetail = () => {
               }
             }
 
-            const renderSpotItem = (loc: typeof visibleSpots[0], i: number) => (
+            const renderSpotItem = (loc: typeof visibleSpots[0], i: number) => {
+              const zoneName = spotToZone.get(loc.id);
+              return (
               <div
                 key={loc.id}
                 ref={selectedLocationId === loc.id ? selectedSpotListItemRef : undefined}
@@ -1048,6 +1050,12 @@ const PatientDetail = () => {
                   })()}
                   <div className="flex min-w-0 flex-1 items-center gap-1.5">
                     <p className="truncate font-medium">{translateAnatomyName(loc.name) || `Spot ${i + 1}`}</p>
+                      {zoneName && (
+                        <span className="inline-flex items-center gap-0.5 rounded bg-blue-500/10 px-1 py-0.5 text-[8px] font-medium text-blue-600 dark:text-blue-400 shrink-0" title={translateAnatomyName(zoneName)}>
+                          <Camera className="h-2.5 w-2.5" />
+                          <span className="max-w-[60px] truncate">{translateAnatomyName(zoneName)}</span>
+                        </span>
+                      )}
                       {(() => {
                         const cls = (loc as any).classification as LesionClassification | undefined;
                         if (!cls || cls === "unclassified") return null;
@@ -1094,7 +1102,8 @@ const PatientDetail = () => {
                   <Trash2 className="h-3.5 w-3.5" />
                 </button>
               </div>
-            );
+              );
+            };
 
             let globalIndex = 0;
 
@@ -1123,27 +1132,10 @@ const PatientDetail = () => {
                       </div>
                     )}
                     <div className="h-[168px] overflow-y-auto overscroll-contain rounded-lg border border-border bg-card p-1.5 space-y-1 shadow-inner [scrollbar-width:thin] [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-muted-foreground/40">
-                      {/* Free spots (not linked to any zone) */}
-                      {freeSpots.map((loc) => {
+                      {visibleSpots.map((loc) => {
                         const idx = globalIndex++;
                         return renderSpotItem(loc, idx);
                       })}
-
-                      {/* Zone-grouped spots */}
-                      {Array.from(zoneGroups.entries()).map(([zoneName, spots]) => (
-                        <div key={zoneName} className="mt-1.5">
-                          <div className="flex items-center gap-1.5 px-2 py-0.5">
-                            <Camera className="h-3 w-3 text-muted-foreground" />
-                            <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
-                              {t('patientDetail.fromZone', { zone: translateAnatomyName(zoneName) })}
-                            </span>
-                          </div>
-                          {spots.map((loc) => {
-                            const idx = globalIndex++;
-                            return renderSpotItem(loc, idx);
-                          })}
-                        </div>
-                      ))}
                     </div>
                     {visibleSpots.length > 3 && (
                       <div className="pointer-events-none absolute inset-x-0 bottom-0 h-6 rounded-b-lg bg-gradient-to-t from-card to-transparent" />
@@ -1726,6 +1718,39 @@ const PatientDetail = () => {
                     </Button>
                   )}
                 </div>
+
+                {/* Desktop hero close-up — DermEngine-style large macro view of the latest photo */}
+                {(() => {
+                  const sortedImgs = [...(selectedLocation.images ?? [])].sort((a, b) =>
+                    new Date(b.created_at ?? 0).getTime() - new Date(a.created_at ?? 0).getTime()
+                  );
+                  const latest = sortedImgs[0];
+                  if (!latest) return null;
+                  return (
+                    <div className="hidden lg:block">
+                      <div className="mb-2 flex items-center justify-between">
+                        <span className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+                          {t('patientDetail.closeUp', { defaultValue: 'Nahaufnahme' })}
+                        </span>
+                        <span className="text-[11px] text-muted-foreground tabular-nums">
+                          {latest.created_at ? formatDate(latest.created_at, 'dd. MMM yyyy') : ''}
+                        </span>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => { setLightboxImageId(latest.id); setLightboxOpen(true); }}
+                        className="block w-full overflow-hidden rounded-lg border bg-muted/30 cursor-zoom-in hover:opacity-95 transition-opacity"
+                        aria-label={t('imageGallery.openFullscreen', 'Vollbild') as string}
+                      >
+                        <img
+                          src={api.resolveImageSrc(latest)}
+                          alt={`${t('imageGallery.recording')} #${latest.id}`}
+                          className="h-[420px] w-full object-contain bg-background"
+                        />
+                      </button>
+                    </div>
+                  );
+                })()}
 
                 {/* 1. Toolbar (Kamera/Upload/QR) ganz oben — schneller Zugriff direkt nach Spot-Öffnung */}
                 <ImageGallery
