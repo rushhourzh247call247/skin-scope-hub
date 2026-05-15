@@ -502,6 +502,15 @@ const PatientDetail = () => {
   const totalImages = locations.reduce((sum, l) => sum + (l.images?.length ?? 0), 0);
   const isEmptyPatient = locations.length === 0;
 
+  // Find the zone (overview location) that contains the currently selected spot.
+  // Used by the desktop split-view to show the zone overview next to the spot detail.
+  const selectedSpotZone = (() => {
+    if (!selectedLocationId || !selectedLocation || selectedLocation.type === "overview") return null;
+    const entry = allZonePins.find(zp => zp.pins.some((p: any) => p.linked_location_id === selectedLocationId));
+    if (!entry) return null;
+    return overviewLocations.find(l => l.id === entry.zoneId) ?? null;
+  })();
+
   useEffect(() => {
     if (!patient || selectedLocationId || activeTab !== "spots" || isEmptyPatient) return;
 
