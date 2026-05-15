@@ -264,8 +264,10 @@ const OverviewPhoto = ({ overviewLocation, spotLocations, patientId, onNavigateT
     setPendingPin({ x_pct, y_pct });
   }, [pinMode]);
 
-  // Mouse wheel zoom toward cursor position
+  // Mouse wheel zoom toward cursor position — only with Ctrl/Cmd held,
+  // so normal wheel still scrolls the page.
   const handleWheel = useCallback((e: WheelEvent) => {
+    if (!e.ctrlKey && !e.metaKey) return;
     e.preventDefault();
     const container = containerRef.current?.parentElement;
     if (!container) return;
