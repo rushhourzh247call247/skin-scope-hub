@@ -264,8 +264,10 @@ const OverviewPhoto = ({ overviewLocation, spotLocations, patientId, onNavigateT
     setPendingPin({ x_pct, y_pct });
   }, [pinMode]);
 
-  // Mouse wheel zoom toward cursor position
+  // Mouse wheel zoom toward cursor position — only with Ctrl/Cmd held,
+  // so normal wheel still scrolls the page.
   const handleWheel = useCallback((e: WheelEvent) => {
+    if (!e.ctrlKey && !e.metaKey) return;
     e.preventDefault();
     const container = containerRef.current?.parentElement;
     if (!container) return;
@@ -482,8 +484,30 @@ const OverviewPhoto = ({ overviewLocation, spotLocations, patientId, onNavigateT
           </Button>
         </div>
       )}
-      {zoomLevel !== 1 && (
-        <div className="flex items-center gap-1.5 mb-1">
+      <div className="flex items-center gap-1.5 mb-1">
+        <Button
+          size="sm"
+          variant="ghost"
+          className="h-7 w-7 p-0"
+          onClick={() => setZoomLevel(z => Math.min(5, +(z + 0.25).toFixed(2)))}
+          title={t('overviewPhoto.zoomIn', { defaultValue: 'Zoom in' })}
+        >
+          <ZoomIn className="h-3.5 w-3.5" />
+        </Button>
+        <Button
+          size="sm"
+          variant="ghost"
+          className="h-7 w-7 p-0"
+          onClick={() => setZoomLevel(z => {
+            const n = Math.max(1, +(z - 0.25).toFixed(2));
+            if (n <= 1) setPanOffset({ x: 0, y: 0 });
+            return n;
+          })}
+          title={t('overviewPhoto.zoomOut', { defaultValue: 'Zoom out' })}
+        >
+          <ZoomOut className="h-3.5 w-3.5" />
+        </Button>
+        {zoomLevel !== 1 && (
           <Button
             size="sm"
             variant="ghost"
@@ -493,16 +517,14 @@ const OverviewPhoto = ({ overviewLocation, spotLocations, patientId, onNavigateT
             <RotateCcw className="h-3 w-3 mr-1" />
             {Math.round(zoomLevel * 100)}% – Reset
           </Button>
-          <span className="text-[10px] text-muted-foreground">
-            {t('overviewPhoto.panHint', { defaultValue: 'Rechte Maustaste gedrückt halten zum Verschieben' })}
-          </span>
-        </div>
-      )}
-      {zoomLevel === 1 && (
-        <p className="text-[10px] text-muted-foreground mb-1">
-          {t('overviewPhoto.zoomPanHint', { defaultValue: 'Mausrad zum Zoomen · Rechte Maustaste zum Verschieben' })}
-        </p>
-      )}
+        )}
+        <span className="text-[10px] text-muted-foreground">
+          {zoomLevel === 1
+            ? t('overviewPhoto.zoomPanHint', { defaultValue: 'Strg/Cmd + Mausrad zum Zoomen · Rechte Maustaste zum Verschieben' })
+            : t('overviewPhoto.panHint', { defaultValue: 'Rechte Maustaste gedrückt halten zum Verschieben' })}
+        </span>
+      </div>
+
 
       <div
         className="max-h-[60vh] overflow-hidden rounded-lg border bg-muted"
