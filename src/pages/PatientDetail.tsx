@@ -502,6 +502,15 @@ const PatientDetail = () => {
   const totalImages = locations.reduce((sum, l) => sum + (l.images?.length ?? 0), 0);
   const isEmptyPatient = locations.length === 0;
 
+  // Find the zone (overview location) that contains the currently selected spot.
+  // Used by the desktop split-view to show the zone overview next to the spot detail.
+  const selectedSpotZone = (() => {
+    if (!selectedLocationId || !selectedLocation || selectedLocation.type === "overview") return null;
+    const entry = allZonePins.find(zp => zp.pins.some((p: any) => p.linked_location_id === selectedLocationId));
+    if (!entry) return null;
+    return overviewLocations.find(l => l.id === entry.zoneId) ?? null;
+  })();
+
   useEffect(() => {
     if (!patient || selectedLocationId || activeTab !== "spots" || isEmptyPatient) return;
 
@@ -1598,8 +1607,43 @@ const PatientDetail = () => {
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -8 }}
                 transition={{ duration: 0.15 }}
-                className="space-y-6"
+                className={cn(
+                  selectedSpotZone
+                    ? "lg:grid lg:grid-cols-[minmax(0,2fr)_minmax(0,3fr)] lg:gap-6 lg:items-start"
+                    : "block"
+                )}
               >
+                {/* Desktop only: Zone overview on the left, sticky so it stays visible while right column scrolls */}
+                {selectedSpotZone && (
+                  <div className="hidden lg:block lg:sticky lg:top-0 lg:max-h-[calc(100vh-7rem)] lg:overflow-y-auto lg:pr-1">
+                    <div className="mb-2 flex items-center gap-2">
+                      <Camera className="h-3.5 w-3.5 text-blue-500" />
+                      <span className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+                        {t('patientDetail.fromZone', { zone: translateAnatomyName(selectedSpotZone.name) || t('patientDetail.overview') })}
+                      </span>
+                    </div>
+                    <OverviewPhoto
+                      overviewLocation={selectedSpotZone}
+                      spotLocations={linkedSpotLocations}
+                      patientId={patientId}
+                      onNavigateToSpot={(spotId) => setSelectedLocationId(spotId)}
+                      onCompareSpot={(spotId) => {
+                        setSelectedLocationId(spotId);
+                        setTimeout(() => {
+                          document.getElementById(`spot-comparison-${spotId}`)?.scrollIntoView({ behavior: "smooth", block: "start" });
+                        }, 120);
+                      }}
+                      onDelete={(locationId) => setDeleteConfirmId(locationId)}
+                      onQrUpload={(locationId) => {
+                        setQrLocationId(locationId);
+                        setQrDialogOpen(true);
+                      }}
+                    />
+                  </div>
+                )}
+
+                {/* Spot detail content (existing) */}
+                <div className="space-y-6 min-w-0">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
                     {spotBackTarget && (
@@ -1848,6 +1892,7 @@ const PatientDetail = () => {
                     locationName={translateAnatomyName(selectedLocation.name) || `Spot #${selectedLocation.id}`}
                   />
                 )}
+                </div>
               </motion.div>
             ) : (
               <motion.div
