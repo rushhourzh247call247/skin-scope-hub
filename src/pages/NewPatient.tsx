@@ -44,10 +44,21 @@ const NewPatient = () => {
     },
     onError: (err: any) => {
       const msg = err?.message || "";
+      console.error("[NewPatient] createPatient failed", {
+        status: err?.status,
+        message: msg,
+        data: err?.data,
+        body: err?.body,
+        error: err,
+      });
       if (err?.status === 422 && msg.toLowerCase().includes("patient_number")) {
         toast.error(t("newPatient.duplicateNumber"));
+      } else if (err?.status === 403) {
+        toast.error("Keine Berechtigung oder Lizenzlimit erreicht.");
+      } else if (err?.status === 423) {
+        toast.error("Account im Read-Only-Modus.");
       } else {
-        toast.error(t("newPatient.createError"));
+        toast.error(`${t("newPatient.createError")} (${err?.status ?? "?"}: ${msg || "unbekannt"})`);
       }
     },
   });
