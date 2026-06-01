@@ -134,7 +134,11 @@ const ZoneCreatorDialog = ({ open, onOpenChange, gender, onCreate, isCreating }:
 
   return (
     <Dialog open={open} onOpenChange={(o) => { if (!o) setSelectedZone(""); onOpenChange(o); }}>
-      <DialogContent className="sm:max-w-md">
+      <DialogContent
+        className="sm:max-w-md"
+        onPointerDownOutside={(e) => e.preventDefault()}
+        onInteractOutside={(e) => e.preventDefault()}
+      >
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2 text-base">
             <Camera className="h-4 w-4 text-blue-500" />
