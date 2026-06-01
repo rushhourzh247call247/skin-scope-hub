@@ -99,6 +99,7 @@ const PatientDetail = () => {
   const [editingFindingText, setEditingFindingText] = useState("");
   const [classificationFilter, setClassificationFilter] = useState<LesionClassificationType[]>([]);
   const [requestedMarkType, setRequestedMarkType] = useState<{ type: "spot" | "region" | "zone"; nonce: number } | null>(null);
+  const [pendingZoneName, setPendingZoneName] = useState<string | null>(null);
   const [qrDialogOpen, setQrDialogOpen] = useState(false);
   const [qrLocationId, setQrLocationId] = useState<number | null>(null);
   const [deleteConfirmId, setDeleteConfirmId] = useState<number | null>(null);
@@ -355,6 +356,7 @@ const PatientDetail = () => {
       queryClient.invalidateQueries({ queryKey: ["full-patient", patientId] });
       setMapClickDialog(null);
       setLocationName("");
+      setPendingZoneName(null);
       if (wasZone) {
         setSelectedLocationId(newLoc.id);
         setActiveTab("uebersicht");
@@ -546,7 +548,7 @@ const PatientDetail = () => {
     x: number,
     y: number,
     view: "front" | "back",
-    markType?: "spot" | "region",
+    markType?: "spot" | "region" | "zone",
     point3d?: [number, number, number],
     normal3d?: [number, number, number],
   ) => {
@@ -652,7 +654,11 @@ const PatientDetail = () => {
     const isZone = mapClickDialog.markType === "zone";
 
     createLocationMutation.mutate({
-      name: isZone ? `Zone ${overviewLocations.length + 1}` : (locationName.trim() || undefined),
+      name: isZone
+        ? (pendingZoneName
+            ? `Zone ${overviewLocations.length + 1} – ${pendingZoneName}`
+            : `Zone ${overviewLocations.length + 1}`)
+        : (locationName.trim() || undefined),
       x: mapClickDialog.x,
       y: mapClickDialog.y,
       view: mapClickDialog.view,
@@ -711,18 +717,12 @@ const PatientDetail = () => {
         onOpenChange={setZoneCreatorOpen}
         gender={patient.gender}
         isCreating={createLocationMutation.isPending}
-        onCreate={(data) => {
-          createLocationMutation.mutate({
-            name: `Zone ${overviewLocations.length + 1} – ${data.name}`,
-            x: data.x,
-            y: data.y,
-            view: data.view,
-            type: "overview",
-            x3d: data.x3d,
-            y3d: data.y3d,
-            z3d: data.z3d,
-          });
+        onPick={(zoneName) => {
+          setPendingZoneName(zoneName);
           setZoneCreatorOpen(false);
+          setMobileMapExpanded(true);
+          setRequestedMarkType({ type: "zone", nonce: Date.now() });
+          toast.info(`Klicken Sie nun auf dem 3D-Body die exakte Stelle für „${translateAnatomyName(zoneName)}" an.`);
         }}
       />
 

@@ -22,17 +22,12 @@ interface ZoneCreatorDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   gender: Gender;
-  onCreate: (data: {
-    name: string;
-    x: number;
-    y: number;
-    view: "front" | "back";
-    x3d: number;
-    y3d: number;
-    z3d: number;
-  }) => void;
+  /** Called when the user has picked a body part. The parent should then
+   *  activate placement mode on the 3D body so the user can click the exact spot. */
+  onPick: (zoneName: string) => void;
   isCreating?: boolean;
 }
+
 
 /** Anatomical groups — clinical mental model (top → bottom). */
 const ZONE_GROUPS: { label: string; zones: string[] }[] = [
@@ -92,7 +87,7 @@ const ZONE_GROUPS: { label: string; zones: string[] }[] = [
   },
 ];
 
-const ZoneCreatorDialog = ({ open, onOpenChange, gender, onCreate, isCreating }: ZoneCreatorDialogProps) => {
+const ZoneCreatorDialog = ({ open, onOpenChange, gender, onPick, isCreating }: ZoneCreatorDialogProps) => {
   const [selectedZone, setSelectedZone] = useState<string>("");
   const [popoverOpen, setPopoverOpen] = useState(false);
 
@@ -105,8 +100,7 @@ const ZoneCreatorDialog = ({ open, onOpenChange, gender, onCreate, isCreating }:
           value: z,
           label: translateAnatomyName(z),
           anchor: getZoneAnchorFromName(z, gender),
-        }))
-        .filter(z => z.anchor !== null),
+        })),
     })).filter(g => g.items.length > 0);
   }, [gender]);
 
@@ -114,16 +108,8 @@ const ZoneCreatorDialog = ({ open, onOpenChange, gender, onCreate, isCreating }:
   const selectedLabel = selectedZone ? translateAnatomyName(selectedZone) : "";
 
   const handleConfirm = () => {
-    if (!selectedZone || !anchor) return;
-    onCreate({
-      name: selectedZone,
-      x: anchor.x,
-      y: anchor.y,
-      view: anchor.view,
-      x3d: anchor.x3d,
-      y3d: anchor.y3d,
-      z3d: anchor.z3d,
-    });
+    if (!selectedZone) return;
+    onPick(selectedZone);
     setSelectedZone("");
   };
 
@@ -131,6 +117,7 @@ const ZoneCreatorDialog = ({ open, onOpenChange, gender, onCreate, isCreating }:
     setSelectedZone("");
     onOpenChange(false);
   };
+
 
   return (
     <Dialog open={open} onOpenChange={(o) => { if (!o) setSelectedZone(""); onOpenChange(o); }}>
@@ -201,14 +188,13 @@ const ZoneCreatorDialog = ({ open, onOpenChange, gender, onCreate, isCreating }:
               </PopoverContent>
             </Popover>
             <p className="text-[11px] text-muted-foreground">
-              Die Zone wird automatisch an der passenden Stelle auf dem Body markiert.
-              Anschliessend können Sie ein Foto hochladen und Pins setzen — diese erscheinen automatisch auf dem 3D-Body.
+              Nach Auswahl des Körperteils klicken Sie die exakte Stelle direkt auf dem 3D-Body an, an der die Zone platziert werden soll.
             </p>
           </div>
 
           {anchor && (
             <div className="rounded-md border border-blue-200 bg-blue-50/50 dark:border-blue-900 dark:bg-blue-950/20 p-2 text-[11px] text-blue-900 dark:text-blue-200">
-              Position: <strong>{anchor.view === "front" ? "Vorderseite" : "Rückseite"}</strong>
+              Vorgeschlagene Ansicht: <strong>{anchor.view === "front" ? "Vorderseite" : "Rückseite"}</strong>
             </div>
           )}
 
@@ -220,9 +206,9 @@ const ZoneCreatorDialog = ({ open, onOpenChange, gender, onCreate, isCreating }:
               type="button"
               size="sm"
               onClick={handleConfirm}
-              disabled={!selectedZone || !anchor || isCreating}
+              disabled={!selectedZone || isCreating}
             >
-              <Camera className="h-3.5 w-3.5 mr-1" /> Zone anlegen
+              <Camera className="h-3.5 w-3.5 mr-1" /> Weiter — auf Body markieren
             </Button>
           </div>
         </div>
