@@ -22,17 +22,12 @@ interface ZoneCreatorDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   gender: Gender;
-  onCreate: (data: {
-    name: string;
-    x: number;
-    y: number;
-    view: "front" | "back";
-    x3d: number;
-    y3d: number;
-    z3d: number;
-  }) => void;
+  /** Called when the user has picked a body part. The parent should then
+   *  activate placement mode on the 3D body so the user can click the exact spot. */
+  onPick: (zoneName: string) => void;
   isCreating?: boolean;
 }
+
 
 /** Anatomical groups — clinical mental model (top → bottom). */
 const ZONE_GROUPS: { label: string; zones: string[] }[] = [
