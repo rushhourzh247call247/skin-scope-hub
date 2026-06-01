@@ -356,6 +356,7 @@ const PatientDetail = () => {
       queryClient.invalidateQueries({ queryKey: ["full-patient", patientId] });
       setMapClickDialog(null);
       setLocationName("");
+      setPendingZoneName(null);
       if (wasZone) {
         setSelectedLocationId(newLoc.id);
         setActiveTab("uebersicht");
