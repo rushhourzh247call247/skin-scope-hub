@@ -188,14 +188,13 @@ const ZoneCreatorDialog = ({ open, onOpenChange, gender, onPick, isCreating }: Z
               </PopoverContent>
             </Popover>
             <p className="text-[11px] text-muted-foreground">
-              Die Zone wird automatisch an der passenden Stelle auf dem Body markiert.
-              Anschliessend können Sie ein Foto hochladen und Pins setzen — diese erscheinen automatisch auf dem 3D-Body.
+              Nach Auswahl des Körperteils klicken Sie die exakte Stelle direkt auf dem 3D-Body an, an der die Zone platziert werden soll.
             </p>
           </div>
 
           {anchor && (
             <div className="rounded-md border border-blue-200 bg-blue-50/50 dark:border-blue-900 dark:bg-blue-950/20 p-2 text-[11px] text-blue-900 dark:text-blue-200">
-              Position: <strong>{anchor.view === "front" ? "Vorderseite" : "Rückseite"}</strong>
+              Vorgeschlagene Ansicht: <strong>{anchor.view === "front" ? "Vorderseite" : "Rückseite"}</strong>
             </div>
           )}
 
@@ -207,9 +206,9 @@ const ZoneCreatorDialog = ({ open, onOpenChange, gender, onPick, isCreating }: Z
               type="button"
               size="sm"
               onClick={handleConfirm}
-              disabled={!selectedZone || !anchor || isCreating}
+              disabled={!selectedZone || isCreating}
             >
-              <Camera className="h-3.5 w-3.5 mr-1" /> Zone anlegen
+              <Camera className="h-3.5 w-3.5 mr-1" /> Weiter — auf Body markieren
             </Button>
           </div>
         </div>
