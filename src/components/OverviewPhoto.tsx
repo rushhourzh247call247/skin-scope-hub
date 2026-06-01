@@ -526,7 +526,7 @@ const OverviewPhoto = ({ overviewLocation, spotLocations, patientId, onNavigateT
         )}
         <span className="text-[10px] text-muted-foreground">
           {zoomLevel === 1
-            ? t('overviewPhoto.zoomPanHint', { defaultValue: 'Mausrad zum Zoomen · im Zoom mit linker Maustaste verschieben' })
+            ? t('overviewPhoto.zoomPanHint', { defaultValue: 'Strg/Cmd + Mausrad zum Zoomen · im Zoom mit linker Maustaste verschieben' })
             : t('overviewPhoto.panHint', { defaultValue: 'Linke Maustaste gedrückt halten zum Verschieben' })}
         </span>
       </div>
