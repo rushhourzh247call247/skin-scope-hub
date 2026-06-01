@@ -87,7 +87,7 @@ const ZONE_GROUPS: { label: string; zones: string[] }[] = [
   },
 ];
 
-const ZoneCreatorDialog = ({ open, onOpenChange, gender, onCreate, isCreating }: ZoneCreatorDialogProps) => {
+const ZoneCreatorDialog = ({ open, onOpenChange, gender, onPick, isCreating }: ZoneCreatorDialogProps) => {
   const [selectedZone, setSelectedZone] = useState<string>("");
   const [popoverOpen, setPopoverOpen] = useState(false);
 
@@ -100,8 +100,7 @@ const ZoneCreatorDialog = ({ open, onOpenChange, gender, onCreate, isCreating }:
           value: z,
           label: translateAnatomyName(z),
           anchor: getZoneAnchorFromName(z, gender),
-        }))
-        .filter(z => z.anchor !== null),
+        })),
     })).filter(g => g.items.length > 0);
   }, [gender]);
 
@@ -109,16 +108,8 @@ const ZoneCreatorDialog = ({ open, onOpenChange, gender, onCreate, isCreating }:
   const selectedLabel = selectedZone ? translateAnatomyName(selectedZone) : "";
 
   const handleConfirm = () => {
-    if (!selectedZone || !anchor) return;
-    onCreate({
-      name: selectedZone,
-      x: anchor.x,
-      y: anchor.y,
-      view: anchor.view,
-      x3d: anchor.x3d,
-      y3d: anchor.y3d,
-      z3d: anchor.z3d,
-    });
+    if (!selectedZone) return;
+    onPick(selectedZone);
     setSelectedZone("");
   };
 
@@ -126,6 +117,7 @@ const ZoneCreatorDialog = ({ open, onOpenChange, gender, onCreate, isCreating }:
     setSelectedZone("");
     onOpenChange(false);
   };
+
 
   return (
     <Dialog open={open} onOpenChange={(o) => { if (!o) setSelectedZone(""); onOpenChange(o); }}>
