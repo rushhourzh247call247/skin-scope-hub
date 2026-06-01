@@ -547,7 +547,7 @@ const PatientDetail = () => {
     x: number,
     y: number,
     view: "front" | "back",
-    markType?: "spot" | "region",
+    markType?: "spot" | "region" | "zone",
     point3d?: [number, number, number],
     normal3d?: [number, number, number],
   ) => {
