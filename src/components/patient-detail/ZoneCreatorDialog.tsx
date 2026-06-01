@@ -145,7 +145,7 @@ const ZoneCreatorDialog = ({ open, onOpenChange, gender, onCreate, isCreating }:
         <div className="space-y-4 pt-2">
           <div className="space-y-2">
             <Label className="text-xs font-medium">Welcher Körperteil?</Label>
-            <Popover open={popoverOpen} onOpenChange={setPopoverOpen}>
+            <Popover open={popoverOpen} onOpenChange={setPopoverOpen} modal={true}>
               <PopoverTrigger asChild>
                 <Button
                   variant="outline"
