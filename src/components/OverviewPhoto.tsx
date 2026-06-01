@@ -271,9 +271,8 @@ const OverviewPhoto = ({ overviewLocation, spotLocations, patientId, onNavigateT
 
   // Mouse wheel zoom toward cursor position while hovering the photo.
   const handleWheel = useCallback((e: WheelEvent) => {
-    // Only zoom when Ctrl/Cmd is held — otherwise let the page scroll normally.
-    if (!e.ctrlKey && !e.metaKey) return;
     e.preventDefault();
+
     const container = containerRef.current?.parentElement;
     if (!container) return;
 
@@ -526,7 +525,7 @@ const OverviewPhoto = ({ overviewLocation, spotLocations, patientId, onNavigateT
         )}
         <span className="text-[10px] text-muted-foreground">
           {zoomLevel === 1
-            ? t('overviewPhoto.zoomPanHint', { defaultValue: 'Strg/Cmd + Mausrad zum Zoomen · im Zoom mit linker Maustaste verschieben' })
+            ? t('overviewPhoto.zoomPanHint', { defaultValue: 'Mausrad zum Zoomen · linke Maustaste gedrückt halten zum Verschieben' })
             : t('overviewPhoto.panHint', { defaultValue: 'Linke Maustaste gedrückt halten zum Verschieben' })}
         </span>
       </div>
