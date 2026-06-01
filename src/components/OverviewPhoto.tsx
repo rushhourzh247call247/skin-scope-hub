@@ -271,12 +271,13 @@ const OverviewPhoto = ({ overviewLocation, spotLocations, patientId, onNavigateT
 
   // Mouse wheel zoom toward cursor position while hovering the photo.
   const handleWheel = useCallback((e: WheelEvent) => {
+    // Only zoom when Ctrl/Cmd is held — otherwise let the page scroll normally.
+    if (!e.ctrlKey && !e.metaKey) return;
     e.preventDefault();
     const container = containerRef.current?.parentElement;
     if (!container) return;
 
     const rect = container.getBoundingClientRect();
-    // Cursor position relative to container center
     const cx = e.clientX - rect.left - rect.width / 2;
     const cy = e.clientY - rect.top - rect.height / 2;
 
