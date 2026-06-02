@@ -635,8 +635,8 @@ const OverviewPhoto = ({ overviewLocation, spotLocations, patientId, onNavigateT
         )}
         <span className="text-[10px] text-muted-foreground">
           {zoomLevel === 1
-            ? t('overviewPhoto.zoomPanHint', { defaultValue: 'Mausrad zum Zoomen · linke Maustaste gedrückt halten zum Verschieben' })
-            : t('overviewPhoto.panHint', { defaultValue: 'Linke Maustaste gedrückt halten zum Verschieben' })}
+            ? t('overviewPhoto.zoomPanHint', { defaultValue: 'Mausrad / 2 Finger zum Zoomen · Ziehen zum Verschieben' })
+            : t('overviewPhoto.panHint', { defaultValue: 'Ziehen zum Verschieben · 2 Finger zum Zoomen' })}
         </span>
       </div>
 
@@ -644,6 +644,7 @@ const OverviewPhoto = ({ overviewLocation, spotLocations, patientId, onNavigateT
       <div
         className="max-h-[60vh] overflow-hidden rounded-lg border bg-muted"
         onContextMenu={(e) => e.preventDefault()}
+        style={{ touchAction: 'none' }}
       >
         <div
           ref={containerRef}
