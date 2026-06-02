@@ -723,6 +723,12 @@ const PatientDetail = () => {
           setMobileMapExpanded(true);
           setRequestedMarkType({ type: "zone", nonce: Date.now() });
           toast.info(`Klicken Sie nun auf dem 3D-Body die exakte Stelle für „${translateAnatomyName(zoneName)}" an.`);
+          // Scroll the 3D body map into view on mobile so the user can actually tap it
+          requestAnimationFrame(() => {
+            setTimeout(() => {
+              bodyMapRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+            }, 50);
+          });
         }}
       />
 
