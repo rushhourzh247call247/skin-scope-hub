@@ -758,7 +758,7 @@ const PatientDetail = () => {
           </button>
 
           <div className={cn(
-            "transition-all duration-300",
+            "relative transition-all duration-300",
             mobileMapExpanded ? "h-[300px] lg:h-[450px]" : "h-0 overflow-hidden lg:h-[450px]",
             mapClickDialog && mobileMapExpanded && "h-[350px] lg:h-[560px]",
             // Mobile fullscreen when repositioning a spot
