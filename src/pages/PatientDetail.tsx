@@ -778,6 +778,27 @@ const PatientDetail = () => {
                 </Button>
               </div>
             )}
+            {pendingZoneName && !mapClickDialog && (
+              <div className="absolute left-2 right-2 top-2 z-30 flex items-center justify-between gap-2 rounded-md border-2 border-primary bg-primary/95 px-3 py-2 text-primary-foreground shadow-lg animate-in fade-in slide-in-from-top-2">
+                <div className="flex items-center gap-2 min-w-0">
+                  <MapPin className="h-4 w-4 shrink-0 animate-pulse" />
+                  <span className="text-xs sm:text-sm font-semibold truncate">
+                    Klicken Sie jetzt auf dem 3D-Body die Stelle für „{translateAnatomyName(pendingZoneName)}" an
+                  </span>
+                </div>
+                <Button
+                  size="sm"
+                  variant="secondary"
+                  className="shrink-0 h-7 px-2 text-xs"
+                  onClick={() => {
+                    setPendingZoneName(null);
+                    setCancelMarkModeNonce(Date.now());
+                  }}
+                >
+                  <X className="h-3.5 w-3.5 mr-1" /> Abbrechen
+                </Button>
+              </div>
+            )}
             <BodyMap3D
               markers={spotLocations.map((l) => {
                 const pf = (v: any) => v != null ? parseFloat(String(v)) : null;
