@@ -325,6 +325,116 @@ const OverviewPhoto = ({ overviewLocation, spotLocations, patientId, onNavigateT
     return () => scrollContainer.removeEventListener("wheel", handleWheel);
   }, [handleWheel]);
 
+  // ─── Touch: pinch-to-zoom + one-finger pan (mobile) ───
+  const touchStateRef = useRef<{
+    mode: "none" | "pan" | "pinch";
+    startDist?: number;
+    startZoom?: number;
+    startMid?: { x: number; y: number };
+    startOffset?: { x: number; y: number };
+    startTouch?: { x: number; y: number };
+    moved?: boolean;
+  }>({ mode: "none" });
+
+  useEffect(() => {
+    const container = containerRef.current?.parentElement;
+    if (!container) return;
+
+    const getRectCenter = () => {
+      const r = container.getBoundingClientRect();
+      return { cx: r.left + r.width / 2, cy: r.top + r.height / 2 };
+    };
+
+    const onTouchStart = (e: TouchEvent) => {
+      if (pinMode) return; // let click-to-pin work normally
+      if (e.touches.length === 2) {
+        e.preventDefault();
+        const [a, b] = [e.touches[0], e.touches[1]];
+        const dx = b.clientX - a.clientX;
+        const dy = b.clientY - a.clientY;
+        const dist = Math.hypot(dx, dy);
+        const { cx, cy } = getRectCenter();
+        const midX = (a.clientX + b.clientX) / 2 - cx;
+        const midY = (a.clientY + b.clientY) / 2 - cy;
+        touchStateRef.current = {
+          mode: "pinch",
+          startDist: dist,
+          startZoom: zoomLevel,
+          startMid: { x: midX, y: midY },
+          startOffset: { ...panOffset },
+        };
+        panMovedRef.current = true;
+      } else if (e.touches.length === 1 && zoomLevel > 1) {
+        const t = e.touches[0];
+        touchStateRef.current = {
+          mode: "pan",
+          startTouch: { x: t.clientX, y: t.clientY },
+          startOffset: { ...panOffset },
+          moved: false,
+        };
+      } else {
+        touchStateRef.current = { mode: "none" };
+      }
+    };
+
+    const onTouchMove = (e: TouchEvent) => {
+      const s = touchStateRef.current;
+      if (s.mode === "pinch" && e.touches.length === 2 && s.startDist && s.startZoom != null && s.startMid && s.startOffset) {
+        e.preventDefault();
+        const [a, b] = [e.touches[0], e.touches[1]];
+        const dx = b.clientX - a.clientX;
+        const dy = b.clientY - a.clientY;
+        const dist = Math.hypot(dx, dy);
+        const ratio = dist / s.startDist;
+        const newZoom = Math.min(Math.max(s.startZoom * ratio, 1), 5);
+        const scale = newZoom / s.startZoom;
+        const mid = s.startMid;
+        const off = s.startOffset;
+        const nx = mid.x - scale * (mid.x - off.x);
+        const ny = mid.y - scale * (mid.y - off.y);
+        setZoomLevel(newZoom);
+        setPanOffset(newZoom <= 1 ? { x: 0, y: 0 } : { x: nx, y: ny });
+      } else if (s.mode === "pan" && e.touches.length === 1 && s.startTouch && s.startOffset) {
+        e.preventDefault();
+        const t = e.touches[0];
+        const dx = t.clientX - s.startTouch.x;
+        const dy = t.clientY - s.startTouch.y;
+        if (Math.abs(dx) > 3 || Math.abs(dy) > 3) {
+          s.moved = true;
+          panMovedRef.current = true;
+        }
+        setPanOffset({ x: s.startOffset.x + dx, y: s.startOffset.y + dy });
+      }
+    };
+
+    const onTouchEnd = (e: TouchEvent) => {
+      if (e.touches.length === 0) {
+        touchStateRef.current = { mode: "none" };
+      } else if (e.touches.length === 1 && touchStateRef.current.mode === "pinch") {
+        // Switch from pinch to pan with remaining finger
+        const t = e.touches[0];
+        touchStateRef.current = {
+          mode: "pan",
+          startTouch: { x: t.clientX, y: t.clientY },
+          startOffset: { ...panOffset },
+          moved: true,
+        };
+      }
+    };
+
+    container.addEventListener("touchstart", onTouchStart, { passive: false });
+    container.addEventListener("touchmove", onTouchMove, { passive: false });
+    container.addEventListener("touchend", onTouchEnd);
+    container.addEventListener("touchcancel", onTouchEnd);
+    return () => {
+      container.removeEventListener("touchstart", onTouchStart);
+      container.removeEventListener("touchmove", onTouchMove);
+      container.removeEventListener("touchend", onTouchEnd);
+      container.removeEventListener("touchcancel", onTouchEnd);
+    };
+  }, [pinMode, zoomLevel, panOffset]);
+
+
   const handleLinkSpot = (spotId: number) => {
     if (!pendingPin) return;
     const spot = spotLocations.find(s => s.id === spotId);
@@ -525,8 +635,8 @@ const OverviewPhoto = ({ overviewLocation, spotLocations, patientId, onNavigateT
         )}
         <span className="text-[10px] text-muted-foreground">
           {zoomLevel === 1
-            ? t('overviewPhoto.zoomPanHint', { defaultValue: 'Mausrad zum Zoomen · linke Maustaste gedrückt halten zum Verschieben' })
-            : t('overviewPhoto.panHint', { defaultValue: 'Linke Maustaste gedrückt halten zum Verschieben' })}
+            ? t('overviewPhoto.zoomPanHint', { defaultValue: 'Mausrad / 2 Finger zum Zoomen · Ziehen zum Verschieben' })
+            : t('overviewPhoto.panHint', { defaultValue: 'Ziehen zum Verschieben · 2 Finger zum Zoomen' })}
         </span>
       </div>
 
@@ -534,6 +644,7 @@ const OverviewPhoto = ({ overviewLocation, spotLocations, patientId, onNavigateT
       <div
         className="max-h-[60vh] overflow-hidden rounded-lg border bg-muted"
         onContextMenu={(e) => e.preventDefault()}
+        style={{ touchAction: 'none' }}
       >
         <div
           ref={containerRef}
