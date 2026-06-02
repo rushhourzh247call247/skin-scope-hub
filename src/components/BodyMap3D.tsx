@@ -1295,6 +1295,16 @@ const BodyMap3D: React.FC<BodyMap3DProps> = (props) => {
     setMarkMode(true);
   }, [props.requestMarkType]);
 
+  // External cancel request
+  const lastCancelNonceRef = useRef<number | null>(null);
+  useEffect(() => {
+    const n = props.cancelMarkMode;
+    if (n == null) return;
+    if (lastCancelNonceRef.current === n) return;
+    lastCancelNonceRef.current = n;
+    setMarkMode(false);
+  }, [props.cancelMarkMode]);
+
   // Clear reset flag AND bump focusKey when a marker is selected or explicitly refocused
   useEffect(() => {
     if (props.selectedLocationId != null) {
