@@ -840,6 +840,7 @@ const PatientDetail = () => {
               })()}
               
               requestMarkType={requestedMarkType}
+              cancelMarkMode={cancelMarkModeNonce}
               editSpotId={editPositionSpotId}
               onEditSpotMove={handleEditSpotMove}
               onEditSpotMoveEnd={handleEditSpotMoveEnd}
