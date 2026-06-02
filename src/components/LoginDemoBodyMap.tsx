@@ -435,6 +435,7 @@ export const LoginDemoBodyMap = () => {
       <div className="relative flex-1 mx-auto w-full max-w-[520px] px-2 sm:px-4 min-h-0">
         <div className="h-full w-full" key={gender}>
           <BodyMap3D
+            requestMarkType={{ type: "spot", nonce: 1 }}
             markers={markers}
             selectedLocationId={selectedId}
             gender={gender}
