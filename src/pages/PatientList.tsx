@@ -105,26 +105,27 @@ const PatientList = () => {
 
   return (
     <>
-    <div className="container py-8">
-      <div className="mb-6 flex items-start justify-between gap-3">
-        <div>
-          <h2 className="text-2xl font-semibold tracking-tight text-foreground">
+    <div className="container py-8 overflow-x-hidden">
+      <div className="mb-6 flex items-start justify-between gap-2 min-w-0">
+        <div className="min-w-0 flex-1">
+          <h2 className="text-2xl font-semibold tracking-tight text-foreground truncate">
             {t("patients.title")}
           </h2>
           <p className="text-sm text-muted-foreground">
             {t("patients.activeCount", { count: activePatients.length })}{deactivatedPatients.length > 0 && ` \u00B7 ${t("patients.deactivatedCount", { count: deactivatedPatients.length })}`}
           </p>
         </div>
-        <div className="flex items-center gap-3 shrink-0">
+        <div className="flex items-center gap-2 shrink-0">
           {deactivatedPatients.length > 0 && (
             <div className="flex items-center gap-2">
-              <label htmlFor="show-deactivated" className="text-xs text-muted-foreground cursor-pointer select-none">
+              <label htmlFor="show-deactivated" className="hidden sm:inline text-xs text-muted-foreground cursor-pointer select-none">
                 {t("patients.showDeactivated")}
               </label>
               <Switch
                 id="show-deactivated"
                 checked={showDeactivated}
                 onCheckedChange={setShowDeactivated}
+                title={t("patients.showDeactivated") as string}
               />
             </div>
           )}
