@@ -99,6 +99,7 @@ const PatientDetail = () => {
   const [editingFindingText, setEditingFindingText] = useState("");
   const [classificationFilter, setClassificationFilter] = useState<LesionClassificationType[]>([]);
   const [requestedMarkType, setRequestedMarkType] = useState<{ type: "spot" | "region" | "zone"; nonce: number } | null>(null);
+  const [cancelMarkModeNonce, setCancelMarkModeNonce] = useState<number | undefined>(undefined);
   const [pendingZoneName, setPendingZoneName] = useState<string | null>(null);
   const [qrDialogOpen, setQrDialogOpen] = useState(false);
   const [qrLocationId, setQrLocationId] = useState<number | null>(null);
@@ -757,7 +758,7 @@ const PatientDetail = () => {
           </button>
 
           <div className={cn(
-            "transition-all duration-300",
+            "relative transition-all duration-300",
             mobileMapExpanded ? "h-[300px] lg:h-[450px]" : "h-0 overflow-hidden lg:h-[450px]",
             mapClickDialog && mobileMapExpanded && "h-[350px] lg:h-[560px]",
             // Mobile fullscreen when repositioning a spot
@@ -774,6 +775,27 @@ const PatientDetail = () => {
                 <Button size="sm" onClick={() => setEditPositionSpotId(null)} className="shrink-0 gap-1.5">
                   <X className="h-3.5 w-3.5" />
                   {t('common.done', { defaultValue: 'Fertig' })}
+                </Button>
+              </div>
+            )}
+            {pendingZoneName && !mapClickDialog && (
+              <div className="absolute left-2 right-2 top-2 z-30 flex items-center justify-between gap-2 rounded-md border-2 border-primary bg-primary/95 px-3 py-2 text-primary-foreground shadow-lg animate-in fade-in slide-in-from-top-2">
+                <div className="flex items-center gap-2 min-w-0">
+                  <MapPin className="h-4 w-4 shrink-0 animate-pulse" />
+                  <span className="text-xs sm:text-sm font-semibold truncate">
+                    Klicken Sie jetzt auf dem 3D-Body die Stelle für „{translateAnatomyName(pendingZoneName)}" an
+                  </span>
+                </div>
+                <Button
+                  size="sm"
+                  variant="secondary"
+                  className="shrink-0 h-7 px-2 text-xs"
+                  onClick={() => {
+                    setPendingZoneName(null);
+                    setCancelMarkModeNonce(Date.now());
+                  }}
+                >
+                  <X className="h-3.5 w-3.5 mr-1" /> Abbrechen
                 </Button>
               </div>
             )}
@@ -818,6 +840,7 @@ const PatientDetail = () => {
               })()}
               
               requestMarkType={requestedMarkType}
+              cancelMarkMode={cancelMarkModeNonce}
               editSpotId={editPositionSpotId}
               onEditSpotMove={handleEditSpotMove}
               onEditSpotMoveEnd={handleEditSpotMoveEnd}

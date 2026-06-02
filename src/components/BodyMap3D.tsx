@@ -98,6 +98,8 @@ interface BodyMap3DProps {
   focusSignal?: number;
   /** External request to activate a specific mark mode (e.g. "zone"). Increments to re-trigger. */
   requestMarkType?: { type: MarkType; nonce: number } | null;
+  /** External request to cancel/turn off mark mode. Bump nonce to trigger. */
+  cancelMarkMode?: number;
   onPreviewMove?: (
     x: number,
     y: number,
@@ -1292,6 +1294,16 @@ const BodyMap3D: React.FC<BodyMap3DProps> = (props) => {
     setMarkType(req.type);
     setMarkMode(true);
   }, [props.requestMarkType]);
+
+  // External cancel request
+  const lastCancelNonceRef = useRef<number | null>(null);
+  useEffect(() => {
+    const n = props.cancelMarkMode;
+    if (n == null) return;
+    if (lastCancelNonceRef.current === n) return;
+    lastCancelNonceRef.current = n;
+    setMarkMode(false);
+  }, [props.cancelMarkMode]);
 
   // Clear reset flag AND bump focusKey when a marker is selected or explicitly refocused
   useEffect(() => {
