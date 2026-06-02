@@ -98,6 +98,8 @@ interface BodyMap3DProps {
   focusSignal?: number;
   /** External request to activate a specific mark mode (e.g. "zone"). Increments to re-trigger. */
   requestMarkType?: { type: MarkType; nonce: number } | null;
+  /** External request to cancel/turn off mark mode. Bump nonce to trigger. */
+  cancelMarkMode?: number;
   onPreviewMove?: (
     x: number,
     y: number,
