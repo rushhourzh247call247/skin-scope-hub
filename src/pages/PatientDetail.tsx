@@ -99,6 +99,7 @@ const PatientDetail = () => {
   const [editingFindingText, setEditingFindingText] = useState("");
   const [classificationFilter, setClassificationFilter] = useState<LesionClassificationType[]>([]);
   const [requestedMarkType, setRequestedMarkType] = useState<{ type: "spot" | "region" | "zone"; nonce: number } | null>(null);
+  const [cancelMarkModeNonce, setCancelMarkModeNonce] = useState<number | undefined>(undefined);
   const [pendingZoneName, setPendingZoneName] = useState<string | null>(null);
   const [qrDialogOpen, setQrDialogOpen] = useState(false);
   const [qrLocationId, setQrLocationId] = useState<number | null>(null);
