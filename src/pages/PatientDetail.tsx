@@ -1104,7 +1104,7 @@ const PatientDetail = () => {
                 {createLocationMutation.isPending
                   ? t('common.creating')
                   : mapClickDialog.markType === "zone"
-                    ? (overviewLocations.length === 0 ? t('overviewPhoto.createFirstZone') : t('overviewPhoto.createFirstZone', { defaultValue: 'Neue Zone anlegen' }).replace('Erste', 'Neue'))
+                    ? (overviewLocations.length === 0 ? t('overviewPhoto.createFirstZone') : 'Neue Zone anlegen')
                     : mapClickDialog.markType === "region" ? t('patientDetail.createRegion') : t('patientDetail.createSpot')}
               </Button>
             </div>
