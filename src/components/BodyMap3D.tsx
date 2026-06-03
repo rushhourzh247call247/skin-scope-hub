@@ -1198,7 +1198,42 @@ function Scene({ markers, selectedLocationId, onMapClick, onMarkerClick, onMarke
         );
       })}
 
-      {/* Zone overlays disabled — only the spot pins are shown on the body */}
+      {/* Zone markers — small camera badges, one per zone, always visible */}
+      {(zoneOverlays ?? []).map((z) => {
+        const hasCoords = z.x != null && z.y != null;
+        if (!hasCoords && z.x3d == null) return null;
+        const view = z.view ?? "front";
+        const approx: [number, number, number] = (z.x3d != null && z.y3d != null && z.z3d != null)
+          ? [z.x3d, z.y3d, z.z3d]
+          : coords2Dto3D(z.x as number, z.y as number, view);
+        const isSelected = selectedZoneId === z.id;
+        return (
+          <SurfaceProjectedGroup
+            key={`zone-${z.id}`}
+            approxPosition={approx}
+            view={view}
+            storedPosition={z.x3d != null && z.y3d != null && z.z3d != null ? [z.x3d, z.y3d, z.z3d] : undefined}
+            storedNormal={z.nx != null && z.ny != null && z.nz != null && (z.nx !== 0 || z.ny !== 0 || z.nz !== 0) ? [z.nx, z.ny, z.nz] : undefined}
+          >
+            <Html center distanceFactor={1.2} style={{ pointerEvents: "auto" }} zIndexRange={[60, 0]}>
+              <button
+                onClick={(e) => { e.stopPropagation(); onMarkerClick?.(z.id); }}
+                className={cn(
+                  "flex items-center gap-1 rounded-full border-2 px-2 py-1 text-[10px] font-semibold shadow-md transition-all whitespace-nowrap",
+                  isSelected
+                    ? "bg-blue-500 border-blue-600 text-white scale-110"
+                    : "bg-white/95 border-blue-500 text-blue-700 hover:bg-blue-50"
+                )}
+                title={translateAnatomyName(z.name)}
+              >
+                <Camera className="h-3 w-3" />
+                <span className="max-w-[100px] truncate">{translateAnatomyName(z.name)}</span>
+              </button>
+            </Html>
+          </SurfaceProjectedGroup>
+        );
+      })}
+
 
       {previewMarker && previewMarker.type === "spot" && (
         <DraggableSpotPreview
