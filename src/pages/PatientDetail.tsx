@@ -368,6 +368,7 @@ const PatientDetail = () => {
       setLocationName("");
       setPendingZoneName(null);
       setPendingZonePhoto(null);
+      setRequestedMarkType(null);
       if (pendingZoneFileRef.current) pendingZoneFileRef.current.value = "";
       if (wasZone) {
         setSelectedLocationId(newLoc.id);
@@ -602,26 +603,6 @@ const PatientDetail = () => {
       if (import.meta.env.DEV) console.log('[BodyMap Debug] click:', { x3d: point3d[0], y3d: point3d[1], z3d: point3d[2], view });
       autoName = getAnatomicalName(point3d[0], point3d[1], point3d[2], view);
       setLocationName(autoName);
-    }
-
-    // Zone-Modus: direkt anlegen — keine zusätzliche Bestätigung nötig.
-    // Foto kann anschliessend über den "Foto +" Button der Zone hochgeladen werden.
-    if (markType === "zone") {
-      const zoneLabel = pendingZoneName || autoName;
-      createLocationMutation.mutate({
-        name: zoneLabel
-          ? `Zone ${overviewLocations.length + 1} – ${zoneLabel}`
-          : `Zone ${overviewLocations.length + 1}`,
-        x, y, view,
-        type: "overview",
-        x3d: point3d?.[0],
-        y3d: point3d?.[1],
-        z3d: point3d?.[2],
-        nx: normal3d?.[0],
-        ny: normal3d?.[1],
-        nz: normal3d?.[2],
-      });
-      return;
     }
 
     setMapClickDialog(dialogData);
@@ -1012,7 +993,7 @@ const PatientDetail = () => {
                     <><Plus className="h-3.5 w-3.5 text-primary" /> Neuer Spot</>
                   )}
                 </h3>
-                <Button variant="ghost" size="sm" className="h-6 w-6 p-0" onClick={() => { setMapClickDialog(null); setPendingZonePhoto(null); if (pendingZoneFileRef.current) pendingZoneFileRef.current.value = ""; }}>
+                <Button variant="ghost" size="sm" className="h-6 w-6 p-0" onClick={() => { setMapClickDialog(null); setPendingZonePhoto(null); setPendingZoneName(null); setRequestedMarkType(null); if (pendingZoneFileRef.current) pendingZoneFileRef.current.value = ""; }}>
                   <X className="h-3.5 w-3.5" />
                 </Button>
               </div>
