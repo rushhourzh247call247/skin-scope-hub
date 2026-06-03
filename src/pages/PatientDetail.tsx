@@ -1003,6 +1003,21 @@ const PatientDetail = () => {
                 )}
               </div>
 
+              {mapClickDialog.markType === "zone" && (
+                <div className="space-y-2 rounded-md border border-dashed bg-muted/30 p-2.5">
+                  <input ref={pendingZoneFileRef} type="file" accept="image/*" className="hidden" onChange={handlePendingZonePhotoSelect} />
+                  <div className="flex items-center justify-between gap-2">
+                    <div className="min-w-0 text-[11px] text-muted-foreground">
+                      <p className="font-medium text-foreground">{pendingZonePhoto ? pendingZonePhoto.name : t('overviewPhoto.noOverviewPhoto')}</p>
+                      <p>{t('overviewPhoto.uploadDescription')}</p>
+                    </div>
+                    <Button type="button" size="sm" variant="outline" className="h-8 shrink-0 gap-1.5 text-xs" onClick={() => pendingZoneFileRef.current?.click()}>
+                      <Upload className="h-3.5 w-3.5" /> {t('overviewPhoto.uploadPhoto')}
+                    </Button>
+                  </div>
+                </div>
+              )}
+
               {/* Workflow-Hinweis: Erst Übersichtsfoto, dann Spot — nur wenn neuer Spot UND noch keine Zone existiert */}
               {mapClickDialog.markType === "spot" && overviewLocations.length === 0 && (
                 <div className="rounded-md border border-blue-200 bg-blue-50 dark:border-blue-900 dark:bg-blue-950/30 p-2.5 space-y-2">
