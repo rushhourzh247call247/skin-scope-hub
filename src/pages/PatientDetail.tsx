@@ -1101,7 +1101,11 @@ const PatientDetail = () => {
               </div>
               )}
               <Button className="w-full h-8 text-xs" onClick={handleCreateLocation} disabled={createLocationMutation.isPending}>
-                {createLocationMutation.isPending ? t('common.creating') : mapClickDialog.markType === "zone" ? t('overviewPhoto.createFirstZone') : mapClickDialog.markType === "region" ? t('patientDetail.createRegion') : t('patientDetail.createSpot')}
+                {createLocationMutation.isPending
+                  ? t('common.creating')
+                  : mapClickDialog.markType === "zone"
+                    ? (overviewLocations.length === 0 ? t('overviewPhoto.createFirstZone') : 'Neue Zone anlegen')
+                    : mapClickDialog.markType === "region" ? t('patientDetail.createRegion') : t('patientDetail.createSpot')}
               </Button>
             </div>
           )}
@@ -1140,7 +1144,7 @@ const PatientDetail = () => {
                   className="flex w-full items-center justify-center gap-1.5 rounded-md border-2 border-dashed border-blue-500/40 bg-blue-50/50 dark:bg-blue-950/20 px-2.5 py-2 text-xs font-semibold text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-950/40 transition-all disabled:opacity-30 disabled:cursor-not-allowed mb-2"
                   title={isReadOnly ? readOnlyTooltip : undefined}
                 >
-                  <Camera className="h-3.5 w-3.5" /> + {t('overviewPhoto.createFirstZone', { defaultValue: 'Neue Zone' })}
+                  <Camera className="h-3.5 w-3.5" /> + {overviewLocations.length === 0 ? t('overviewPhoto.createFirstZone') : 'Neue Zone anlegen'}
                 </button>
                 {overviewLocations.length > 0 ? overviewLocations.map((loc) => {
                   const firstImg = loc.images?.[0];
