@@ -113,6 +113,7 @@ const PatientDetail = () => {
   const [pdfDialogOpen, setPdfDialogOpen] = useState(false);
   const [newlyCreatedZoneId, setNewlyCreatedZoneId] = useState<number | null>(null);
   const zoneFileRef = useRef<HTMLInputElement>(null);
+  const pendingZoneFileRef = useRef<HTMLInputElement>(null);
   const bodyMapRef = useRef<HTMLDivElement>(null);
   const detailContentRef = useRef<HTMLDivElement>(null);
   const selectedSpotListItemRef = useRef<HTMLDivElement>(null);
@@ -121,6 +122,7 @@ const PatientDetail = () => {
   const ignoreNextSpotClickRef = useRef(false);
   const suppressSpotChangeScrollRef = useRef(false);
   const [zoneUploadTargetId, setZoneUploadTargetId] = useState<number | null>(null);
+  const [pendingZonePhoto, setPendingZonePhoto] = useState<File | null>(null);
   const [lightboxOpen, setLightboxOpen] = useState(false);
   const [lightboxImageId, setLightboxImageId] = useState<number | null>(null);
   const [compareSignal, setCompareSignal] = useState(0);
