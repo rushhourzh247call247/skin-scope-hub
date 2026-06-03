@@ -368,6 +368,7 @@ const PatientDetail = () => {
       setLocationName("");
       setPendingZoneName(null);
       setPendingZonePhoto(null);
+      setRequestedMarkType(null);
       if (pendingZoneFileRef.current) pendingZoneFileRef.current.value = "";
       if (wasZone) {
         setSelectedLocationId(newLoc.id);
