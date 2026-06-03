@@ -595,14 +595,36 @@ const PatientDetail = () => {
       ny: normal3d?.[1],
       nz: normal3d?.[2],
     };
-    setMapClickDialog(dialogData);
 
     // Auto-fill anatomical name from 3D coordinates
+    let autoName = "";
     if (point3d) {
       if (import.meta.env.DEV) console.log('[BodyMap Debug] click:', { x3d: point3d[0], y3d: point3d[1], z3d: point3d[2], view });
-      const autoName = getAnatomicalName(point3d[0], point3d[1], point3d[2], view);
+      autoName = getAnatomicalName(point3d[0], point3d[1], point3d[2], view);
       setLocationName(autoName);
     }
+
+    // Zone-Modus: direkt anlegen — keine zusätzliche Bestätigung nötig.
+    // Foto kann anschliessend über den "Foto +" Button der Zone hochgeladen werden.
+    if (markType === "zone") {
+      const zoneLabel = pendingZoneName || autoName;
+      createLocationMutation.mutate({
+        name: zoneLabel
+          ? `Zone ${overviewLocations.length + 1} – ${zoneLabel}`
+          : `Zone ${overviewLocations.length + 1}`,
+        x, y, view,
+        type: "overview",
+        x3d: point3d?.[0],
+        y3d: point3d?.[1],
+        z3d: point3d?.[2],
+        nx: normal3d?.[0],
+        ny: normal3d?.[1],
+        nz: normal3d?.[2],
+      });
+      return;
+    }
+
+    setMapClickDialog(dialogData);
   };
 
   const handlePreviewMove = (
