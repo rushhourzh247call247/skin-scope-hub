@@ -360,16 +360,29 @@ const PatientDetail = () => {
       ny?: number;
       nz?: number;
     }) => api.createLocation(patientId, loc),
-    onSuccess: (newLoc) => {
+    onSuccess: async (newLoc) => {
       const wasZone = mapClickDialog?.markType === "zone" || newLoc.type === "overview";
+      const photoToUpload = wasZone ? pendingZonePhoto : null;
       queryClient.invalidateQueries({ queryKey: ["full-patient", patientId] });
       setMapClickDialog(null);
       setLocationName("");
       setPendingZoneName(null);
+      setPendingZonePhoto(null);
+      if (pendingZoneFileRef.current) pendingZoneFileRef.current.value = "";
       if (wasZone) {
         setSelectedLocationId(newLoc.id);
+        setSidebarTab("zones");
         setActiveTab("uebersicht");
         setNewlyCreatedZoneId(newLoc.id);
+        if (photoToUpload) {
+          try {
+            await api.uploadImage(newLoc.id, photoToUpload);
+            queryClient.invalidateQueries({ queryKey: ["full-patient", patientId] });
+            toast.success(t('overviewPhoto.overviewUploaded'));
+          } catch {
+            toast.error(t('imageGallery.noteError'));
+          }
+        }
       } else {
         setSelectedLocationId(newLoc.id);
         setActiveTab("spots");
