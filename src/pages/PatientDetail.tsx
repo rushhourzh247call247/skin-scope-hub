@@ -264,6 +264,12 @@ const PatientDetail = () => {
     if (zoneFileRef.current) zoneFileRef.current.value = "";
   };
 
+  const handlePendingZonePhotoSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setPendingZonePhoto(file);
+  };
+
   useEffect(() => {
     if (newlyCreatedZoneId && activeTab === "uebersicht") {
       const timer = setTimeout(() => {
