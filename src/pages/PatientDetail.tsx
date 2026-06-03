@@ -604,26 +604,6 @@ const PatientDetail = () => {
       setLocationName(autoName);
     }
 
-    // Zone-Modus: direkt anlegen — keine zusätzliche Bestätigung nötig.
-    // Foto kann anschliessend über den "Foto +" Button der Zone hochgeladen werden.
-    if (markType === "zone") {
-      const zoneLabel = pendingZoneName || autoName;
-      createLocationMutation.mutate({
-        name: zoneLabel
-          ? `Zone ${overviewLocations.length + 1} – ${zoneLabel}`
-          : `Zone ${overviewLocations.length + 1}`,
-        x, y, view,
-        type: "overview",
-        x3d: point3d?.[0],
-        y3d: point3d?.[1],
-        z3d: point3d?.[2],
-        nx: normal3d?.[0],
-        ny: normal3d?.[1],
-        nz: normal3d?.[2],
-      });
-      return;
-    }
-
     setMapClickDialog(dialogData);
   };
 
