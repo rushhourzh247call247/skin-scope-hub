@@ -113,6 +113,7 @@ const PatientDetail = () => {
   const [pdfDialogOpen, setPdfDialogOpen] = useState(false);
   const [newlyCreatedZoneId, setNewlyCreatedZoneId] = useState<number | null>(null);
   const zoneFileRef = useRef<HTMLInputElement>(null);
+  const pendingZoneFileRef = useRef<HTMLInputElement>(null);
   const bodyMapRef = useRef<HTMLDivElement>(null);
   const detailContentRef = useRef<HTMLDivElement>(null);
   const selectedSpotListItemRef = useRef<HTMLDivElement>(null);
@@ -121,6 +122,7 @@ const PatientDetail = () => {
   const ignoreNextSpotClickRef = useRef(false);
   const suppressSpotChangeScrollRef = useRef(false);
   const [zoneUploadTargetId, setZoneUploadTargetId] = useState<number | null>(null);
+  const [pendingZonePhoto, setPendingZonePhoto] = useState<File | null>(null);
   const [lightboxOpen, setLightboxOpen] = useState(false);
   const [lightboxImageId, setLightboxImageId] = useState<number | null>(null);
   const [compareSignal, setCompareSignal] = useState(0);
@@ -262,6 +264,12 @@ const PatientDetail = () => {
     if (zoneFileRef.current) zoneFileRef.current.value = "";
   };
 
+  const handlePendingZonePhotoSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setPendingZonePhoto(file);
+  };
+
   useEffect(() => {
     if (newlyCreatedZoneId && activeTab === "uebersicht") {
       const timer = setTimeout(() => {
@@ -352,16 +360,29 @@ const PatientDetail = () => {
       ny?: number;
       nz?: number;
     }) => api.createLocation(patientId, loc),
-    onSuccess: (newLoc) => {
+    onSuccess: async (newLoc) => {
       const wasZone = mapClickDialog?.markType === "zone" || newLoc.type === "overview";
+      const photoToUpload = wasZone ? pendingZonePhoto : null;
       queryClient.invalidateQueries({ queryKey: ["full-patient", patientId] });
       setMapClickDialog(null);
       setLocationName("");
       setPendingZoneName(null);
+      setPendingZonePhoto(null);
+      if (pendingZoneFileRef.current) pendingZoneFileRef.current.value = "";
       if (wasZone) {
         setSelectedLocationId(newLoc.id);
+        setSidebarTab("zones");
         setActiveTab("uebersicht");
         setNewlyCreatedZoneId(newLoc.id);
+        if (photoToUpload) {
+          try {
+            await api.uploadImage(newLoc.id, photoToUpload);
+            queryClient.invalidateQueries({ queryKey: ["full-patient", patientId] });
+            toast.success(t('overviewPhoto.overviewUploaded'));
+          } catch {
+            toast.error(t('imageGallery.noteError'));
+          }
+        }
       } else {
         setSelectedLocationId(newLoc.id);
         setActiveTab("spots");
@@ -538,6 +559,7 @@ const PatientDetail = () => {
     setSelectedLocationId(null);
     setMapClickDialog(null);
     setLocationName("");
+    setPendingZonePhoto(null);
     setSidebarTab("zones");
     setActiveTab("spots");
     setMobileMapExpanded(true);
@@ -968,7 +990,7 @@ const PatientDetail = () => {
                     <><Plus className="h-3.5 w-3.5 text-primary" /> Neuer Spot</>
                   )}
                 </h3>
-                <Button variant="ghost" size="sm" className="h-6 w-6 p-0" onClick={() => setMapClickDialog(null)}>
+                <Button variant="ghost" size="sm" className="h-6 w-6 p-0" onClick={() => { setMapClickDialog(null); setPendingZonePhoto(null); if (pendingZoneFileRef.current) pendingZoneFileRef.current.value = ""; }}>
                   <X className="h-3.5 w-3.5" />
                 </Button>
               </div>
@@ -981,6 +1003,21 @@ const PatientDetail = () => {
                   </span>
                 )}
               </div>
+
+              {mapClickDialog.markType === "zone" && (
+                <div className="space-y-2 rounded-md border border-dashed bg-muted/30 p-2.5">
+                  <input ref={pendingZoneFileRef} type="file" accept="image/*" className="hidden" onChange={handlePendingZonePhotoSelect} />
+                  <div className="flex items-center justify-between gap-2">
+                    <div className="min-w-0 text-[11px] text-muted-foreground">
+                      <p className="font-medium text-foreground">{pendingZonePhoto ? pendingZonePhoto.name : t('overviewPhoto.noOverviewPhoto')}</p>
+                      <p>{t('overviewPhoto.uploadDescription')}</p>
+                    </div>
+                    <Button type="button" size="sm" variant="outline" className="h-8 shrink-0 gap-1.5 text-xs" onClick={() => pendingZoneFileRef.current?.click()}>
+                      <Upload className="h-3.5 w-3.5" /> {t('overviewPhoto.uploadPhoto')}
+                    </Button>
+                  </div>
+                </div>
+              )}
 
               {/* Workflow-Hinweis: Erst Übersichtsfoto, dann Spot — nur wenn neuer Spot UND noch keine Zone existiert */}
               {mapClickDialog.markType === "spot" && overviewLocations.length === 0 && (
@@ -1125,7 +1162,7 @@ const PatientDetail = () => {
                         <span className="truncate font-medium flex-1">{translateAnatomyName(loc.name) || t('patientDetail.overview')}</span>
                         <span className="text-[10px] text-muted-foreground shrink-0">{spotCount} {spotCount === 1 ? "Spot" : "Spots"}</span>
                       </button>
-                      <div className="flex items-center gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity shrink-0">
+                      <div className="flex shrink-0 items-center gap-0.5 opacity-100 transition-opacity sm:opacity-0 sm:group-hover:opacity-100">
                         <button disabled={isReadOnly} onClick={(e) => { e.stopPropagation(); setZoneUploadTargetId(loc.id); setTimeout(() => zoneFileRef.current?.click(), 0); }} className="h-5 w-5 rounded flex items-center justify-center hover:bg-muted-foreground/10 text-muted-foreground hover:text-foreground disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:bg-transparent" title={isReadOnly ? readOnlyTooltip : t('imageGallery.uploadImage')}><Upload className="h-3 w-3" /></button>
                         <button disabled={isReadOnly} onClick={(e) => { e.stopPropagation(); setQrLocationId(loc.id); setQrDialogOpen(true); }} className="h-5 w-5 rounded flex items-center justify-center hover:bg-muted-foreground/10 text-muted-foreground hover:text-foreground disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:bg-transparent" title={isReadOnly ? readOnlyTooltip : t('patientDetail.uploadFromPhone')}><QrCode className="h-3 w-3" /></button>
                         <button disabled={isReadOnly} onClick={(e) => { e.stopPropagation(); setDeleteConfirmId(loc.id); }} className="h-5 w-5 rounded flex items-center justify-center hover:bg-destructive/10 text-muted-foreground hover:text-destructive disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:bg-transparent" title={isReadOnly ? readOnlyTooltip : t('common.delete')}><Trash2 className="h-3 w-3" /></button>
