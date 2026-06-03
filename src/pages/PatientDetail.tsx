@@ -993,7 +993,7 @@ const PatientDetail = () => {
                     <><Plus className="h-3.5 w-3.5 text-primary" /> Neuer Spot</>
                   )}
                 </h3>
-                <Button variant="ghost" size="sm" className="h-6 w-6 p-0" onClick={() => { setMapClickDialog(null); setPendingZonePhoto(null); if (pendingZoneFileRef.current) pendingZoneFileRef.current.value = ""; }}>
+                <Button variant="ghost" size="sm" className="h-6 w-6 p-0" onClick={() => { setMapClickDialog(null); setPendingZonePhoto(null); setPendingZoneName(null); setRequestedMarkType(null); if (pendingZoneFileRef.current) pendingZoneFileRef.current.value = ""; }}>
                   <X className="h-3.5 w-3.5" />
                 </Button>
               </div>
