@@ -1198,8 +1198,8 @@ function Scene({ markers, selectedLocationId, onMapClick, onMarkerClick, onMarke
         );
       })}
 
-      {/* Zone markers — small camera badges, one per zone, always visible */}
-      {(zoneOverlays ?? []).map((z) => {
+      {/* Zone markers — Spot-style crosshair with small offset camera badge */}
+      {(zoneOverlays ?? []).map((z, zi) => {
         const hasCoords = z.x != null && z.y != null;
         if (!hasCoords && z.x3d == null) return null;
         const view = z.view ?? "front";
@@ -1207,6 +1207,12 @@ function Scene({ markers, selectedLocationId, onMapClick, onMarkerClick, onMarke
           ? [z.x3d, z.y3d, z.z3d]
           : coords2Dto3D(z.x as number, z.y as number, view);
         const isSelected = selectedZoneId === z.id;
+        const color = isSelected ? "#1d4ed8" : "#3b82f6";
+        const armLen = isSelected ? 0.022 : 0.016;
+        const armThick = isSelected ? 0.003 : 0.002;
+        // Stagger badge offset by index to avoid overlap when zones are close
+        const offX = 34 + ((zi % 2 === 0) ? 0 : 6);
+        const offY = -34 + ((zi % 3) * 6);
         return (
           <SurfaceProjectedGroup
             key={`zone-${z.id}`}
@@ -1215,24 +1221,79 @@ function Scene({ markers, selectedLocationId, onMapClick, onMarkerClick, onMarke
             storedPosition={z.x3d != null && z.y3d != null && z.z3d != null ? [z.x3d, z.y3d, z.z3d] : undefined}
             storedNormal={z.nx != null && z.ny != null && z.nz != null && (z.nx !== 0 || z.ny !== 0 || z.nz !== 0) ? [z.nx, z.ny, z.nz] : undefined}
           >
-            <Html center distanceFactor={1.2} style={{ pointerEvents: "auto" }} zIndexRange={[60, 0]}>
+            <group
+              onClick={(e) => { e.stopPropagation(); onMarkerClick?.(z.id); }}
+              onPointerDown={(e) => { e.stopPropagation(); onMarkerClick?.(z.id); }}
+            >
+              {/* Crosshair arms */}
+              <mesh>
+                <planeGeometry args={[armLen * 2, armThick]} />
+                <meshBasicMaterial color={color} transparent opacity={isSelected ? 1.0 : 0.85} side={THREE.DoubleSide} depthTest={false} />
+              </mesh>
+              <mesh>
+                <planeGeometry args={[armThick, armLen * 2]} />
+                <meshBasicMaterial color={color} transparent opacity={isSelected ? 1.0 : 0.85} side={THREE.DoubleSide} depthTest={false} />
+              </mesh>
+              {isSelected && (
+                <mesh>
+                  <ringGeometry args={[0.028, 0.032, 32]} />
+                  <meshBasicMaterial color={color} transparent opacity={0.5} side={THREE.DoubleSide} depthTest={false} />
+                </mesh>
+              )}
+              {/* invisible touch surface */}
+              <mesh>
+                <circleGeometry args={[0.06, 16]} />
+                <meshBasicMaterial transparent opacity={0} side={THREE.DoubleSide} depthTest={false} />
+              </mesh>
+            </group>
+            <Html position={[0, 0, 0]} center={false} style={{ pointerEvents: "auto" }}>
+              <svg
+                width="180" height="180"
+                viewBox="-90 -90 180 180"
+                style={{ position: "absolute", left: "-90px", top: "-90px", pointerEvents: "none", overflow: "visible" }}
+              >
+                <line
+                  x1="0" y1="0"
+                  x2={offX} y2={offY}
+                  stroke={color}
+                  strokeWidth="1"
+                  strokeDasharray="3,2"
+                  opacity={isSelected ? 0.9 : 0.6}
+                />
+              </svg>
               <button
+                type="button"
                 onClick={(e) => { e.stopPropagation(); onMarkerClick?.(z.id); }}
-                className={cn(
-                  "flex items-center gap-1 rounded-full border-2 px-2 py-1 text-[10px] font-semibold shadow-md transition-all whitespace-nowrap",
-                  isSelected
-                    ? "bg-blue-500 border-blue-600 text-white scale-110"
-                    : "bg-white/95 border-blue-500 text-blue-700 hover:bg-blue-50"
-                )}
+                onPointerDown={(e) => e.stopPropagation()}
+                style={{
+                  position: "absolute",
+                  left: `${offX - 60}px`,
+                  top: `${offY - 11}px`,
+                  pointerEvents: "auto",
+                  border: "none",
+                  background: "transparent",
+                  padding: 0,
+                }}
                 title={translateAnatomyName(z.name)}
               >
-                <Camera className="h-3 w-3" />
-                <span className="max-w-[100px] truncate">{translateAnatomyName(z.name)}</span>
+                <div
+                  className={cn(
+                    "flex items-center gap-1 rounded-full border px-1.5 py-0.5 text-[9px] font-semibold shadow-sm transition-all whitespace-nowrap",
+                    isSelected
+                      ? "bg-blue-600 border-blue-700 text-white scale-105"
+                      : "bg-white/95 border-blue-500 text-blue-700"
+                  )}
+                  style={{ maxWidth: 120 }}
+                >
+                  <Camera className="h-2.5 w-2.5 shrink-0" />
+                  <span className="truncate">{translateAnatomyName(z.name)}</span>
+                </div>
               </button>
             </Html>
           </SurfaceProjectedGroup>
         );
       })}
+
 
 
       {previewMarker && previewMarker.type === "spot" && (
