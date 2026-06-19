@@ -127,6 +127,7 @@ const PatientDetail = () => {
   const [lightboxOpen, setLightboxOpen] = useState(false);
   const [lightboxImageId, setLightboxImageId] = useState<number | null>(null);
   const [compareSignal, setCompareSignal] = useState(0);
+  const [zonePinModeActive, setZonePinModeActive] = useState(false);
 
   const selectLocation = (locationId: number | null, scrollToDetail = false) => {
     setMapClickDialog(null);
