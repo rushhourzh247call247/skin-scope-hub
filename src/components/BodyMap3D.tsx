@@ -354,12 +354,13 @@ const SpotMarker = React.forwardRef<THREE.Group, SpotMarkerProps>(function SpotM
               "flex items-center justify-center rounded-full text-[8px] font-bold shadow-md border",
               isHighRisk
                 ? "bg-destructive text-white border-red-400"
-                : "bg-sky-500 text-white border-sky-400",
-              isSelected ? "min-w-[20px] h-[20px] ring-2 ring-sky-300/70" : "min-w-[16px] h-[16px]"
+                : "bg-cyan-600 text-white border-cyan-500",
+              isSelected ? "min-w-[20px] h-[20px] ring-2 ring-cyan-300/70" : "min-w-[16px] h-[16px]"
             )}
           >
             {index != null ? index + 1 : ((imageCount ?? 0) > 0 ? imageCount : "•")}
           </div>
+
         </div>
       </Html>
 
