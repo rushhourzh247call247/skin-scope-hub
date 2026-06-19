@@ -994,7 +994,7 @@ const PatientDetail = () => {
                     setQrLocationId(locationId);
                     setQrDialogOpen(true);
                   }}
-                  onCreateSpotAndLink={async (name, pinCoords, overviewLocId) => {
+                  onCreateSpotAndLink={async (name, pinCoords, overviewLocId, file) => {
                     try {
                       const zone = overviewLocations.find(z => z.id === overviewLocId);
                       const SPREAD = 0.36;
@@ -1038,6 +1038,13 @@ const PatientDetail = () => {
                         y_pct: pinCoords.y_pct,
                         label: name || t("patientDetail.newSpot"),
                       });
+                      if (file) {
+                        try {
+                          await api.uploadImage(newLoc.id, file);
+                        } catch {
+                          toast.error(t("patientDetail.spotUploadError", { defaultValue: "Foto konnte nicht hochgeladen werden." }));
+                        }
+                      }
                       queryClient.invalidateQueries({ queryKey: ["full-patient", patientId] });
                       queryClient.invalidateQueries({ queryKey: ["overview-pins", overviewLocId] });
                       queryClient.invalidateQueries({ queryKey: ["all-zone-pins", patientId] });
