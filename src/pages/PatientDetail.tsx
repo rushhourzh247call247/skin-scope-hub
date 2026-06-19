@@ -2032,6 +2032,7 @@ const PatientDetail = () => {
                         setQrLocationId(locationId);
                         setQrDialogOpen(true);
                       }}
+                      onCreateSpotAndLink={handleCreateSpotAndLink}
                       onPinModeChange={setZonePinModeActive}
                     />
                   ) : (
@@ -2084,6 +2085,7 @@ const PatientDetail = () => {
                         setQrLocationId(locationId);
                         setQrDialogOpen(true);
                       }}
+                      onCreateSpotAndLink={handleCreateSpotAndLink}
                     />
                   </div>
                 )}
