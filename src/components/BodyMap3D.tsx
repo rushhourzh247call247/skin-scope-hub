@@ -1171,6 +1171,8 @@ function Scene({ markers, selectedLocationId, onMapClick, onMarkerClick, onMarke
               position={[0, 0, 0]}
               name={translateAnatomyName(m.name)}
               index={i}
+              pinNumber={m.pinNumber}
+              zoneLabel={m.zoneLabel}
               labelOffset={spotLabelOffsets.get(m.id)}
               isSelected={isSelected}
               onClick={() => onMarkerClick?.(m.id)}
