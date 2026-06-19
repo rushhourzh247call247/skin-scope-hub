@@ -1005,54 +1005,79 @@ const OverviewPhoto = ({ overviewLocation, spotLocations, patientId, onNavigateT
               <>
                 <p className="text-xs font-semibold text-foreground mb-2">{t('overviewPhoto.linkToSpot')}</p>
 
-                  {onCreateSpotAndLink && (
-                    <button
-                      onClick={() => {
-                         if (pendingPin) {
-                           // Use the zone's anatomical name so the new spot inherits the body region
-                           // (e.g. "Oberer Rücken") instead of a generic "Spot N". Numbering on the
-                           // body map is positional (badge index) and stays consistent automatically.
-                           const zoneName = overviewLocation.name?.trim();
-                           // Count only spots actually linked to THIS zone via existing pins,
-                           // and only those that are not trashed/deactivated. Then find the
-                           // lowest free sequential number so deletions don't create gaps like "Bauch 8".
-                           const linkedSpotIds = new Set(
-                             pins
-                               .map((p: OverviewPin) => p.linked_location_id)
-                               .filter((id): id is number => !!id)
-                           );
-                           const usedNumbers = new Set<number>();
-                           const escapeRe = (s: string) => s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-                           const nameRe = zoneName
-                             ? new RegExp(`^${escapeRe(zoneName)}\\s+(\\d+)$`)
-                             : null;
-                           spotLocations.forEach(s => {
-                             if (!linkedSpotIds.has(s.id)) return;
-                             if ((s as any).deactivated_at || (s as any).trashed_at) return;
-                             const m = nameRe ? s.name?.match(nameRe) : null;
-                             if (m) usedNumbers.add(parseInt(m[1], 10));
-                           });
-                           let next = 1;
-                           while (usedNumbers.has(next)) next++;
-                           const autoName = zoneName
-                             ? `${zoneName} ${next}`
-                             : `Spot ${next}`;
-                           onCreateSpotAndLink(autoName, pendingPin, overviewLocation.id);
-                          setPendingPin(null);
-                          setPinMode(false);
-                        }
-                      }}
-                      className="flex w-full items-center gap-2 rounded-md px-2 py-2 text-left hover:bg-primary/10 border border-dashed border-primary/30 transition-colors mb-2"
-                    >
-                      <div className="h-7 w-7 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
-                        <Plus className="h-3.5 w-3.5 text-primary" />
+                  {onCreateSpotAndLink && (() => {
+                    const computeAutoName = () => {
+                      const zoneName = overviewLocation.name?.trim();
+                      const linkedSpotIds = new Set(
+                        pins.map((p: OverviewPin) => p.linked_location_id).filter((id): id is number => !!id)
+                      );
+                      const usedNumbers = new Set<number>();
+                      const escapeRe = (s: string) => s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+                      const nameRe = zoneName ? new RegExp(`^${escapeRe(zoneName)}\\s+(\\d+)$`) : null;
+                      spotLocations.forEach(s => {
+                        if (!linkedSpotIds.has(s.id)) return;
+                        if ((s as any).deactivated_at || (s as any).trashed_at) return;
+                        const m = nameRe ? s.name?.match(nameRe) : null;
+                        if (m) usedNumbers.add(parseInt(m[1], 10));
+                      });
+                      let next = 1;
+                      while (usedNumbers.has(next)) next++;
+                      return zoneName ? `${zoneName} ${next}` : `Spot ${next}`;
+                    };
+                    const createWithFile = (file?: File) => {
+                      if (!pendingPin) return;
+                      onCreateSpotAndLink(computeAutoName(), pendingPin, overviewLocation.id, file);
+                      setPendingPin(null);
+                      setPinMode(false);
+                    };
+                    return (
+                      <div className="mb-2 space-y-1.5">
+                        <button
+                          onClick={() => createWithFile()}
+                          className="flex w-full items-center gap-2 rounded-md px-2 py-2 text-left hover:bg-primary/10 border border-dashed border-primary/30 transition-colors"
+                        >
+                          <div className="h-7 w-7 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
+                            <Plus className="h-3.5 w-3.5 text-primary" />
+                          </div>
+                          <div className="min-w-0 flex-1">
+                            <p className="text-xs font-medium text-primary">{t('overviewPhoto.createNewSpot')}</p>
+                            <p className="text-[10px] text-muted-foreground">{t('overviewPhoto.autoNamed')}</p>
+                          </div>
+                        </button>
+                        <div className="grid grid-cols-2 gap-1.5">
+                          <label className="flex cursor-pointer items-center justify-center gap-1.5 rounded-md border border-border bg-background px-2 py-1.5 text-[11px] font-medium text-foreground hover:bg-muted transition-colors">
+                            <Camera className="h-3.5 w-3.5" />
+                            <span>{t('overviewPhoto.takePhoto', { defaultValue: 'Aufnehmen' })}</span>
+                            <input
+                              type="file"
+                              accept="image/*"
+                              capture="environment"
+                              className="hidden"
+                              onChange={(e) => {
+                                const f = e.target.files?.[0];
+                                e.currentTarget.value = "";
+                                if (f) createWithFile(f);
+                              }}
+                            />
+                          </label>
+                          <label className="flex cursor-pointer items-center justify-center gap-1.5 rounded-md border border-border bg-background px-2 py-1.5 text-[11px] font-medium text-foreground hover:bg-muted transition-colors">
+                            <Upload className="h-3.5 w-3.5" />
+                            <span>{t('overviewPhoto.uploadPhotoShort', { defaultValue: 'Hochladen' })}</span>
+                            <input
+                              type="file"
+                              accept="image/*"
+                              className="hidden"
+                              onChange={(e) => {
+                                const f = e.target.files?.[0];
+                                e.currentTarget.value = "";
+                                if (f) createWithFile(f);
+                              }}
+                            />
+                          </label>
+                        </div>
                       </div>
-                      <div className="min-w-0 flex-1">
-                        <p className="text-xs font-medium text-primary">{t('overviewPhoto.createNewSpot')}</p>
-                        <p className="text-[10px] text-muted-foreground">{t('overviewPhoto.autoNamed')}</p>
-                      </div>
-                    </button>
-                  )}
+                    );
+                  })()}
 
                   <div className="min-h-0 flex-1 overflow-y-auto space-y-1 overscroll-contain">
                     {spotLocations.filter(s => s.type !== "overview").length === 0 && !onCreateSpotAndLink ? (
