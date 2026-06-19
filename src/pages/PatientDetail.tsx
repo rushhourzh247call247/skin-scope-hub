@@ -225,34 +225,38 @@ const PatientDetail = () => {
 
   const handleZoneListClick = (zoneId: number) => {
     const isMobile = window.matchMedia("(max-width: 1023px)").matches;
-    const alreadySelected = selectedLocationId === zoneId && sidebarTab === "zones";
-    const bodyAlreadyFocused = lastBodyFocusedLocationRef.current === zoneId;
 
-    if (alreadySelected && (!isMobile || (mobileMapExpanded && bodyAlreadyFocused))) {
-      // Second tap → keep the mobile map area in place; desktop may scroll to the detail pane.
-      setActiveTab("uebersicht");
-      setMobileMapExpanded(true);
-      if (!isMobile) {
-        window.setTimeout(() => {
-          const el = document.getElementById(`zone-${zoneId}`);
-          if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
-          else detailContentRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
-        }, 80);
+    // Unified UX: if the zone has linked spots, jump straight to the Spots tab
+    // with the first linked spot selected, so the right column shows the same
+    // detail layout as a direct spot click. Only fall back to the Zonen tab
+    // when the zone has no pins yet (initial setup).
+    const zoneEntry = allZonePins.find(zp => zp.zoneId === zoneId);
+    const firstLinkedSpotId = zoneEntry?.pins?.find((p: any) => p?.linked_location_id)?.linked_location_id;
+
+    if (firstLinkedSpotId) {
+      setSidebarTab("zones");
+      setSpotBackTarget({ tab: "uebersicht", zoneId });
+      setSelectedLocationId(firstLinkedSpotId);
+      setActiveTab("spots");
+      if (isMobile) {
+        lastBodyFocusedLocationRef.current = zoneId;
+        setMobileMapExpanded(true);
+        suppressSpotChangeScrollRef.current = true;
       }
       return;
     }
 
-    // First tap → focus body map on zone, highlight its spots
+    // No pins yet → stay in Zonen tab so user can set the first pin
     setSidebarTab("zones");
     setSelectedLocationId(zoneId);
     setActiveTab("uebersicht");
     if (isMobile) {
       lastBodyFocusedLocationRef.current = zoneId;
-      // Keep body map visible so user always sees body + zone photo + pins together
       setMobileMapExpanded(true);
       suppressSpotChangeScrollRef.current = true;
     }
   };
+
 
   const handleZoneSidebarUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (isReadOnly) {
