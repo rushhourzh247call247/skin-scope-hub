@@ -8,7 +8,7 @@ import { formatDate } from "@/lib/dateUtils";
 import { Mail, Phone } from "lucide-react";
 import type { FullPatient } from "@/types/patient";
 
-type TabKey = "akte" | "spots" | "fotos" | "uebersicht" | "berichte";
+type TabKey = "akte" | "spots" | "fotos" | "uebersicht";
 
 interface PatientHeaderProps {
   patient: FullPatient;
