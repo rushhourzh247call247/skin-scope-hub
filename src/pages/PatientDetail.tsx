@@ -801,13 +801,20 @@ const PatientDetail = () => {
                 nz: spot.nz ?? undefined,
               });
               // Link the existing spot into the new zone (pin centered on overview).
+              const translatedZone = translateAnatomyName(zoneName);
               try {
                 await api.createOverviewPin(newZone.id, {
                   linked_location_id: spot.id,
                   x_pct: 50,
                   y_pct: 50,
-                  label: spot.name || t("patientDetail.newSpot"),
+                  label: translatedZone || zoneName,
                 });
+              } catch {}
+              // Rename the spot to match the chosen zone (the spot's previous
+              // auto-name was derived from its 3D position and is now obsolete
+              // because the user explicitly picked a different body part).
+              try {
+                await api.renameLocation(spot.id, translatedZone || zoneName);
               } catch {}
               queryClient.invalidateQueries({ queryKey: ["full-patient", patientId] });
               queryClient.invalidateQueries({ queryKey: ["all-zone-pins", patientId] });
