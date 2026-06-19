@@ -1179,11 +1179,12 @@ const PatientDetail = () => {
                   <p className="text-[11px] font-medium text-green-700 dark:text-green-400">
                     {t('patientDetail.zonePositionChosen', { defaultValue: 'Position gewählt — Marker bei Bedarf noch verschieben, danach speichern.' })}
                   </p>
-                  <div className="flex items-center justify-between gap-2">
-                    <div className="min-w-0 text-[11px] text-muted-foreground">
-                      <p className="font-medium text-foreground">{pendingZonePhoto ? pendingZonePhoto.name : t('overviewPhoto.noOverviewPhoto')}</p>
-                      <p>{t('overviewPhoto.uploadDescription')}</p>
-                    </div>
+                  <div className="flex items-center justify-end gap-2">
+                    {pendingZonePhoto && (
+                      <span className="text-[11px] text-green-700 dark:text-green-400 mr-auto">
+                        ✓ {t('overviewPhoto.photoReady', { defaultValue: 'Foto bereit' })}
+                      </span>
+                    )}
                     <Button type="button" size="sm" variant="outline" className="h-8 shrink-0 gap-1.5 text-xs" onClick={() => pendingZoneFileRef.current?.click()}>
                       <Upload className="h-3.5 w-3.5" /> {t('overviewPhoto.uploadPhoto')}
                     </Button>
@@ -1599,7 +1600,7 @@ const PatientDetail = () => {
         {/* Center + Right: Content */}
         <div ref={detailContentRef} className="flex-1 overflow-y-auto p-3 lg:p-6 pb-20 lg:pb-6 scroll-mt-2">
           <AnimatePresence mode="wait">
-            {pendingZoneName ? (
+            {(pendingZoneName || zoneCreatorOpen) ? (
               <motion.div
                 key="placing-zone"
                 initial={{ opacity: 0, y: 8 }}
@@ -1613,22 +1614,26 @@ const PatientDetail = () => {
                     <MapPin className="h-7 w-7 animate-pulse" />
                   </div>
                   <h2 className="text-lg font-semibold text-foreground">
-                    Zone platzieren
+                    {pendingZoneName ? "Zone platzieren" : "Neue Zone anlegen"}
                   </h2>
                   <p className="mt-2 text-sm text-muted-foreground">
-                    Klicken Sie auf dem 3D-Body links die exakte Stelle für „{translateAnatomyName(pendingZoneName)}" an.
+                    {pendingZoneName
+                      ? <>Klicken Sie auf dem 3D-Body links die exakte Stelle für „{translateAnatomyName(pendingZoneName)}" an.</>
+                      : "Wählen Sie zuerst einen Körperteil im Dialog."}
                   </p>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className="mt-4 gap-1.5"
-                    onClick={() => {
-                      setPendingZoneName(null);
-                      setCancelMarkModeNonce(Date.now());
-                    }}
-                  >
-                    <X className="h-3.5 w-3.5" /> Abbrechen
-                  </Button>
+                  {pendingZoneName && (
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="mt-4 gap-1.5"
+                      onClick={() => {
+                        setPendingZoneName(null);
+                        setCancelMarkModeNonce(Date.now());
+                      }}
+                    >
+                      <X className="h-3.5 w-3.5" /> Abbrechen
+                    </Button>
+                  )}
                 </div>
               </motion.div>
             ) : isEmptyPatient ? (
