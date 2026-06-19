@@ -529,7 +529,7 @@ const OverviewPhoto = ({ overviewLocation, spotLocations, patientId, onNavigateT
         <Button
           size="sm"
           variant={pinMode ? "default" : "outline"}
-          onClick={() => { setPinMode(!pinMode); setPendingPin(null); setEditMode(false); }}
+          onClick={() => { const next = !pinMode; setPinMode(next); setPendingPin(null); setEditMode(false); onPinModeChange?.(next); }}
           className="gap-1 text-xs h-8"
         >
           <Plus className="h-3.5 w-3.5" />
