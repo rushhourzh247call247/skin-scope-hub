@@ -369,6 +369,7 @@ const PatientDetail = () => {
       setPendingZoneName(null);
       setPendingZonePhoto(null);
       setRequestedMarkType(null);
+    setCancelMarkModeNonce(Date.now());
       if (pendingZoneFileRef.current) pendingZoneFileRef.current.value = "";
       if (wasZone) {
         setSelectedLocationId(newLoc.id);
@@ -606,6 +607,11 @@ const PatientDetail = () => {
     }
 
     setMapClickDialog(dialogData);
+    if (markType === "zone") {
+      setSidebarTab("zones");
+      setActiveTab("uebersicht");
+      setCancelMarkModeNonce(Date.now());
+    }
   };
 
   const handlePreviewMove = (
@@ -746,6 +752,7 @@ const PatientDetail = () => {
         onPick={(zoneName) => {
           setPendingZoneName(zoneName);
           setZoneCreatorOpen(false);
+          setSidebarTab("zones");
           setMobileMapExpanded(true);
           setRequestedMarkType({ type: "zone", nonce: Date.now() });
           toast.info(`Klicken Sie nun auf dem 3D-Body die exakte Stelle für „${translateAnatomyName(zoneName)}" an.`);
