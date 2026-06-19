@@ -123,6 +123,7 @@ const PatientDetail = () => {
   const suppressSpotChangeScrollRef = useRef(false);
   const [zoneUploadTargetId, setZoneUploadTargetId] = useState<number | null>(null);
   const [pendingZonePhoto, setPendingZonePhoto] = useState<File | null>(null);
+  const [zoneFromSpotId, setZoneFromSpotId] = useState<number | null>(null);
   const [lightboxOpen, setLightboxOpen] = useState(false);
   const [lightboxImageId, setLightboxImageId] = useState<number | null>(null);
   const [compareSignal, setCompareSignal] = useState(0);
