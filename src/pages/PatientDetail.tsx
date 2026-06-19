@@ -1022,6 +1022,7 @@ const PatientDetail = () => {
                 const zoneEntry = allZonePins.find(zp => zp.zoneId === selectedLocationId);
                 return zoneEntry ? zoneEntry.pins.map(p => p.linked_location_id) : [];
               })()}
+              dimNonSelected={selectedLocationId != null}
               
               requestMarkType={requestedMarkType}
               cancelMarkMode={cancelMarkModeNonce}
