@@ -194,6 +194,8 @@ type SpotMarkerProps = {
   position: [number, number, number];
   name?: string;
   index?: number;
+  pinNumber?: number;
+  zoneLabel?: string;
   labelOffset?: { x: number; y: number };
   isSelected: boolean;
   onClick: () => void;
@@ -206,7 +208,7 @@ type SpotMarkerProps = {
 };
 
 const SpotMarker = React.forwardRef<THREE.Group, SpotMarkerProps>(function SpotMarker(
-  { position, name, index, labelOffset, isSelected, onClick, imageCount, findingCount, classificationColor, isHighRisk, photoThumbnailUrl, onPhotoClick },
+  { position, name, index, pinNumber, zoneLabel, labelOffset, isSelected, onClick, imageCount, findingCount, classificationColor, isHighRisk, photoThumbnailUrl, onPhotoClick },
   forwardedRef,
 ) {
   const groupRef = useRef<THREE.Group>(null);
