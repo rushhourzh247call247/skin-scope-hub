@@ -228,7 +228,8 @@ const SpotMarker = React.forwardRef<THREE.Group, SpotMarkerProps>(function SpotM
   });
 
   const baseColor = classificationColor || "#64748b";
-  const color = isSelected ? "#0ea5e9" : hovered ? baseColor : baseColor;
+  const color = isSelected ? "#0891b2" : hovered ? baseColor : baseColor;
+
 
   const armLen = isSelected ? 0.022 : 0.016;
   const armThick = isSelected ? 0.003 : 0.002;
@@ -262,9 +263,10 @@ const SpotMarker = React.forwardRef<THREE.Group, SpotMarkerProps>(function SpotM
         {isSelected && (
           <mesh>
             <ringGeometry args={[0.028, 0.032, 32]} />
-            <meshBasicMaterial color="#0ea5e9" transparent opacity={0.4} side={THREE.DoubleSide} depthTest={false} />
+            <meshBasicMaterial color="#0891b2" transparent opacity={0.4} side={THREE.DoubleSide} depthTest={false} />
           </mesh>
         )}
+
 
         {isHighRisk && !isSelected && (
           <mesh>
@@ -352,12 +354,13 @@ const SpotMarker = React.forwardRef<THREE.Group, SpotMarkerProps>(function SpotM
               "flex items-center justify-center rounded-full text-[8px] font-bold shadow-md border",
               isHighRisk
                 ? "bg-destructive text-white border-red-400"
-                : "bg-sky-500 text-white border-sky-400",
-              isSelected ? "min-w-[20px] h-[20px] ring-2 ring-sky-300/70" : "min-w-[16px] h-[16px]"
+                : "bg-cyan-600 text-white border-cyan-500",
+              isSelected ? "min-w-[20px] h-[20px] ring-2 ring-cyan-300/70" : "min-w-[16px] h-[16px]"
             )}
           >
             {index != null ? index + 1 : ((imageCount ?? 0) > 0 ? imageCount : "•")}
           </div>
+
         </div>
       </Html>
 
@@ -1207,7 +1210,27 @@ function Scene({ markers, selectedLocationId, onMapClick, onMarkerClick, onMarke
           ? [z.x3d, z.y3d, z.z3d]
           : coords2Dto3D(z.x as number, z.y as number, view);
         const isSelected = selectedZoneId === z.id;
-        const color = isSelected ? "#1d4ed8" : "#3b82f6";
+
+        // Dim mode: when another location is selected, render this zone as a small faint dot
+        if (dimNonSelected && !isSelected) {
+          return (
+            <SurfaceProjectedGroup
+              key={`zone-dim-${z.id}`}
+              approxPosition={approx}
+              view={view}
+              storedPosition={z.x3d != null && z.y3d != null && z.z3d != null ? [z.x3d, z.y3d, z.z3d] : undefined}
+              storedNormal={z.nx != null && z.ny != null && z.nz != null && (z.nx !== 0 || z.ny !== 0 || z.nz !== 0) ? [z.nx, z.ny, z.nz] : undefined}
+            >
+              <mesh onClick={(e) => { e.stopPropagation(); onMarkerClick?.(z.id); }}>
+                <circleGeometry args={[0.012, 16]} />
+                <meshBasicMaterial color="#0891b2" transparent opacity={0.35} depthTest={false} side={THREE.DoubleSide} />
+              </mesh>
+            </SurfaceProjectedGroup>
+          );
+        }
+
+        // Unified clinical color scheme (teal/cyan) — same family as spots' selected highlight
+        const color = isSelected ? "#0891b2" : "#06b6d4";
         const armLen = isSelected ? 0.022 : 0.016;
         const armThick = isSelected ? 0.003 : 0.002;
         // Stagger badge offset by index to avoid overlap when zones are close
@@ -1280,8 +1303,8 @@ function Scene({ markers, selectedLocationId, onMapClick, onMarkerClick, onMarke
                   className={cn(
                     "flex items-center gap-1 rounded-full border px-1.5 py-0.5 text-[9px] font-semibold shadow-sm transition-all whitespace-nowrap",
                     isSelected
-                      ? "bg-blue-600 border-blue-700 text-white scale-105"
-                      : "bg-white/95 border-blue-500 text-blue-700"
+                      ? "bg-cyan-700 border-cyan-800 text-white scale-105"
+                      : "bg-white/95 border-cyan-600 text-cyan-700"
                   )}
                   style={{ maxWidth: 120 }}
                 >
@@ -1293,6 +1316,7 @@ function Scene({ markers, selectedLocationId, onMapClick, onMarkerClick, onMarke
           </SurfaceProjectedGroup>
         );
       })}
+
 
 
 
