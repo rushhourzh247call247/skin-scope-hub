@@ -566,7 +566,7 @@ const PatientDetail = () => {
     setActiveTab("spots");
     setMobileMapExpanded(true);
     setZoneCreatorOpen(true);
-    toast.info(overviewLocations.length === 0 ? t('patientDetail.guidedStartToast') : 'Neue Zone: Körperteil wählen und Position auf dem Body markieren.');
+    toast.info(overviewLocations.length === 0 ? t('patientDetail.guidedStartToast') : t('patientDetail.newZoneStartToast', { defaultValue: 'Neue Zone: Körperteil wählen und Position auf dem Body markieren.' }));
   };
 
   const handleMapClick = (
@@ -1018,7 +1018,7 @@ const PatientDetail = () => {
                 <div className="space-y-2 rounded-md border border-dashed bg-muted/30 p-2.5">
                   <input ref={pendingZoneFileRef} type="file" accept="image/*" className="hidden" onChange={handlePendingZonePhotoSelect} />
                   <p className="text-[11px] font-medium text-green-700 dark:text-green-400">
-                    Position gewählt — Marker bei Bedarf noch verschieben, danach speichern.
+                    {t('patientDetail.zonePositionChosen', { defaultValue: 'Position gewählt — Marker bei Bedarf noch verschieben, danach speichern.' })}
                   </p>
                   <div className="flex items-center justify-between gap-2">
                     <div className="min-w-0 text-[11px] text-muted-foreground">
@@ -1114,7 +1114,7 @@ const PatientDetail = () => {
                 {createLocationMutation.isPending
                   ? t('common.creating')
                   : mapClickDialog.markType === "zone"
-                    ? 'Zone speichern'
+                    ? t('patientDetail.saveZone', { defaultValue: 'Zone speichern' })
                     : mapClickDialog.markType === "region" ? t('patientDetail.createRegion') : t('patientDetail.createSpot')}
               </Button>
             </div>
