@@ -263,9 +263,10 @@ const SpotMarker = React.forwardRef<THREE.Group, SpotMarkerProps>(function SpotM
         {isSelected && (
           <mesh>
             <ringGeometry args={[0.028, 0.032, 32]} />
-            <meshBasicMaterial color="#0ea5e9" transparent opacity={0.4} side={THREE.DoubleSide} depthTest={false} />
+            <meshBasicMaterial color="#0891b2" transparent opacity={0.4} side={THREE.DoubleSide} depthTest={false} />
           </mesh>
         )}
+
 
         {isHighRisk && !isSelected && (
           <mesh>
