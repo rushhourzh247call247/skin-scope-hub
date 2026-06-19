@@ -2006,7 +2006,7 @@ const PatientDetail = () => {
                 )}
 
                 {/* Spot detail content (existing) */}
-                <div className="space-y-6 min-w-0">
+                <div className={zonePinModeActive ? "hidden" : "space-y-6 min-w-0"}>
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
                     {spotBackTarget && (
