@@ -355,14 +355,19 @@ const SpotMarker = React.forwardRef<THREE.Group, SpotMarkerProps>(function SpotM
         >
           <div
             className={cn(
-              "flex items-center justify-center rounded-full text-[8px] font-bold shadow-md border",
+              "relative flex items-center justify-center rounded-full text-[8px] font-bold shadow-md border",
               isHighRisk
                 ? "bg-destructive text-white border-red-400"
                 : "bg-cyan-600 text-white border-cyan-500",
               isSelected ? "min-w-[20px] h-[20px] ring-2 ring-cyan-300/70" : "min-w-[16px] h-[16px]"
             )}
           >
-            {index != null ? index + 1 : ((imageCount ?? 0) > 0 ? imageCount : "•")}
+            {pinNumber != null ? pinNumber : (index != null ? index + 1 : ((imageCount ?? 0) > 0 ? imageCount : "•"))}
+            {zoneLabel && (
+              <span className="absolute -top-2 -right-2 rounded-sm bg-slate-700 text-white px-1 text-[7px] leading-[10px] font-semibold border border-slate-500 shadow">
+                {zoneLabel}
+              </span>
+            )}
           </div>
 
         </div>
