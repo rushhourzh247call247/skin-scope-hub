@@ -1859,6 +1859,8 @@ const PatientDetail = () => {
                                 }
                               }}
                             />
+                            </div>
+                            <div className="mt-6 lg:mt-0">
                             {(() => {
                               const zoneEntry = allZonePins.find(zp => zp.zoneId === loc.id);
                               const linkedIds = new Set<number>((zoneEntry?.pins ?? []).map((p: any) => p.linked_location_id));
@@ -1868,9 +1870,21 @@ const PatientDetail = () => {
                                 for (const img of (sp.images ?? [])) items.push({ img, spot: sp });
                               }
                               items.sort((a, b) => new Date(b.img.created_at ?? 0).getTime() - new Date(a.img.created_at ?? 0).getTime());
-                              if (items.length === 0) return null;
+                              if (items.length === 0) {
+                                return (
+                                  <div className="flex flex-col items-center justify-center gap-2 rounded-lg border border-dashed border-border bg-muted/30 p-8 text-center">
+                                    <ImageIcon className="h-8 w-8 text-muted-foreground/40" />
+                                    <p className="text-sm font-medium text-foreground">
+                                      {t('patientDetail.noCloseUpsYet', { defaultValue: 'Noch keine Nahaufnahmen' })}
+                                    </p>
+                                    <p className="text-xs text-muted-foreground">
+                                      {t('patientDetail.noCloseUpsHint', { defaultValue: 'Setze Pins auf das Zonen-Foto, um Spots zu verknüpfen.' })}
+                                    </p>
+                                  </div>
+                                );
+                              }
                               return (
-                                <div className="mt-4 space-y-2">
+                                <div className="space-y-2">
                                   <div className="flex items-center gap-2 px-1">
                                     <ImageIcon className="h-3.5 w-3.5 text-primary" />
                                     <span className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
@@ -1916,6 +1930,8 @@ const PatientDetail = () => {
                               );
                             })()}
                             </div>
+                            </div>
+
                           ))}
                         </div>
                       )}
