@@ -30,7 +30,6 @@ export default function PatientHeader({ patient, activeTab, setActiveTab, locati
     { key: "spots" as const, icon: MapPin, label: t('patientDetail.tabs.spots') },
     { key: "uebersicht" as const, icon: Eye, label: t('patientDetail.tabs.overview') },
     { key: "fotos" as const, icon: Camera, label: t('patientDetail.tabs.photos') },
-    { key: "berichte" as const, icon: FileDown, label: t('patientDetail.tabs.reports') },
   ];
   const tabs = hideClinicalTabs
     ? allTabs.filter(t => t.key === "spots" || t.key === "uebersicht" || t.key === "fotos")
