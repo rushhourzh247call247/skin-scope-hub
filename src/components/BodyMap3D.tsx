@@ -32,6 +32,8 @@ interface Marker {
   classification?: string;
   classificationColor?: string;
   photoThumbnailUrl?: string;
+  pinNumber?: number;
+  zoneLabel?: string;
 }
 
 interface ZoneOverlay {
