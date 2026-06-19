@@ -1842,21 +1842,19 @@ const PatientDetail = () => {
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -8 }}
                 transition={{ duration: 0.15 }}
-                className={cn(
-                  selectedSpotZone
-                    ? "lg:grid lg:grid-cols-[minmax(0,2fr)_minmax(0,3fr)] lg:gap-6 lg:items-start"
-                    : "block"
-                )}
+                className="lg:grid lg:grid-cols-[minmax(0,2fr)_minmax(0,3fr)] lg:gap-6 lg:items-start"
               >
                 {/* Desktop only: Zone overview on the left, sticky so it stays visible while right column scrolls */}
-                {selectedSpotZone && (
-                  <div className="hidden lg:block lg:sticky lg:top-0 lg:max-h-[calc(100vh-7rem)] lg:overflow-y-auto lg:pr-1">
-                    <div className="mb-2 flex items-center gap-2">
-                      <Camera className="h-3.5 w-3.5 text-blue-500" />
-                      <span className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
-                        {t('patientDetail.fromZone', { zone: translateAnatomyName(selectedSpotZone.name) || t('patientDetail.overview') })}
-                      </span>
-                    </div>
+                <div className="hidden lg:block lg:sticky lg:top-0 lg:max-h-[calc(100vh-7rem)] lg:overflow-y-auto lg:pr-1">
+                  <div className="mb-2 flex items-center gap-2">
+                    <Camera className="h-3.5 w-3.5 text-blue-500" />
+                    <span className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+                      {selectedSpotZone
+                        ? t('patientDetail.fromZone', { zone: translateAnatomyName(selectedSpotZone.name) || t('patientDetail.overview') })
+                        : t('patientDetail.noZoneLinked', { defaultValue: 'Keine Zone verknüpft' })}
+                    </span>
+                  </div>
+                  {selectedSpotZone ? (
                     <OverviewPhoto
                       overviewLocation={selectedSpotZone}
                       spotLocations={linkedSpotLocations}
@@ -1874,8 +1872,30 @@ const PatientDetail = () => {
                         setQrDialogOpen(true);
                       }}
                     />
-                  </div>
-                )}
+                  ) : (
+                    <div className="flex flex-col items-center justify-center gap-3 rounded-lg border border-dashed border-border bg-muted/30 p-6 text-center">
+                      <Camera className="h-8 w-8 text-muted-foreground/40" />
+                      <div>
+                        <p className="text-sm font-medium text-foreground">
+                          {t('patientDetail.noZoneLinkedTitle', { defaultValue: 'Keine Zone verknüpft' })}
+                        </p>
+                        <p className="mt-1 text-xs text-muted-foreground">
+                          {t('patientDetail.noZoneLinkedHint', { defaultValue: 'Lege eine Zone an, um eine Übersichtsaufnahme für diesen Spot zu sehen.' })}
+                        </p>
+                      </div>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        className="gap-1.5"
+                        disabled={isReadOnly}
+                        onClick={() => { setSidebarTab("zones"); setRequestedMarkType({ type: "zone", nonce: Date.now() }); }}
+                      >
+                        <Camera className="h-3.5 w-3.5" />
+                        {t('patientDetail.createZone', { defaultValue: 'Zone anlegen' })}
+                      </Button>
+                    </div>
+                  )}
+                </div>
 
                 {/* Mobile only: Zone overview photo on top, like DermEngine reference */}
                 {selectedSpotZone && (
