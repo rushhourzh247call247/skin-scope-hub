@@ -1222,8 +1222,8 @@ function Scene({ markers, selectedLocationId, onMapClick, onMarkerClick, onMarke
               storedNormal={z.nx != null && z.ny != null && z.nz != null && (z.nx !== 0 || z.ny !== 0 || z.nz !== 0) ? [z.nx, z.ny, z.nz] : undefined}
             >
               <mesh onClick={(e) => { e.stopPropagation(); onMarkerClick?.(z.id); }}>
-                <circleGeometry args={[0.012, 16]} />
-                <meshBasicMaterial color="#0891b2" transparent opacity={0.35} depthTest={false} side={THREE.DoubleSide} />
+                <circleGeometry args={[0.025, 16]} />
+                <meshBasicMaterial color="#0891b2" transparent opacity={0.7} depthTest={false} side={THREE.DoubleSide} />
               </mesh>
             </SurfaceProjectedGroup>
           );
