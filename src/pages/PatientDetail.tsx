@@ -1732,7 +1732,9 @@ const PatientDetail = () => {
                       ) : (
                         <div className="space-y-8">
                           {zonesToShow.map((loc) => (
-                            <div key={loc.id} id={`zone-${loc.id}`} className="lg:max-w-xl">
+                            <div key={loc.id} id={`zone-${loc.id}`} className="lg:grid lg:grid-cols-[minmax(0,2fr)_minmax(0,3fr)] lg:gap-6 lg:items-start">
+                              <div className="lg:sticky lg:top-0 lg:max-h-[calc(100vh-7rem)] lg:overflow-y-auto lg:pr-1">
+
 
                             <OverviewPhoto
                               overviewLocation={loc}
