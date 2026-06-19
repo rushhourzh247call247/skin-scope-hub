@@ -1,9 +1,9 @@
 import { useTranslation } from "react-i18next";
-import { MapPin, Camera, FileDown, ClipboardList } from "lucide-react";
+import { MapPin, Camera, ClipboardList } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/contexts/AuthContext";
 
-type TabKey = "akte" | "spots" | "fotos" | "uebersicht" | "berichte";
+type TabKey = "akte" | "spots" | "fotos" | "uebersicht";
 
 interface MobileBottomNavProps {
   activeTab: TabKey;
@@ -19,7 +19,6 @@ export default function MobileBottomNav({ activeTab, setActiveTab }: MobileBotto
     { key: "akte" as const, icon: ClipboardList, label: t('patientDetail.bottomNav.chart') },
     { key: "spots" as const, icon: MapPin, label: t('patientDetail.bottomNav.spots') },
     { key: "fotos" as const, icon: Camera, label: t('patientDetail.bottomNav.photos') },
-    { key: "berichte" as const, icon: FileDown, label: t('patientDetail.bottomNav.reports') },
   ];
   const tabs = isPma ? allTabs.filter(t => t.key === "spots" || t.key === "fotos") : allTabs;
 

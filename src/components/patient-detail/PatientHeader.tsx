@@ -1,6 +1,6 @@
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
-import { ArrowLeft, MapPin, Camera, FileDown, ClipboardList, Eye, MapPinned, CameraIcon } from "lucide-react";
+import { ArrowLeft, MapPin, Camera, ClipboardList, Eye, MapPinned, CameraIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
@@ -8,7 +8,7 @@ import { formatDate } from "@/lib/dateUtils";
 import { Mail, Phone } from "lucide-react";
 import type { FullPatient } from "@/types/patient";
 
-type TabKey = "akte" | "spots" | "fotos" | "uebersicht" | "berichte";
+type TabKey = "akte" | "spots" | "fotos" | "uebersicht";
 
 interface PatientHeaderProps {
   patient: FullPatient;
@@ -30,7 +30,6 @@ export default function PatientHeader({ patient, activeTab, setActiveTab, locati
     { key: "spots" as const, icon: MapPin, label: t('patientDetail.tabs.spots') },
     { key: "uebersicht" as const, icon: Eye, label: t('patientDetail.tabs.overview') },
     { key: "fotos" as const, icon: Camera, label: t('patientDetail.tabs.photos') },
-    { key: "berichte" as const, icon: FileDown, label: t('patientDetail.tabs.reports') },
   ];
   const tabs = hideClinicalTabs
     ? allTabs.filter(t => t.key === "spots" || t.key === "uebersicht" || t.key === "fotos")

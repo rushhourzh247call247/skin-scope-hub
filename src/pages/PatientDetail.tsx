@@ -87,8 +87,8 @@ const PatientDetail = () => {
     nz?: number;
   } | null>(null);
   const [locationName, setLocationName] = useState("");
-  const [activeTab, setActiveTab] = useState<"akte" | "spots" | "fotos" | "uebersicht" | "berichte">("spots");
-  const [spotBackTarget, setSpotBackTarget] = useState<{ tab: "akte" | "spots" | "fotos" | "uebersicht" | "berichte"; zoneId: number | null } | null>(null);
+  const [activeTab, setActiveTab] = useState<"akte" | "spots" | "fotos" | "uebersicht">("spots");
+  const [spotBackTarget, setSpotBackTarget] = useState<{ tab: "akte" | "spots" | "fotos" | "uebersicht"; zoneId: number | null } | null>(null);
   const [sidebarTab, setSidebarTab] = useState<"spots" | "zones">("spots");
   const [newFindingText, setNewFindingText] = useState("");
   const [regionWidth, setRegionWidth] = useState(40);
@@ -2008,24 +2008,6 @@ const PatientDetail = () => {
                     })}
                   </div>
                 )}
-              </motion.div>
-            ) : activeTab === "berichte" ? (
-              <motion.div
-                key="berichte"
-                initial={{ opacity: 0, y: 8 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -8 }}
-                transition={{ duration: 0.15 }}
-                className="space-y-4"
-              >
-                <div className="flex items-center justify-between">
-                  <h2 className="text-lg font-semibold text-foreground">{t('patientDetail.reports')}</h2>
-                  <Button onClick={() => setPdfDialogOpen(true)} size="sm" className="gap-1.5" disabled={isReadOnly} title={isReadOnly ? readOnlyTooltip : undefined}>
-                    <FileDown className="h-3.5 w-3.5" />
-                    {t('patientDetail.newReport')}
-                  </Button>
-                </div>
-                <PdfReportHistory patientId={patient.id} patientName={patient.name} />
               </motion.div>
             ) : selectedLocation ? (
               <motion.div
