@@ -994,7 +994,7 @@ const PatientDetail = () => {
                     setQrLocationId(locationId);
                     setQrDialogOpen(true);
                   }}
-                  onCreateSpotAndLink={async (name, pinCoords, overviewLocId) => {
+                  onCreateSpotAndLink={async (name, pinCoords, overviewLocId, file) => {
                     try {
                       const zone = overviewLocations.find(z => z.id === overviewLocId);
                       const SPREAD = 0.36;
