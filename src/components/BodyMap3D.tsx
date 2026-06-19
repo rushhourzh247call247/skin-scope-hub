@@ -32,6 +32,8 @@ interface Marker {
   classification?: string;
   classificationColor?: string;
   photoThumbnailUrl?: string;
+  pinNumber?: number;
+  zoneLabel?: string;
 }
 
 interface ZoneOverlay {
@@ -192,6 +194,8 @@ type SpotMarkerProps = {
   position: [number, number, number];
   name?: string;
   index?: number;
+  pinNumber?: number;
+  zoneLabel?: string;
   labelOffset?: { x: number; y: number };
   isSelected: boolean;
   onClick: () => void;
@@ -204,7 +208,7 @@ type SpotMarkerProps = {
 };
 
 const SpotMarker = React.forwardRef<THREE.Group, SpotMarkerProps>(function SpotMarker(
-  { position, name, index, labelOffset, isSelected, onClick, imageCount, findingCount, classificationColor, isHighRisk, photoThumbnailUrl, onPhotoClick },
+  { position, name, index, pinNumber, zoneLabel, labelOffset, isSelected, onClick, imageCount, findingCount, classificationColor, isHighRisk, photoThumbnailUrl, onPhotoClick },
   forwardedRef,
 ) {
   const groupRef = useRef<THREE.Group>(null);
@@ -351,14 +355,19 @@ const SpotMarker = React.forwardRef<THREE.Group, SpotMarkerProps>(function SpotM
         >
           <div
             className={cn(
-              "flex items-center justify-center rounded-full text-[8px] font-bold shadow-md border",
+              "relative flex items-center justify-center rounded-full text-[8px] font-bold shadow-md border",
               isHighRisk
                 ? "bg-destructive text-white border-red-400"
                 : "bg-cyan-600 text-white border-cyan-500",
               isSelected ? "min-w-[20px] h-[20px] ring-2 ring-cyan-300/70" : "min-w-[16px] h-[16px]"
             )}
           >
-            {index != null ? index + 1 : ((imageCount ?? 0) > 0 ? imageCount : "•")}
+            {pinNumber != null ? pinNumber : (index != null ? index + 1 : ((imageCount ?? 0) > 0 ? imageCount : "•"))}
+            {zoneLabel && (
+              <span className="absolute -top-2 -right-2 rounded-sm bg-slate-700 text-white px-1 text-[7px] leading-[10px] font-semibold border border-slate-500 shadow">
+                {zoneLabel}
+              </span>
+            )}
           </div>
 
         </div>
@@ -1162,6 +1171,8 @@ function Scene({ markers, selectedLocationId, onMapClick, onMarkerClick, onMarke
               position={[0, 0, 0]}
               name={translateAnatomyName(m.name)}
               index={i}
+              pinNumber={m.pinNumber}
+              zoneLabel={m.zoneLabel}
               labelOffset={spotLabelOffsets.get(m.id)}
               isSelected={isSelected}
               onClick={() => onMarkerClick?.(m.id)}

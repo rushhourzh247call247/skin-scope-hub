@@ -528,12 +528,20 @@ const PatientDetail = () => {
 
   // Build a map: spotId → zoneName for grouping
   const spotToZone = new Map<number, string>();
-  for (const zp of allZonePins) {
-    for (const pin of zp.pins) {
+  // Build a map: spotId → { pinNumber, zoneLabel } for body map labels
+  const spotPinInfo = new Map<number, { pinNumber: number; zoneLabel: string }>();
+  for (let zi = 0; zi < allZonePins.length; zi++) {
+    const zp = allZonePins[zi];
+    const zoneIdx = overviewLocations.findIndex(z => z.id === zp.zoneId);
+    const zoneLabel = `Z${(zoneIdx >= 0 ? zoneIdx : zi) + 1}`;
+    zp.pins.forEach((pin: any, i: number) => {
       if (!spotToZone.has(pin.linked_location_id)) {
         spotToZone.set(pin.linked_location_id, zp.zoneName);
       }
-    }
+      if (!spotPinInfo.has(pin.linked_location_id)) {
+        spotPinInfo.set(pin.linked_location_id, { pinNumber: i + 1, zoneLabel });
+      }
+    });
   }
   const selectedLocation = locations.find((l) => l.id === selectedLocationId);
   const totalImages = locations.reduce((sum, l) => sum + (l.images?.length ?? 0), 0);
@@ -987,7 +995,8 @@ const PatientDetail = () => {
               markers={spotLocations.map((l) => {
                 const pf = (v: any) => v != null ? parseFloat(String(v)) : null;
                 const pfn = (v: any) => { const n = pf(v); return n != null && !isNaN(n) ? n : null; };
-                return { id: l.id, x: pfn(l.x), y: pfn(l.y), x3d: pfn(l.x3d), y3d: pfn(l.y3d), z3d: pfn(l.z3d), nx: pfn(l.nx), ny: pfn(l.ny), nz: pfn(l.nz), name: l.name, view: l.view, type: l.type, width: l.width, height: l.height, imageCount: l.images?.length ?? 0, findingCount: l.findings?.length ?? 0, classification: (l as any).classification, classificationColor: LESION_CLASSIFICATIONS[(l as any).classification as LesionClassification || "unclassified"]?.color };
+                const pinInfo = spotPinInfo.get(l.id);
+                return { id: l.id, x: pfn(l.x), y: pfn(l.y), x3d: pfn(l.x3d), y3d: pfn(l.y3d), z3d: pfn(l.z3d), nx: pfn(l.nx), ny: pfn(l.ny), nz: pfn(l.nz), name: l.name, view: l.view, type: l.type, width: l.width, height: l.height, imageCount: l.images?.length ?? 0, findingCount: l.findings?.length ?? 0, classification: (l as any).classification, classificationColor: LESION_CLASSIFICATIONS[(l as any).classification as LesionClassification || "unclassified"]?.color, pinNumber: pinInfo?.pinNumber, zoneLabel: pinInfo?.zoneLabel };
               })}
               gender={patient.gender}
               onMapClick={handleMapClick}
