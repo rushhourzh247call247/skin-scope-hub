@@ -648,7 +648,7 @@ const OverviewPhoto = ({ overviewLocation, spotLocations, patientId, onNavigateT
 
 
       <div
-        className="max-h-[60vh] overflow-hidden rounded-lg border bg-muted"
+        className="max-h-[60vh] overflow-hidden rounded-lg border bg-muted lg:max-w-3xl mx-auto"
         onContextMenu={(e) => e.preventDefault()}
         style={{ touchAction: 'none' }}
       >
