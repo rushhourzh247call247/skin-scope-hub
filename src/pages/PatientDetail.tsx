@@ -773,7 +773,7 @@ const PatientDetail = () => {
 
       <ZoneCreatorDialog
         open={zoneCreatorOpen}
-        onOpenChange={setZoneCreatorOpen}
+        onOpenChange={(open) => { setZoneCreatorOpen(open); if (!open) setZoneFromSpotId(null); }}
         gender={patient.gender}
         isCreating={createLocationMutation.isPending}
         onPick={async (zoneName) => {
