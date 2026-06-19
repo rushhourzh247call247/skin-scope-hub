@@ -127,6 +127,8 @@ const PatientDetail = () => {
   const [lightboxOpen, setLightboxOpen] = useState(false);
   const [lightboxImageId, setLightboxImageId] = useState<number | null>(null);
   const [compareSignal, setCompareSignal] = useState(0);
+  const [zonePinModeActive, setZonePinModeActive] = useState(false);
+  useEffect(() => { setZonePinModeActive(false); }, [selectedLocationId]);
 
   const selectLocation = (locationId: number | null, scrollToDetail = false) => {
     setMapClickDialog(null);
@@ -1919,10 +1921,10 @@ const PatientDetail = () => {
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -8 }}
                 transition={{ duration: 0.15 }}
-                className="lg:grid lg:grid-cols-[minmax(0,2fr)_minmax(0,3fr)] lg:gap-6 lg:items-start"
+                className={zonePinModeActive ? "space-y-4" : "lg:grid lg:grid-cols-[minmax(0,2fr)_minmax(0,3fr)] lg:gap-6 lg:items-start"}
               >
                 {/* Desktop only: Zone overview on the left, sticky so it stays visible while right column scrolls */}
-                <div className="hidden lg:block lg:sticky lg:top-0 lg:max-h-[calc(100vh-7rem)] lg:overflow-y-auto lg:pr-1">
+                <div className={zonePinModeActive ? "block" : "hidden lg:block lg:sticky lg:top-0 lg:max-h-[calc(100vh-7rem)] lg:overflow-y-auto lg:pr-1"}>
                   <div className="mb-2 flex items-center gap-2">
                     <Camera className="h-3.5 w-3.5 text-blue-500" />
                     <span className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
@@ -1948,6 +1950,7 @@ const PatientDetail = () => {
                         setQrLocationId(locationId);
                         setQrDialogOpen(true);
                       }}
+                      onPinModeChange={setZonePinModeActive}
                     />
                   ) : (
                     <div className="flex flex-col items-center justify-center gap-3 rounded-lg border border-dashed border-border bg-muted/30 p-6 text-center">
@@ -2004,7 +2007,7 @@ const PatientDetail = () => {
                 )}
 
                 {/* Spot detail content (existing) */}
-                <div className="space-y-6 min-w-0">
+                <div className={zonePinModeActive ? "hidden" : "space-y-6 min-w-0"}>
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
                     {spotBackTarget && (
