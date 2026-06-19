@@ -526,6 +526,8 @@ const PatientDetail = () => {
     enabled: overviewLocations.length > 0,
   });
 
+  // Build a set of active (non-trashed) spot IDs so deleted spots don't occupy pin numbers
+  const activeSpotIds = new Set(spotLocations.map(s => s.id));
   // Build a map: spotId → zoneName for grouping
   const spotToZone = new Map<number, string>();
   // Build a map: spotId → { pinNumber, zoneLabel } for body map labels
@@ -534,7 +536,9 @@ const PatientDetail = () => {
     const zp = allZonePins[zi];
     const zoneIdx = overviewLocations.findIndex(z => z.id === zp.zoneId);
     const zoneLabel = `Z${(zoneIdx >= 0 ? zoneIdx : zi) + 1}`;
-    zp.pins.forEach((pin: any, i: number) => {
+    // Only count pins whose linked spot still exists (not trashed/deleted)
+    const activePins = zp.pins.filter((pin: any) => activeSpotIds.has(pin.linked_location_id));
+    activePins.forEach((pin: any, i: number) => {
       if (!spotToZone.has(pin.linked_location_id)) {
         spotToZone.set(pin.linked_location_id, zp.zoneName);
       }
@@ -543,6 +547,7 @@ const PatientDetail = () => {
       }
     });
   }
+
   const selectedLocation = locations.find((l) => l.id === selectedLocationId);
   const totalImages = locations.reduce((sum, l) => sum + (l.images?.length ?? 0), 0);
   const isEmptyPatient = locations.length === 0;
