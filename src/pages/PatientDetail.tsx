@@ -1732,7 +1732,8 @@ const PatientDetail = () => {
                       ) : (
                         <div className="space-y-8">
                           {zonesToShow.map((loc) => (
-                            <div key={loc.id} id={`zone-${loc.id}`}>
+                            <div key={loc.id} id={`zone-${loc.id}`} className="lg:max-w-xl">
+
                             <OverviewPhoto
                               overviewLocation={loc}
                               spotLocations={linkedSpotLocations}
