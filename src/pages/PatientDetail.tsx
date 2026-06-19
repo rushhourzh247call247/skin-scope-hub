@@ -87,8 +87,8 @@ const PatientDetail = () => {
     nz?: number;
   } | null>(null);
   const [locationName, setLocationName] = useState("");
-  const [activeTab, setActiveTab] = useState<"akte" | "spots" | "fotos" | "uebersicht" | "berichte">("spots");
-  const [spotBackTarget, setSpotBackTarget] = useState<{ tab: "akte" | "spots" | "fotos" | "uebersicht" | "berichte"; zoneId: number | null } | null>(null);
+  const [activeTab, setActiveTab] = useState<"akte" | "spots" | "fotos" | "uebersicht">("spots");
+  const [spotBackTarget, setSpotBackTarget] = useState<{ tab: "akte" | "spots" | "fotos" | "uebersicht"; zoneId: number | null } | null>(null);
   const [sidebarTab, setSidebarTab] = useState<"spots" | "zones">("spots");
   const [newFindingText, setNewFindingText] = useState("");
   const [regionWidth, setRegionWidth] = useState(40);
