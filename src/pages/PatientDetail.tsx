@@ -1888,7 +1888,7 @@ const PatientDetail = () => {
                         variant="outline"
                         className="gap-1.5"
                         disabled={isReadOnly}
-                        onClick={() => { setSidebarTab("zones"); setRequestedMarkType({ type: "zone", nonce: Date.now() }); }}
+                        onClick={startFirstZoneFlow}
                       >
                         <Camera className="h-3.5 w-3.5" />
                         {t('patientDetail.createZone', { defaultValue: 'Zone anlegen' })}
