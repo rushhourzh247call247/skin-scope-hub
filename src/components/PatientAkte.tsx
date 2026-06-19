@@ -542,12 +542,17 @@ const PatientAkte = ({ patient, onNavigateToSpot }: PatientAkteProps) => {
                   </button>
                   <button
                     disabled={isReadOnly}
-                    onClick={() => deleteDocumentMutation.mutate(doc.id)}
-                    className="p-1 rounded opacity-0 group-hover:opacity-100 transition-opacity hover:bg-destructive/10 text-muted-foreground hover:text-destructive disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:bg-transparent"
-                    title={isReadOnly ? readOnlyTooltip : undefined}
+                    onClick={() => {
+                      if (window.confirm(t("akte.deleteDocumentConfirm", `Dokument "${doc.original_name}" wirklich löschen?`))) {
+                        deleteDocumentMutation.mutate(doc.id);
+                      }
+                    }}
+                    className="p-1 rounded hover:bg-destructive/10 text-muted-foreground hover:text-destructive transition-colors disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:bg-transparent"
+                    title={isReadOnly ? readOnlyTooltip : t("common.delete", "Löschen")}
                   >
-                    <Trash2 className="h-3 w-3" />
+                    <Trash2 className="h-3.5 w-3.5" />
                   </button>
+
                 </div>
               </div>
             ))}
