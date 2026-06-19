@@ -1958,7 +1958,7 @@ const PatientDetail = () => {
                         variant="outline"
                         className="gap-1.5"
                         disabled={isReadOnly}
-                        onClick={startFirstZoneFlow}
+                        onClick={startZoneForCurrentSpot}
                       >
                         <Camera className="h-3.5 w-3.5" />
                         {t('patientDetail.createZone', { defaultValue: 'Zone anlegen' })}
