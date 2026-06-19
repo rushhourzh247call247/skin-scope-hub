@@ -156,9 +156,14 @@ const PatientDetail = () => {
         window.setTimeout(() => {
           detailContentRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
         }, 80);
-      } else if (imgCount === 1) {
-        // Single image: enlarge in lightbox
+      } else if (imgCount === 1 && isMobile) {
+        // Single image (mobile only): enlarge in lightbox.
+        // On desktop the detail panel is always visible, so don't hijack the click.
         setLightboxOpen(true);
+      } else if (imgCount === 1) {
+        window.setTimeout(() => {
+          detailContentRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+        }, 80);
       } else {
         // No images: scroll to detail (where camera/upload buttons are)
         window.setTimeout(() => {
