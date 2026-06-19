@@ -1949,6 +1949,7 @@ const PatientDetail = () => {
                         setQrLocationId(locationId);
                         setQrDialogOpen(true);
                       }}
+                      onPinModeChange={setZonePinModeActive}
                     />
                   ) : (
                     <div className="flex flex-col items-center justify-center gap-3 rounded-lg border border-dashed border-border bg-muted/30 p-6 text-center">
