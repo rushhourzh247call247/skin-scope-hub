@@ -38,7 +38,7 @@ interface OverviewPhotoProps {
   onCompareSpot?: (locationId: number) => void;
   onDelete?: (locationId: number) => void;
   onQrUpload?: (locationId: number) => void;
-  onCreateSpotAndLink?: (name: string, pinCoords: { x_pct: number; y_pct: number }, overviewLocationId: number) => void;
+  onCreateSpotAndLink?: (name: string, pinCoords: { x_pct: number; y_pct: number }, overviewLocationId: number, file?: File) => void;
   onMovePin?: (pinId: number, x_pct: number, y_pct: number, overviewLocationId: number) => void;
   onPinModeChange?: (active: boolean) => void;
 }
