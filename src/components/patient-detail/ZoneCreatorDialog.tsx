@@ -192,11 +192,6 @@ const ZoneCreatorDialog = ({ open, onOpenChange, gender, onPick, isCreating }: Z
             </p>
           </div>
 
-          {anchor && (
-            <div className="rounded-md border border-blue-200 bg-blue-50/50 dark:border-blue-900 dark:bg-blue-950/20 p-2 text-[11px] text-blue-900 dark:text-blue-200">
-              Vorgeschlagene Ansicht: <strong>{anchor.view === "front" ? "Vorderseite" : "Rückseite"}</strong>
-            </div>
-          )}
 
           <div className="flex justify-end gap-2 pt-1">
             <Button type="button" variant="ghost" size="sm" onClick={handleCancel} disabled={isCreating}>
