@@ -776,7 +776,55 @@ const PatientDetail = () => {
         onOpenChange={setZoneCreatorOpen}
         gender={patient.gender}
         isCreating={createLocationMutation.isPending}
-        onPick={(zoneName) => {
+        onPick={async (zoneName) => {
+          // Branch: creating a zone for an existing spot — skip body-marking step
+          // and reuse the spot's own 3D coordinates.
+          if (zoneFromSpotId != null) {
+            const spot = locations.find(l => l.id === zoneFromSpotId);
+            if (!spot) {
+              setZoneFromSpotId(null);
+              setZoneCreatorOpen(false);
+              return;
+            }
+            try {
+              const newZone = await api.createLocation(patientId, {
+                name: zoneName,
+                x: spot.x ?? 0,
+                y: spot.y ?? 0,
+                view: (spot.view as "front" | "back") ?? "front",
+                type: "overview",
+                x3d: spot.x3d ?? undefined,
+                y3d: spot.y3d ?? undefined,
+                z3d: spot.z3d ?? undefined,
+                nx: spot.nx ?? undefined,
+                ny: spot.ny ?? undefined,
+                nz: spot.nz ?? undefined,
+              });
+              // Link the existing spot into the new zone (pin centered on overview).
+              try {
+                await api.createOverviewPin(newZone.id, {
+                  linked_location_id: spot.id,
+                  x_pct: 50,
+                  y_pct: 50,
+                  label: spot.name || t("patientDetail.newSpot"),
+                });
+              } catch {}
+              queryClient.invalidateQueries({ queryKey: ["full-patient", patientId] });
+              queryClient.invalidateQueries({ queryKey: ["all-zone-pins", patientId] });
+              queryClient.invalidateQueries({ queryKey: ["overview-pins", newZone.id] });
+              setZoneFromSpotId(null);
+              setZoneCreatorOpen(false);
+              setSelectedLocationId(newZone.id);
+              setSidebarTab("zones");
+              setActiveTab("uebersicht");
+              setNewlyCreatedZoneId(newZone.id);
+              toast.success(t('overviewPhoto.overviewCreated', { defaultValue: `Zone „${translateAnatomyName(zoneName)}" angelegt — jetzt Übersichtsfoto hochladen.` }));
+            } catch {
+              toast.error(t("patientDetail.spotCreateError"));
+            }
+            return;
+          }
+
           setPendingZoneName(zoneName);
           setZoneCreatorOpen(false);
           setSidebarTab("zones");
