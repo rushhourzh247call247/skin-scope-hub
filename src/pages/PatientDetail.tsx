@@ -1017,6 +1017,9 @@ const PatientDetail = () => {
               {mapClickDialog.markType === "zone" && (
                 <div className="space-y-2 rounded-md border border-dashed bg-muted/30 p-2.5">
                   <input ref={pendingZoneFileRef} type="file" accept="image/*" className="hidden" onChange={handlePendingZonePhotoSelect} />
+                  <p className="text-[11px] font-medium text-green-700 dark:text-green-400">
+                    Position gewählt — Marker bei Bedarf noch verschieben, danach speichern.
+                  </p>
                   <div className="flex items-center justify-between gap-2">
                     <div className="min-w-0 text-[11px] text-muted-foreground">
                       <p className="font-medium text-foreground">{pendingZonePhoto ? pendingZonePhoto.name : t('overviewPhoto.noOverviewPhoto')}</p>
@@ -1111,7 +1114,7 @@ const PatientDetail = () => {
                 {createLocationMutation.isPending
                   ? t('common.creating')
                   : mapClickDialog.markType === "zone"
-                    ? (overviewLocations.length === 0 ? t('overviewPhoto.createFirstZone') : 'Neue Zone anlegen')
+                    ? 'Zone speichern'
                     : mapClickDialog.markType === "region" ? t('patientDetail.createRegion') : t('patientDetail.createSpot')}
               </Button>
             </div>
@@ -1508,14 +1511,7 @@ const PatientDetail = () => {
                           size="sm"
                           variant="outline"
                           className="gap-1.5 text-xs"
-                          onClick={() => {
-                            createLocationMutation.mutate({
-                              name: `Zone ${overviewLocations.length + 1}`,
-                              x: 0, y: 0,
-                              view: "front",
-                              type: "overview",
-                            });
-                          }}
+                          onClick={startFirstZoneFlow}
                           disabled={createLocationMutation.isPending}
                         >
                           <Plus className="h-3.5 w-3.5" />
@@ -1531,14 +1527,7 @@ const PatientDetail = () => {
                           <Button
                             size="sm"
                             className="mt-4 gap-1.5"
-                            onClick={() => {
-                              createLocationMutation.mutate({
-                                name: "Zone 1",
-                                x: 0, y: 0,
-                                view: "front",
-                                type: "overview",
-                              });
-                            }}
+                            onClick={startFirstZoneFlow}
                             disabled={createLocationMutation.isPending}
                           >
                             <Plus className="h-3.5 w-3.5" />
