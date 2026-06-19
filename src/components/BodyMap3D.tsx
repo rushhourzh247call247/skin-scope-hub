@@ -1428,26 +1428,30 @@ const BodyMap3D: React.FC<BodyMap3DProps> = (props) => {
     if (props.isPlacementMode) return null;
     if (resetCounter > 0 && activeRegion === "full") return null;
     if (props.selectedLocationId == null) return null;
-    const marker = props.markers.find((m) => m.id === props.selectedLocationId);
-    if (!marker) return null;
 
     const toFiniteNumber = (value: unknown): number | null => {
       const parsed = typeof value === "number" ? value : Number(value);
       return Number.isFinite(parsed) ? parsed : null;
     };
 
+    // Try spot markers first, then fall back to zone overlays
+    const marker = props.markers.find((m) => m.id === props.selectedLocationId);
+    const zone = !marker ? props.zoneOverlays?.find((z) => z.id === props.selectedLocationId) : null;
+    const target = marker ?? zone;
+    if (!target) return null;
+
     // Use stored 3D coords if available, otherwise approximate from 2D
     let pos3d: [number, number, number];
-    const view = marker.view ?? "front";
-    const x3d = toFiniteNumber(marker.x3d);
-    const y3d = toFiniteNumber(marker.y3d);
-    const z3d = toFiniteNumber(marker.z3d);
+    const view = target.view ?? "front";
+    const x3d = toFiniteNumber(target.x3d);
+    const y3d = toFiniteNumber(target.y3d);
+    const z3d = toFiniteNumber(target.z3d);
 
     if (x3d != null && y3d != null && z3d != null) {
       pos3d = [x3d, y3d, z3d];
     } else {
-      const x2d = toFiniteNumber(marker.x);
-      const y2d = toFiniteNumber(marker.y);
+      const x2d = toFiniteNumber((target as any).x);
+      const y2d = toFiniteNumber((target as any).y);
       if (x2d == null || y2d == null) {
         return null;
       }
@@ -1456,9 +1460,9 @@ const BodyMap3D: React.FC<BodyMap3DProps> = (props) => {
 
     const zDir = view === "back" ? -1 : 1;
     const rawNormal = new THREE.Vector3(
-      toFiniteNumber(marker.nx) ?? 0,
-      toFiniteNumber(marker.ny) ?? 0,
-      toFiniteNumber(marker.nz) ?? 0,
+      toFiniteNumber(target.nx) ?? 0,
+      toFiniteNumber(target.ny) ?? 0,
+      toFiniteNumber(target.nz) ?? 0,
     );
     const normal = rawNormal.lengthSq() > 0.0001
       ? rawNormal.normalize()
@@ -1471,11 +1475,11 @@ const BodyMap3D: React.FC<BodyMap3DProps> = (props) => {
         pos3d[2] + normal.z * 1.2,
       ] as [number, number, number],
       target: [pos3d[0], pos3d[1], pos3d[2]] as [number, number, number],
-      label: "Spot-Fokus",
+      label: zone ? "Zone-Fokus" : "Spot-Fokus",
       icon: MapPin,
     };
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [props.isPlacementMode, props.selectedLocationId, props.markers, resetCounter, activeRegion, focusKey]);
+  }, [props.isPlacementMode, props.selectedLocationId, props.markers, props.zoneOverlays, resetCounter, activeRegion, focusKey]);
 
   const preset = placementPreset ?? selectedMarkerPreset ?? CAMERA_PRESETS[activeRegion];
 
