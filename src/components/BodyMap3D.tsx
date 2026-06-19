@@ -228,7 +228,8 @@ const SpotMarker = React.forwardRef<THREE.Group, SpotMarkerProps>(function SpotM
   });
 
   const baseColor = classificationColor || "#64748b";
-  const color = isSelected ? "#0ea5e9" : hovered ? baseColor : baseColor;
+  const color = isSelected ? "#0891b2" : hovered ? baseColor : baseColor;
+
 
   const armLen = isSelected ? 0.022 : 0.016;
   const armThick = isSelected ? 0.003 : 0.002;
