@@ -1,6 +1,6 @@
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
-import { ArrowLeft, MapPin, Camera, FileDown, ClipboardList, Eye, MapPinned, CameraIcon } from "lucide-react";
+import { ArrowLeft, MapPin, Camera, ClipboardList, Eye, MapPinned, CameraIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
