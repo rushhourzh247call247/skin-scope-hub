@@ -92,6 +92,11 @@ const OverviewPhoto = ({ overviewLocation, spotLocations, patientId, onNavigateT
 
   // Keyboard navigation for lightbox
   useEffect(() => {
+    onPinModeChange?.(pinMode);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [pinMode]);
+
+  useEffect(() => {
     if (zoomedGallery.length === 0) return;
     const handler = (e: KeyboardEvent) => {
       if (e.key === "ArrowLeft") setZoomedIndex(i => (i - 1 + zoomedGallery.length) % zoomedGallery.length);
