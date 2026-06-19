@@ -1599,7 +1599,39 @@ const PatientDetail = () => {
         {/* Center + Right: Content */}
         <div ref={detailContentRef} className="flex-1 overflow-y-auto p-3 lg:p-6 pb-20 lg:pb-6 scroll-mt-2">
           <AnimatePresence mode="wait">
-            {isEmptyPatient ? (
+            {pendingZoneName ? (
+              <motion.div
+                key="placing-zone"
+                initial={{ opacity: 0, y: 8 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -8 }}
+                transition={{ duration: 0.15 }}
+                className="flex min-h-[55vh] items-center justify-center"
+              >
+                <div className="w-full max-w-md rounded-lg border-2 border-dashed border-primary/40 bg-primary/5 p-6 text-center">
+                  <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-primary/10 text-primary">
+                    <MapPin className="h-7 w-7 animate-pulse" />
+                  </div>
+                  <h2 className="text-lg font-semibold text-foreground">
+                    Zone platzieren
+                  </h2>
+                  <p className="mt-2 text-sm text-muted-foreground">
+                    Klicken Sie auf dem 3D-Body links die exakte Stelle für „{translateAnatomyName(pendingZoneName)}" an.
+                  </p>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="mt-4 gap-1.5"
+                    onClick={() => {
+                      setPendingZoneName(null);
+                      setCancelMarkModeNonce(Date.now());
+                    }}
+                  >
+                    <X className="h-3.5 w-3.5" /> Abbrechen
+                  </Button>
+                </div>
+              </motion.div>
+            ) : isEmptyPatient ? (
               <motion.div
                 key="guided-start"
                 initial={{ opacity: 0, y: 8 }}
