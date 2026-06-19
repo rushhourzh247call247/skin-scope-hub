@@ -566,7 +566,7 @@ const PatientDetail = () => {
     setActiveTab("spots");
     setMobileMapExpanded(true);
     setZoneCreatorOpen(true);
-    toast.info(t('patientDetail.guidedStartToast'));
+    toast.info(overviewLocations.length === 0 ? t('patientDetail.guidedStartToast') : 'Neue Zone: Körperteil wählen und Position auf dem Body markieren.');
   };
 
   const handleMapClick = (
