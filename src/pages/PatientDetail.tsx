@@ -1179,11 +1179,12 @@ const PatientDetail = () => {
                   <p className="text-[11px] font-medium text-green-700 dark:text-green-400">
                     {t('patientDetail.zonePositionChosen', { defaultValue: 'Position gewählt — Marker bei Bedarf noch verschieben, danach speichern.' })}
                   </p>
-                  <div className="flex items-center justify-between gap-2">
-                    <div className="min-w-0 text-[11px] text-muted-foreground">
-                      <p className="font-medium text-foreground">{pendingZonePhoto ? pendingZonePhoto.name : t('overviewPhoto.noOverviewPhoto')}</p>
-                      <p>{t('overviewPhoto.uploadDescription')}</p>
-                    </div>
+                  <div className="flex items-center justify-end gap-2">
+                    {pendingZonePhoto && (
+                      <span className="text-[11px] text-green-700 dark:text-green-400 mr-auto">
+                        ✓ {t('overviewPhoto.photoReady', { defaultValue: 'Foto bereit' })}
+                      </span>
+                    )}
                     <Button type="button" size="sm" variant="outline" className="h-8 shrink-0 gap-1.5 text-xs" onClick={() => pendingZoneFileRef.current?.click()}>
                       <Upload className="h-3.5 w-3.5" /> {t('overviewPhoto.uploadPhoto')}
                     </Button>
