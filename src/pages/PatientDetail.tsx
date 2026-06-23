@@ -588,14 +588,23 @@ const PatientDetail = () => {
     setSelectedLocationId(null);
     setMapClickDialog(null);
     setLocationName("");
+    setPendingZoneName(null);
     setPendingZonePhoto(null);
     setZoneFromSpotId(null);
+    setZoneCreatorOpen(false);
     setSidebarTab("zones");
-    setActiveTab("spots");
+    setActiveTab("uebersicht");
     setMobileMapExpanded(true);
-    setZoneCreatorOpen(true);
-    toast.info(overviewLocations.length === 0 ? t('patientDetail.guidedStartToast') : t('patientDetail.newZoneStartToast', { defaultValue: 'Neue Zone: Körperteil wählen und Position auf dem Body markieren.' }));
+    // Direkt in den Zonen-Markier-Modus auf der 3D-Puppe.
+    setRequestedMarkType({ type: "zone", nonce: Date.now() });
+    toast.info(t('patientDetail.zoneClickBodyHint', { defaultValue: 'Klicken Sie auf dem 3D-Body die Stelle für die neue Zone. Der Pin lässt sich vor dem Speichern noch verschieben.' }));
+    requestAnimationFrame(() => {
+      setTimeout(() => {
+        bodyMapRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+      }, 50);
+    });
   };
+
 
   // Variant: create a zone for the currently selected spot.
   // We reuse the spot's existing 3D coordinates (no re-marking on the body)
