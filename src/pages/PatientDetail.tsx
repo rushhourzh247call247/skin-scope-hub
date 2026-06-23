@@ -275,6 +275,7 @@ const PatientDetail = () => {
       toast.error(t('imageGallery.noteError'));
     });
     if (zoneFileRef.current) zoneFileRef.current.value = "";
+    if (zoneCameraRef.current) zoneCameraRef.current.value = "";
   };
 
   const handlePendingZonePhotoSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
