@@ -742,10 +742,11 @@ const PatientDetail = () => {
     const isRegion = mapClickDialog.markType === "region";
     const isZone = mapClickDialog.markType === "zone";
 
+    const zoneAnatomy = pendingZoneName || locationName.trim();
     createLocationMutation.mutate({
       name: isZone
-        ? (pendingZoneName
-            ? `Zone ${overviewLocations.length + 1} – ${pendingZoneName}`
+        ? (zoneAnatomy
+            ? `Zone ${overviewLocations.length + 1} – ${zoneAnatomy}`
             : `Zone ${overviewLocations.length + 1}`)
         : (locationName.trim() || undefined),
       x: mapClickDialog.x,
