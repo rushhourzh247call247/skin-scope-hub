@@ -113,6 +113,7 @@ const PatientDetail = () => {
   const [pdfDialogOpen, setPdfDialogOpen] = useState(false);
   const [newlyCreatedZoneId, setNewlyCreatedZoneId] = useState<number | null>(null);
   const zoneFileRef = useRef<HTMLInputElement>(null);
+  const zoneCameraRef = useRef<HTMLInputElement>(null);
   const pendingZoneFileRef = useRef<HTMLInputElement>(null);
   const bodyMapRef = useRef<HTMLDivElement>(null);
   const detailContentRef = useRef<HTMLDivElement>(null);
@@ -274,6 +275,7 @@ const PatientDetail = () => {
       toast.error(t('imageGallery.noteError'));
     });
     if (zoneFileRef.current) zoneFileRef.current.value = "";
+    if (zoneCameraRef.current) zoneCameraRef.current.value = "";
   };
 
   const handlePendingZonePhotoSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -586,14 +588,23 @@ const PatientDetail = () => {
     setSelectedLocationId(null);
     setMapClickDialog(null);
     setLocationName("");
+    setPendingZoneName(null);
     setPendingZonePhoto(null);
     setZoneFromSpotId(null);
+    setZoneCreatorOpen(false);
     setSidebarTab("zones");
-    setActiveTab("spots");
+    setActiveTab("uebersicht");
     setMobileMapExpanded(true);
-    setZoneCreatorOpen(true);
-    toast.info(overviewLocations.length === 0 ? t('patientDetail.guidedStartToast') : t('patientDetail.newZoneStartToast', { defaultValue: 'Neue Zone: Körperteil wählen und Position auf dem Body markieren.' }));
+    // Direkt in den Zonen-Markier-Modus auf der 3D-Puppe.
+    setRequestedMarkType({ type: "zone", nonce: Date.now() });
+    toast.info(t('patientDetail.zoneClickBodyHint', { defaultValue: 'Klicken Sie auf dem 3D-Body die Stelle für die neue Zone. Der Pin lässt sich vor dem Speichern noch verschieben.' }));
+    requestAnimationFrame(() => {
+      setTimeout(() => {
+        bodyMapRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+      }, 50);
+    });
   };
+
 
   // Variant: create a zone for the currently selected spot.
   // We reuse the spot's existing 3D coordinates (no re-marking on the body)
@@ -731,10 +742,11 @@ const PatientDetail = () => {
     const isRegion = mapClickDialog.markType === "region";
     const isZone = mapClickDialog.markType === "zone";
 
+    const zoneAnatomy = pendingZoneName || locationName.trim();
     createLocationMutation.mutate({
       name: isZone
-        ? (pendingZoneName
-            ? `Zone ${overviewLocations.length + 1} – ${pendingZoneName}`
+        ? (zoneAnatomy
+            ? `Zone ${overviewLocations.length + 1} – ${zoneAnatomy}`
             : `Zone ${overviewLocations.length + 1}`)
         : (locationName.trim() || undefined),
       x: mapClickDialog.x,
@@ -1250,12 +1262,12 @@ const PatientDetail = () => {
                 </div>
               )}
 
-              {mapClickDialog.markType !== "zone" && (
+              {mapClickDialog.markType !== "region" && (
               <div className="space-y-1.5">
-                <Label className="text-[10px]">{t('patientDetail.label')}</Label>
+                <Label className="text-[10px]">{mapClickDialog.markType === "zone" ? t('patientDetail.zoneName', { defaultValue: 'Zonen-Name' }) : t('patientDetail.label')}</Label>
                 {(() => {
                   const neighbors = getNeighborZones(locationName);
-                  const options = locationName 
+                  const options = locationName
                     ? [locationName, ...neighbors.filter(n => n !== locationName)]
                     : [...ANATOMICAL_ZONES];
                   return (
@@ -1271,6 +1283,11 @@ const PatientDetail = () => {
                     </select>
                   );
                 })()}
+                {mapClickDialog.markType === "zone" && (
+                  <p className="text-[10px] text-muted-foreground">
+                    {t('patientDetail.zoneDragHint', { defaultValue: 'Pin auf dem Body verschieben, dann speichern.' })}
+                  </p>
+                )}
               </div>
               )}
               <Button className="w-full h-8 text-xs" onClick={handleCreateLocation} disabled={createLocationMutation.isPending}>
@@ -1343,6 +1360,7 @@ const PatientDetail = () => {
                         <span className="text-[10px] text-muted-foreground shrink-0">{spotCount} {spotCount === 1 ? "Spot" : "Spots"}</span>
                       </button>
                       <div className="flex shrink-0 items-center gap-0.5 opacity-100 transition-opacity sm:opacity-0 sm:group-hover:opacity-100">
+                        <button disabled={isReadOnly} onClick={(e) => { e.stopPropagation(); setZoneUploadTargetId(loc.id); setTimeout(() => zoneCameraRef.current?.click(), 0); }} className="h-5 w-5 rounded flex items-center justify-center hover:bg-muted-foreground/10 text-muted-foreground hover:text-foreground disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:bg-transparent" title={isReadOnly ? readOnlyTooltip : t('imageGallery.takePhoto', { defaultValue: 'Foto aufnehmen' })}><Camera className="h-3 w-3" /></button>
                         <button disabled={isReadOnly} onClick={(e) => { e.stopPropagation(); setZoneUploadTargetId(loc.id); setTimeout(() => zoneFileRef.current?.click(), 0); }} className="h-5 w-5 rounded flex items-center justify-center hover:bg-muted-foreground/10 text-muted-foreground hover:text-foreground disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:bg-transparent" title={isReadOnly ? readOnlyTooltip : t('imageGallery.uploadImage')}><Upload className="h-3 w-3" /></button>
                         <button disabled={isReadOnly} onClick={(e) => { e.stopPropagation(); setQrLocationId(loc.id); setQrDialogOpen(true); }} className="h-5 w-5 rounded flex items-center justify-center hover:bg-muted-foreground/10 text-muted-foreground hover:text-foreground disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:bg-transparent" title={isReadOnly ? readOnlyTooltip : t('patientDetail.uploadFromPhone')}><QrCode className="h-3 w-3" /></button>
                         <button disabled={isReadOnly} onClick={(e) => { e.stopPropagation(); setDeleteConfirmId(loc.id); }} className="h-5 w-5 rounded flex items-center justify-center hover:bg-destructive/10 text-muted-foreground hover:text-destructive disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:bg-transparent" title={isReadOnly ? readOnlyTooltip : t('common.delete')}><Trash2 className="h-3 w-3" /></button>
@@ -1599,6 +1617,7 @@ const PatientDetail = () => {
 
       {/* Hidden file input for zone sidebar upload */}
       <input ref={zoneFileRef} type="file" accept="image/*" className="hidden" onChange={handleZoneSidebarUpload} />
+      <input ref={zoneCameraRef} type="file" accept="image/*" capture="environment" className="hidden" onChange={handleZoneSidebarUpload} />
 
         {/* Center + Right: Content */}
         <div ref={detailContentRef} className="flex-1 overflow-y-auto p-3 lg:p-6 pb-20 lg:pb-6 scroll-mt-2">
