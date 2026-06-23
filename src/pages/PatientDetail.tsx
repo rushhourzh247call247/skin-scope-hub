@@ -1262,12 +1262,12 @@ const PatientDetail = () => {
                 </div>
               )}
 
-              {mapClickDialog.markType !== "zone" && (
+              {mapClickDialog.markType !== "region" && (
               <div className="space-y-1.5">
-                <Label className="text-[10px]">{t('patientDetail.label')}</Label>
+                <Label className="text-[10px]">{mapClickDialog.markType === "zone" ? t('patientDetail.zoneName', { defaultValue: 'Zonen-Name' }) : t('patientDetail.label')}</Label>
                 {(() => {
                   const neighbors = getNeighborZones(locationName);
-                  const options = locationName 
+                  const options = locationName
                     ? [locationName, ...neighbors.filter(n => n !== locationName)]
                     : [...ANATOMICAL_ZONES];
                   return (
@@ -1283,6 +1283,11 @@ const PatientDetail = () => {
                     </select>
                   );
                 })()}
+                {mapClickDialog.markType === "zone" && (
+                  <p className="text-[10px] text-muted-foreground">
+                    {t('patientDetail.zoneDragHint', { defaultValue: 'Pin auf dem Body verschieben, dann speichern.' })}
+                  </p>
+                )}
               </div>
               )}
               <Button className="w-full h-8 text-xs" onClick={handleCreateLocation} disabled={createLocationMutation.isPending}>
