@@ -70,6 +70,7 @@ export function PatientHomeScreen() {
   const pinSurfaceRef = useRef<HTMLDivElement | null>(null);
   const pinLongPressTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const tapStartRef = useRef<{ x: number; y: number; t: number } | null>(null);
+  const suppressClickRef = useRef(false);
   const queryClient = useQueryClient();
 
 
@@ -165,12 +166,28 @@ export function PatientHomeScreen() {
     }
   };
 
+  const nextFreeLNumber = () => {
+    const used = new Set<number>();
+    for (const s of spots) {
+      const m = /^L\s*(\d+)$/i.exec((s.name ?? "").trim());
+      if (m) used.add(Number(m[1]));
+    }
+    for (const pins of Object.values(zonePinsMap)) {
+      for (const p of pins) {
+        const m = /^L?\s*(\d+)$/i.exec((p.label ?? "").trim());
+        if (m) used.add(Number(m[1]));
+      }
+    }
+    let n = 1;
+    while (used.has(n)) n++;
+    return n;
+  };
+
   const createPinAt = async (zone: Location, xPct: number, yPct: number) => {
     if (creatingPin) return;
     setCreatingPin(true);
     try {
-      const existingPins = zonePinsMap[zone.id] ?? [];
-      const nextNum = (existingPins.length + spots.length) || 1;
+      const nextNum = nextFreeLNumber();
       const spot = await api.createLocation(patientId, {
         name: `L${nextNum}`,
         x: zone.x ?? 0,
@@ -192,7 +209,7 @@ export function PatientHomeScreen() {
       tapHaptic();
       await refreshZonePins(zone.id);
       queryClient.invalidateQueries({ queryKey: ["full-patient", patientId] });
-      toast({ title: "Marker gesetzt" });
+      toast({ title: "Marker gesetzt", description: `L${nextNum}` });
     } catch (e: any) {
       toast({ title: "Fehler", description: e?.message ?? "Marker konnte nicht gesetzt werden.", variant: "destructive" });
     } finally {
@@ -216,23 +233,24 @@ export function PatientHomeScreen() {
     void createPinAt(zone, x, y);
   };
 
-  const TRASH_HIT_PX = 140;
+  const TRASH_HIT_PX = 220;
   const isOverTrash = (clientY: number) => clientY > window.innerHeight - TRASH_HIT_PX;
 
   const startPinDrag = (pin: OverviewPin, e: React.PointerEvent<HTMLButtonElement>) => {
-    (e.target as HTMLElement).setPointerCapture(e.pointerId);
+    (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
     pinLongPressTimer.current = setTimeout(() => {
       tapHaptic();
       setPinDrag({ pinId: pin.id, x: clampPct(pin.x_pct), y: clampPct(pin.y_pct), overTrash: false });
     }, 280);
   };
 
-  const movePinDrag = (e: React.PointerEvent<HTMLButtonElement>) => {
+  const movePinDrag = (e: React.PointerEvent<HTMLElement>) => {
     if (!pinDrag) return;
     const rect = pinSurfaceRef.current?.getBoundingClientRect();
     if (!rect) return;
-    const x = Math.max(0, Math.min(100, ((e.clientX - rect.left) / rect.width) * 100));
-    const y = Math.max(0, Math.min(100, ((e.clientY - rect.top) / rect.height) * 100));
+    // Don't clamp — let pin follow finger anywhere, even outside image.
+    const x = ((e.clientX - rect.left) / rect.width) * 100;
+    const y = ((e.clientY - rect.top) / rect.height) * 100;
     setPinDrag({ pinId: pinDrag.pinId, x, y, overTrash: isOverTrash(e.clientY) });
   };
 
@@ -244,6 +262,8 @@ export function PatientHomeScreen() {
     if (!pinDrag || pinDrag.pinId !== pin.id) return;
     const drag = pinDrag;
     setPinDrag(null);
+    suppressClickRef.current = true;
+    setTimeout(() => { suppressClickRef.current = false; }, 350);
     const zoneId = viewer?.loc.id;
     if (drag.overTrash || isOverTrash(e.clientY)) {
       try {
@@ -255,8 +275,11 @@ export function PatientHomeScreen() {
       }
       return;
     }
+    // Clamp to image bounds when saving position
+    const saveX = Math.max(0, Math.min(100, drag.x));
+    const saveY = Math.max(0, Math.min(100, drag.y));
     try {
-      await api.updateOverviewPin(pin.id, { x_pct: drag.x, y_pct: drag.y, label: pin.label });
+      await api.updateOverviewPin(pin.id, { x_pct: saveX, y_pct: saveY, label: pin.label });
       if (zoneId) await refreshZonePins(zoneId);
     } catch (err: any) {
       toast({ title: "Fehler", description: err?.message ?? "Verschieben fehlgeschlagen.", variant: "destructive" });
@@ -314,7 +337,7 @@ export function PatientHomeScreen() {
                   }}
                   onClick={(e) => {
                     e.stopPropagation();
-                    if (pinDrag) return;
+                    if (pinDrag || suppressClickRef.current) return;
                     openLinkedSpot(pin);
                   }}
                   className={`pointer-events-auto relative flex items-center gap-1.5 transition-transform ${
