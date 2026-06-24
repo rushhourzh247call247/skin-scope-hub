@@ -1071,6 +1071,29 @@ export function PatientHomeScreen() {
           </div>
         );
       })()}
+
+      {overlayCapture && (
+        <CameraOverlayCapture
+          referenceSrc={overlayCapture.referenceSrc}
+          title={
+            patient
+              ? patient.name?.trim() ||
+                `${patient.first_name ?? ""} ${patient.last_name ?? ""}`.trim()
+              : overlayCapture.spot.name ?? `L${overlayCapture.spot.id}`
+          }
+          subtitle={
+            patient?.patient_number
+              ? `ID ${patient.patient_number}`
+              : overlayCapture.spot.name ?? `L${overlayCapture.spot.id}`
+          }
+          onCancel={() => setOverlayCapture(null)}
+          onCapture={async (file) => {
+            const spot = overlayCapture.spot;
+            setOverlayCapture(null);
+            await uploadLesionFile(spot, file);
+          }}
+        />
+      )}
     </>
   );
 }
