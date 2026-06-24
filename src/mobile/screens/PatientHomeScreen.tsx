@@ -186,9 +186,9 @@ export function PatientHomeScreen() {
           <div className="mt-5 grid grid-cols-3 border-b border-border/80">
             {(
               [
-                ["all", `Alle (${locations.length})`],
-                ["zone", `Zonen (${zones.length})`],
-                ["spot", `Spots (${spots.length})`],
+                ["all", `Alle (${zones.length})`],
+                ["clinical", `Klinische (${zones.length})`],
+                ["lesion", `Läsion (${spots.length})`],
               ] as const
             ).map(([key, label]) => (
               <button
@@ -197,7 +197,7 @@ export function PatientHomeScreen() {
                   tapHaptic();
                   setTab(key);
                 }}
-                className={`px-1 py-4 text-lg transition-colors ${
+                className={`px-1 py-4 text-base transition-colors ${
                   tab === key
                     ? "border-b-2 border-primary text-foreground"
                     : "text-muted-foreground"
@@ -207,6 +207,7 @@ export function PatientHomeScreen() {
               </button>
             ))}
           </div>
+
 
 
           <div className="mt-5 flex gap-3">
