@@ -20,6 +20,7 @@ export function MobileApp() {
         <Routes>
           <Route index element={<Navigate to="patients" replace />} />
           <Route path="patients" element={<PatientListScreen />} />
+          <Route path="patients/new" element={<NewPatientScreen />} />
           <Route
             path="patients/:id"
             element={<PatientHomeScreen />}
