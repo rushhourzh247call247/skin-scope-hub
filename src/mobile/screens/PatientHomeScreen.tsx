@@ -485,7 +485,11 @@ export function PatientHomeScreen() {
             {/* Image stage */}
             <div
               ref={stageRef}
-              className="relative mx-4 flex flex-1 items-center justify-center overflow-hidden rounded-[20px] bg-secondary"
+              className={
+                isFullscreen
+                  ? "fixed inset-0 z-[60] flex items-center justify-center overflow-hidden bg-black"
+                  : "relative mx-4 flex flex-1 items-center justify-center overflow-hidden rounded-[20px] bg-secondary"
+              }
             >
               {src ? (
                 <div
