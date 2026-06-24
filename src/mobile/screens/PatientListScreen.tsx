@@ -141,14 +141,14 @@ export function PatientListScreen() {
                     </div>
                     <div className="mt-1 truncate text-xs text-muted-foreground">
                       {p.patient_number ? `ID ${p.patient_number}` : null}
-                      {p.birthdate && age(p.birthdate) !== null
+                      {p.birth_date && age(p.birth_date) !== null
                         ? `${p.patient_number ? " | " : ""}${new Date(
-                            p.birthdate,
+                            p.birth_date,
                           ).toLocaleDateString("de-CH", {
                             day: "2-digit",
                             month: "short",
                             year: "numeric",
-                          })} (${age(p.birthdate)})`
+                          })} (${age(p.birth_date)})`
                         : null}
                     </div>
                   </div>
