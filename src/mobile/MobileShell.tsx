@@ -8,7 +8,7 @@ import { Outlet } from "react-router-dom";
  */
 export function MobileShell({ children }: { children?: ReactNode }) {
   return (
-    <div className="dark min-h-[100dvh] bg-background text-foreground antialiased">
+    <div className="dark min-h-[100dvh] w-full max-w-full overflow-x-hidden bg-background text-foreground antialiased">
       <div
         className="min-h-[100dvh] flex flex-col"
         style={{

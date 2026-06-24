@@ -140,7 +140,7 @@ export function NewPatientScreen() {
   };
 
   return (
-    <form onSubmit={handleSubmit} className="flex min-h-[100dvh] flex-col">
+    <form onSubmit={handleSubmit} className="flex min-h-[100dvh] w-full max-w-full flex-col overflow-x-hidden">
       <MobileHeader
         to="/m/patients"
         largeTitle={
@@ -254,11 +254,6 @@ export function NewPatientScreen() {
           </Field>
         </Section>
 
-        <Section title="Marketing-Informationen">
-          <p className="text-sm text-muted-foreground">
-            Weitere Marketing-Felder folgen in einem späteren Update.
-          </p>
-        </Section>
       </main>
 
       <div
