@@ -189,25 +189,16 @@ export function PatientHomeScreen() {
           </div>
         </section>
 
-        {photos === null && !error && !backendMissing && (
+        {isLoading && (
           <div className="flex items-center justify-center py-10 text-muted-foreground">
             <Loader2 className="mr-2 h-5 w-5 animate-spin" /> Lade…
           </div>
         )}
 
-        {backendMissing && (
-          <div className="mt-4 flex items-start gap-2 rounded-[20px] border border-amber-500/40 bg-amber-500/10 p-4 text-sm">
-            <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />
-            <span>
-              Backend (<code>/api/m</code>) ist auf diesem Server noch nicht aktiviert.
-            </span>
-          </div>
-        )}
-
-        {error && !backendMissing && (
+        {error && (
           <div className="mt-4 flex items-start gap-2 rounded-[20px] border border-destructive/40 bg-destructive/10 p-4 text-sm">
             <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />
-            <span>{error}</span>
+            <span>{(error as Error)?.message ?? "Daten konnten nicht geladen werden."}</span>
           </div>
         )}
 
@@ -231,12 +222,13 @@ export function PatientHomeScreen() {
           </section>
         )}
 
-        {tiles.length === 0 && photos && lesions && !backendMissing && (
+        {!isLoading && !error && tiles.length === 0 && (
           <div className="py-16 text-center text-sm text-muted-foreground">
-            Noch keine Aufnahmen. Tippen Sie auf „Neu“ für ein klinisches Foto.
+            Noch keine {tab === "zone" ? "Zonen" : tab === "spot" ? "Spots" : "Einträge"}. Tippen Sie auf „Neu“.
           </div>
         )}
       </main>
+
 
       <div
         className="fixed inset-x-0 bottom-0 border-t border-border bg-background/95 px-4 pb-4 pt-3 backdrop-blur"
