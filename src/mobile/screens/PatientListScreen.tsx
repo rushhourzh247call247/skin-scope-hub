@@ -110,23 +110,36 @@ export function PatientListScreen() {
           </div>
         )}
 
-        <ul className="mt-5 space-y-4">
-          {filtered.map((p) => (
+        <ul className="mt-6 space-y-3">
+          {filtered.map((p) => {
+            const sym = genderSymbol(p.gender);
+            const isFemale = sym === "♀";
+            const isMale = sym === "♂";
+            return (
             <li key={p.id}>
               <Link
                 to={`/m/patients/${p.id}`}
                 onClick={() => tapHaptic()}
-                className="block rounded-[20px] border border-border bg-background px-5 py-5 shadow-sm active:opacity-80"
+                className="block rounded-2xl border border-border/60 bg-card/40 px-4 py-3.5 active:opacity-80"
               >
-                <div className="flex items-center gap-4">
-                  <span className="text-4xl leading-none text-primary">
-                    {genderSymbol(p.gender)}
+                <div className="flex items-center gap-3">
+                  <span
+                    className="text-2xl leading-none"
+                    style={{
+                      color: isFemale
+                        ? "hsl(330 75% 60%)"
+                        : isMale
+                        ? "hsl(210 80% 60%)"
+                        : "hsl(var(--muted-foreground))",
+                    }}
+                  >
+                    {sym}
                   </span>
                   <div className="min-w-0">
-                    <div className="truncate text-[1.85rem] font-semibold leading-none tracking-normal">
+                    <div className="truncate text-base font-semibold leading-tight">
                       {p.first_name} {p.last_name}
                     </div>
-                    <div className="mt-3 truncate text-base text-muted-foreground">
+                    <div className="mt-1 truncate text-xs text-muted-foreground">
                       {p.patient_number ? `ID ${p.patient_number}` : null}
                       {p.birthdate && age(p.birthdate) !== null
                         ? `${p.patient_number ? " | " : ""}${new Date(
@@ -142,7 +155,9 @@ export function PatientListScreen() {
                 </div>
               </Link>
             </li>
-          ))}
+            );
+          })}
+
 
           {patients && patients.length === 0 && (
             <li className="py-10 text-center text-sm text-muted-foreground">
