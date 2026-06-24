@@ -89,7 +89,7 @@ export function PatientHomeScreen() {
       >
         {img ? (
           <img
-            src={buildImageUrl(img)}
+            src={img}
             alt={loc.name ?? (zone ? "Zone" : "Spot")}
             loading="lazy"
             className="absolute inset-0 h-full w-full object-cover"
