@@ -2,6 +2,7 @@ import { Navigate, Route, Routes } from "react-router-dom";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import { MobileShell } from "./MobileShell";
 import { PatientListScreen } from "./screens/PatientListScreen";
+import { NewPatientScreen } from "./screens/NewPatientScreen";
 import { PatientHomeScreen } from "./screens/PatientHomeScreen";
 import { ClinicalCaptureScreen } from "./screens/ClinicalCaptureScreen";
 import { MarkerEditorScreen } from "./screens/MarkerEditorScreen";
@@ -19,6 +20,7 @@ export function MobileApp() {
         <Routes>
           <Route index element={<Navigate to="patients" replace />} />
           <Route path="patients" element={<PatientListScreen />} />
+          <Route path="patients/new" element={<NewPatientScreen />} />
           <Route
             path="patients/:id"
             element={<PatientHomeScreen />}

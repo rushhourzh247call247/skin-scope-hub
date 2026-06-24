@@ -91,7 +91,7 @@ export function PatientListScreen() {
         <button
           onClick={() => {
             tapHaptic();
-            navigate("/new-patient");
+            navigate("/m/patients/new");
           }}
           className="mt-3 flex w-full items-center gap-3 rounded-2xl bg-secondary/60 px-4 py-3.5 text-left active:opacity-80"
         >
