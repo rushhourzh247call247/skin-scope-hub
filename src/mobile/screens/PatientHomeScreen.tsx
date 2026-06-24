@@ -27,6 +27,7 @@ import { api } from "@/lib/api";
 
 import { tapHaptic } from "../native/haptics";
 import { compressImage, takePhoto } from "../native/camera";
+import { CameraOverlayCapture } from "../components/CameraOverlayCapture";
 import type { Location, LocationImage, OverviewPin } from "@/types/patient";
 
 
