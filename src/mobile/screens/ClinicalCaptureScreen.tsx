@@ -1,16 +1,13 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { Camera, Loader2, RotateCcw, Check } from "lucide-react";
+import { Loader2, RotateCcw, Check, Camera, Accessibility, Search } from "lucide-react";
 import { MobileHeader } from "../components/MobileHeader";
 import { compressImage, takePhoto, type CapturedPhoto } from "../native/camera";
 import { uploadClinicalPhoto, MobileApiError } from "../api";
 import { successHaptic, tapHaptic } from "../native/haptics";
 
 /**
- * ClinicalCaptureScreen – DermLite-artiger, möglichst klickarmer Flow:
- *   Öffnen → Kamera springt sofort auf → Foto → Vorschau → Speichern
- *
- * Nach Speichern: direkt weiter in den Marker-Editor.
+ * Bildfokussierter Capture-Flow in DermLite-Anmutung.
  */
 export function ClinicalCaptureScreen() {
   const { id } = useParams<{ id: string }>();
@@ -21,7 +18,6 @@ export function ClinicalCaptureScreen() {
   const [uploading, setUploading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // Kamera direkt beim Öffnen starten – minimiert Klicks
   useEffect(() => {
     let cancelled = false;
     (async () => {
@@ -77,63 +73,106 @@ export function ClinicalCaptureScreen() {
 
   return (
     <>
-      <MobileHeader onClick={() => navigate(-1)} title="Klinisches Foto" />
+      <MobileHeader onClick={() => navigate(-1)} />
 
-      <main className="flex-1 flex flex-col px-4 pb-32">
+      <main className="flex-1 px-4 pb-32">
         {!captured && (
-          <div className="flex-1 flex items-center justify-center text-muted-foreground">
-            <Loader2 className="h-5 w-5 animate-spin mr-2" />
+          <div className="flex min-h-[60dvh] items-center justify-center text-muted-foreground">
+            <Loader2 className="mr-2 h-5 w-5 animate-spin" />
             Kamera wird geöffnet…
           </div>
         )}
 
         {captured && (
-          <div className="flex-1 flex items-center justify-center">
-            <img
-              src={captured.previewUrl}
-              alt="Vorschau"
-              className="max-h-[70dvh] w-full object-contain rounded-xl bg-black"
-            />
-          </div>
+          <>
+            <section className="mb-4 flex items-center gap-3 rounded-[20px] bg-background px-0 py-0">
+              <div className="inline-flex h-[56px] w-[56px] items-center justify-center rounded-[18px] bg-secondary text-foreground">
+                <Camera className="h-6 w-6" />
+              </div>
+              <div className="min-w-0 flex-1 rounded-[18px] bg-primary/20 px-4 py-3">
+                <div className="truncate text-xl font-semibold tracking-normal">Neues klinisches Foto</div>
+                <div className="text-base text-muted-foreground">Voransicht prüfen und speichern</div>
+              </div>
+            </section>
+
+            <section className="rounded-[24px] bg-card p-3 shadow-sm">
+              <div className="relative overflow-hidden rounded-[22px] bg-secondary">
+                <img
+                  src={captured.previewUrl}
+                  alt="Vorschau"
+                  className="h-[58dvh] w-full object-cover"
+                />
+
+                <div className="absolute bottom-4 right-4 flex flex-col gap-3">
+                  <button
+                    type="button"
+                    className="inline-flex h-14 w-14 items-center justify-center rounded-[18px] bg-card/92 text-foreground shadow-sm"
+                    aria-label="Körperansicht"
+                  >
+                    <Accessibility className="h-6 w-6" />
+                  </button>
+                  <button
+                    type="button"
+                    className="inline-flex h-14 w-14 items-center justify-center rounded-[18px] bg-card/92 text-foreground shadow-sm"
+                    aria-label="Zoom"
+                  >
+                    <Search className="h-6 w-6" />
+                  </button>
+                </div>
+              </div>
+
+              <div className="mt-3 flex items-center gap-3">
+                <div className="relative h-28 w-24 overflow-hidden rounded-[18px] bg-secondary shadow-sm">
+                  <img
+                    src={captured.previewUrl}
+                    alt="Thumbnail"
+                    className="h-full w-full object-cover"
+                  />
+                  <div className="absolute right-2 top-2 inline-flex items-center justify-center rounded-full bg-card px-1.5 py-0.5 text-xs font-semibold text-foreground shadow-sm">
+                    1
+                  </div>
+                </div>
+                <div className="text-sm text-muted-foreground">
+                  Dieses Bild wird nach dem Speichern direkt für Marker und Verlauf verwendet.
+                </div>
+              </div>
+            </section>
+          </>
         )}
 
         {error && (
-          <div className="mt-3 rounded-xl border border-destructive/40 bg-destructive/10 p-3 text-xs">
+          <div className="mt-4 rounded-[20px] border border-destructive/40 bg-destructive/10 p-4 text-sm">
             {error}
           </div>
         )}
       </main>
 
       <div
-        className="fixed inset-x-0 bottom-0 px-4 pb-4 pt-3 bg-background/95 backdrop-blur border-t border-border"
+        className="fixed inset-x-0 bottom-0 border-t border-border bg-background/95 px-4 pb-4 pt-3 backdrop-blur"
         style={{ paddingBottom: "max(env(safe-area-inset-bottom), 1rem)" }}
       >
         <div className="flex gap-3">
           <button
             onClick={retake}
             disabled={uploading}
-            className="flex-1 inline-flex items-center justify-center gap-2 rounded-xl bg-secondary text-foreground py-4 disabled:opacity-50"
+            className="flex-1 inline-flex items-center justify-center gap-2 rounded-[18px] bg-secondary py-4 text-foreground disabled:opacity-50"
           >
             <RotateCcw className="h-5 w-5" />
-            Erneut
+            <span className="text-lg">Erneut</span>
           </button>
           <button
             onClick={save}
             disabled={!captured || uploading}
-            className="flex-[2] inline-flex items-center justify-center gap-2 rounded-xl bg-primary text-primary-foreground py-4 disabled:opacity-50 font-medium"
+            className="flex-1 inline-flex items-center justify-center gap-2 rounded-[18px] bg-primary py-4 font-medium text-primary-foreground disabled:opacity-50"
           >
             {uploading ? (
               <Loader2 className="h-5 w-5 animate-spin" />
             ) : (
               <Check className="h-5 w-5" />
             )}
-            Speichern
+            <span className="text-lg">Speichern</span>
           </button>
         </div>
-        <p className="mt-2 text-center text-[10px] text-muted-foreground">
-          <Camera className="inline h-3 w-3 mr-1" />
-          Nach dem Speichern können Sie Marker auf dem Foto setzen.
-        </p>
       </div>
     </>
   );
