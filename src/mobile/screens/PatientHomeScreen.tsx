@@ -252,7 +252,7 @@ export function PatientHomeScreen() {
       return Array.isArray(out) ? out : [out];
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [tab, zones, spots, locations]);
+  }, [tab, zones, spots, locations, zonePinsMap]);
 
 
 
