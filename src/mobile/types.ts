@@ -46,8 +46,9 @@ export interface LesionAsset {
 
 export interface MobilePatient {
   id: number;
-  first_name: string;
-  last_name: string;
+  name: string;
+  first_name?: string | null;
+  last_name?: string | null;
   patient_number?: string | null;
   birth_date?: string | null;
   gender?: string | null;
