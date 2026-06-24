@@ -904,6 +904,17 @@ export function PatientHomeScreen() {
                 <span className="text-base">Fertig</span>
               </button>
             </div>
+
+            {pinDrag && (
+              <div
+                className={`pointer-events-none fixed inset-x-0 bottom-0 z-[70] flex items-center justify-center transition-colors ${
+                  pinDrag.overTrash ? "bg-destructive/90" : "bg-destructive/40"
+                }`}
+                style={{ height: TRASH_HIT_PX, paddingBottom: "max(env(safe-area-inset-bottom), 0.5rem)" }}
+              >
+                <Trash2 className={`h-7 w-7 ${pinDrag.overTrash ? "text-destructive-foreground scale-110" : "text-foreground/80"} transition-transform`} />
+              </div>
+            )}
           </div>
         );
       })()}
