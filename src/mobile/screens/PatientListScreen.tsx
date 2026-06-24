@@ -63,40 +63,39 @@ export function PatientListScreen() {
     <>
       <MobileHeader to="/" largeTitle="Meine Patienten" />
 
-      <main className="flex-1 px-4 pb-32">
-        <section className="-mt-2 rounded-[26px] bg-card px-4 py-4 shadow-sm">
-          <div className="flex gap-3 mb-4">
-            <label className="flex min-w-0 flex-1 items-center gap-3 rounded-[20px] bg-secondary px-4 py-4">
-              <Search className="h-6 w-6 text-foreground" />
-              <input
-                type="search"
-                placeholder="Suche nach Name oder Patienten-Nr"
-                value={query}
-                onChange={(e) => setQuery(e.target.value)}
-                className="min-w-0 flex-1 bg-transparent text-base outline-none placeholder:text-muted-foreground"
-              />
-            </label>
-
-            <button
-              type="button"
-              className="inline-flex h-[58px] w-[58px] shrink-0 items-center justify-center rounded-[18px] bg-secondary text-foreground active:opacity-80"
-              aria-label="Sortieren"
-            >
-              <ArrowDownWideNarrow className="h-7 w-7" />
-            </button>
-          </div>
+      <main className="flex-1 px-5 pb-32">
+        <div className="mt-4 flex gap-3">
+          <label className="flex min-w-0 flex-1 items-center gap-3 rounded-2xl bg-secondary/60 px-4 py-3.5">
+            <Search className="h-5 w-5 text-muted-foreground" />
+            <input
+              type="search"
+              placeholder="Suche nach Name oder Patienten-Nr"
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              className="min-w-0 flex-1 bg-transparent text-base outline-none placeholder:text-muted-foreground"
+            />
+          </label>
 
           <button
-            onClick={() => {
-              tapHaptic();
-              navigate("/new-patient");
-            }}
-            className="flex w-full items-center gap-4 rounded-[20px] bg-secondary px-5 py-5 text-left active:opacity-80"
+            type="button"
+            className="inline-flex h-[52px] w-[52px] shrink-0 items-center justify-center rounded-2xl bg-secondary/60 text-foreground active:opacity-80"
+            aria-label="Sortieren"
           >
-            <Plus className="h-8 w-8 shrink-0" />
-            <span className="text-lg">Neuer Patient</span>
+            <ArrowDownWideNarrow className="h-5 w-5" />
           </button>
-        </section>
+        </div>
+
+        <button
+          onClick={() => {
+            tapHaptic();
+            navigate("/new-patient");
+          }}
+          className="mt-3 flex w-full items-center gap-3 rounded-2xl bg-secondary/60 px-4 py-3.5 text-left active:opacity-80"
+        >
+          <Plus className="h-6 w-6 shrink-0" />
+          <span className="text-base">Neuer Patient</span>
+        </button>
+
 
         {patients === null && !error && (
           <div className="flex items-center justify-center py-10 text-muted-foreground">
