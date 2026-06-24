@@ -12,12 +12,15 @@ import {
   Accessibility,
   MapPin,
   Image as ImageIcon,
+  X,
+  ChevronLeft,
+  ChevronRight,
 } from "lucide-react";
 import { MobileHeader } from "../components/MobileHeader";
-import { buildImageUrl } from "../api";
 import { api } from "@/lib/api";
 import { tapHaptic } from "../native/haptics";
 import type { Location, LocationImage } from "@/types/patient";
+
 
 type Tab = "all" | "clinical" | "lesion";
 type ViewMode = "list" | "grid" | "body";
@@ -37,6 +40,8 @@ export function PatientHomeScreen() {
 
   const [tab, setTab] = useState<Tab>("all");
   const [viewMode, setViewMode] = useState<ViewMode>("grid");
+  const [viewer, setViewer] = useState<{ loc: Location & { images?: LocationImage[] }; index: number } | null>(null);
+
 
   const { data, isLoading, error } = useQuery<any>({
     queryKey: ["full-patient", patientId],
@@ -67,20 +72,22 @@ export function PatientHomeScreen() {
         })
       : "";
 
+  const openViewer = (loc: Location & { images?: LocationImage[] }, index = 0) => {
+    if (!(loc.images?.length)) return;
+    tapHaptic();
+    setViewer({ loc, index });
+  };
+
   // Big square tile for a Zone (overview) – labelled CL{id}
   const renderZoneTile = (loc: Location & { images?: LocationImage[] }) => {
     const imgs = imageSrcs(loc);
     const cover = imgs[0];
-    const firstImageId = loc.images?.[0]?.id;
     const count = (loc.images ?? []).length;
-    const target = firstImageId
-      ? `/m/patients/${patientId}/clinical/${firstImageId}`
-      : `/m/patients/${patientId}/clinical/new`;
     return (
-      <Link
+      <button
+        type="button"
         key={`z-${loc.id}`}
-        to={target}
-        onClick={() => tapHaptic()}
+        onClick={() => openViewer(loc, 0)}
         className="relative col-span-3 block aspect-square overflow-hidden rounded-[18px] bg-secondary shadow-sm active:opacity-80 sm:col-span-1"
       >
         {cover ? (
@@ -98,7 +105,7 @@ export function PatientHomeScreen() {
         <div className="absolute right-3 top-3 inline-flex h-7 min-w-7 items-center justify-center rounded-full bg-card/90 px-2 text-xs font-semibold text-foreground shadow-sm backdrop-blur">
           {count}
         </div>
-        <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-background/95 via-background/30 to-transparent px-3 py-2 text-card-foreground">
+        <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-background/95 via-background/30 to-transparent px-3 py-2 text-left text-card-foreground">
           <div className="truncate text-lg font-semibold leading-tight">
             CL{loc.id}{count ? ` (${count})` : ""}
           </div>
@@ -108,7 +115,7 @@ export function PatientHomeScreen() {
             </div>
           )}
         </div>
-      </Link>
+      </button>
     );
   };
 
@@ -118,11 +125,12 @@ export function PatientHomeScreen() {
     const cells = [0, 1, 2].map((i) => imgs[i] ?? null);
     const dateStr = fmtDate(loc.created_at);
     return cells.map((src, idx) => (
-      <Link
+      <button
+        type="button"
         key={`s-${loc.id}-${idx}`}
-        to={`/m/lesions/${loc.id}`}
-        onClick={() => tapHaptic()}
-        className="relative block aspect-square overflow-hidden rounded-[14px] bg-secondary shadow-sm active:opacity-80"
+        onClick={() => openViewer(loc, idx)}
+        disabled={!src}
+        className="relative block aspect-square overflow-hidden rounded-[14px] bg-secondary shadow-sm active:opacity-80 disabled:opacity-60"
       >
         {src ? (
           <img
@@ -141,7 +149,7 @@ export function PatientHomeScreen() {
             {loc.id}
           </div>
         )}
-        <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-background/95 via-background/20 to-transparent px-2 py-1.5 text-card-foreground">
+        <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-background/95 via-background/20 to-transparent px-2 py-1.5 text-left text-card-foreground">
           <div className="truncate text-sm font-semibold leading-tight">
             L{loc.id}
           </div>
@@ -149,9 +157,11 @@ export function PatientHomeScreen() {
             <div className="text-[10px] text-foreground/80">{dateStr}</div>
           )}
         </div>
-      </Link>
+      </button>
     ));
   };
+
+
 
 
   const renderGroup = (loc: Location & { images?: LocationImage[] }) => (
@@ -307,6 +317,87 @@ export function PatientHomeScreen() {
           </Link>
         </div>
       </div>
+
+      {viewer && (() => {
+        const imgs = imageSrcs(viewer.loc);
+        const idx = Math.max(0, Math.min(viewer.index, imgs.length - 1));
+        const src = imgs[idx];
+        const label = isZone(viewer.loc)
+          ? `Klinisch ${viewer.loc.id}`
+          : `Läsion ${viewer.loc.id}`;
+        return (
+          <div className="fixed inset-0 z-50 flex flex-col bg-background/95 backdrop-blur">
+            <div className="flex items-start justify-between px-4 pt-[max(env(safe-area-inset-top),1rem)]">
+              <div className="text-foreground">
+                <div className="text-xl font-semibold">{label}</div>
+                {viewer.loc.created_at && (
+                  <div className="text-sm text-muted-foreground">
+                    {fmtDate(viewer.loc.created_at)}
+                  </div>
+                )}
+              </div>
+              <button
+                type="button"
+                onClick={() => setViewer(null)}
+                aria-label="Schliessen"
+                className="inline-flex h-11 w-11 items-center justify-center rounded-full bg-secondary text-foreground active:opacity-80"
+              >
+                <X className="h-5 w-5" />
+              </button>
+            </div>
+
+            <div className="relative flex flex-1 items-center justify-center px-4 py-4">
+              {src ? (
+                <img
+                  src={src}
+                  alt={label}
+                  className="max-h-full max-w-full rounded-[18px] object-contain"
+                />
+              ) : (
+                <div className="text-muted-foreground">Kein Bild</div>
+              )}
+              {imgs.length > 1 && (
+                <>
+                  <button
+                    type="button"
+                    onClick={() => setViewer({ loc: viewer.loc, index: (idx - 1 + imgs.length) % imgs.length })}
+                    aria-label="Zurück"
+                    className="absolute left-3 top-1/2 -translate-y-1/2 inline-flex h-11 w-11 items-center justify-center rounded-full bg-card/80 text-foreground backdrop-blur active:opacity-80"
+                  >
+                    <ChevronLeft className="h-5 w-5" />
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setViewer({ loc: viewer.loc, index: (idx + 1) % imgs.length })}
+                    aria-label="Weiter"
+                    className="absolute right-3 top-1/2 -translate-y-1/2 inline-flex h-11 w-11 items-center justify-center rounded-full bg-card/80 text-foreground backdrop-blur active:opacity-80"
+                  >
+                    <ChevronRight className="h-5 w-5" />
+                  </button>
+                </>
+              )}
+            </div>
+
+            {imgs.length > 1 && (
+              <div className="flex gap-2 overflow-x-auto px-4 pb-[max(env(safe-area-inset-bottom),1rem)]">
+                {imgs.map((s, i) => (
+                  <button
+                    key={i}
+                    type="button"
+                    onClick={() => setViewer({ loc: viewer.loc, index: i })}
+                    className={`relative h-16 w-16 shrink-0 overflow-hidden rounded-[12px] border-2 ${
+                      i === idx ? "border-primary" : "border-transparent opacity-70"
+                    }`}
+                  >
+                    <img src={s} alt="" className="h-full w-full object-cover" />
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+        );
+      })()}
     </>
+
   );
 }
