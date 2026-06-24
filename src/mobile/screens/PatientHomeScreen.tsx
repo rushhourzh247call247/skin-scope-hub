@@ -1,5 +1,6 @@
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
+import { useQuery } from "@tanstack/react-query";
 import {
   Camera,
   Loader2,
@@ -9,154 +10,108 @@ import {
   List,
   Grid2x2,
   Accessibility,
+  MapPin,
+  Image as ImageIcon,
 } from "lucide-react";
 import { MobileHeader } from "../components/MobileHeader";
-import {
-  buildImageUrl,
-  fetchClinicalPhotos,
-  fetchLesions,
-  fetchPatients,
-  MobileApiError,
-} from "../api";
-import type { ClinicalPhoto, Lesion, MobilePatient } from "../types";
+import { buildImageUrl } from "../api";
+import { api } from "@/lib/api";
 import { tapHaptic } from "../native/haptics";
+import type { Location, LocationImage } from "@/types/patient";
 
-type Tab = "all" | "clinical" | "lesion";
+type Tab = "all" | "zone" | "spot";
 type ViewMode = "list" | "grid" | "body";
+
+function isZone(l: Location) {
+  return l.type === "overview";
+}
+function isSpot(l: Location) {
+  return !isZone(l) && l.type !== "region" || l.type === "spot" || !l.type;
+}
+
+function firstImagePath(l: Location & { images?: LocationImage[] }): string | undefined {
+  const img = (l.images ?? [])[0];
+  return img?.file_path || img?.image_path || img?.image_url || undefined;
+}
 
 export function PatientHomeScreen() {
   const { id } = useParams<{ id: string }>();
   const patientId = Number(id);
   const navigate = useNavigate();
 
-  const [patient, setPatient] = useState<MobilePatient | null>(null);
-  const [photos, setPhotos] = useState<ClinicalPhoto[] | null>(null);
-  const [lesions, setLesions] = useState<Lesion[] | null>(null);
-  const [backendMissing, setBackendMissing] = useState(false);
-  const [error, setError] = useState<string | null>(null);
   const [tab, setTab] = useState<Tab>("all");
   const [viewMode, setViewMode] = useState<ViewMode>("grid");
 
-  useEffect(() => {
-    let cancelled = false;
-    (async () => {
-      try {
-        const list = await fetchPatients();
-        if (cancelled) return;
-        setPatient(list.find((p) => p.id === patientId) ?? null);
-      } catch {
-        /* nicht blockierend */
-      }
-    })();
-    (async () => {
-      try {
-        const [ph, le] = await Promise.all([
-          fetchClinicalPhotos(patientId),
-          fetchLesions(patientId),
-        ]);
-        if (cancelled) return;
-        setPhotos(ph);
-        setLesions(le);
-      } catch (err) {
-        if (cancelled) return;
-        if (err instanceof MobileApiError && err.notDeployed) {
-          setBackendMissing(true);
-          setPhotos([]);
-          setLesions([]);
-          return;
-        }
-        setError(
-          err instanceof Error
-            ? err.message
-            : "Daten konnten nicht geladen werden.",
-        );
-        setPhotos([]);
-        setLesions([]);
-      }
-    })();
-    return () => {
-      cancelled = true;
-    };
-  }, [patientId]);
+  const { data, isLoading, error } = useQuery<any>({
+    queryKey: ["full-patient", patientId],
+    queryFn: () => api.getFullPatient(patientId),
+    enabled: !!patientId,
+  });
 
-  const photoTiles = (photos ?? []).map((p) => ({ kind: "photo" as const, p }));
-  const lesionTiles = (lesions ?? []).map((l) => ({ kind: "lesion" as const, l }));
+  const patient = data;
+  const locations: (Location & { images?: LocationImage[] })[] = useMemo(
+    () => (data?.locations ?? []).filter((l: Location) => l.type !== "region"),
+    [data],
+  );
+
+  const zones = useMemo(() => locations.filter(isZone), [locations]);
+  const spots = useMemo(() => locations.filter((l) => !isZone(l)), [locations]);
 
   const tiles = useMemo(() => {
-    if (tab === "clinical") return photoTiles;
-    if (tab === "lesion") return lesionTiles;
-    return [...photoTiles, ...lesionTiles];
-  }, [tab, photoTiles, lesionTiles]);
+    if (tab === "zone") return zones;
+    if (tab === "spot") return spots;
+    return locations;
+  }, [tab, zones, spots, locations]);
 
   const startNew = () => {
     tapHaptic();
     navigate(`/m/patients/${patientId}/clinical/new`);
   };
 
-  const renderTile = (tile: (typeof tiles)[number]) => {
-    if (tile.kind === "photo") {
-      return (
-        <Link
-          key={`p-${tile.p.id}`}
-          to={`/m/patients/${patientId}/clinical/${tile.p.id}`}
-          onClick={() => tapHaptic()}
-          className="relative block aspect-square overflow-hidden rounded-[18px] bg-secondary shadow-sm active:opacity-80"
-        >
-          {tile.p.file_path && (
-            <img
-              src={buildImageUrl(tile.p.file_path)}
-              alt="Klinisches Foto"
-              loading="lazy"
-              className="absolute inset-0 h-full w-full object-cover"
-            />
-          )}
-          <div className="absolute left-4 top-4 inline-flex min-h-11 min-w-11 items-center justify-center rounded-full bg-card px-2 text-base font-semibold text-foreground shadow-sm">
-            {tile.p.lesion_count ?? 0}
-          </div>
-          <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-background/95 via-background/30 to-transparent px-4 py-3 text-card-foreground">
-            <div className="text-2xl font-semibold leading-none tracking-normal">
-              CL{tile.p.id}
-            </div>
-            <div className="mt-2 text-base text-foreground/90">
-              {new Date(tile.p.taken_at).toLocaleDateString("de-CH", {
-                day: "2-digit",
-                month: "short",
-                year: "numeric",
-              })}
-            </div>
-          </div>
-        </Link>
-      );
-    }
-
+  const renderTile = (loc: Location & { images?: LocationImage[] }) => {
+    const img = firstImagePath(loc);
+    const zone = isZone(loc);
+    const dateStr = loc.created_at
+      ? new Date(loc.created_at).toLocaleDateString("de-CH", {
+          day: "2-digit",
+          month: "short",
+          year: "numeric",
+        })
+      : "";
     return (
       <Link
-        key={`l-${tile.l.id}`}
-        to={`/m/lesions/${tile.l.id}`}
+        key={`loc-${loc.id}`}
+        to={`/patient/${patientId}`}
         onClick={() => tapHaptic()}
         className="relative block aspect-square overflow-hidden rounded-[18px] bg-secondary shadow-sm active:opacity-80"
       >
-        <div className="absolute left-4 top-4 inline-flex min-h-11 min-w-11 items-center justify-center rounded-full bg-card px-2 text-base font-semibold text-foreground shadow-sm">
-          {tile.l.label.replace(/^L/, "")}
-        </div>
-        <div className="absolute inset-0 flex items-center justify-center text-[2rem] font-semibold text-primary/75">
-          {tile.l.label}
-        </div>
-        <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-background/95 via-background/30 to-transparent px-4 py-3 text-card-foreground">
-          <div className="text-2xl font-semibold leading-none tracking-normal">
-            {tile.l.label}
+        {img ? (
+          <img
+            src={buildImageUrl(img)}
+            alt={loc.name ?? (zone ? "Zone" : "Spot")}
+            loading="lazy"
+            className="absolute inset-0 h-full w-full object-cover"
+          />
+        ) : (
+          <div className="absolute inset-0 flex items-center justify-center text-muted-foreground">
+            {zone ? <ImageIcon className="h-8 w-8" /> : <MapPin className="h-8 w-8" />}
           </div>
-          <div className="mt-2 text-base text-foreground/90">
-            {new Date(tile.l.created_at).toLocaleDateString("de-CH", {
-              day: "2-digit",
-              month: "short",
-              year: "numeric",
-            })}
+        )}
+        <div className="absolute left-3 top-3 inline-flex h-7 items-center justify-center rounded-full bg-card/90 px-2 text-xs font-semibold text-foreground shadow-sm backdrop-blur">
+          {zone ? "Zone" : "Spot"}
+        </div>
+        <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-background/95 via-background/30 to-transparent px-3 py-2 text-card-foreground">
+          <div className="truncate text-base font-semibold leading-tight">
+            {loc.name?.trim() || (zone ? `Zone #${loc.id}` : `Spot #${loc.id}`)}
           </div>
+          {dateStr && (
+            <div className="mt-0.5 text-xs text-foreground/80">{dateStr}</div>
+          )}
         </div>
       </Link>
     );
   };
+
 
   return (
     <>
@@ -178,9 +133,9 @@ export function PatientHomeScreen() {
           <div className="mt-5 grid grid-cols-3 border-b border-border/80">
             {(
               [
-                ["all", `Alle (${(photos?.length ?? 0) + (lesions?.length ?? 0)})`],
-                ["clinical", `Klinische (${photos?.length ?? 0})`],
-                ["lesion", `Läsion (${lesions?.length ?? 0})`],
+                ["all", `Alle (${locations.length})`],
+                ["zone", `Zonen (${zones.length})`],
+                ["spot", `Spots (${spots.length})`],
               ] as const
             ).map(([key, label]) => (
               <button
@@ -199,6 +154,7 @@ export function PatientHomeScreen() {
               </button>
             ))}
           </div>
+
 
           <div className="mt-5 flex gap-3">
             <button
@@ -233,25 +189,16 @@ export function PatientHomeScreen() {
           </div>
         </section>
 
-        {photos === null && !error && !backendMissing && (
+        {isLoading && (
           <div className="flex items-center justify-center py-10 text-muted-foreground">
             <Loader2 className="mr-2 h-5 w-5 animate-spin" /> Lade…
           </div>
         )}
 
-        {backendMissing && (
-          <div className="mt-4 flex items-start gap-2 rounded-[20px] border border-amber-500/40 bg-amber-500/10 p-4 text-sm">
-            <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />
-            <span>
-              Backend (<code>/api/m</code>) ist auf diesem Server noch nicht aktiviert.
-            </span>
-          </div>
-        )}
-
-        {error && !backendMissing && (
+        {error && (
           <div className="mt-4 flex items-start gap-2 rounded-[20px] border border-destructive/40 bg-destructive/10 p-4 text-sm">
             <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />
-            <span>{error}</span>
+            <span>{(error as Error)?.message ?? "Daten konnten nicht geladen werden."}</span>
           </div>
         )}
 
@@ -275,12 +222,13 @@ export function PatientHomeScreen() {
           </section>
         )}
 
-        {tiles.length === 0 && photos && lesions && !backendMissing && (
+        {!isLoading && !error && tiles.length === 0 && (
           <div className="py-16 text-center text-sm text-muted-foreground">
-            Noch keine Aufnahmen. Tippen Sie auf „Neu“ für ein klinisches Foto.
+            Noch keine {tab === "zone" ? "Zonen" : tab === "spot" ? "Spots" : "Einträge"}. Tippen Sie auf „Neu“.
           </div>
         )}
       </main>
+
 
       <div
         className="fixed inset-x-0 bottom-0 border-t border-border bg-background/95 px-4 pb-4 pt-3 backdrop-blur"
