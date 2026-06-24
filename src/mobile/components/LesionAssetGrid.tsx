@@ -3,18 +3,12 @@ import { buildImageUrl } from "../api";
 
 interface Props {
   assets: LesionAsset[];
-  /** Stufe 2: Vergleichsmodus – zwei Bilder auswählbar. Heute deaktiviert. */
   selectable?: boolean;
   selected?: number[];
   onToggle?: (id: number) => void;
   onOpen?: (asset: LesionAsset) => void;
 }
 
-/**
- * LesionAssetGrid – kompakte Galerie aller Bilder/Befunde eines Markers.
- * Bewusst so gebaut, dass später ein Vergleichsmodus (A↔B) ohne Umbau
- * von LesionDetailScreen oder API hinzugefügt werden kann.
- */
 export function LesionAssetGrid({
   assets,
   selectable = false,
@@ -24,17 +18,16 @@ export function LesionAssetGrid({
 }: Props) {
   if (assets.length === 0) {
     return (
-      <div className="text-center text-muted-foreground py-12 text-sm">
+      <div className="py-12 text-center text-sm text-muted-foreground">
         Noch keine Aufnahmen für diesen Marker.
       </div>
     );
   }
 
   return (
-    <div className="grid grid-cols-3 gap-2">
+    <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
       {assets.map((a) => {
-        const isImg =
-          a.kind === "clinical" || a.kind === "dermoscopy";
+        const isImg = a.kind === "clinical" || a.kind === "dermoscopy";
         const isSelected = selected.includes(a.id);
         return (
           <button
@@ -43,7 +36,7 @@ export function LesionAssetGrid({
               if (selectable) onToggle?.(a.id);
               else onOpen?.(a);
             }}
-            className={`relative aspect-square rounded-lg overflow-hidden bg-secondary text-left active:opacity-80 ${
+            className={`relative aspect-square overflow-hidden rounded-[18px] bg-secondary text-left shadow-sm active:opacity-80 ${
               isSelected ? "ring-2 ring-primary" : ""
             }`}
           >
@@ -52,18 +45,20 @@ export function LesionAssetGrid({
                 src={buildImageUrl(a.file_path)}
                 alt={a.kind}
                 loading="lazy"
-                className="absolute inset-0 w-full h-full object-cover"
+                className="absolute inset-0 h-full w-full object-cover"
               />
             ) : (
-              <div className="absolute inset-0 flex items-center justify-center text-[10px] uppercase tracking-wide text-muted-foreground">
+              <div className="absolute inset-0 flex items-center justify-center text-xs uppercase tracking-wide text-muted-foreground">
                 {a.kind}
               </div>
             )}
-            <div className="absolute inset-x-0 bottom-0 px-1.5 py-1 bg-gradient-to-t from-black/70 to-transparent text-[10px] text-white">
-              {new Date(a.taken_at).toLocaleDateString("de-CH")}
-            </div>
-            <div className="absolute top-1 right-1 text-[10px] bg-black/60 text-white rounded px-1">
-              {labelFor(a.kind)}
+            <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-background/95 via-background/35 to-transparent px-3 py-3 text-card-foreground">
+              <div className="text-2xl font-semibold leading-none tracking-normal">
+                {labelFor(a.kind)}
+              </div>
+              <div className="mt-2 text-base text-foreground/90">
+                {new Date(a.taken_at).toLocaleDateString("de-CH")}
+              </div>
             </div>
           </button>
         );

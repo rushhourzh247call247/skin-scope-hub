@@ -1,6 +1,13 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { Camera, Loader2, AlertTriangle, GitCompareArrows, Clock } from "lucide-react";
+import {
+  Camera,
+  Loader2,
+  AlertTriangle,
+  GitCompareArrows,
+  Clock,
+  CircleDot,
+} from "lucide-react";
 import { MobileHeader } from "../components/MobileHeader";
 import { LesionAssetGrid } from "../components/LesionAssetGrid";
 import {
@@ -61,77 +68,84 @@ export function LesionDetailScreen() {
 
   return (
     <>
-      <MobileHeader
-        onClick={() => navigate(-1)}
-        title={lesion ? `Marker ${lesion.label}` : "Marker"}
-      />
+      <MobileHeader onClick={() => navigate(-1)} />
 
       <main className="flex-1 px-4 pb-32">
         {error && (
-          <div className="mb-3 rounded-xl border border-destructive/40 bg-destructive/10 p-3 text-xs flex items-start gap-2">
-            <AlertTriangle className="h-4 w-4 mt-0.5 shrink-0" />
+          <div className="mb-4 flex items-start gap-2 rounded-[20px] border border-destructive/40 bg-destructive/10 p-4 text-sm">
+            <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />
             <span>{error}</span>
           </div>
         )}
 
         {!lesion && !error && (
           <div className="flex items-center justify-center py-12 text-muted-foreground">
-            <Loader2 className="h-5 w-5 animate-spin mr-2" /> Lade…
+            <Loader2 className="mr-2 h-5 w-5 animate-spin" /> Lade…
           </div>
         )}
 
         {lesion && (
           <>
-            <div className="rounded-xl bg-secondary px-4 py-3 mb-4">
-              <div className="text-sm">
-                Erstellt am{" "}
-                {new Date(lesion.created_at).toLocaleDateString("de-CH")}
+            <section className="mb-4 flex items-center gap-3">
+              <div className="inline-flex h-[56px] w-[56px] items-center justify-center rounded-[18px] bg-secondary text-foreground">
+                <CircleDot className="h-6 w-6" />
               </div>
-              {lesion.notes && (
-                <div className="text-xs text-muted-foreground mt-1">
-                  {lesion.notes}
+              <div className="min-w-0 flex-1 rounded-[18px] bg-primary/20 px-4 py-3">
+                <div className="truncate text-2xl font-semibold tracking-normal">Marker {lesion.label}</div>
+                <div className="text-base text-muted-foreground">Verlauf und Dermatoskopie</div>
+              </div>
+            </section>
+
+            <section className="rounded-[24px] bg-card p-4 shadow-sm">
+              <div className="rounded-[18px] bg-secondary px-4 py-4">
+                <div className="text-lg font-medium">
+                  Erstellt am {new Date(lesion.created_at).toLocaleDateString("de-CH")}
                 </div>
-              )}
-            </div>
+                {lesion.notes && (
+                  <div className="mt-2 text-sm text-muted-foreground">{lesion.notes}</div>
+                )}
+              </div>
 
-            <LesionAssetGrid assets={assets} />
+              <div className="mt-4">
+                <LesionAssetGrid assets={assets} />
+              </div>
 
-            {/* Reserve für Stufe 2 – Vergleich / Zeitstrahl */}
-            <div className="mt-4 grid grid-cols-2 gap-2">
-              <button
-                onClick={() => navigate(`/m/lesions/${id}/compare`)}
-                className="inline-flex items-center justify-center gap-1.5 rounded-xl bg-secondary/70 text-foreground py-3 text-xs"
-              >
-                <GitCompareArrows className="h-4 w-4" />
-                Vergleich
-              </button>
-              <button
-                onClick={() => navigate(`/m/lesions/${id}/timeline`)}
-                className="inline-flex items-center justify-center gap-1.5 rounded-xl bg-secondary/70 text-foreground py-3 text-xs"
-              >
-                <Clock className="h-4 w-4" />
-                Verlauf
-              </button>
-            </div>
+              <div className="mt-4 grid grid-cols-2 gap-3">
+                <button
+                  onClick={() => navigate(`/m/lesions/${id}/compare`)}
+                  className="inline-flex items-center justify-center gap-2 rounded-[18px] bg-secondary py-4 text-foreground"
+                >
+                  <GitCompareArrows className="h-5 w-5" />
+                  <span className="text-base">Vergleich</span>
+                </button>
+                <button
+                  onClick={() => navigate(`/m/lesions/${id}/timeline`)}
+                  className="inline-flex items-center justify-center gap-2 rounded-[18px] bg-secondary py-4 text-foreground"
+                >
+                  <Clock className="h-5 w-5" />
+                  <span className="text-base">Verlauf</span>
+                </button>
+              </div>
+            </section>
           </>
         )}
       </main>
 
       <div
-        className="fixed inset-x-0 bottom-0 px-4 pb-4 pt-3 bg-background/95 backdrop-blur border-t border-border"
+        className="fixed inset-x-0 bottom-0 border-t border-border bg-background/95 px-4 pb-4 pt-3 backdrop-blur"
         style={{ paddingBottom: "max(env(safe-area-inset-bottom), 1rem)" }}
       >
         <button
           onClick={captureDermoscopy}
           disabled={uploading || !lesion}
-          className="w-full inline-flex items-center justify-center gap-2 rounded-xl bg-primary text-primary-foreground py-4 font-medium disabled:opacity-50"
+          className="w-full inline-flex items-center justify-center gap-2 rounded-[18px] bg-primary py-4 font-medium text-primary-foreground disabled:opacity-50"
         >
           {uploading ? (
             <Loader2 className="h-5 w-5 animate-spin" />
           ) : (
             <Camera className="h-5 w-5" />
           )}
-          Dermatoskopie aufnehmen
+          <span className="text-lg">Dermatoskopie aufnehmen</span>
         </button>
       </div>
     </>
