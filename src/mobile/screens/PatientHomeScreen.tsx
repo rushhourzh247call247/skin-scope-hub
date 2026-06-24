@@ -337,7 +337,7 @@ export function PatientHomeScreen() {
                   }}
                   onClick={(e) => {
                     e.stopPropagation();
-                    if (pinDrag) return;
+                    if (pinDrag || suppressClickRef.current) return;
                     openLinkedSpot(pin);
                   }}
                   className={`pointer-events-auto relative flex items-center gap-1.5 transition-transform ${
