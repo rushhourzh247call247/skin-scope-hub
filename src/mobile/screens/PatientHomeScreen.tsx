@@ -64,7 +64,12 @@ export function PatientHomeScreen() {
   const [imgNat, setImgNat] = useState<{ w: number; h: number } | null>(null);
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [addingPhoto, setAddingPhoto] = useState(false);
+  const [creatingPin, setCreatingPin] = useState(false);
+  const [pinDrag, setPinDrag] = useState<{ pinId: number; x: number; y: number; overTrash: boolean } | null>(null);
   const stageRef = useRef<HTMLDivElement | null>(null);
+  const pinSurfaceRef = useRef<HTMLDivElement | null>(null);
+  const pinLongPressTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const tapStartRef = useRef<{ x: number; y: number; t: number } | null>(null);
   const queryClient = useQueryClient();
 
 
@@ -148,6 +153,116 @@ export function PatientHomeScreen() {
     setViewer({ loc: updated, index: Math.max(0, Math.min(preferredIndex, nextImages.length - 1)) });
   };
 
+  const refreshZonePins = async (zoneId: number) => {
+    try {
+      const pins = await api.getOverviewPins(zoneId);
+      queryClient.setQueryData<Record<number, OverviewPin[]>>(
+        ["mobile-overview-pins", patientId, zones.map((z) => z.id).join(",")],
+        (prev) => ({ ...(prev ?? {}), [zoneId]: pins }),
+      );
+    } catch {
+      queryClient.invalidateQueries({ queryKey: ["mobile-overview-pins", patientId] });
+    }
+  };
+
+  const createPinAt = async (zone: Location, xPct: number, yPct: number) => {
+    if (creatingPin) return;
+    setCreatingPin(true);
+    try {
+      const existingPins = zonePinsMap[zone.id] ?? [];
+      const nextNum = (existingPins.length + spots.length) || 1;
+      const spot = await api.createLocation(patientId, {
+        name: `L${nextNum}`,
+        x: zone.x ?? 0,
+        y: zone.y ?? 0,
+        view: (zone as any).view ?? "front",
+        type: "spot",
+        x3d: (zone as any).x3d ?? undefined,
+        y3d: (zone as any).y3d ?? undefined,
+        z3d: (zone as any).z3d ?? undefined,
+        nx: (zone as any).nx ?? undefined,
+        ny: (zone as any).ny ?? undefined,
+        nz: (zone as any).nz ?? undefined,
+      });
+      await api.createOverviewPin(zone.id, {
+        linked_location_id: spot.id,
+        x_pct: xPct,
+        y_pct: yPct,
+      });
+      tapHaptic();
+      await refreshZonePins(zone.id);
+      queryClient.invalidateQueries({ queryKey: ["full-patient", patientId] });
+      toast({ title: "Marker gesetzt" });
+    } catch (e: any) {
+      toast({ title: "Fehler", description: e?.message ?? "Marker konnte nicht gesetzt werden.", variant: "destructive" });
+    } finally {
+      setCreatingPin(false);
+    }
+  };
+
+  const handleStagePointerUp = (zone: Location) => (e: React.PointerEvent<HTMLDivElement>) => {
+    const start = tapStartRef.current;
+    tapStartRef.current = null;
+    if (!start || pinDrag) return;
+    const dx = e.clientX - start.x;
+    const dy = e.clientY - start.y;
+    if (dx * dx + dy * dy > 100) return; // moved → not a tap
+    if (Date.now() - start.t > 500) return;
+    const rect = pinSurfaceRef.current?.getBoundingClientRect();
+    if (!rect) return;
+    const x = ((e.clientX - rect.left) / rect.width) * 100;
+    const y = ((e.clientY - rect.top) / rect.height) * 100;
+    if (x < 0 || x > 100 || y < 0 || y > 100) return;
+    void createPinAt(zone, x, y);
+  };
+
+  const TRASH_HIT_PX = 140;
+  const isOverTrash = (clientY: number) => clientY > window.innerHeight - TRASH_HIT_PX;
+
+  const startPinDrag = (pin: OverviewPin, e: React.PointerEvent<HTMLButtonElement>) => {
+    (e.target as HTMLElement).setPointerCapture(e.pointerId);
+    pinLongPressTimer.current = setTimeout(() => {
+      tapHaptic();
+      setPinDrag({ pinId: pin.id, x: clampPct(pin.x_pct), y: clampPct(pin.y_pct), overTrash: false });
+    }, 280);
+  };
+
+  const movePinDrag = (e: React.PointerEvent<HTMLButtonElement>) => {
+    if (!pinDrag) return;
+    const rect = pinSurfaceRef.current?.getBoundingClientRect();
+    if (!rect) return;
+    const x = Math.max(0, Math.min(100, ((e.clientX - rect.left) / rect.width) * 100));
+    const y = Math.max(0, Math.min(100, ((e.clientY - rect.top) / rect.height) * 100));
+    setPinDrag({ pinId: pinDrag.pinId, x, y, overTrash: isOverTrash(e.clientY) });
+  };
+
+  const endPinDrag = async (pin: OverviewPin, e: React.PointerEvent<HTMLButtonElement>) => {
+    if (pinLongPressTimer.current) {
+      clearTimeout(pinLongPressTimer.current);
+      pinLongPressTimer.current = null;
+    }
+    if (!pinDrag || pinDrag.pinId !== pin.id) return;
+    const drag = pinDrag;
+    setPinDrag(null);
+    const zoneId = viewer?.loc.id;
+    if (drag.overTrash || isOverTrash(e.clientY)) {
+      try {
+        await api.deleteOverviewPin(pin.id);
+        toast({ title: "Marker gelöscht" });
+        if (zoneId) await refreshZonePins(zoneId);
+      } catch (err: any) {
+        toast({ title: "Fehler", description: err?.message ?? "Löschen fehlgeschlagen.", variant: "destructive" });
+      }
+      return;
+    }
+    try {
+      await api.updateOverviewPin(pin.id, { x_pct: drag.x, y_pct: drag.y, label: pin.label });
+      if (zoneId) await refreshZonePins(zoneId);
+    } catch (err: any) {
+      toast({ title: "Fehler", description: err?.message ?? "Verschieben fehlgeschlagen.", variant: "destructive" });
+    }
+  };
+
   const renderZoneMarkers = (loc: Location, size: "small" | "large") => {
     const pins = zonePinsMap[loc.id] ?? [];
     if (!pins.length) return null;
@@ -155,8 +270,9 @@ export function PatientHomeScreen() {
     return (
       <div className="pointer-events-none absolute inset-0 z-10">
         {pins.map((pin, i) => {
-          const left = clampPct(pin.x_pct);
-          const top = clampPct(pin.y_pct);
+          const isDragging = pinDrag?.pinId === pin.id;
+          const left = isDragging ? pinDrag!.x : clampPct(pin.x_pct);
+          const top = isDragging ? pinDrag!.y : clampPct(pin.y_pct);
           const compact = size === "small";
           return (
             <div
@@ -175,16 +291,45 @@ export function PatientHomeScreen() {
                 <button
                   type="button"
                   aria-label={`${getPinLabel(pin)} öffnen`}
+                  onPointerDown={(e) => {
+                    e.stopPropagation();
+                    startPinDrag(pin, e);
+                  }}
+                  onPointerMove={(e) => {
+                    if (pinDrag?.pinId === pin.id) {
+                      e.stopPropagation();
+                      movePinDrag(e);
+                    }
+                  }}
+                  onPointerUp={(e) => {
+                    e.stopPropagation();
+                    void endPinDrag(pin, e);
+                  }}
+                  onPointerCancel={() => {
+                    if (pinLongPressTimer.current) {
+                      clearTimeout(pinLongPressTimer.current);
+                      pinLongPressTimer.current = null;
+                    }
+                    setPinDrag(null);
+                  }}
                   onClick={(e) => {
                     e.stopPropagation();
+                    if (pinDrag) return;
                     openLinkedSpot(pin);
                   }}
-                  className="pointer-events-auto relative flex items-center gap-1.5 transition-transform active:scale-95"
+                  className={`pointer-events-auto relative flex items-center gap-1.5 transition-transform ${
+                    isDragging ? "scale-110" : "active:scale-95"
+                  }`}
+                  style={{ touchAction: "none" }}
                 >
                   <span className="rounded-[5px] bg-foreground px-1.5 py-0.5 text-base font-bold leading-none text-background shadow-md">
                     {getPinLabel(pin)}
                   </span>
-                  <span className="relative inline-flex h-16 w-16 items-center justify-center rounded-full border-2 border-foreground bg-background/20 text-foreground shadow-sm backdrop-blur-[1px] after:absolute after:-bottom-3 after:left-1/2 after:h-0 after:w-0 after:-translate-x-1/2 after:border-x-[7px] after:border-t-[12px] after:border-x-transparent after:border-t-foreground">
+                  <span className={`relative inline-flex h-16 w-16 items-center justify-center rounded-full border-2 bg-background/20 text-foreground shadow-sm backdrop-blur-[1px] after:absolute after:-bottom-3 after:left-1/2 after:h-0 after:w-0 after:-translate-x-1/2 after:border-x-[7px] after:border-t-[12px] after:border-x-transparent ${
+                    isDragging
+                      ? "border-destructive after:border-t-destructive shadow-[0_0_0_6px_hsl(var(--destructive)/0.25)]"
+                      : "border-foreground after:border-t-foreground"
+                  }`}>
                     <CameraIcon className="h-6 w-6" />
                   </span>
                 </button>
@@ -593,11 +738,21 @@ export function PatientHomeScreen() {
             >
               {src ? (
                 <div
+                  ref={pinSurfaceRef}
+                  onPointerDown={(e) => {
+                    if (!zone) return;
+                    tapStartRef.current = { x: e.clientX, y: e.clientY, t: Date.now() };
+                  }}
+                  onPointerMove={(e) => {
+                    if (pinDrag) movePinDrag(e as any);
+                  }}
+                  onPointerUp={zone ? handleStagePointerUp(viewer.loc) : undefined}
                   className="relative max-h-full max-w-full"
                   style={{
                     aspectRatio: imgNat ? `${imgNat.w} / ${imgNat.h}` : undefined,
                     width: imgNat ? "100%" : undefined,
                     height: imgNat ? "100%" : undefined,
+                    touchAction: "none",
                     ...(imgNat
                       ? imgNat.w / imgNat.h > 1
                         ? { height: "auto" }
@@ -608,13 +763,19 @@ export function PatientHomeScreen() {
                   <img
                     src={src}
                     alt={label}
+                    draggable={false}
                     onLoad={(e) => {
                       const t = e.currentTarget;
                       setImgNat({ w: t.naturalWidth, h: t.naturalHeight });
                     }}
-                    className="h-full w-full rounded-[20px] object-contain"
+                    className="pointer-events-none h-full w-full rounded-[20px] object-contain"
                   />
                   {zone && renderZoneMarkers(viewer.loc, "large")}
+                  {creatingPin && (
+                    <div className="pointer-events-none absolute right-3 top-3 inline-flex h-9 w-9 items-center justify-center rounded-full bg-background/80 text-foreground shadow-sm">
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                    </div>
+                  )}
                 </div>
               ) : (
                 <div className="flex h-full w-full items-center justify-center text-muted-foreground">
@@ -743,6 +904,17 @@ export function PatientHomeScreen() {
                 <span className="text-base">Fertig</span>
               </button>
             </div>
+
+            {pinDrag && (
+              <div
+                className={`pointer-events-none fixed inset-x-0 bottom-0 z-[70] flex items-center justify-center transition-colors ${
+                  pinDrag.overTrash ? "bg-destructive/90" : "bg-destructive/40"
+                }`}
+                style={{ height: TRASH_HIT_PX, paddingBottom: "max(env(safe-area-inset-bottom), 0.5rem)" }}
+              >
+                <Trash2 className={`h-7 w-7 ${pinDrag.overTrash ? "text-destructive-foreground scale-110" : "text-foreground/80"} transition-transform`} />
+              </div>
+            )}
           </div>
         );
       })()}
