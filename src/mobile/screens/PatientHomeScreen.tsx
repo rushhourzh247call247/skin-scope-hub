@@ -29,10 +29,12 @@ function isSpot(l: Location) {
   return !isZone(l) && l.type !== "region" || l.type === "spot" || !l.type;
 }
 
-function firstImagePath(l: Location & { images?: LocationImage[] }): string | undefined {
+function firstImageSrc(l: Location & { images?: LocationImage[] }): string {
   const img = (l.images ?? [])[0];
-  return img?.file_path || img?.image_path || img?.image_url || undefined;
+  if (!img) return "";
+  return api.resolveImageSrc(img);
 }
+
 
 export function PatientHomeScreen() {
   const { id } = useParams<{ id: string }>();
@@ -69,7 +71,7 @@ export function PatientHomeScreen() {
   };
 
   const renderTile = (loc: Location & { images?: LocationImage[] }) => {
-    const img = firstImagePath(loc);
+    const img = firstImageSrc(loc);
     const zone = isZone(loc);
     const dateStr = loc.created_at
       ? new Date(loc.created_at).toLocaleDateString("de-CH", {
@@ -87,7 +89,7 @@ export function PatientHomeScreen() {
       >
         {img ? (
           <img
-            src={buildImageUrl(img)}
+            src={img}
             alt={loc.name ?? (zone ? "Zone" : "Spot")}
             loading="lazy"
             className="absolute inset-0 h-full w-full object-cover"
