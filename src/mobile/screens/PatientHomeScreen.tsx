@@ -604,7 +604,7 @@ export function PatientHomeScreen() {
                 <button
                   key={i}
                   type="button"
-                  onClick={() => setViewer({ loc: viewer.loc, index: i })}
+                  onClick={() => { setImgNat(null); setViewer({ loc: viewer.loc, index: i }); }}
                   className={`relative h-20 w-20 shrink-0 overflow-hidden rounded-[14px] border-2 ${
                     i === idx ? "border-primary" : "border-transparent opacity-80"
                   }`}
