@@ -328,82 +328,188 @@ export function PatientHomeScreen() {
         const imgs = imageSrcs(viewer.loc);
         const idx = Math.max(0, Math.min(viewer.index, imgs.length - 1));
         const src = imgs[idx];
-        const label = isZone(viewer.loc)
+        const zone = isZone(viewer.loc);
+        const label = zone
           ? `Klinisch ${viewer.loc.id}`
           : `Läsion ${viewer.loc.id}`;
+        const dateTime = viewer.loc.created_at
+          ? new Date(viewer.loc.created_at).toLocaleString("de-CH", {
+              day: "2-digit",
+              month: "short",
+              year: "numeric",
+              hour: "2-digit",
+              minute: "2-digit",
+            }).replace(",", " |")
+          : "";
+
         return (
-          <div className="fixed inset-0 z-50 flex flex-col bg-background/95 backdrop-blur">
-            <div className="flex items-start justify-between px-4 pt-[max(env(safe-area-inset-top),1rem)]">
-              <div className="text-foreground">
-                <div className="text-xl font-semibold">{label}</div>
-                {viewer.loc.created_at && (
-                  <div className="text-sm text-muted-foreground">
-                    {fmtDate(viewer.loc.created_at)}
-                  </div>
-                )}
-              </div>
+          <div className="fixed inset-0 z-50 flex flex-col bg-background">
+            {/* Top header — Grid icon + Patient chip */}
+            <div
+              className="flex items-center gap-3 px-4 pb-3"
+              style={{ paddingTop: "max(env(safe-area-inset-top), 0.75rem)" }}
+            >
               <button
                 type="button"
                 onClick={() => setViewer(null)}
-                aria-label="Schliessen"
-                className="inline-flex h-11 w-11 items-center justify-center rounded-full bg-secondary text-foreground active:opacity-80"
+                aria-label="Zur Übersicht"
+                className="inline-flex h-12 w-12 shrink-0 items-center justify-center rounded-[14px] bg-secondary text-foreground active:opacity-80"
               >
-                <X className="h-5 w-5" />
+                <LayoutGrid className="h-5 w-5" />
               </button>
+              <div className="flex-1 truncate rounded-[14px] bg-[hsl(320_30%_40%)] px-4 py-3 text-foreground">
+                <div className="truncate text-base font-semibold leading-tight">
+                  {patient ? (patient.name?.trim() || `${patient.first_name ?? ""} ${patient.last_name ?? ""}`.trim()) : "Patient"}
+                </div>
+                {(patient?.patient_number || patient?.id) && (
+                  <div className="truncate text-xs text-foreground/70">
+                    ID {patient?.patient_number ?? patient?.id}
+                  </div>
+                )}
+              </div>
             </div>
 
-            <div className="relative flex flex-1 items-center justify-center px-4 py-4">
+            {/* Image stage */}
+            <div className="relative mx-4 flex-1 overflow-hidden rounded-[20px] bg-secondary">
               {src ? (
                 <img
                   src={src}
                   alt={label}
-                  className="max-h-full max-w-full rounded-[18px] object-contain"
+                  className="absolute inset-0 h-full w-full object-cover"
                 />
               ) : (
-                <div className="text-muted-foreground">Kein Bild</div>
+                <div className="flex h-full w-full items-center justify-center text-muted-foreground">
+                  Kein Bild
+                </div>
               )}
+
+              {/* Title overlay */}
+              <div className="absolute left-4 top-3 text-foreground drop-shadow">
+                <div className="text-2xl font-semibold leading-tight">{label}</div>
+                {dateTime && (
+                  <div className="mt-0.5 text-sm text-foreground/85">{dateTime}</div>
+                )}
+              </div>
+
+              {/* Right action column */}
+              <div className="absolute right-3 top-1/2 flex -translate-y-1/2 flex-col gap-3">
+                {!zone && (
+                  <button
+                    type="button"
+                    aria-label="KI-Analyse"
+                    className="inline-flex h-11 w-11 items-center justify-center rounded-[12px] bg-background/70 text-foreground backdrop-blur active:opacity-80"
+                  >
+                    <Sparkles className="h-5 w-5" />
+                  </button>
+                )}
+                <button
+                  type="button"
+                  aria-label="Körperregion"
+                  className="relative inline-flex h-11 w-11 items-center justify-center rounded-[12px] bg-background/70 text-foreground backdrop-blur active:opacity-80"
+                >
+                  <Accessibility className="h-5 w-5" />
+                  {zone && (
+                    <span className="absolute -right-1 -top-1 inline-flex h-4 w-4 items-center justify-center rounded-full bg-emerald-500 text-[10px] text-background">
+                      <Check className="h-3 w-3" />
+                    </span>
+                  )}
+                </button>
+                <button
+                  type="button"
+                  aria-label="Marker"
+                  className="inline-flex h-11 w-11 items-center justify-center rounded-[12px] bg-background/70 text-foreground backdrop-blur active:opacity-80"
+                >
+                  <CircleDot className="h-5 w-5" />
+                </button>
+                <button
+                  type="button"
+                  aria-label="Löschen"
+                  className="inline-flex h-11 w-11 items-center justify-center rounded-[12px] bg-background/70 text-foreground backdrop-blur active:opacity-80"
+                >
+                  <Trash2 className="h-5 w-5" />
+                </button>
+              </div>
+
+              {/* Fullscreen / expand bottom-left */}
+              <button
+                type="button"
+                aria-label="Vollbild"
+                className="absolute bottom-3 left-3 inline-flex h-11 w-11 items-center justify-center rounded-[12px] bg-background/70 text-foreground backdrop-blur active:opacity-80"
+              >
+                <Maximize2 className="h-5 w-5" />
+              </button>
+
+              {/* Page indicator dots */}
               {imgs.length > 1 && (
-                <>
-                  <button
-                    type="button"
-                    onClick={() => setViewer({ loc: viewer.loc, index: (idx - 1 + imgs.length) % imgs.length })}
-                    aria-label="Zurück"
-                    className="absolute left-3 top-1/2 -translate-y-1/2 inline-flex h-11 w-11 items-center justify-center rounded-full bg-card/80 text-foreground backdrop-blur active:opacity-80"
-                  >
-                    <ChevronLeft className="h-5 w-5" />
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setViewer({ loc: viewer.loc, index: (idx + 1) % imgs.length })}
-                    aria-label="Weiter"
-                    className="absolute right-3 top-1/2 -translate-y-1/2 inline-flex h-11 w-11 items-center justify-center rounded-full bg-card/80 text-foreground backdrop-blur active:opacity-80"
-                  >
-                    <ChevronRight className="h-5 w-5" />
-                  </button>
-                </>
+                <div className="absolute inset-x-0 bottom-3 flex justify-center gap-1.5">
+                  {imgs.map((_, i) => (
+                    <span
+                      key={i}
+                      className={`h-1.5 w-1.5 rounded-full ${
+                        i === idx ? "bg-foreground" : "bg-foreground/40"
+                      }`}
+                    />
+                  ))}
+                </div>
               )}
             </div>
 
-            {imgs.length > 1 && (
-              <div className="flex gap-2 overflow-x-auto px-4 pb-[max(env(safe-area-inset-bottom),1rem)]">
-                {imgs.map((s, i) => (
-                  <button
-                    key={i}
-                    type="button"
-                    onClick={() => setViewer({ loc: viewer.loc, index: i })}
-                    className={`relative h-16 w-16 shrink-0 overflow-hidden rounded-[12px] border-2 ${
-                      i === idx ? "border-primary" : "border-transparent opacity-70"
-                    }`}
-                  >
-                    <img src={s} alt="" className="h-full w-full object-cover" />
-                  </button>
-                ))}
-              </div>
-            )}
+            {/* Thumbnail strip */}
+            <div className="flex gap-3 overflow-x-auto px-4 py-3">
+              {imgs.map((s, i) => (
+                <button
+                  key={i}
+                  type="button"
+                  onClick={() => setViewer({ loc: viewer.loc, index: i })}
+                  className={`relative h-20 w-20 shrink-0 overflow-hidden rounded-[14px] border-2 ${
+                    i === idx ? "border-primary" : "border-transparent opacity-80"
+                  }`}
+                >
+                  <img src={s} alt="" className="h-full w-full object-cover" />
+                  {!zone && (
+                    <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-background/80 to-transparent px-1 py-0.5 text-left text-[10px] font-semibold text-foreground">
+                      L{viewer.loc.id}
+                    </div>
+                  )}
+                  {zone && (
+                    <span className="absolute right-1 top-1 inline-flex items-center gap-0.5 rounded-full bg-background/80 px-1.5 text-[10px] font-semibold text-foreground backdrop-blur">
+                      <MapPin className="h-2.5 w-2.5" /> {imgs.length}
+                    </span>
+                  )}
+                </button>
+              ))}
+            </div>
+
+            {/* Bottom action bar */}
+            <div
+              className="flex gap-3 px-4 pt-2"
+              style={{ paddingBottom: "max(env(safe-area-inset-bottom), 1rem)" }}
+            >
+              <button
+                type="button"
+                onClick={() => {
+                  tapHaptic();
+                  setViewer(null);
+                  navigate(`/m/patients/${patientId}/clinical/new`);
+                }}
+                className="flex-1 inline-flex items-center justify-center gap-2 rounded-[16px] bg-[hsl(35_45%_55%)] px-4 py-4 text-foreground active:opacity-80"
+              >
+                <CameraIcon className="h-5 w-5" />
+                <span className="text-base font-medium">
+                  {zone ? "Folgeaufnahme" : `Folgeaufnahme L${viewer.loc.id}`}
+                </span>
+              </button>
+              <button
+                type="button"
+                onClick={() => setViewer(null)}
+                className="flex-1 inline-flex items-center justify-center gap-2 rounded-[16px] bg-secondary px-4 py-4 text-foreground active:opacity-80"
+              >
+                <span className="text-base">Fertig</span>
+              </button>
+            </div>
           </div>
         );
       })()}
     </>
-
   );
 }
