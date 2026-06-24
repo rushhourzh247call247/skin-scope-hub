@@ -49,6 +49,6 @@ export interface MobilePatient {
   first_name: string;
   last_name: string;
   patient_number?: string | null;
-  birthdate?: string | null;
+  birth_date?: string | null;
   gender?: string | null;
 }
