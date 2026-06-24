@@ -133,9 +133,9 @@ export function PatientHomeScreen() {
           <div className="mt-5 grid grid-cols-3 border-b border-border/80">
             {(
               [
-                ["all", `Alle (${(photos?.length ?? 0) + (lesions?.length ?? 0)})`],
-                ["clinical", `Klinische (${photos?.length ?? 0})`],
-                ["lesion", `Läsion (${lesions?.length ?? 0})`],
+                ["all", `Alle (${locations.length})`],
+                ["zone", `Zonen (${zones.length})`],
+                ["spot", `Spots (${spots.length})`],
               ] as const
             ).map(([key, label]) => (
               <button
@@ -154,6 +154,7 @@ export function PatientHomeScreen() {
               </button>
             ))}
           </div>
+
 
           <div className="mt-5 flex gap-3">
             <button
