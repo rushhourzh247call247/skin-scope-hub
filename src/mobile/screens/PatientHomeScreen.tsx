@@ -134,10 +134,8 @@ export function PatientHomeScreen() {
     zones.find((zone) => (zonePinsMap[zone.id] ?? []).some((pin) => pin.linked_location_id === spotId));
 
   const refreshViewerLocation = async (locationId: number, preferredIndex: number) => {
-    const nextData = await queryClient.fetchQuery({
-      queryKey: ["full-patient", patientId],
-      queryFn: () => api.getFullPatient(patientId),
-    });
+    const nextData = await api.getFullPatient(patientId);
+    queryClient.setQueryData(["full-patient", patientId], nextData);
     const updated = (nextData?.locations ?? [])
       .filter((l: Location) => l.type !== "region")
       .find((l: Location) => l.id === locationId) as (Location & { images?: LocationImage[] }) | undefined;
@@ -577,6 +575,13 @@ export function PatientHomeScreen() {
               </div>
             </div>
 
+            <div className="px-4 pb-2">
+              <div className="text-2xl font-semibold leading-tight text-foreground">{label}</div>
+              {dateTime && (
+                <div className="mt-0.5 text-base text-muted-foreground">{dateTime}</div>
+              )}
+            </div>
+
             {/* Image stage */}
             <div
               ref={stageRef}
@@ -617,25 +622,13 @@ export function PatientHomeScreen() {
                 </div>
               )}
 
-              {/* Title overlay */}
-              <div className="pointer-events-none absolute left-4 top-3 text-foreground drop-shadow">
-                <div className="text-2xl font-semibold leading-tight">{label}</div>
-                {dateTime && (
-                  <div className="mt-0.5 text-sm text-foreground/85">{dateTime}</div>
-                )}
-              </div>
-
               {/* Right action column */}
               <div className="absolute right-3 top-1/2 flex -translate-y-1/2 flex-col gap-3">
                 {!zone && (
                   <button
                     type="button"
                     aria-label="KI-Analyse"
-                    onClick={() => {
-                      tapHaptic();
-                      setViewer(null);
-                      navigate(`/m/lesions/${viewer.loc.id}`);
-                    }}
+                    onClick={handleAnalysisAction}
                     className="inline-flex h-11 w-11 items-center justify-center rounded-[12px] bg-background/70 text-foreground backdrop-blur active:opacity-80"
                   >
                     <Sparkles className="h-5 w-5" />
@@ -644,15 +637,7 @@ export function PatientHomeScreen() {
                 <button
                   type="button"
                   aria-label="Körperregion"
-                  onClick={() => {
-                    tapHaptic();
-                    const region =
-                      (viewer.loc as any).body_region ||
-                      (viewer.loc as any).region ||
-                      (viewer.loc as any).name ||
-                      "—";
-                    toast({ title: "Körperregion", description: String(region) });
-                  }}
+                  onClick={handleBodyRegion}
                   className="relative inline-flex h-11 w-11 items-center justify-center rounded-[12px] bg-background/70 text-foreground backdrop-blur active:opacity-80"
                 >
                   <Accessibility className="h-5 w-5" />
@@ -666,11 +651,7 @@ export function PatientHomeScreen() {
                   <button
                     type="button"
                     aria-label="Marker"
-                    onClick={() => {
-                      tapHaptic();
-                      setViewer(null);
-                      navigate(`/m/lesions/${viewer.loc.id}`);
-                    }}
+                    onClick={handleMarkerAction}
                     className="inline-flex h-11 w-11 items-center justify-center rounded-[12px] bg-background/70 text-foreground backdrop-blur active:opacity-80"
                   >
                     <CircleDot className="h-5 w-5" />
@@ -745,14 +726,11 @@ export function PatientHomeScreen() {
             >
               <button
                 type="button"
-                onClick={() => {
-                  tapHaptic();
-                  setViewer(null);
-                  navigate(`/m/patients/${patientId}/clinical/new`);
-                }}
+                onClick={handleAddPhotoToCurrentLocation}
+                disabled={addingPhoto}
                 className="flex-1 inline-flex items-center justify-center gap-2 rounded-[16px] bg-[hsl(35_45%_55%)] px-4 py-4 text-foreground active:opacity-80"
               >
-                <CameraIcon className="h-5 w-5" />
+                {addingPhoto ? <Loader2 className="h-5 w-5 animate-spin" /> : <CameraIcon className="h-5 w-5" />}
                 <span className="text-base font-medium">
                   {zone ? "Folgeaufnahme" : `Folgeaufnahme L${viewer.loc.id}`}
                 </span>
