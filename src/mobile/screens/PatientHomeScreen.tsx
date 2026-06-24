@@ -64,7 +64,12 @@ export function PatientHomeScreen() {
   const [imgNat, setImgNat] = useState<{ w: number; h: number } | null>(null);
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [addingPhoto, setAddingPhoto] = useState(false);
+  const [creatingPin, setCreatingPin] = useState(false);
+  const [pinDrag, setPinDrag] = useState<{ pinId: number; x: number; y: number; overTrash: boolean } | null>(null);
   const stageRef = useRef<HTMLDivElement | null>(null);
+  const pinSurfaceRef = useRef<HTMLDivElement | null>(null);
+  const pinLongPressTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const tapStartRef = useRef<{ x: number; y: number; t: number } | null>(null);
   const queryClient = useQueryClient();
 
 
