@@ -71,11 +71,15 @@ export function PatientHomeScreen() {
   const renderZoneTile = (loc: Location & { images?: LocationImage[] }) => {
     const imgs = imageSrcs(loc);
     const cover = imgs[0];
+    const firstImageId = loc.images?.[0]?.id;
     const count = (loc.images ?? []).length;
+    const target = firstImageId
+      ? `/m/patients/${patientId}/clinical/${firstImageId}`
+      : `/m/patients/${patientId}/clinical/new`;
     return (
       <Link
         key={`z-${loc.id}`}
-        to={`/patient/${patientId}`}
+        to={target}
         onClick={() => tapHaptic()}
         className="relative col-span-3 block aspect-square overflow-hidden rounded-[18px] bg-secondary shadow-sm active:opacity-80 sm:col-span-1"
       >
@@ -116,7 +120,7 @@ export function PatientHomeScreen() {
     return cells.map((src, idx) => (
       <Link
         key={`s-${loc.id}-${idx}`}
-        to={`/patient/${patientId}`}
+        to={`/m/lesions/${loc.id}`}
         onClick={() => tapHaptic()}
         className="relative block aspect-square overflow-hidden rounded-[14px] bg-secondary shadow-sm active:opacity-80"
       >
@@ -148,6 +152,7 @@ export function PatientHomeScreen() {
       </Link>
     ));
   };
+
 
   const renderGroup = (loc: Location & { images?: LocationImage[] }) => (
     isZone(loc) ? renderZoneTile(loc) : renderSpotRow(loc)
