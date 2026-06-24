@@ -160,13 +160,22 @@ export function PatientHomeScreen() {
   };
 
   const handleFullscreen = () => {
-    const el = stageRef.current;
-    if (!el) return;
-    if (document.fullscreenElement) {
-      document.exitFullscreen().catch(() => {});
-    } else {
-      el.requestFullscreen?.().catch(() => {});
+    tapHaptic();
+    const el = stageRef.current as any;
+    // Try native fullscreen first (desktop / Android), then fall back to in-app CSS fullscreen (iOS Safari/WebView)
+    const req = el?.requestFullscreen || el?.webkitRequestFullscreen || el?.webkitEnterFullscreen;
+    if (req && typeof req === "function") {
+      try {
+        const p = req.call(el);
+        if (p && typeof p.then === "function") {
+          p.catch(() => setIsFullscreen((v) => !v));
+        }
+        return;
+      } catch {
+        /* fallthrough */
+      }
     }
+    setIsFullscreen((v) => !v);
   };
 
   const handleDeleteImage = async () => {
