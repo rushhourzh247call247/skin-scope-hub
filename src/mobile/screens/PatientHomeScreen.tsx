@@ -88,7 +88,7 @@ export function PatientHomeScreen() {
         type="button"
         key={`z-${loc.id}`}
         onClick={() => openViewer(loc, 0)}
-        className="relative col-span-3 block aspect-square overflow-hidden rounded-[18px] bg-secondary shadow-sm active:opacity-80 sm:col-span-1"
+        className="relative block aspect-square overflow-hidden rounded-[18px] bg-secondary shadow-sm active:opacity-80"
       >
         {cover ? (
           <img
