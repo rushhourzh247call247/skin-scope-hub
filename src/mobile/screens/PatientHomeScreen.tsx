@@ -443,6 +443,17 @@ export function PatientHomeScreen() {
   const handleAddPhotoToCurrentLocation = async () => {
     if (!viewer || addingPhoto) return;
     tapHaptic();
+
+    const refSrc = imageSrcs(viewer.loc)[viewer.index] ?? imageSrcs(viewer.loc)[0] ?? null;
+    const isSpot = !isZone(viewer.loc);
+    const supportsStream = typeof navigator !== "undefined"
+      && !!navigator.mediaDevices?.getUserMedia;
+
+    if (isSpot && refSrc && supportsStream) {
+      setOverlayCapture({ spot: viewer.loc, referenceSrc: refSrc });
+      return;
+    }
+
     const captured = await takePhoto();
     if (!captured) return;
     setAddingPhoto(true);
@@ -1091,6 +1102,9 @@ export function PatientHomeScreen() {
             const spot = overlayCapture.spot;
             setOverlayCapture(null);
             await uploadLesionFile(spot, file);
+            if (viewer?.loc.id === spot.id) {
+              await refreshViewerLocation(spot.id, Number.MAX_SAFE_INTEGER);
+            }
           }}
         />
       )}
