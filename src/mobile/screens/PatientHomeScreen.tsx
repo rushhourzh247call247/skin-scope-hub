@@ -738,11 +738,21 @@ export function PatientHomeScreen() {
             >
               {src ? (
                 <div
+                  ref={pinSurfaceRef}
+                  onPointerDown={(e) => {
+                    if (!zone) return;
+                    tapStartRef.current = { x: e.clientX, y: e.clientY, t: Date.now() };
+                  }}
+                  onPointerMove={(e) => {
+                    if (pinDrag) movePinDrag(e as any);
+                  }}
+                  onPointerUp={zone ? handleStagePointerUp(viewer.loc) : undefined}
                   className="relative max-h-full max-w-full"
                   style={{
                     aspectRatio: imgNat ? `${imgNat.w} / ${imgNat.h}` : undefined,
                     width: imgNat ? "100%" : undefined,
                     height: imgNat ? "100%" : undefined,
+                    touchAction: "none",
                     ...(imgNat
                       ? imgNat.w / imgNat.h > 1
                         ? { height: "auto" }
@@ -753,13 +763,19 @@ export function PatientHomeScreen() {
                   <img
                     src={src}
                     alt={label}
+                    draggable={false}
                     onLoad={(e) => {
                       const t = e.currentTarget;
                       setImgNat({ w: t.naturalWidth, h: t.naturalHeight });
                     }}
-                    className="h-full w-full rounded-[20px] object-contain"
+                    className="pointer-events-none h-full w-full rounded-[20px] object-contain"
                   />
                   {zone && renderZoneMarkers(viewer.loc, "large")}
+                  {creatingPin && (
+                    <div className="pointer-events-none absolute right-3 top-3 inline-flex h-9 w-9 items-center justify-center rounded-full bg-background/80 text-foreground shadow-sm">
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                    </div>
+                  )}
                 </div>
               ) : (
                 <div className="flex h-full w-full items-center justify-center text-muted-foreground">
