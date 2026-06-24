@@ -172,13 +172,13 @@ export function PatientHomeScreen() {
 
       <main className="flex-1 px-4 pb-32">
         <section className="rounded-[26px] bg-card px-4 py-4 shadow-sm">
-          <div className="rounded-[18px] bg-primary/20 px-4 py-4">
+          <div className="rounded-[18px] bg-[hsl(174_55%_18%)] px-5 py-5 text-foreground">
             <div className="truncate text-2xl font-semibold tracking-normal">
               {patient ? (patient.name?.trim() || `${patient.first_name ?? ""} ${patient.last_name ?? ""}`.trim()) : "Patient"}
             </div>
-            {patient?.patient_number && (
-              <div className="mt-1 text-base text-muted-foreground">
-                ID {patient.patient_number}
+            {(patient?.patient_number || patient?.id) && (
+              <div className="mt-1 text-base text-foreground/60">
+                ID {patient?.patient_number ?? patient?.id}
               </div>
             )}
           </div>
@@ -186,7 +186,7 @@ export function PatientHomeScreen() {
           <div className="mt-5 grid grid-cols-3 border-b border-border/80">
             {(
               [
-                ["all", `Alle (${zones.length})`],
+                ["all", `Alle (${locations.length})`],
                 ["clinical", `Klinische (${zones.length})`],
                 ["lesion", `Läsion (${spots.length})`],
               ] as const
@@ -210,16 +210,16 @@ export function PatientHomeScreen() {
 
 
 
-          <div className="mt-5 flex gap-3">
+          <div className="mt-5 flex items-center gap-2">
             <button
               type="button"
-              className="flex min-h-[58px] flex-1 items-center justify-between rounded-[18px] bg-secondary px-5 text-left text-lg text-foreground"
+              className="flex h-[52px] flex-1 min-w-0 items-center justify-between gap-2 rounded-[16px] bg-secondary px-4 text-left text-sm text-foreground"
             >
-              <span>Neueste zum Ältesten</span>
-              <ChevronDown className="h-6 w-6" />
+              <span className="truncate">Neueste zum Ältesten</span>
+              <ChevronDown className="h-5 w-5 shrink-0" />
             </button>
 
-            <div className="flex h-[58px] shrink-0 overflow-hidden rounded-[18px] bg-secondary p-1">
+            <div className="flex h-[52px] shrink-0 items-center rounded-[16px] bg-secondary p-1">
               {[
                 { key: "list", icon: List, label: "Liste" },
                 { key: "grid", icon: Grid2x2, label: "Grid" },
@@ -230,7 +230,7 @@ export function PatientHomeScreen() {
                   type="button"
                   aria-label={label}
                   onClick={() => setViewMode(key as ViewMode)}
-                  className={`inline-flex w-12 items-center justify-center rounded-[14px] transition-colors ${
+                  className={`inline-flex h-full w-10 items-center justify-center rounded-[12px] transition-colors ${
                     viewMode === key
                       ? "bg-primary text-primary-foreground"
                       : "text-muted-foreground"
@@ -241,6 +241,7 @@ export function PatientHomeScreen() {
               ))}
             </div>
           </div>
+
         </section>
 
         {isLoading && (
