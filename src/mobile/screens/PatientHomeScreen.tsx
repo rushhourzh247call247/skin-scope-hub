@@ -71,6 +71,10 @@ export function PatientHomeScreen() {
   const pinLongPressTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const tapStartRef = useRef<{ x: number; y: number; t: number } | null>(null);
   const suppressClickRef = useRef(false);
+  const [overlayCapture, setOverlayCapture] = useState<
+    | { spot: Location & { images?: LocationImage[] }; referenceSrc: string | null }
+    | null
+  >(null);
   const queryClient = useQueryClient();
 
 
