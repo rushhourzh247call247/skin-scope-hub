@@ -156,6 +156,7 @@ export function PatientHomeScreen() {
     if (!(loc.images?.length)) return;
     tapHaptic();
     setImgNat(null);
+    setIsFullscreen(false);
     setViewer({ loc, index });
   };
 
