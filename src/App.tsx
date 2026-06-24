@@ -34,6 +34,17 @@ import ServerAdmin from "./pages/ServerAdmin";
 import ContactInquiries from "./pages/ContactInquiries";
 import { isServerAdminAvailable } from "@/lib/environment";
 import { MobileApp } from "@/mobile/MobileApp";
+import { useIsMobile } from "@/hooks/use-mobile";
+import { useLocation } from "react-router-dom";
+
+const MobileRedirect = ({ to, children }: { to: string; children: React.ReactNode }) => {
+  const isMobile = useIsMobile();
+  const location = useLocation();
+  if (isMobile && !location.pathname.startsWith("/m")) {
+    return <Navigate to={to} replace />;
+  }
+  return <>{children}</>;
+};
 
 const queryClient = new QueryClient({
   defaultOptions: {
