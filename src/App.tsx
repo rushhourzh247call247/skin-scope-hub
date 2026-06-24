@@ -110,10 +110,10 @@ const App = () => (
             <Route path="/contact-confirm" element={<ContactConfirm />} />
             <Route path="/contact/confirm" element={<ContactConfirm />} />
             <Route path="/calibrate" element={<Calibrate />} />
-            <Route path="/" element={<ProtectedPage><AccountantRedirect><PmaRedirect><Dashboard /></PmaRedirect></AccountantRedirect></ProtectedPage>} />
-            <Route path="/patients" element={<ProtectedPage><AccountantRedirect><PatientList /></AccountantRedirect></ProtectedPage>} />
+            <Route path="/" element={<ProtectedPage><AccountantRedirect><PmaRedirect><MobileRedirect to="/m"><Dashboard /></MobileRedirect></PmaRedirect></AccountantRedirect></ProtectedPage>} />
+            <Route path="/patients" element={<ProtectedPage><AccountantRedirect><MobileRedirect to="/m"><PatientList /></MobileRedirect></AccountantRedirect></ProtectedPage>} />
             <Route path="/new-patient" element={<ProtectedPage><AccountantRedirect><NewPatient /></AccountantRedirect></ProtectedPage>} />
-            <Route path="/patient/:id" element={<ProtectedPage><AccountantRedirect><PatientDetail /></AccountantRedirect></ProtectedPage>} />
+            <Route path="/patient/:id" element={<ProtectedPage><AccountantRedirect><MobileRedirect to="/m"><PatientDetail /></MobileRedirect></AccountantRedirect></ProtectedPage>} />
             <Route path="/companies" element={<ProtectedPage><AdminRoute><CompanyManagement /></AdminRoute></ProtectedPage>} />
             <Route path="/users" element={<ProtectedPage><AdminRoute><UserManagement /></AdminRoute></ProtectedPage>} />
             <Route path="/snapshots" element={<ProtectedPage><AdminRoute><Snapshots /></AdminRoute></ProtectedPage>} />
