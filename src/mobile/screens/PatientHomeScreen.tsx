@@ -71,7 +71,7 @@ export function PatientHomeScreen() {
   };
 
   const renderTile = (loc: Location & { images?: LocationImage[] }) => {
-    const img = firstImagePath(loc);
+    const img = firstImageSrc(loc);
     const zone = isZone(loc);
     const dateStr = loc.created_at
       ? new Date(loc.created_at).toLocaleDateString("de-CH", {
