@@ -1,6 +1,7 @@
-import { useMemo, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { toast } from "@/hooks/use-toast";
 import {
   Camera,
   Loader2,
@@ -53,6 +54,9 @@ export function PatientHomeScreen() {
   const [tab, setTab] = useState<Tab>("all");
   const [viewMode, setViewMode] = useState<ViewMode>("grid");
   const [viewer, setViewer] = useState<{ loc: Location & { images?: LocationImage[] }; index: number } | null>(null);
+  const [imgNat, setImgNat] = useState<{ w: number; h: number } | null>(null);
+  const stageRef = useRef<HTMLDivElement | null>(null);
+  const queryClient = useQueryClient();
 
 
   const { data, isLoading, error } = useQuery<any>({
@@ -150,7 +154,36 @@ export function PatientHomeScreen() {
   const openViewer = (loc: Location & { images?: LocationImage[] }, index = 0) => {
     if (!(loc.images?.length)) return;
     tapHaptic();
+    setImgNat(null);
     setViewer({ loc, index });
+  };
+
+  const handleFullscreen = () => {
+    const el = stageRef.current;
+    if (!el) return;
+    if (document.fullscreenElement) {
+      document.exitFullscreen().catch(() => {});
+    } else {
+      el.requestFullscreen?.().catch(() => {});
+    }
+  };
+
+  const handleDeleteImage = async () => {
+    if (!viewer) return;
+    const imgs = viewer.loc.images ?? [];
+    const img = imgs[viewer.index];
+    if (!img) return;
+    if (!confirm("Foto wirklich löschen?")) return;
+    try {
+      await api.deleteImage(img.id);
+      toast({ title: "Gelöscht" });
+      await queryClient.invalidateQueries({ queryKey: ["full-patient", patientId] });
+      const remaining = imgs.length - 1;
+      if (remaining <= 0) setViewer(null);
+      else setViewer({ loc: viewer.loc, index: Math.max(0, viewer.index - 1) });
+    } catch (e: any) {
+      toast({ title: "Fehler", description: e?.message ?? "Löschen fehlgeschlagen", variant: "destructive" });
+    }
   };
 
   // Big square tile for a Zone (overview) – labelled CL{id}
@@ -440,13 +473,35 @@ export function PatientHomeScreen() {
             </div>
 
             {/* Image stage */}
-            <div className="relative mx-4 flex-1 overflow-hidden rounded-[20px] bg-secondary">
+            <div
+              ref={stageRef}
+              className="relative mx-4 flex flex-1 items-center justify-center overflow-hidden rounded-[20px] bg-secondary"
+            >
               {src ? (
-                <img
-                  src={src}
-                  alt={label}
-                  className="absolute inset-0 h-full w-full object-cover"
-                />
+                <div
+                  className="relative max-h-full max-w-full"
+                  style={{
+                    aspectRatio: imgNat ? `${imgNat.w} / ${imgNat.h}` : undefined,
+                    width: imgNat ? "100%" : undefined,
+                    height: imgNat ? "100%" : undefined,
+                    ...(imgNat
+                      ? imgNat.w / imgNat.h > 1
+                        ? { height: "auto" }
+                        : { width: "auto" }
+                      : {}),
+                  }}
+                >
+                  <img
+                    src={src}
+                    alt={label}
+                    onLoad={(e) => {
+                      const t = e.currentTarget;
+                      setImgNat({ w: t.naturalWidth, h: t.naturalHeight });
+                    }}
+                    className="h-full w-full rounded-[20px] object-contain"
+                  />
+                  {zone && renderZoneMarkers(viewer.loc, "large")}
+                </div>
               ) : (
                 <div className="flex h-full w-full items-center justify-center text-muted-foreground">
                   Kein Bild
@@ -454,14 +509,12 @@ export function PatientHomeScreen() {
               )}
 
               {/* Title overlay */}
-              <div className="absolute left-4 top-3 text-foreground drop-shadow">
+              <div className="pointer-events-none absolute left-4 top-3 text-foreground drop-shadow">
                 <div className="text-2xl font-semibold leading-tight">{label}</div>
                 {dateTime && (
                   <div className="mt-0.5 text-sm text-foreground/85">{dateTime}</div>
                 )}
               </div>
-
-              {zone && renderZoneMarkers(viewer.loc, "large")}
 
               {/* Right action column */}
               <div className="absolute right-3 top-1/2 flex -translate-y-1/2 flex-col gap-3">
@@ -469,6 +522,11 @@ export function PatientHomeScreen() {
                   <button
                     type="button"
                     aria-label="KI-Analyse"
+                    onClick={() => {
+                      tapHaptic();
+                      setViewer(null);
+                      navigate(`/m/lesions/${viewer.loc.id}`);
+                    }}
                     className="inline-flex h-11 w-11 items-center justify-center rounded-[12px] bg-background/70 text-foreground backdrop-blur active:opacity-80"
                   >
                     <Sparkles className="h-5 w-5" />
@@ -477,6 +535,10 @@ export function PatientHomeScreen() {
                 <button
                   type="button"
                   aria-label="Körperregion"
+                  onClick={() => {
+                    tapHaptic();
+                    setViewer(null);
+                  }}
                   className="relative inline-flex h-11 w-11 items-center justify-center rounded-[12px] bg-background/70 text-foreground backdrop-blur active:opacity-80"
                 >
                   <Accessibility className="h-5 w-5" />
@@ -486,16 +548,24 @@ export function PatientHomeScreen() {
                     </span>
                   )}
                 </button>
-                <button
-                  type="button"
-                  aria-label="Marker"
-                  className="inline-flex h-11 w-11 items-center justify-center rounded-[12px] bg-background/70 text-foreground backdrop-blur active:opacity-80"
-                >
-                  <CircleDot className="h-5 w-5" />
-                </button>
+                {!zone && (
+                  <button
+                    type="button"
+                    aria-label="Marker"
+                    onClick={() => {
+                      tapHaptic();
+                      setViewer(null);
+                      navigate(`/m/lesions/${viewer.loc.id}`);
+                    }}
+                    className="inline-flex h-11 w-11 items-center justify-center rounded-[12px] bg-background/70 text-foreground backdrop-blur active:opacity-80"
+                  >
+                    <CircleDot className="h-5 w-5" />
+                  </button>
+                )}
                 <button
                   type="button"
                   aria-label="Löschen"
+                  onClick={handleDeleteImage}
                   className="inline-flex h-11 w-11 items-center justify-center rounded-[12px] bg-background/70 text-foreground backdrop-blur active:opacity-80"
                 >
                   <Trash2 className="h-5 w-5" />
@@ -506,6 +576,7 @@ export function PatientHomeScreen() {
               <button
                 type="button"
                 aria-label="Vollbild"
+                onClick={handleFullscreen}
                 className="absolute bottom-3 left-3 inline-flex h-11 w-11 items-center justify-center rounded-[12px] bg-background/70 text-foreground backdrop-blur active:opacity-80"
               >
                 <Maximize2 className="h-5 w-5" />
@@ -513,7 +584,7 @@ export function PatientHomeScreen() {
 
               {/* Page indicator dots */}
               {imgs.length > 1 && (
-                <div className="absolute inset-x-0 bottom-3 flex justify-center gap-1.5">
+                <div className="pointer-events-none absolute inset-x-0 bottom-3 flex justify-center gap-1.5">
                   {imgs.map((_, i) => (
                     <span
                       key={i}
@@ -526,13 +597,14 @@ export function PatientHomeScreen() {
               )}
             </div>
 
+
             {/* Thumbnail strip */}
             <div className="flex gap-3 overflow-x-auto px-4 py-3">
               {imgs.map((s, i) => (
                 <button
                   key={i}
                   type="button"
-                  onClick={() => setViewer({ loc: viewer.loc, index: i })}
+                  onClick={() => { setImgNat(null); setViewer({ loc: viewer.loc, index: i }); }}
                   className={`relative h-20 w-20 shrink-0 overflow-hidden rounded-[14px] border-2 ${
                     i === idx ? "border-primary" : "border-transparent opacity-80"
                   }`}
