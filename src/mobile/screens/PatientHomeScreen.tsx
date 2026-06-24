@@ -27,6 +27,7 @@ import { api } from "@/lib/api";
 
 import { tapHaptic } from "../native/haptics";
 import { compressImage, takePhoto } from "../native/camera";
+import { CameraOverlayCapture } from "../components/CameraOverlayCapture";
 import type { Location, LocationImage, OverviewPin } from "@/types/patient";
 
 
@@ -71,6 +72,10 @@ export function PatientHomeScreen() {
   const pinLongPressTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const tapStartRef = useRef<{ x: number; y: number; t: number } | null>(null);
   const suppressClickRef = useRef(false);
+  const [overlayCapture, setOverlayCapture] = useState<
+    | { spot: Location & { images?: LocationImage[] }; referenceSrc: string | null }
+    | null
+  >(null);
   const queryClient = useQueryClient();
 
 
@@ -560,21 +565,37 @@ export function PatientHomeScreen() {
     );
   };
 
-  const handleAddLesionPhoto = async (spot: Location & { images?: LocationImage[] }) => {
-    tapHaptic();
-    const captured = await takePhoto();
-    if (!captured) return;
+  const uploadLesionFile = async (spot: Location & { images?: LocationImage[] }, file: File) => {
     try {
-      const blob = await compressImage(captured.file);
-      const file = blob instanceof File
+      const blob = await compressImage(file);
+      const out = blob instanceof File
         ? blob
-        : new File([blob], captured.file.name || "lesion.jpg", { type: blob.type || "image/jpeg" });
-      await api.uploadImage(spot.id, file);
+        : new File([blob], file.name || "lesion.jpg", { type: blob.type || "image/jpeg" });
+      await api.uploadImage(spot.id, out);
       toast({ title: "Foto hinzugefügt", description: spot.name ?? `L${spot.id}` });
       const next = await api.getFullPatient(patientId);
       queryClient.setQueryData(["full-patient", patientId], next);
     } catch (e: any) {
       toast({ title: "Fehler", description: e?.message ?? "Upload fehlgeschlagen", variant: "destructive" });
+    }
+  };
+
+  const handleAddLesionPhoto = async (spot: Location & { images?: LocationImage[] }) => {
+    tapHaptic();
+    // If the spot already has a previous lesion photo, open in-app camera with
+    // the existing photo as a ghost overlay so the user can re-shoot from the
+    // same angle. Falls back to the system camera otherwise.
+    const refSrc = imageSrcs(spot)[0] ?? null;
+    const supportsStream = typeof navigator !== "undefined"
+      && !!navigator.mediaDevices?.getUserMedia;
+    if (refSrc && supportsStream) {
+      setOverlayCapture({ spot, referenceSrc: refSrc });
+      return;
+    }
+    const captured = await takePhoto();
+    if (!captured) return;
+    try {
+      await uploadLesionFile(spot, captured.file);
     } finally {
       URL.revokeObjectURL(captured.previewUrl);
     }
@@ -1050,6 +1071,29 @@ export function PatientHomeScreen() {
           </div>
         );
       })()}
+
+      {overlayCapture && (
+        <CameraOverlayCapture
+          referenceSrc={overlayCapture.referenceSrc}
+          title={
+            patient
+              ? patient.name?.trim() ||
+                `${patient.first_name ?? ""} ${patient.last_name ?? ""}`.trim()
+              : overlayCapture.spot.name ?? `L${overlayCapture.spot.id}`
+          }
+          subtitle={
+            patient?.patient_number
+              ? `ID ${patient.patient_number}`
+              : overlayCapture.spot.name ?? `L${overlayCapture.spot.id}`
+          }
+          onCancel={() => setOverlayCapture(null)}
+          onCapture={async (file) => {
+            const spot = overlayCapture.spot;
+            setOverlayCapture(null);
+            await uploadLesionFile(spot, file);
+          }}
+        />
+      )}
     </>
   );
 }
