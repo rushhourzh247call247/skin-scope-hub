@@ -19,22 +19,16 @@ import { api } from "@/lib/api";
 import { tapHaptic } from "../native/haptics";
 import type { Location, LocationImage } from "@/types/patient";
 
-type Tab = "all" | "zone" | "spot";
+type Tab = "all" | "clinical" | "lesion";
 type ViewMode = "list" | "grid" | "body";
 
 function isZone(l: Location) {
   return l.type === "overview";
 }
-function isSpot(l: Location) {
-  return !isZone(l) && l.type !== "region" || l.type === "spot" || !l.type;
-}
 
-function firstImageSrc(l: Location & { images?: LocationImage[] }): string {
-  const img = (l.images ?? [])[0];
-  if (!img) return "";
-  return api.resolveImageSrc(img);
+function imageSrcs(l: Location & { images?: LocationImage[] }): string[] {
+  return (l.images ?? []).map((img) => api.resolveImageSrc(img)).filter(Boolean);
 }
-
 
 export function PatientHomeScreen() {
   const { id } = useParams<{ id: string }>();
@@ -59,60 +53,117 @@ export function PatientHomeScreen() {
   const zones = useMemo(() => locations.filter(isZone), [locations]);
   const spots = useMemo(() => locations.filter((l) => !isZone(l)), [locations]);
 
-  const tiles = useMemo(() => {
-    if (tab === "zone") return zones;
-    if (tab === "spot") return spots;
-    return locations;
-  }, [tab, zones, spots, locations]);
-
   const startNew = () => {
     tapHaptic();
     navigate(`/m/patients/${patientId}/clinical/new`);
   };
 
-  const renderTile = (loc: Location & { images?: LocationImage[] }) => {
-    const img = firstImageSrc(loc);
-    const zone = isZone(loc);
-    const dateStr = loc.created_at
-      ? new Date(loc.created_at).toLocaleDateString("de-CH", {
+  const fmtDate = (s?: string) =>
+    s
+      ? new Date(s).toLocaleDateString("de-CH", {
           day: "2-digit",
           month: "short",
           year: "numeric",
         })
       : "";
+
+  // Big square tile for a Zone (overview) – labelled CL{id}
+  const renderZoneTile = (loc: Location & { images?: LocationImage[] }) => {
+    const imgs = imageSrcs(loc);
+    const cover = imgs[0];
+    const count = (loc.images ?? []).length;
     return (
       <Link
-        key={`loc-${loc.id}`}
+        key={`z-${loc.id}`}
         to={`/patient/${patientId}`}
         onClick={() => tapHaptic()}
-        className="relative block aspect-square overflow-hidden rounded-[18px] bg-secondary shadow-sm active:opacity-80"
+        className="relative col-span-3 block aspect-square overflow-hidden rounded-[18px] bg-secondary shadow-sm active:opacity-80 sm:col-span-1"
       >
-        {img ? (
+        {cover ? (
           <img
-            src={img}
-            alt={loc.name ?? (zone ? "Zone" : "Spot")}
+            src={cover}
+            alt={loc.name ?? "Zone"}
             loading="lazy"
             className="absolute inset-0 h-full w-full object-cover"
           />
         ) : (
           <div className="absolute inset-0 flex items-center justify-center text-muted-foreground">
-            {zone ? <ImageIcon className="h-8 w-8" /> : <MapPin className="h-8 w-8" />}
+            <ImageIcon className="h-10 w-10" />
           </div>
         )}
-        <div className="absolute left-3 top-3 inline-flex h-7 items-center justify-center rounded-full bg-card/90 px-2 text-xs font-semibold text-foreground shadow-sm backdrop-blur">
-          {zone ? "Zone" : "Spot"}
+        <div className="absolute right-3 top-3 inline-flex h-7 min-w-7 items-center justify-center rounded-full bg-card/90 px-2 text-xs font-semibold text-foreground shadow-sm backdrop-blur">
+          {count}
         </div>
         <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-background/95 via-background/30 to-transparent px-3 py-2 text-card-foreground">
-          <div className="truncate text-base font-semibold leading-tight">
-            {loc.name?.trim() || (zone ? `Zone #${loc.id}` : `Spot #${loc.id}`)}
+          <div className="truncate text-lg font-semibold leading-tight">
+            CL{loc.id}{count ? ` (${count})` : ""}
           </div>
-          {dateStr && (
-            <div className="mt-0.5 text-xs text-foreground/80">{dateStr}</div>
+          {loc.created_at && (
+            <div className="mt-0.5 text-xs text-foreground/80">
+              {fmtDate(loc.created_at)}
+            </div>
           )}
         </div>
       </Link>
     );
   };
+
+  // Row of up to 3 thumbnails for a Spot – labelled L{id}
+  const renderSpotRow = (loc: Location & { images?: LocationImage[] }) => {
+    const imgs = imageSrcs(loc).slice(0, 3);
+    const cells = [0, 1, 2].map((i) => imgs[i] ?? null);
+    const dateStr = fmtDate(loc.created_at);
+    return cells.map((src, idx) => (
+      <Link
+        key={`s-${loc.id}-${idx}`}
+        to={`/patient/${patientId}`}
+        onClick={() => tapHaptic()}
+        className="relative block aspect-square overflow-hidden rounded-[14px] bg-secondary shadow-sm active:opacity-80"
+      >
+        {src ? (
+          <img
+            src={src}
+            alt={`L${loc.id}`}
+            loading="lazy"
+            className="absolute inset-0 h-full w-full object-cover"
+          />
+        ) : (
+          <div className="absolute inset-0 flex items-center justify-center text-muted-foreground">
+            <MapPin className="h-6 w-6" />
+          </div>
+        )}
+        {idx === 0 && (
+          <div className="absolute right-2 top-2 inline-flex h-6 min-w-6 items-center justify-center rounded-full bg-card/90 px-1.5 text-[11px] font-semibold text-foreground shadow-sm backdrop-blur">
+            {loc.id}
+          </div>
+        )}
+        <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-background/95 via-background/20 to-transparent px-2 py-1.5 text-card-foreground">
+          <div className="truncate text-sm font-semibold leading-tight">
+            L{loc.id}
+          </div>
+          {dateStr && idx === 0 && (
+            <div className="text-[10px] text-foreground/80">{dateStr}</div>
+          )}
+        </div>
+      </Link>
+    ));
+  };
+
+  const renderGroup = (loc: Location & { images?: LocationImage[] }) => (
+    isZone(loc) ? renderZoneTile(loc) : renderSpotRow(loc)
+  );
+
+  const renderedTiles = useMemo(() => {
+    const arr =
+      tab === "clinical" ? zones : tab === "lesion" ? spots : locations;
+    return arr.flatMap((l) => {
+      const out = renderGroup(l);
+      return Array.isArray(out) ? out : [out];
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [tab, zones, spots, locations]);
+
+
 
 
   return (
@@ -135,9 +186,9 @@ export function PatientHomeScreen() {
           <div className="mt-5 grid grid-cols-3 border-b border-border/80">
             {(
               [
-                ["all", `Alle (${locations.length})`],
-                ["zone", `Zonen (${zones.length})`],
-                ["spot", `Spots (${spots.length})`],
+                ["all", `Alle (${zones.length})`],
+                ["clinical", `Klinische (${zones.length})`],
+                ["lesion", `Läsion (${spots.length})`],
               ] as const
             ).map(([key, label]) => (
               <button
@@ -146,7 +197,7 @@ export function PatientHomeScreen() {
                   tapHaptic();
                   setTab(key);
                 }}
-                className={`px-1 py-4 text-lg transition-colors ${
+                className={`px-1 py-4 text-base transition-colors ${
                   tab === key
                     ? "border-b-2 border-primary text-foreground"
                     : "text-muted-foreground"
@@ -156,6 +207,7 @@ export function PatientHomeScreen() {
               </button>
             ))}
           </div>
+
 
 
           <div className="mt-5 flex gap-3">
@@ -204,31 +256,26 @@ export function PatientHomeScreen() {
           </div>
         )}
 
-        {tiles.length > 0 && (
+        {renderedTiles.length > 0 && (
           <section className="mt-5">
-            {viewMode === "list" && (
-              <div className="space-y-4">{tiles.map(renderTile)}</div>
-            )}
-
-            {viewMode === "grid" && (
-              <div className="grid grid-cols-2 gap-3">{tiles.map(renderTile)}</div>
-            )}
-
-            {viewMode === "body" && (
+            {viewMode === "body" ? (
               <div className="rounded-[26px] bg-card px-4 py-8 shadow-sm">
                 <div className="flex min-h-[360px] items-center justify-center rounded-[20px] bg-secondary/50 px-6 text-center text-muted-foreground">
                   Körperansicht folgt im nächsten Schritt.
                 </div>
               </div>
+            ) : (
+              <div className="grid grid-cols-3 gap-2">{renderedTiles}</div>
             )}
           </section>
         )}
 
-        {!isLoading && !error && tiles.length === 0 && (
+        {!isLoading && !error && renderedTiles.length === 0 && (
           <div className="py-16 text-center text-sm text-muted-foreground">
-            Noch keine {tab === "zone" ? "Zonen" : tab === "spot" ? "Spots" : "Einträge"}. Tippen Sie auf „Neu“.
+            Noch keine {tab === "clinical" ? "klinischen Aufnahmen" : tab === "lesion" ? "Läsionen" : "Einträge"}. Tippen Sie auf „Neu“.
           </div>
         )}
+
       </main>
 
 
