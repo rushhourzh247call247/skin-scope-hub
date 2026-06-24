@@ -166,7 +166,7 @@ export function PatientHomeScreen() {
         <section className="rounded-[26px] bg-card px-4 py-4 shadow-sm">
           <div className="rounded-[18px] bg-primary/20 px-4 py-4">
             <div className="truncate text-2xl font-semibold tracking-normal">
-              {patient ? `${patient.first_name} ${patient.last_name}` : "Patient"}
+              {patient ? (patient.name?.trim() || `${patient.first_name ?? ""} ${patient.last_name ?? ""}`.trim()) : "Patient"}
             </div>
             {patient?.patient_number && (
               <div className="mt-1 text-base text-muted-foreground">

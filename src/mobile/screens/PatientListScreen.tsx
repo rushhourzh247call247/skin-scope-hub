@@ -50,11 +50,14 @@ export function PatientListScreen() {
     };
   }, []);
 
+  const fullName = (p: MobilePatient) =>
+    p.name?.trim() || `${p.first_name ?? ""} ${p.last_name ?? ""}`.trim();
+
   const filtered = (patients ?? []).filter((p) => {
     if (!query.trim()) return true;
     const q = query.toLowerCase();
     return (
-      `${p.first_name} ${p.last_name}`.toLowerCase().includes(q) ||
+      fullName(p).toLowerCase().includes(q) ||
       (p.patient_number?.toLowerCase().includes(q) ?? false)
     );
   });
@@ -137,7 +140,7 @@ export function PatientListScreen() {
                   </span>
                   <div className="min-w-0">
                     <div className="truncate text-base font-semibold leading-tight">
-                      {p.first_name} {p.last_name}
+                      {fullName(p)}
                     </div>
                     <div className="mt-1 truncate text-xs text-muted-foreground">
                       {p.patient_number ? `ID ${p.patient_number}` : null}
