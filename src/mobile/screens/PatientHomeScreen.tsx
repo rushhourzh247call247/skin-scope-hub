@@ -29,10 +29,12 @@ function isSpot(l: Location) {
   return !isZone(l) && l.type !== "region" || l.type === "spot" || !l.type;
 }
 
-function firstImagePath(l: Location & { images?: LocationImage[] }): string | undefined {
+function firstImageSrc(l: Location & { images?: LocationImage[] }): string {
   const img = (l.images ?? [])[0];
-  return img?.file_path || img?.image_path || img?.image_url || undefined;
+  if (!img) return "";
+  return api.resolveImageSrc(img);
 }
+
 
 export function PatientHomeScreen() {
   const { id } = useParams<{ id: string }>();
