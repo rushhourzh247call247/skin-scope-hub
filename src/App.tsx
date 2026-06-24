@@ -33,6 +33,7 @@ import FinanceUpcoming from "./pages/FinanceUpcoming";
 import ServerAdmin from "./pages/ServerAdmin";
 import ContactInquiries from "./pages/ContactInquiries";
 import { isServerAdminAvailable } from "@/lib/environment";
+import { MobileApp } from "@/mobile/MobileApp";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -90,6 +91,8 @@ const App = () => (
         <BrowserRouter>
           <Routes>
             <Route path="/login" element={<Login />} />
+            {/* Neue, isolierte Mobile-App nach FotoFinder-Prinzip (Klinisches Foto → Marker → Dermatoskopie) */}
+            <Route path="/m/*" element={<MobileApp />} />
             <Route path="/upload" element={<MobileUpload />} />
             <Route path="/demo-upload" element={<DemoUpload />} />
             <Route path="/demo" element={<Demo />} />
