@@ -166,12 +166,28 @@ export function PatientHomeScreen() {
     }
   };
 
+  const nextFreeLNumber = () => {
+    const used = new Set<number>();
+    for (const s of spots) {
+      const m = /^L\s*(\d+)$/i.exec((s.name ?? "").trim());
+      if (m) used.add(Number(m[1]));
+    }
+    for (const pins of Object.values(zonePinsMap)) {
+      for (const p of pins) {
+        const m = /^L?\s*(\d+)$/i.exec((p.label ?? "").trim());
+        if (m) used.add(Number(m[1]));
+      }
+    }
+    let n = 1;
+    while (used.has(n)) n++;
+    return n;
+  };
+
   const createPinAt = async (zone: Location, xPct: number, yPct: number) => {
     if (creatingPin) return;
     setCreatingPin(true);
     try {
-      const existingPins = zonePinsMap[zone.id] ?? [];
-      const nextNum = (existingPins.length + spots.length) || 1;
+      const nextNum = nextFreeLNumber();
       const spot = await api.createLocation(patientId, {
         name: `L${nextNum}`,
         x: zone.x ?? 0,
@@ -193,7 +209,7 @@ export function PatientHomeScreen() {
       tapHaptic();
       await refreshZonePins(zone.id);
       queryClient.invalidateQueries({ queryKey: ["full-patient", patientId] });
-      toast({ title: "Marker gesetzt" });
+      toast({ title: "Marker gesetzt", description: `L${nextNum}` });
     } catch (e: any) {
       toast({ title: "Fehler", description: e?.message ?? "Marker konnte nicht gesetzt werden.", variant: "destructive" });
     } finally {
