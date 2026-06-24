@@ -256,31 +256,26 @@ export function PatientHomeScreen() {
           </div>
         )}
 
-        {tiles.length > 0 && (
+        {renderedTiles.length > 0 && (
           <section className="mt-5">
-            {viewMode === "list" && (
-              <div className="space-y-4">{tiles.map(renderTile)}</div>
-            )}
-
-            {viewMode === "grid" && (
-              <div className="grid grid-cols-2 gap-3">{tiles.map(renderTile)}</div>
-            )}
-
-            {viewMode === "body" && (
+            {viewMode === "body" ? (
               <div className="rounded-[26px] bg-card px-4 py-8 shadow-sm">
                 <div className="flex min-h-[360px] items-center justify-center rounded-[20px] bg-secondary/50 px-6 text-center text-muted-foreground">
                   Körperansicht folgt im nächsten Schritt.
                 </div>
               </div>
+            ) : (
+              <div className="grid grid-cols-3 gap-2">{renderedTiles}</div>
             )}
           </section>
         )}
 
-        {!isLoading && !error && tiles.length === 0 && (
+        {!isLoading && !error && renderedTiles.length === 0 && (
           <div className="py-16 text-center text-sm text-muted-foreground">
-            Noch keine {tab === "zone" ? "Zonen" : tab === "spot" ? "Spots" : "Einträge"}. Tippen Sie auf „Neu“.
+            Noch keine {tab === "clinical" ? "klinischen Aufnahmen" : tab === "lesion" ? "Läsionen" : "Einträge"}. Tippen Sie auf „Neu“.
           </div>
         )}
+
       </main>
 
 
