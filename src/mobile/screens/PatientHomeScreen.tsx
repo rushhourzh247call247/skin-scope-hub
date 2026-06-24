@@ -26,6 +26,7 @@ import { MobileHeader } from "../components/MobileHeader";
 import { api } from "@/lib/api";
 
 import { tapHaptic } from "../native/haptics";
+import { compressImage, takePhoto } from "../native/camera";
 import type { Location, LocationImage, OverviewPin } from "@/types/patient";
 
 
@@ -36,8 +37,14 @@ function isZone(l: Location) {
   return l.type === "overview";
 }
 
+function locationImages(l: Location & { images?: LocationImage[] }): LocationImage[] {
+  return [...(l.images ?? [])].sort(
+    (a, b) => new Date(a.created_at ?? 0).getTime() - new Date(b.created_at ?? 0).getTime(),
+  );
+}
+
 function imageSrcs(l: Location & { images?: LocationImage[] }): string[] {
-  return (l.images ?? []).map((img) => api.resolveImageSrc(img)).filter(Boolean);
+  return locationImages(l).map((img) => api.resolveImageSrc(img)).filter(Boolean);
 }
 
 function clampPct(v?: number) {
@@ -56,6 +63,7 @@ export function PatientHomeScreen() {
   const [viewer, setViewer] = useState<{ loc: Location & { images?: LocationImage[] }; index: number } | null>(null);
   const [imgNat, setImgNat] = useState<{ w: number; h: number } | null>(null);
   const [isFullscreen, setIsFullscreen] = useState(false);
+  const [addingPhoto, setAddingPhoto] = useState(false);
   const stageRef = useRef<HTMLDivElement | null>(null);
   const queryClient = useQueryClient();
 
@@ -98,6 +106,50 @@ export function PatientHomeScreen() {
     return compact ? label.replace(/^L/i, "") : label.startsWith("L") ? label : `L${label}`;
   };
 
+  const openViewer = (loc: Location & { images?: LocationImage[] }, index = 0) => {
+    if (!(loc.images?.length)) return;
+    tapHaptic();
+    setImgNat(null);
+    setIsFullscreen(false);
+    setViewer({ loc, index });
+  };
+
+  const openLinkedSpot = (pin: OverviewPin) => {
+    const spot = spots.find((s) => s.id === pin.linked_location_id);
+    if (spot?.images?.length) {
+      openViewer(spot, 0);
+      return;
+    }
+    if (spot) {
+      setViewer(null);
+      setTab("lesion");
+      setViewMode("grid");
+      toast({ title: spot.name || getPinLabel(pin), description: "Dieser Spot hat noch kein Foto." });
+      return;
+    }
+    toast({ title: "Spot nicht gefunden" });
+  };
+
+  const getZoneForSpot = (spotId: number) =>
+    zones.find((zone) => (zonePinsMap[zone.id] ?? []).some((pin) => pin.linked_location_id === spotId));
+
+  const refreshViewerLocation = async (locationId: number, preferredIndex: number) => {
+    const nextData = await queryClient.fetchQuery({
+      queryKey: ["full-patient", patientId],
+      queryFn: () => api.getFullPatient(patientId),
+    });
+    const updated = (nextData?.locations ?? [])
+      .filter((l: Location) => l.type !== "region")
+      .find((l: Location) => l.id === locationId) as (Location & { images?: LocationImage[] }) | undefined;
+    const nextImages = updated ? locationImages(updated) : [];
+    setImgNat(null);
+    if (!updated || nextImages.length === 0) {
+      setViewer(null);
+      return;
+    }
+    setViewer({ loc: updated, index: Math.max(0, Math.min(preferredIndex, nextImages.length - 1)) });
+  };
+
   const renderZoneMarkers = (loc: Location, size: "small" | "large") => {
     const pins = zonePinsMap[loc.id] ?? [];
     if (!pins.length) return null;
@@ -122,14 +174,22 @@ export function PatientHomeScreen() {
                   {getPinLabel(pin, true)}
                 </span>
               ) : (
-                <div className="relative flex items-center gap-1.5">
+                <button
+                  type="button"
+                  aria-label={`${getPinLabel(pin)} öffnen`}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    openLinkedSpot(pin);
+                  }}
+                  className="pointer-events-auto relative flex items-center gap-1.5 transition-transform active:scale-95"
+                >
                   <span className="rounded-[5px] bg-foreground px-1.5 py-0.5 text-base font-bold leading-none text-background shadow-md">
                     {getPinLabel(pin)}
                   </span>
                   <span className="relative inline-flex h-16 w-16 items-center justify-center rounded-full border-2 border-foreground bg-background/20 text-foreground shadow-sm backdrop-blur-[1px] after:absolute after:-bottom-3 after:left-1/2 after:h-0 after:w-0 after:-translate-x-1/2 after:border-x-[7px] after:border-t-[12px] after:border-x-transparent after:border-t-foreground">
                     <CameraIcon className="h-6 w-6" />
                   </span>
-                </div>
+                </button>
               )}
             </div>
           );
@@ -152,48 +212,82 @@ export function PatientHomeScreen() {
         })
       : "";
 
-  const openViewer = (loc: Location & { images?: LocationImage[] }, index = 0) => {
-    if (!(loc.images?.length)) return;
-    tapHaptic();
-    setImgNat(null);
-    setIsFullscreen(false);
-    setViewer({ loc, index });
-  };
-
   const handleFullscreen = () => {
     tapHaptic();
-    const el = stageRef.current as any;
-    // Try native fullscreen first (desktop / Android), then fall back to in-app CSS fullscreen (iOS Safari/WebView)
-    const req = el?.requestFullscreen || el?.webkitRequestFullscreen || el?.webkitEnterFullscreen;
-    if (req && typeof req === "function") {
-      try {
-        const p = req.call(el);
-        if (p && typeof p.then === "function") {
-          p.catch(() => setIsFullscreen((v) => !v));
-        }
-        return;
-      } catch {
-        /* fallthrough */
-      }
-    }
     setIsFullscreen((v) => !v);
+  };
+
+  const handleBodyRegion = () => {
+    if (!viewer) return;
+    tapHaptic();
+    if (isZone(viewer.loc)) {
+      setViewer(null);
+      setTab("clinical");
+      setViewMode("grid");
+      return;
+    }
+    const zone = getZoneForSpot(viewer.loc.id);
+    if (zone?.images?.length) openViewer(zone, 0);
+    else {
+      setViewer(null);
+      setTab("lesion");
+      setViewMode("grid");
+    }
+  };
+
+  const handleMarkerAction = () => {
+    if (!viewer) return;
+    tapHaptic();
+    const zone = getZoneForSpot(viewer.loc.id);
+    if (zone?.images?.length) openViewer(zone, 0);
+    else toast({ title: "Marker", description: "Dieser Spot ist keiner Zone zugeordnet." });
+  };
+
+  const handleAnalysisAction = () => {
+    if (!viewer) return;
+    tapHaptic();
+    const img = locationImages(viewer.loc)[viewer.index];
+    const ai = img?.ai_analysis;
+    toast({
+      title: "KI-Analyse",
+      description: ai ? `${ai.risk}: ${ai.result}` : "Für dieses Foto ist keine KI-Analyse vorhanden.",
+    });
   };
 
   const handleDeleteImage = async () => {
     if (!viewer) return;
-    const imgs = viewer.loc.images ?? [];
+    const imgs = locationImages(viewer.loc);
     const img = imgs[viewer.index];
     if (!img) return;
     if (!confirm("Foto wirklich löschen?")) return;
     try {
       await api.deleteImage(img.id);
       toast({ title: "Gelöscht" });
-      await queryClient.invalidateQueries({ queryKey: ["full-patient", patientId] });
-      const remaining = imgs.length - 1;
-      if (remaining <= 0) setViewer(null);
-      else setViewer({ loc: viewer.loc, index: Math.max(0, viewer.index - 1) });
+      await refreshViewerLocation(viewer.loc.id, Math.max(0, viewer.index - 1));
     } catch (e: any) {
       toast({ title: "Fehler", description: e?.message ?? "Löschen fehlgeschlagen", variant: "destructive" });
+    }
+  };
+
+  const handleAddPhotoToCurrentLocation = async () => {
+    if (!viewer || addingPhoto) return;
+    tapHaptic();
+    const captured = await takePhoto();
+    if (!captured) return;
+    setAddingPhoto(true);
+    try {
+      const blob = await compressImage(captured.file);
+      const file = blob instanceof File
+        ? blob
+        : new File([blob], captured.file.name || "folgeaufnahme.jpg", { type: blob.type || "image/jpeg" });
+      await api.uploadImage(viewer.loc.id, file);
+      toast({ title: "Foto hinzugefügt" });
+      await refreshViewerLocation(viewer.loc.id, Number.MAX_SAFE_INTEGER);
+    } catch (e: any) {
+      toast({ title: "Fehler", description: e?.message ?? "Upload fehlgeschlagen", variant: "destructive" });
+    } finally {
+      URL.revokeObjectURL(captured.previewUrl);
+      setAddingPhoto(false);
     }
   };
 
@@ -214,7 +308,7 @@ export function PatientHomeScreen() {
             src={cover}
             alt={loc.name ?? "Zone"}
             loading="lazy"
-            className="absolute inset-0 h-full w-full object-cover"
+            className="absolute inset-0 h-full w-full object-contain"
           />
         ) : (
           <div className="absolute inset-0 flex items-center justify-center text-muted-foreground">
