@@ -25,7 +25,7 @@ import { MobileHeader } from "../components/MobileHeader";
 import { api } from "@/lib/api";
 
 import { tapHaptic } from "../native/haptics";
-import type { Location, LocationImage } from "@/types/patient";
+import type { Location, LocationImage, OverviewPin } from "@/types/patient";
 
 
 type Tab = "all" | "clinical" | "lesion";
@@ -37,6 +37,12 @@ function isZone(l: Location) {
 
 function imageSrcs(l: Location & { images?: LocationImage[] }): string[] {
   return (l.images ?? []).map((img) => api.resolveImageSrc(img)).filter(Boolean);
+}
+
+function clampPct(v?: number) {
+  const n = Number(v ?? 0);
+  const pct = n <= 1 ? n * 100 : n;
+  return Math.max(0, Math.min(100, pct));
 }
 
 export function PatientHomeScreen() {
@@ -63,6 +69,69 @@ export function PatientHomeScreen() {
 
   const zones = useMemo(() => locations.filter(isZone), [locations]);
   const spots = useMemo(() => locations.filter((l) => !isZone(l)), [locations]);
+
+  const { data: zonePinsMap = {} } = useQuery<Record<number, OverviewPin[]>>({
+    queryKey: ["mobile-overview-pins", patientId, zones.map((z) => z.id).join(",")],
+    queryFn: async () => {
+      const entries = await Promise.all(
+        zones.map(async (zone) => {
+          try {
+            return [zone.id, await api.getOverviewPins(zone.id)] as const;
+          } catch {
+            return [zone.id, []] as const;
+          }
+        }),
+      );
+      return Object.fromEntries(entries);
+    },
+    enabled: !!patientId && zones.length > 0,
+  });
+
+  const getPinLabel = (pin: OverviewPin, compact = false) => {
+    const spot = spots.find((s) => s.id === pin.linked_location_id);
+    const label = (pin.label || spot?.name || `L${pin.linked_location_id}`).trim();
+    return compact ? label.replace(/^L/i, "") : label.startsWith("L") ? label : `L${label}`;
+  };
+
+  const renderZoneMarkers = (loc: Location, size: "small" | "large") => {
+    const pins = zonePinsMap[loc.id] ?? [];
+    if (!pins.length) return null;
+
+    return (
+      <div className="pointer-events-none absolute inset-0 z-10">
+        {pins.map((pin, i) => {
+          const left = clampPct(pin.x_pct);
+          const top = clampPct(pin.y_pct);
+          const compact = size === "small";
+          return (
+            <div
+              key={pin.id}
+              className="absolute flex items-center justify-center"
+              style={{ left: `${left}%`, top: `${top}%`, transform: "translate(-50%, -50%)" }}
+            >
+              {compact ? (
+                <span
+                  className="inline-flex items-center justify-center rounded-full bg-foreground text-[10px] font-bold text-background shadow-md"
+                  style={{ width: 24, height: 24, marginTop: i % 2 ? 18 : 0 }}
+                >
+                  {getPinLabel(pin, true)}
+                </span>
+              ) : (
+                <div className="relative flex items-center gap-1.5">
+                  <span className="rounded-[5px] bg-foreground px-1.5 py-0.5 text-base font-bold leading-none text-background shadow-md">
+                    {getPinLabel(pin)}
+                  </span>
+                  <span className="relative inline-flex h-16 w-16 items-center justify-center rounded-full border-2 border-foreground bg-background/20 text-foreground shadow-sm backdrop-blur-[1px] after:absolute after:-bottom-3 after:left-1/2 after:h-0 after:w-0 after:-translate-x-1/2 after:border-x-[7px] after:border-t-[12px] after:border-x-transparent after:border-t-foreground">
+                    <CameraIcon className="h-6 w-6" />
+                  </span>
+                </div>
+              )}
+            </div>
+          );
+        })}
+      </div>
+    );
+  };
 
   const startNew = () => {
     tapHaptic();
@@ -108,6 +177,7 @@ export function PatientHomeScreen() {
             <ImageIcon className="h-10 w-10" />
           </div>
         )}
+        {renderZoneMarkers(loc, "small")}
         <div className="absolute right-3 top-3 inline-flex h-7 min-w-7 items-center justify-center rounded-full bg-card/90 px-2 text-xs font-semibold text-foreground shadow-sm backdrop-blur">
           {count}
         </div>
@@ -182,7 +252,7 @@ export function PatientHomeScreen() {
       return Array.isArray(out) ? out : [out];
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [tab, zones, spots, locations]);
+  }, [tab, zones, spots, locations, zonePinsMap]);
 
 
 
@@ -391,6 +461,8 @@ export function PatientHomeScreen() {
                 )}
               </div>
 
+              {zone && renderZoneMarkers(viewer.loc, "large")}
+
               {/* Right action column */}
               <div className="absolute right-3 top-1/2 flex -translate-y-1/2 flex-col gap-3">
                 {!zone && (
@@ -473,7 +545,7 @@ export function PatientHomeScreen() {
                   )}
                   {zone && (
                     <span className="absolute right-1 top-1 inline-flex items-center gap-0.5 rounded-full bg-background/80 px-1.5 text-[10px] font-semibold text-foreground backdrop-blur">
-                      <MapPin className="h-2.5 w-2.5" /> {imgs.length}
+                      <MapPin className="h-2.5 w-2.5" /> {(zonePinsMap[viewer.loc.id] ?? []).length || imgs.length}
                     </span>
                   )}
                 </button>
