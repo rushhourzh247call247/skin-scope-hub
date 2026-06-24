@@ -83,7 +83,59 @@ export function PatientHomeScreen() {
         onClick={() => tapHaptic()}
         className="relative col-span-3 block aspect-square overflow-hidden rounded-[18px] bg-secondary shadow-sm active:opacity-80 sm:col-span-1"
       >
-...
+        {cover ? (
+          <img
+            src={cover}
+            alt={loc.name ?? "Zone"}
+            loading="lazy"
+            className="absolute inset-0 h-full w-full object-cover"
+          />
+        ) : (
+          <div className="absolute inset-0 flex items-center justify-center text-muted-foreground">
+            <ImageIcon className="h-10 w-10" />
+          </div>
+        )}
+        <div className="absolute right-3 top-3 inline-flex h-7 min-w-7 items-center justify-center rounded-full bg-card/90 px-2 text-xs font-semibold text-foreground shadow-sm backdrop-blur">
+          {count}
+        </div>
+        <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-background/95 via-background/30 to-transparent px-3 py-2 text-card-foreground">
+          <div className="truncate text-lg font-semibold leading-tight">
+            CL{loc.id}{count ? ` (${count})` : ""}
+          </div>
+          {loc.created_at && (
+            <div className="mt-0.5 text-xs text-foreground/80">
+              {fmtDate(loc.created_at)}
+            </div>
+          )}
+        </div>
+      </Link>
+    );
+  };
+
+  // Row of up to 3 thumbnails for a Spot – labelled L{id}
+  const renderSpotRow = (loc: Location & { images?: LocationImage[] }) => {
+    const imgs = imageSrcs(loc).slice(0, 3);
+    const cells = [0, 1, 2].map((i) => imgs[i] ?? null);
+    const dateStr = fmtDate(loc.created_at);
+    return cells.map((src, idx) => (
+      <Link
+        key={`s-${loc.id}-${idx}`}
+        to={`/m/lesions/${loc.id}`}
+        onClick={() => tapHaptic()}
+        className="relative block aspect-square overflow-hidden rounded-[14px] bg-secondary shadow-sm active:opacity-80"
+      >
+        {src ? (
+          <img
+            src={src}
+            alt={`L${loc.id}`}
+            loading="lazy"
+            className="absolute inset-0 h-full w-full object-cover"
+          />
+        ) : (
+          <div className="absolute inset-0 flex items-center justify-center text-muted-foreground">
+            <MapPin className="h-6 w-6" />
+          </div>
+        )}
         {idx === 0 && (
           <div className="absolute right-2 top-2 inline-flex h-6 min-w-6 items-center justify-center rounded-full bg-card/90 px-1.5 text-[11px] font-semibold text-foreground shadow-sm backdrop-blur">
             {loc.id}
@@ -100,6 +152,7 @@ export function PatientHomeScreen() {
       </Link>
     ));
   };
+
 
   const renderGroup = (loc: Location & { images?: LocationImage[] }) => (
     isZone(loc) ? renderZoneTile(loc) : renderSpotRow(loc)
