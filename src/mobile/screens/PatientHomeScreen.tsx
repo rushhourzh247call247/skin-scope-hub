@@ -13,11 +13,17 @@ import {
   MapPin,
   Image as ImageIcon,
   X,
-  ChevronLeft,
-  ChevronRight,
+  LayoutGrid,
+  Sparkles,
+  CircleDot,
+  Trash2,
+  Maximize2,
+  CameraIcon,
+  Check,
 } from "lucide-react";
 import { MobileHeader } from "../components/MobileHeader";
 import { api } from "@/lib/api";
+
 import { tapHaptic } from "../native/haptics";
 import type { Location, LocationImage } from "@/types/patient";
 
