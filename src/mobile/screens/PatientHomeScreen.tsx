@@ -551,7 +551,12 @@ export function PatientHomeScreen() {
                   aria-label="Körperregion"
                   onClick={() => {
                     tapHaptic();
-                    setViewer(null);
+                    const region =
+                      (viewer.loc as any).body_region ||
+                      (viewer.loc as any).region ||
+                      (viewer.loc as any).name ||
+                      "—";
+                    toast({ title: "Körperregion", description: String(region) });
                   }}
                   className="relative inline-flex h-11 w-11 items-center justify-center rounded-[12px] bg-background/70 text-foreground backdrop-blur active:opacity-80"
                 >
