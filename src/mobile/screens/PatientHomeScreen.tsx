@@ -154,7 +154,36 @@ export function PatientHomeScreen() {
   const openViewer = (loc: Location & { images?: LocationImage[] }, index = 0) => {
     if (!(loc.images?.length)) return;
     tapHaptic();
+    setImgNat(null);
     setViewer({ loc, index });
+  };
+
+  const handleFullscreen = () => {
+    const el = stageRef.current;
+    if (!el) return;
+    if (document.fullscreenElement) {
+      document.exitFullscreen().catch(() => {});
+    } else {
+      el.requestFullscreen?.().catch(() => {});
+    }
+  };
+
+  const handleDeleteImage = async () => {
+    if (!viewer) return;
+    const imgs = viewer.loc.images ?? [];
+    const img = imgs[viewer.index];
+    if (!img) return;
+    if (!confirm("Foto wirklich löschen?")) return;
+    try {
+      await api.deleteImage(img.id);
+      toast({ title: "Gelöscht" });
+      await queryClient.invalidateQueries({ queryKey: ["full-patient", patientId] });
+      const remaining = imgs.length - 1;
+      if (remaining <= 0) setViewer(null);
+      else setViewer({ loc: viewer.loc, index: Math.max(0, viewer.index - 1) });
+    } catch (e: any) {
+      toast({ title: "Fehler", description: e?.message ?? "Löschen fehlgeschlagen", variant: "destructive" });
+    }
   };
 
   // Big square tile for a Zone (overview) – labelled CL{id}
