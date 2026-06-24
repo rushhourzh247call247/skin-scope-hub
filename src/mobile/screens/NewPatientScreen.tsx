@@ -254,11 +254,6 @@ export function NewPatientScreen() {
           </Field>
         </Section>
 
-        <Section title="Marketing-Informationen">
-          <p className="text-sm text-muted-foreground">
-            Weitere Marketing-Felder folgen in einem späteren Update.
-          </p>
-        </Section>
       </main>
 
       <div
