@@ -40,6 +40,8 @@ export function PatientHomeScreen() {
 
   const [tab, setTab] = useState<Tab>("all");
   const [viewMode, setViewMode] = useState<ViewMode>("grid");
+  const [viewer, setViewer] = useState<{ loc: Location & { images?: LocationImage[] }; index: number } | null>(null);
+
 
   const { data, isLoading, error } = useQuery<any>({
     queryKey: ["full-patient", patientId],
