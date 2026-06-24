@@ -12,12 +12,15 @@ import {
   Accessibility,
   MapPin,
   Image as ImageIcon,
+  X,
+  ChevronLeft,
+  ChevronRight,
 } from "lucide-react";
 import { MobileHeader } from "../components/MobileHeader";
-import { buildImageUrl } from "../api";
 import { api } from "@/lib/api";
 import { tapHaptic } from "../native/haptics";
 import type { Location, LocationImage } from "@/types/patient";
+
 
 type Tab = "all" | "clinical" | "lesion";
 type ViewMode = "list" | "grid" | "body";
