@@ -55,6 +55,7 @@ export function PatientHomeScreen() {
   const [viewMode, setViewMode] = useState<ViewMode>("grid");
   const [viewer, setViewer] = useState<{ loc: Location & { images?: LocationImage[] }; index: number } | null>(null);
   const [imgNat, setImgNat] = useState<{ w: number; h: number } | null>(null);
+  const [isFullscreen, setIsFullscreen] = useState(false);
   const stageRef = useRef<HTMLDivElement | null>(null);
   const queryClient = useQueryClient();
 
@@ -155,17 +156,27 @@ export function PatientHomeScreen() {
     if (!(loc.images?.length)) return;
     tapHaptic();
     setImgNat(null);
+    setIsFullscreen(false);
     setViewer({ loc, index });
   };
 
   const handleFullscreen = () => {
-    const el = stageRef.current;
-    if (!el) return;
-    if (document.fullscreenElement) {
-      document.exitFullscreen().catch(() => {});
-    } else {
-      el.requestFullscreen?.().catch(() => {});
+    tapHaptic();
+    const el = stageRef.current as any;
+    // Try native fullscreen first (desktop / Android), then fall back to in-app CSS fullscreen (iOS Safari/WebView)
+    const req = el?.requestFullscreen || el?.webkitRequestFullscreen || el?.webkitEnterFullscreen;
+    if (req && typeof req === "function") {
+      try {
+        const p = req.call(el);
+        if (p && typeof p.then === "function") {
+          p.catch(() => setIsFullscreen((v) => !v));
+        }
+        return;
+      } catch {
+        /* fallthrough */
+      }
     }
+    setIsFullscreen((v) => !v);
   };
 
   const handleDeleteImage = async () => {
@@ -475,7 +486,11 @@ export function PatientHomeScreen() {
             {/* Image stage */}
             <div
               ref={stageRef}
-              className="relative mx-4 flex flex-1 items-center justify-center overflow-hidden rounded-[20px] bg-secondary"
+              className={
+                isFullscreen
+                  ? "fixed inset-0 z-[60] flex items-center justify-center overflow-hidden bg-black"
+                  : "relative mx-4 flex flex-1 items-center justify-center overflow-hidden rounded-[20px] bg-secondary"
+              }
             >
               {src ? (
                 <div
@@ -537,7 +552,12 @@ export function PatientHomeScreen() {
                   aria-label="Körperregion"
                   onClick={() => {
                     tapHaptic();
-                    setViewer(null);
+                    const region =
+                      (viewer.loc as any).body_region ||
+                      (viewer.loc as any).region ||
+                      (viewer.loc as any).name ||
+                      "—";
+                    toast({ title: "Körperregion", description: String(region) });
                   }}
                   className="relative inline-flex h-11 w-11 items-center justify-center rounded-[12px] bg-background/70 text-foreground backdrop-blur active:opacity-80"
                 >
