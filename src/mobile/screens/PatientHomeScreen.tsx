@@ -72,20 +72,22 @@ export function PatientHomeScreen() {
         })
       : "";
 
+  const openViewer = (loc: Location & { images?: LocationImage[] }, index = 0) => {
+    if (!(loc.images?.length)) return;
+    tapHaptic();
+    setViewer({ loc, index });
+  };
+
   // Big square tile for a Zone (overview) – labelled CL{id}
   const renderZoneTile = (loc: Location & { images?: LocationImage[] }) => {
     const imgs = imageSrcs(loc);
     const cover = imgs[0];
-    const firstImageId = loc.images?.[0]?.id;
     const count = (loc.images ?? []).length;
-    const target = firstImageId
-      ? `/m/patients/${patientId}/clinical/${firstImageId}`
-      : `/m/patients/${patientId}/clinical/new`;
     return (
-      <Link
+      <button
+        type="button"
         key={`z-${loc.id}`}
-        to={target}
-        onClick={() => tapHaptic()}
+        onClick={() => openViewer(loc, 0)}
         className="relative col-span-3 block aspect-square overflow-hidden rounded-[18px] bg-secondary shadow-sm active:opacity-80 sm:col-span-1"
       >
         {cover ? (
@@ -103,7 +105,7 @@ export function PatientHomeScreen() {
         <div className="absolute right-3 top-3 inline-flex h-7 min-w-7 items-center justify-center rounded-full bg-card/90 px-2 text-xs font-semibold text-foreground shadow-sm backdrop-blur">
           {count}
         </div>
-        <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-background/95 via-background/30 to-transparent px-3 py-2 text-card-foreground">
+        <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-background/95 via-background/30 to-transparent px-3 py-2 text-left text-card-foreground">
           <div className="truncate text-lg font-semibold leading-tight">
             CL{loc.id}{count ? ` (${count})` : ""}
           </div>
@@ -113,7 +115,7 @@ export function PatientHomeScreen() {
             </div>
           )}
         </div>
-      </Link>
+      </button>
     );
   };
 
@@ -123,11 +125,12 @@ export function PatientHomeScreen() {
     const cells = [0, 1, 2].map((i) => imgs[i] ?? null);
     const dateStr = fmtDate(loc.created_at);
     return cells.map((src, idx) => (
-      <Link
+      <button
+        type="button"
         key={`s-${loc.id}-${idx}`}
-        to={`/m/lesions/${loc.id}`}
-        onClick={() => tapHaptic()}
-        className="relative block aspect-square overflow-hidden rounded-[14px] bg-secondary shadow-sm active:opacity-80"
+        onClick={() => openViewer(loc, idx)}
+        disabled={!src}
+        className="relative block aspect-square overflow-hidden rounded-[14px] bg-secondary shadow-sm active:opacity-80 disabled:opacity-60"
       >
         {src ? (
           <img
@@ -146,7 +149,7 @@ export function PatientHomeScreen() {
             {loc.id}
           </div>
         )}
-        <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-background/95 via-background/20 to-transparent px-2 py-1.5 text-card-foreground">
+        <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-background/95 via-background/20 to-transparent px-2 py-1.5 text-left text-card-foreground">
           <div className="truncate text-sm font-semibold leading-tight">
             L{loc.id}
           </div>
@@ -154,9 +157,11 @@ export function PatientHomeScreen() {
             <div className="text-[10px] text-foreground/80">{dateStr}</div>
           )}
         </div>
-      </Link>
+      </button>
     ));
   };
+
+
 
 
   const renderGroup = (loc: Location & { images?: LocationImage[] }) => (
