@@ -499,62 +499,171 @@ export function PatientHomeScreen() {
     );
   };
 
-  // Row of up to 3 thumbnails for a Spot – labelled L{id}
-  const renderSpotRow = (loc: Location & { images?: LocationImage[] }) => {
-    const imgs = imageSrcs(loc).slice(0, 3);
-    const cells = [0, 1, 2].map((i) => imgs[i] ?? null);
-    const dateStr = fmtDate(loc.created_at);
-    return cells.map((src, idx) => (
+  // Compact cell: zone overview cropped/scaled with ONE pin highlighted (for spot rows)
+  const renderZoneCropCell = (
+    zone: Location & { images?: LocationImage[] },
+    pin: OverviewPin,
+    spot: Location | undefined,
+  ) => {
+    const cover = imageSrcs(zone)[0];
+    const label = (spot?.name || pin.label || `L${pin.linked_location_id}`).replace(/^L?/i, "L");
+    const left = clampPct(pin.x_pct);
+    const top = clampPct(pin.y_pct);
+    return (
       <button
         type="button"
-        key={`s-${loc.id}-${idx}`}
-        onClick={() => openViewer(loc, idx)}
-        disabled={!src}
-        className="relative block aspect-square overflow-hidden rounded-[14px] bg-secondary shadow-sm active:opacity-80 disabled:opacity-60"
+        key={`zc-${zone.id}-${pin.id}`}
+        onClick={() => openLinkedSpot(pin)}
+        className="relative block aspect-square overflow-hidden rounded-[14px] bg-secondary shadow-sm active:opacity-80"
       >
-        {src ? (
-          <img
-            src={src}
-            alt={`L${loc.id}`}
-            loading="lazy"
-            className="absolute inset-0 h-full w-full object-cover"
-          />
+        {cover ? (
+          <img src={cover} alt={label} loading="lazy" className="absolute inset-0 h-full w-full object-cover" />
         ) : (
           <div className="absolute inset-0 flex items-center justify-center text-muted-foreground">
-            <MapPin className="h-6 w-6" />
+            <ImageIcon className="h-6 w-6" />
           </div>
         )}
-        {idx === 0 && (
-          <div className="absolute right-2 top-2 inline-flex h-6 min-w-6 items-center justify-center rounded-full bg-card/90 px-1.5 text-[11px] font-semibold text-foreground shadow-sm backdrop-blur">
-            {loc.id}
-          </div>
-        )}
-        <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-background/95 via-background/20 to-transparent px-2 py-1.5 text-left text-card-foreground">
-          <div className="truncate text-sm font-semibold leading-tight">
-            L{loc.id}
-          </div>
-          {dateStr && idx === 0 && (
-            <div className="text-[10px] text-foreground/80">{dateStr}</div>
-          )}
+        {/* single pin badge */}
+        <div
+          className="pointer-events-none absolute z-10 flex items-center justify-center"
+          style={{ left: `${left}%`, top: `${top}%`, transform: "translate(-50%, -100%)" }}
+        >
+          <span className="inline-flex min-w-6 items-center justify-center rounded-md bg-card px-1.5 py-0.5 text-[11px] font-bold text-foreground shadow-md">
+            {label.replace(/^L/i, "")}
+          </span>
         </div>
       </button>
-    ));
+    );
   };
 
+  // Single photo cell labelled L{id}
+  const renderSpotPhotoCell = (
+    spot: Location & { images?: LocationImage[] },
+    imgIdx: number,
+  ) => {
+    const src = imageSrcs(spot)[imgIdx];
+    if (!src) return null;
+    const dateStr = fmtDate(locationImages(spot)[imgIdx]?.created_at ?? spot.created_at);
+    return (
+      <button
+        type="button"
+        key={`sp-${spot.id}-${imgIdx}`}
+        onClick={() => openViewer(spot, imgIdx)}
+        className="relative block aspect-square overflow-hidden rounded-[14px] bg-secondary shadow-sm active:opacity-80"
+      >
+        <img src={src} alt={spot.name ?? `L${spot.id}`} loading="lazy" className="absolute inset-0 h-full w-full object-cover" />
+        <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-background/95 via-background/20 to-transparent px-2 py-1.5 text-left text-card-foreground">
+          <div className="truncate text-sm font-semibold leading-tight">{spot.name ?? `L${spot.id}`}</div>
+          {dateStr && <div className="text-[10px] text-foreground/80">{dateStr}</div>}
+        </div>
+      </button>
+    );
+  };
 
+  const handleAddLesionPhoto = async (spot: Location & { images?: LocationImage[] }) => {
+    tapHaptic();
+    const captured = await takePhoto();
+    if (!captured) return;
+    try {
+      const blob = await compressImage(captured.file);
+      const file = blob instanceof File
+        ? blob
+        : new File([blob], captured.file.name || "lesion.jpg", { type: blob.type || "image/jpeg" });
+      await api.uploadImage(spot.id, file);
+      toast({ title: "Foto hinzugefügt", description: spot.name ?? `L${spot.id}` });
+      const next = await api.getFullPatient(patientId);
+      queryClient.setQueryData(["full-patient", patientId], next);
+    } catch (e: any) {
+      toast({ title: "Fehler", description: e?.message ?? "Upload fehlgeschlagen", variant: "destructive" });
+    } finally {
+      URL.revokeObjectURL(captured.previewUrl);
+    }
+  };
 
-
-  const renderGroup = (loc: Location & { images?: LocationImage[] }) => (
-    isZone(loc) ? renderZoneTile(loc) : renderSpotRow(loc)
+  // "Add Lesion" placeholder cell when a spot has no photos yet
+  const renderAddLesionCell = (spot: Location & { images?: LocationImage[] }) => (
+    <button
+      type="button"
+      key={`al-${spot.id}`}
+      onClick={() => handleAddLesionPhoto(spot)}
+      className="relative flex aspect-square flex-col items-center justify-center gap-1 rounded-[14px] bg-secondary/60 text-muted-foreground shadow-sm active:opacity-80"
+    >
+      <CameraIcon className="h-7 w-7" />
+      <div className="absolute inset-x-0 bottom-0 px-2 py-1.5 text-left">
+        <div className="truncate text-sm font-semibold leading-tight text-foreground">
+          {spot.name ?? `L${spot.id}`}
+        </div>
+        <div className="text-[10px] text-muted-foreground">Add Lesion</div>
+      </div>
+    </button>
   );
 
+  // Build a 3-cell row for a spot belonging to a zone: [zone crop with pin, photo1, photo2 or add]
+  const renderSpotRowForZone = (
+    zone: Location & { images?: LocationImage[] },
+    pin: OverviewPin,
+  ): React.ReactNode[] => {
+    const spot = spots.find((s) => s.id === pin.linked_location_id);
+    const cells: React.ReactNode[] = [];
+    cells.push(renderZoneCropCell(zone, pin, spot));
+    const imgs = spot ? imageSrcs(spot) : [];
+    if (spot && imgs.length === 0) {
+      cells.push(renderAddLesionCell(spot));
+    } else if (spot) {
+      imgs.slice(0, 2).forEach((_, i) => {
+        const cell = renderSpotPhotoCell(spot, i);
+        if (cell) cells.push(cell);
+      });
+    }
+    while (cells.length < 3) cells.push(<div key={`pad-${zone.id}-${pin.id}-${cells.length}`} />);
+    return cells;
+  };
+
+  // Orphan spot (no parent zone) – row of available photos or single add-lesion placeholder
+  const renderOrphanSpotRow = (spot: Location & { images?: LocationImage[] }): React.ReactNode[] => {
+    const imgs = imageSrcs(spot);
+    const cells: React.ReactNode[] = [];
+    if (imgs.length === 0) {
+      cells.push(renderAddLesionCell(spot));
+    } else {
+      imgs.slice(0, 3).forEach((_, i) => {
+        const cell = renderSpotPhotoCell(spot, i);
+        if (cell) cells.push(cell);
+      });
+    }
+    while (cells.length < 3) cells.push(<div key={`opad-${spot.id}-${cells.length}`} />);
+    return cells;
+  };
+
   const renderedTiles = useMemo(() => {
-    const arr =
-      tab === "clinical" ? zones : tab === "lesion" ? spots : locations;
-    return arr.flatMap((l) => {
-      const out = renderGroup(l);
-      return Array.isArray(out) ? out : [out];
+    const tiles: React.ReactNode[] = [];
+
+    if (tab === "lesion") {
+      spots.forEach((s) => tiles.push(...renderOrphanSpotRow(s)));
+      return tiles;
+    }
+
+    const rendered = new Set<number>();
+    zones.forEach((zone) => {
+      tiles.push(renderZoneTile(zone));
+      tiles.push(<div key={`zpad1-${zone.id}`} />);
+      tiles.push(<div key={`zpad2-${zone.id}`} />);
+      if (tab === "clinical") return;
+      const pins = zonePinsMap[zone.id] ?? [];
+      pins.forEach((pin) => {
+        rendered.add(pin.linked_location_id);
+        tiles.push(...renderSpotRowForZone(zone, pin));
+      });
     });
+
+    if (tab === "all") {
+      spots.forEach((s) => {
+        if (rendered.has(s.id)) return;
+        tiles.push(...renderOrphanSpotRow(s));
+      });
+    }
+
+    return tiles;
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [tab, zones, spots, locations, zonePinsMap]);
 
