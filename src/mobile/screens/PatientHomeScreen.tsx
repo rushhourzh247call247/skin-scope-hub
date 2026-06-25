@@ -668,17 +668,17 @@ export function PatientHomeScreen() {
   const renderSpotRowForZone = (
     zone: Location & { images?: LocationImage[] },
     pin: OverviewPin,
-    pinNumber: number,
   ): React.ReactNode[] => {
     const spot = spots.find((s) => s.id === pin.linked_location_id);
+    const pinLabel = getPinLabel(pin, true);
     const cells: React.ReactNode[] = [];
-    cells.push(renderZoneCropCell(zone, pin, pinNumber));
+    cells.push(renderZoneCropCell(zone, pin, pinLabel));
     const imgs = spot ? imageSrcs(spot) : [];
     if (spot && imgs.length === 0) {
       cells.push(renderAddLesionCell(spot));
     } else if (spot) {
       imgs.slice(0, 2).forEach((_, i) => {
-        const cell = renderSpotPhotoCell(spot, i, pinNumber);
+        const cell = renderSpotPhotoCell(spot, i, pinLabel);
         if (cell) cells.push(cell);
       });
     }
@@ -687,20 +687,21 @@ export function PatientHomeScreen() {
   };
 
   // Orphan spot (no parent zone) – row of available photos or single add-lesion placeholder
-  const renderOrphanSpotRow = (spot: Location & { images?: LocationImage[] }, pinNumber: number): React.ReactNode[] => {
+  const renderOrphanSpotRow = (spot: Location & { images?: LocationImage[] }, pinLabel: string): React.ReactNode[] => {
     const imgs = imageSrcs(spot);
     const cells: React.ReactNode[] = [];
     if (imgs.length === 0) {
       cells.push(renderAddLesionCell(spot));
     } else {
       imgs.slice(0, 3).forEach((_, i) => {
-        const cell = renderSpotPhotoCell(spot, i, pinNumber);
+        const cell = renderSpotPhotoCell(spot, i, pinLabel);
         if (cell) cells.push(cell);
       });
     }
     while (cells.length < 3) cells.push(<div key={`opad-${spot.id}-${cells.length}`} />);
     return cells;
   };
+
 
   const renderedTiles = useMemo(() => {
     const tiles: React.ReactNode[] = [];
