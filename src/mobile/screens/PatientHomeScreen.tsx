@@ -549,9 +549,9 @@ export function PatientHomeScreen() {
             <div className="text-xs text-foreground/80">
               {fmtDate(loc.created_at)}
             </div>
-          }
           </div>
         )}
+
 
       </button>
     );
