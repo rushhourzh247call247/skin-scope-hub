@@ -21,6 +21,7 @@ import {
   Maximize2,
   CameraIcon,
   Check,
+  Rows2,
 } from "lucide-react";
 import { MobileHeader } from "../components/MobileHeader";
 import { api } from "@/lib/api";
