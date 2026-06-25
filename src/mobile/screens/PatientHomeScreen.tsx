@@ -519,10 +519,9 @@ export function PatientHomeScreen() {
   const renderZoneCropCell = (
     zone: Location & { images?: LocationImage[] },
     pin: OverviewPin,
-    spot: Location | undefined,
+    pinNumber: number,
   ) => {
     const cover = imageSrcs(zone)[0];
-    const label = (spot?.name || pin.label || `L${pin.linked_location_id}`).replace(/^L?/i, "L");
     const left = clampPct(pin.x_pct);
     const top = clampPct(pin.y_pct);
     return (
@@ -533,29 +532,30 @@ export function PatientHomeScreen() {
         className="relative block aspect-square overflow-hidden rounded-[14px] bg-secondary shadow-sm active:opacity-80"
       >
         {cover ? (
-          <img src={cover} alt={label} loading="lazy" className="absolute inset-0 h-full w-full object-cover" />
+          <img src={cover} alt={`Pin ${pinNumber}`} loading="lazy" className="absolute inset-0 h-full w-full object-cover" />
         ) : (
           <div className="absolute inset-0 flex items-center justify-center text-muted-foreground">
             <ImageIcon className="h-6 w-6" />
           </div>
         )}
-        {/* single pin badge */}
+        {/* single pin badge (clean numeric) */}
         <div
           className="pointer-events-none absolute z-10 flex items-center justify-center"
           style={{ left: `${left}%`, top: `${top}%`, transform: "translate(-50%, -100%)" }}
         >
-          <span className="inline-flex min-w-6 items-center justify-center rounded-md bg-card px-1.5 py-0.5 text-[11px] font-bold text-foreground shadow-md">
-            {label.replace(/^L/i, "")}
+          <span className="inline-flex h-6 w-6 items-center justify-center rounded-full bg-card text-[11px] font-bold text-foreground shadow-md">
+            {pinNumber}
           </span>
         </div>
       </button>
     );
   };
 
-  // Single photo cell labelled L{id}
+  // Single photo cell labelled L{pinNumber}
   const renderSpotPhotoCell = (
     spot: Location & { images?: LocationImage[] },
     imgIdx: number,
+    pinNumber: number,
   ) => {
     const src = imageSrcs(spot)[imgIdx];
     if (!src) return null;
@@ -567,9 +567,9 @@ export function PatientHomeScreen() {
         onClick={() => openViewer(spot, imgIdx)}
         className="relative block aspect-square overflow-hidden rounded-[14px] bg-secondary shadow-sm active:opacity-80"
       >
-        <img src={src} alt={spot.name ?? `L${spot.id}`} loading="lazy" className="absolute inset-0 h-full w-full object-cover" />
+        <img src={src} alt={`L${pinNumber}`} loading="lazy" className="absolute inset-0 h-full w-full object-cover" />
         <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-background/95 via-background/20 to-transparent px-2 py-1.5 text-left text-card-foreground">
-          <div className="truncate text-sm font-semibold leading-tight">{spot.name ?? `L${spot.id}`}</div>
+          <div className="truncate text-sm font-semibold leading-tight">L{pinNumber}</div>
           {dateStr && <div className="text-[10px] text-foreground/80">{dateStr}</div>}
         </div>
       </button>
