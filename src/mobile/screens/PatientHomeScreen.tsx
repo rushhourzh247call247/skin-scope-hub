@@ -552,7 +552,7 @@ export function PatientHomeScreen() {
   const renderZoneCropCell = (
     zone: Location & { images?: LocationImage[] },
     pin: OverviewPin,
-    pinNumber: number,
+    pinLabel: string,
   ) => {
     const cover = imageSrcs(zone)[0];
     const left = clampPct(pin.x_pct);
@@ -565,13 +565,13 @@ export function PatientHomeScreen() {
         className="relative block aspect-square overflow-hidden rounded-[14px] bg-secondary shadow-sm active:opacity-80"
       >
         {cover ? (
-          <FittedImageFrame src={cover} alt={`Pin ${pinNumber}`} roundedClassName="rounded-[14px]">
+          <FittedImageFrame src={cover} alt={`Pin ${pinLabel}`} roundedClassName="rounded-[14px]">
             <div
               className="pointer-events-none absolute z-10 flex items-center justify-center"
               style={{ left: `${left}%`, top: `${top}%`, transform: "translate(-50%, -50%)" }}
             >
-              <span className="inline-flex h-6 w-6 items-center justify-center rounded-full bg-card text-[11px] font-bold text-foreground shadow-md">
-                {pinNumber}
+              <span className="inline-flex h-6 min-w-6 items-center justify-center rounded-full bg-foreground px-1.5 text-[11px] font-bold text-background shadow-md">
+                {pinLabel}
               </span>
             </div>
           </FittedImageFrame>
@@ -584,11 +584,11 @@ export function PatientHomeScreen() {
     );
   };
 
-  // Single photo cell labelled L{pinNumber}
+  // Single photo cell labelled L{pinLabel}
   const renderSpotPhotoCell = (
     spot: Location & { images?: LocationImage[] },
     imgIdx: number,
-    pinNumber: number,
+    pinLabel: string,
   ) => {
     const src = imageSrcs(spot)[imgIdx];
     if (!src) return null;
@@ -600,14 +600,15 @@ export function PatientHomeScreen() {
         onClick={() => openViewer(spot, imgIdx)}
         className="relative block aspect-square overflow-hidden rounded-[14px] bg-secondary shadow-sm active:opacity-80"
       >
-        <img src={src} alt={`L${pinNumber}`} loading="lazy" className="absolute inset-0 h-full w-full object-cover" />
+        <img src={src} alt={`L${pinLabel}`} loading="lazy" className="absolute inset-0 h-full w-full object-cover" />
         <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-background/95 via-background/20 to-transparent px-2 py-1.5 text-left text-card-foreground">
-          <div className="truncate text-sm font-semibold leading-tight">L{pinNumber}</div>
+          <div className="truncate text-sm font-semibold leading-tight">L{pinLabel}</div>
           {dateStr && <div className="text-[10px] text-foreground/80">{dateStr}</div>}
         </div>
       </button>
     );
   };
+
 
   const uploadLesionFile = async (spot: Location & { images?: LocationImage[] }, file: File) => {
     try {
