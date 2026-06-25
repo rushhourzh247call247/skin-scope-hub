@@ -504,12 +504,36 @@ export function PatientHomeScreen() {
   const handleAnalysisAction = () => {
     if (!viewer) return;
     tapHaptic();
-    const img = locationImages(viewer.loc)[viewer.index];
-    const ai = img?.ai_analysis;
-    toast({
-      title: "KI-Analyse",
-      description: ai ? `${ai.risk}: ${ai.result}` : "Für dieses Foto ist keine KI-Analyse vorhanden.",
-    });
+    setAiOpen(true);
+  };
+
+  const handleOverview = () => {
+    if (!viewer) return;
+    tapHaptic();
+    setViewer(null);
+    setViewMode("grid");
+  };
+
+  const cycleCompareMode = () => {
+    if (!viewer) return;
+    tapHaptic();
+    const order: CompareMode[] = ["off", "side", "stack", "overlay"];
+    const next = order[(order.indexOf(compareMode) + 1) % order.length];
+    setCompareMode(next);
+    if (next !== "off" && compareIndexA == null) {
+      // default A = previous image (index - 1) or oldest
+      const imgsCount = locationImages(viewer.loc).length;
+      const prev = Math.max(0, viewer.index - 1);
+      setCompareIndexA(prev === viewer.index ? Math.min(imgsCount - 1, viewer.index + 1) : prev);
+    }
+  };
+
+  const swapAB = () => {
+    if (!viewer || compareIndexA == null) return;
+    tapHaptic();
+    const newA = viewer.index;
+    setViewer({ loc: viewer.loc, index: compareIndexA });
+    setCompareIndexA(newA);
   };
 
   const handleDeleteImage = async () => {
