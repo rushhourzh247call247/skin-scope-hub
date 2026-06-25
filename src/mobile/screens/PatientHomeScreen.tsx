@@ -21,6 +21,7 @@ import {
   Maximize2,
   CameraIcon,
   Check,
+  Rows2,
 } from "lucide-react";
 import { MobileHeader } from "../components/MobileHeader";
 import { api } from "@/lib/api";
@@ -99,6 +100,7 @@ export function PatientHomeScreen() {
   const [tab, setTab] = useState<Tab>("all");
   const [viewMode, setViewMode] = useState<ViewMode>("grid");
   const [viewer, setViewer] = useState<{ loc: Location & { images?: LocationImage[] }; index: number } | null>(null);
+  const [compareOpen, setCompareOpen] = useState(false);
   const [imgNat, setImgNat] = useState<{ w: number; h: number } | null>(null);
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [addingPhoto, setAddingPhoto] = useState(false);
@@ -977,6 +979,42 @@ export function PatientHomeScreen() {
               }
             >
               {src ? (
+                compareOpen && imgs.length >= 2 ? (() => {
+                  const list = locationImages(viewer.loc);
+                  const curImg = list[idx];
+                  const prevImg = list[idx - 1] ?? list[list.length - 1];
+                  const topSrc = imgs[list.indexOf(prevImg)] ?? imgs[0];
+                  const bottomSrc = src;
+                  const fmt = (d?: string) =>
+                    d
+                      ? new Date(d)
+                          .toLocaleString("de-CH", {
+                            day: "2-digit",
+                            month: "short",
+                            year: "numeric",
+                            hour: "2-digit",
+                            minute: "2-digit",
+                          })
+                          .replace(",", " |")
+                      : "";
+                  return (
+                    <div className="relative flex h-full w-full flex-col">
+                      <div className="relative flex-1 overflow-hidden rounded-t-[20px] bg-black">
+                        <img src={topSrc} alt="" className="h-full w-full object-cover" />
+                        <div className="absolute left-3 top-2 rounded-md bg-background/60 px-2 py-0.5 text-xs text-foreground backdrop-blur">
+                          {fmt(prevImg?.created_at)}
+                        </div>
+                      </div>
+                      <div className="h-px w-full bg-foreground/60" />
+                      <div className="relative flex-1 overflow-hidden rounded-b-[20px] bg-black">
+                        <img src={bottomSrc} alt="" className="h-full w-full object-cover" />
+                        <div className="absolute left-3 bottom-2 rounded-md bg-background/60 px-2 py-0.5 text-xs text-foreground backdrop-blur">
+                          {fmt(curImg?.created_at)}
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })() : (
                 <div
                   ref={pinSurfaceRef}
                   onPointerDown={(e) => {
@@ -1017,6 +1055,7 @@ export function PatientHomeScreen() {
                     </div>
                   )}
                 </div>
+                )
               ) : (
                 <div className="flex h-full w-full items-center justify-center text-muted-foreground">
                   Kein Bild
@@ -1056,6 +1095,18 @@ export function PatientHomeScreen() {
                     className="inline-flex h-11 w-11 items-center justify-center rounded-[12px] bg-background/70 text-foreground backdrop-blur active:opacity-80"
                   >
                     <CircleDot className="h-5 w-5" />
+                  </button>
+                )}
+                {imgs.length >= 2 && (
+                  <button
+                    type="button"
+                    aria-label="Vergleich oben/unten"
+                    onClick={() => { tapHaptic(); setCompareOpen((v) => !v); }}
+                    className={`inline-flex h-11 w-11 items-center justify-center rounded-[12px] backdrop-blur active:opacity-80 ${
+                      compareOpen ? "bg-primary text-primary-foreground" : "bg-background/70 text-foreground"
+                    }`}
+                  >
+                    <Rows2 className="h-5 w-5" />
                   </button>
                 )}
                 <button
