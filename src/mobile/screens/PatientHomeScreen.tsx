@@ -26,6 +26,7 @@ import {
   Layers,
   ArrowLeftRight,
   Map as MapIcon,
+  GitCompareArrows,
 } from "lucide-react";
 import {
   Dialog,
@@ -112,9 +113,10 @@ export function PatientHomeScreen() {
   const [viewMode, setViewMode] = useState<ViewMode>("grid");
   const [viewer, setViewer] = useState<{ loc: Location & { images?: LocationImage[] }; index: number } | null>(null);
   
-  type CompareMode = "off" | "stack" | "side" | "overlay";
+  type CompareMode = "off" | "stack" | "side" | "overlay" | "overview";
   const [compareMode, setCompareMode] = useState<CompareMode>("off");
   const [compareIndexA, setCompareIndexA] = useState<number | null>(null);
+  const [compareTarget, setCompareTarget] = useState<"A" | "B">("A");
   const [overlayMix, setOverlayMix] = useState(0.5);
   const [aiOpen, setAiOpen] = useState(false);
   const [imgNat, setImgNat] = useState<{ w: number; h: number } | null>(null);
@@ -188,6 +190,7 @@ export function PatientHomeScreen() {
     setIsFullscreen(false);
     setCompareMode("off");
     setCompareIndexA(null);
+    setCompareTarget("A");
     setViewer({ loc, index });
   };
 
@@ -514,18 +517,43 @@ export function PatientHomeScreen() {
     setViewMode("grid");
   };
 
-  const cycleCompareMode = () => {
+  const ensureComparePair = (mode: Exclude<CompareMode, "off"> = "stack") => {
     if (!viewer) return;
     tapHaptic();
-    const order: CompareMode[] = ["off", "side", "stack", "overlay"];
-    const next = order[(order.indexOf(compareMode) + 1) % order.length];
-    setCompareMode(next);
-    if (next !== "off" && compareIndexA == null) {
-      // default A = previous image (index - 1) or oldest
-      const imgsCount = locationImages(viewer.loc).length;
-      const prev = Math.max(0, viewer.index - 1);
-      setCompareIndexA(prev === viewer.index ? Math.min(imgsCount - 1, viewer.index + 1) : prev);
+    const imgsCount = locationImages(viewer.loc).length;
+    if (imgsCount < 2) return;
+    setCompareMode(compareMode === "off" ? mode : compareMode);
+    if (compareIndexA == null || compareIndexA === viewer.index) {
+      const fallbackA = viewer.index === imgsCount - 1 ? Math.max(0, imgsCount - 2) : 0;
+      setCompareIndexA(fallbackA);
     }
+    setCompareTarget("A");
+  };
+
+  const toggleCompare = () => {
+    if (!viewer) return;
+    if (compareMode !== "off") {
+      tapHaptic();
+      setCompareMode("off");
+      setCompareTarget("A");
+      return;
+    }
+    ensureComparePair("stack");
+  };
+
+  const setComparePair = (aIndex: number, bIndex: number, mode: Exclude<CompareMode, "off"> = "stack") => {
+    if (!viewer) return;
+    const count = locationImages(viewer.loc).length;
+    if (count < 2) return;
+    const a = Math.max(0, Math.min(count - 1, aIndex));
+    const b = Math.max(0, Math.min(count - 1, bIndex));
+    if (a === b) return;
+    tapHaptic();
+    setImgNat(null);
+    setCompareMode(mode);
+    setCompareIndexA(a);
+    setCompareTarget("A");
+    setViewer({ loc: viewer.loc, index: b });
   };
 
   const swapAB = () => {
