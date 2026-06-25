@@ -111,7 +111,7 @@ export function PatientHomeScreen() {
   const [tab, setTab] = useState<Tab>("all");
   const [viewMode, setViewMode] = useState<ViewMode>("grid");
   const [viewer, setViewer] = useState<{ loc: Location & { images?: LocationImage[] }; index: number } | null>(null);
-  const [compareOpen, setCompareOpen] = useState(false);
+  
   type CompareMode = "off" | "stack" | "side" | "overlay";
   const [compareMode, setCompareMode] = useState<CompareMode>("off");
   const [compareIndexA, setCompareIndexA] = useState<number | null>(null);
