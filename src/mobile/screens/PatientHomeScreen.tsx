@@ -1359,6 +1359,28 @@ export function PatientHomeScreen() {
           }}
         />
       )}
+
+      <Dialog open={aiOpen} onOpenChange={setAiOpen}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Sparkles className="h-4 w-4" />
+              KI-Analyse
+            </DialogTitle>
+          </DialogHeader>
+          {(() => {
+            if (!viewer) return null;
+            const img = locationImages(viewer.loc)[viewer.index];
+            const ai = img?.ai_analysis;
+            if (ai) return <AiAnalysisResult analysis={ai} />;
+            return (
+              <p className="text-sm text-muted-foreground">
+                Für dieses Foto ist noch keine KI-Analyse vorhanden.
+              </p>
+            );
+          })()}
+        </DialogContent>
+      </Dialog>
     </>
   );
 }
