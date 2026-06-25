@@ -158,9 +158,8 @@ export function PatientHomeScreen() {
     return String(idx >= 0 ? idx + 1 : pin.linked_location_id);
   };
 
-  const getPinLabel = (pin: OverviewPin, compact = false) => {
-    const num = getPinNumber(pin);
-    return compact ? num : `L${num}`;
+  const getPinLabel = (pin: OverviewPin, _compact = false) => {
+    return getPinNumber(pin);
   };
 
 
@@ -261,7 +260,7 @@ export function PatientHomeScreen() {
       tapHaptic();
       await refreshZonePins(zone.id);
       queryClient.invalidateQueries({ queryKey: ["full-patient", patientId] });
-      toast({ title: "Marker gesetzt", description: `L${nextNum}` });
+      toast({ title: "Marker gesetzt", description: `${nextNum}` });
     } catch (e: any) {
       toast({ title: "Fehler", description: e?.message ?? "Marker konnte nicht gesetzt werden.", variant: "destructive" });
     } finally {
@@ -342,30 +341,36 @@ export function PatientHomeScreen() {
     const pins = zonePinsMap[loc.id] ?? [];
     if (!pins.length) return null;
 
+    const isCompact = size === "small";
+
     return (
       <div className="pointer-events-none absolute inset-0 z-10">
-        {pins.map((pin, i) => {
+        {pins.map((pin) => {
           const isDragging = pinDrag?.pinId === pin.id;
           const left = isDragging ? pinDrag!.x : clampPct(pin.x_pct);
           const top = isDragging ? pinDrag!.y : clampPct(pin.y_pct);
-          const compact = size === "small";
+          const num = getPinNumber(pin);
+
           return (
             <div
               key={pin.id}
-              className="absolute flex items-center justify-center"
-              style={{ left: `${left}%`, top: `${top}%`, transform: "translate(-50%, -50%)" }}
+              className="absolute"
+              style={{ left: `${left}%`, top: `${top}%`, transform: "translate(-50%, -100%)" }}
             >
-              {compact ? (
-                <span
-                  className="inline-flex items-center justify-center rounded-full bg-foreground text-[10px] font-bold text-background shadow-md"
-                  style={{ width: 24, height: 24 }}
-                >
-                  {getPinLabel(pin, true)}
-                </span>
+              {isCompact ? (
+                <div className="flex flex-col items-center drop-shadow-md">
+                  <span
+                    className="inline-flex items-center justify-center rounded-full border border-foreground/10 bg-white text-[10px] font-bold text-foreground shadow-md"
+                    style={{ width: 26, height: 26 }}
+                  >
+                    {num}
+                  </span>
+                  <div className="h-0 w-0 border-x-[4px] border-t-[7px] border-x-transparent border-t-white" />
+                </div>
               ) : (
                 <button
                   type="button"
-                  aria-label={`${getPinLabel(pin)} öffnen`}
+                  aria-label={`${num} öffnen`}
                   onPointerDown={(e) => {
                     e.stopPropagation();
                     startPinDrag(pin, e);
@@ -392,21 +397,26 @@ export function PatientHomeScreen() {
                     if (pinDrag || suppressClickRef.current) return;
                     openLinkedSpot(pin);
                   }}
-                  className={`pointer-events-auto relative flex items-center gap-1.5 transition-transform ${
+                  className={`pointer-events-auto flex flex-col items-center drop-shadow-md transition-transform ${
                     isDragging ? "scale-110" : "active:scale-95"
                   }`}
                   style={{ touchAction: "none" }}
                 >
-                  <span className="rounded-[5px] bg-foreground px-1.5 py-0.5 text-base font-bold leading-none text-background shadow-md">
-                    {getPinLabel(pin)}
+                  <span
+                    className={`inline-flex items-center justify-center rounded-full border-2 bg-white text-lg font-bold text-foreground shadow-md ${
+                      isDragging
+                        ? "border-destructive shadow-[0_0_0_6px_hsl(var(--destructive)/0.25)]"
+                        : "border-foreground"
+                    }`}
+                    style={{ width: 44, height: 44 }}
+                  >
+                    {num}
                   </span>
-                  <span className={`relative inline-flex h-16 w-16 items-center justify-center rounded-full border-2 bg-background/20 text-foreground shadow-sm backdrop-blur-[1px] after:absolute after:-bottom-3 after:left-1/2 after:h-0 after:w-0 after:-translate-x-1/2 after:border-x-[7px] after:border-t-[12px] after:border-x-transparent ${
-                    isDragging
-                      ? "border-destructive after:border-t-destructive shadow-[0_0_0_6px_hsl(var(--destructive)/0.25)]"
-                      : "border-foreground after:border-t-foreground"
-                  }`}>
-                    <CameraIcon className="h-6 w-6" />
-                  </span>
+                  <div
+                    className={`h-0 w-0 border-x-[8px] border-t-[13px] border-x-transparent ${
+                      isDragging ? "border-t-destructive" : "border-t-white"
+                    }`}
+                  />
                 </button>
               )}
             </div>
