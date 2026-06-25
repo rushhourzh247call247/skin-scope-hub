@@ -24,7 +24,7 @@ export function CameraOverlayCapture({
 }: Props) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const streamRef = useRef<MediaStream | null>(null);
-  const [opacity, setOpacity] = useState(0.45);
+  const [opacity, setOpacity] = useState(0.65);
   const [ready, setReady] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
@@ -101,7 +101,7 @@ export function CameraOverlayCapture({
         <img
           src={referenceSrc}
           alt="Referenz"
-          className="pointer-events-none absolute inset-0 h-full w-full object-cover mix-blend-screen"
+          className="pointer-events-none absolute left-1/2 top-1/2 max-h-full max-w-full -translate-x-1/2 -translate-y-1/2 object-contain object-center"
           style={{ opacity }}
         />
       )}
