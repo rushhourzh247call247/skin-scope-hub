@@ -1248,29 +1248,52 @@ export function PatientHomeScreen() {
 
             {/* Thumbnail strip */}
             <div className="flex gap-3 overflow-x-auto px-4 py-3">
-              {imgs.map((s, i) => (
-                <button
-                  key={i}
-                  type="button"
-                  onClick={() => { setImgNat(null); setViewer({ loc: viewer.loc, index: i }); }}
-                  className={`relative h-20 w-20 shrink-0 overflow-hidden rounded-[14px] border-2 ${
-                    i === idx ? "border-primary" : "border-transparent opacity-80"
-                  }`}
-                >
-                  <img src={s} alt="" className="h-full w-full object-cover" />
-                  {!zone && (
-                    <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-background/80 to-transparent px-1 py-0.5 text-left text-[10px] font-semibold text-foreground">
-                      L{viewer.loc.id}
-                    </div>
-                  )}
-                  {zone && (
-                    <span className="absolute right-1 top-1 inline-flex items-center gap-0.5 rounded-full bg-background/80 px-1.5 text-[10px] font-semibold text-foreground backdrop-blur">
-                      <MapPin className="h-2.5 w-2.5" /> {(zonePinsMap[viewer.loc.id] ?? []).length || imgs.length}
-                    </span>
-                  )}
-                </button>
-              ))}
+              {imgs.map((s, i) => {
+                const isB = i === idx;
+                const aResolved = compareIndexA != null && compareIndexA !== idx
+                  ? compareIndexA
+                  : (idx > 0 ? idx - 1 : Math.min(imgs.length - 1, idx + 1));
+                const isA = compareMode !== "off" && i === aResolved;
+                return (
+                  <button
+                    key={i}
+                    type="button"
+                    onClick={() => {
+                      tapHaptic();
+                      if (compareMode !== "off" && i !== idx) {
+                        setCompareIndexA(i);
+                      } else {
+                        setImgNat(null);
+                        setViewer({ loc: viewer.loc, index: i });
+                      }
+                    }}
+                    className={`relative h-20 w-20 shrink-0 overflow-hidden rounded-[14px] border-2 ${
+                      isB ? "border-primary" : isA ? "border-emerald-500" : "border-transparent opacity-80"
+                    }`}
+                  >
+                    <img src={s} alt="" className="h-full w-full object-cover" />
+                    {compareMode !== "off" && (isA || isB) && (
+                      <span className={`absolute left-1 top-1 inline-flex h-5 w-5 items-center justify-center rounded-full text-[11px] font-bold ${
+                        isB ? "bg-primary text-primary-foreground" : "bg-emerald-500 text-background"
+                      }`}>
+                        {isB ? "B" : "A"}
+                      </span>
+                    )}
+                    {!zone && compareMode === "off" && (
+                      <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-background/80 to-transparent px-1 py-0.5 text-left text-[10px] font-semibold text-foreground">
+                        L{viewer.loc.id}
+                      </div>
+                    )}
+                    {zone && compareMode === "off" && (
+                      <span className="absolute right-1 top-1 inline-flex items-center gap-0.5 rounded-full bg-background/80 px-1.5 text-[10px] font-semibold text-foreground backdrop-blur">
+                        <MapPin className="h-2.5 w-2.5" /> {(zonePinsMap[viewer.loc.id] ?? []).length || imgs.length}
+                      </span>
+                    )}
+                  </button>
+                );
+              })}
             </div>
+
 
             {/* Bottom action bar */}
             <div
