@@ -148,11 +148,21 @@ export function PatientHomeScreen() {
     enabled: !!patientId && zones.length > 0,
   });
 
-  const getPinLabel = (pin: OverviewPin, compact = false) => {
-    const spot = spots.find((s) => s.id === pin.linked_location_id);
-    const label = (pin.label || spot?.name || `L${pin.linked_location_id}`).trim();
-    return compact ? label.replace(/^L/i, "") : label.startsWith("L") ? label : `L${label}`;
+  const getPinNumber = (pin: OverviewPin): string => {
+    const raw = (pin.label || "").trim();
+    const m = raw.match(/\d+/);
+    if (m) return m[0];
+    // fallback: index within its zone's pin list
+    const pins = zonePinsMap[pin.overview_location_id] ?? [];
+    const idx = pins.findIndex((p) => p.id === pin.id);
+    return String(idx >= 0 ? idx + 1 : pin.linked_location_id);
   };
+
+  const getPinLabel = (pin: OverviewPin, compact = false) => {
+    const num = getPinNumber(pin);
+    return compact ? num : `L${num}`;
+  };
+
 
   const openViewer = (loc: Location & { images?: LocationImage[] }, index = 0) => {
     if (!(loc.images?.length)) return;
