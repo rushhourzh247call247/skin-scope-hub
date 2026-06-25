@@ -541,9 +541,8 @@ export function PatientHomeScreen() {
             <ImageIcon className="h-10 w-10" />
           </div>
         )}
-        <div className="absolute right-3 top-3 inline-flex h-7 min-w-7 items-center justify-center rounded-full bg-card/90 px-2 text-xs font-semibold text-foreground shadow-sm backdrop-blur">
-          {count}
-        </div>
+
+
         {loc.created_at && (
           <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-background/95 via-background/30 to-transparent px-3 py-2 text-left text-card-foreground">
             <div className="text-xs text-foreground/80">
