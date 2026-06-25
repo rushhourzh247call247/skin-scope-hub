@@ -1097,6 +1097,18 @@ export function PatientHomeScreen() {
                     <CircleDot className="h-5 w-5" />
                   </button>
                 )}
+                {imgs.length >= 2 && (
+                  <button
+                    type="button"
+                    aria-label="Vergleich oben/unten"
+                    onClick={() => { tapHaptic(); setCompareOpen((v) => !v); }}
+                    className={`inline-flex h-11 w-11 items-center justify-center rounded-[12px] backdrop-blur active:opacity-80 ${
+                      compareOpen ? "bg-primary text-primary-foreground" : "bg-background/70 text-foreground"
+                    }`}
+                  >
+                    <Rows2 className="h-5 w-5" />
+                  </button>
+                )}
                 <button
                   type="button"
                   aria-label="Löschen"
