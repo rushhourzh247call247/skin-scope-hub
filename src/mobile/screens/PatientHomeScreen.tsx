@@ -22,7 +22,18 @@ import {
   CameraIcon,
   Check,
   Rows2,
+  Columns2,
+  Layers,
+  ArrowLeftRight,
+  Map as MapIcon,
 } from "lucide-react";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import AiAnalysisResult from "@/components/AiAnalysisResult";
 import { MobileHeader } from "../components/MobileHeader";
 import { api } from "@/lib/api";
 
