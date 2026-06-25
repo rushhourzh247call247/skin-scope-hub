@@ -112,6 +112,11 @@ export function PatientHomeScreen() {
   const [viewMode, setViewMode] = useState<ViewMode>("grid");
   const [viewer, setViewer] = useState<{ loc: Location & { images?: LocationImage[] }; index: number } | null>(null);
   const [compareOpen, setCompareOpen] = useState(false);
+  type CompareMode = "off" | "stack" | "side" | "overlay";
+  const [compareMode, setCompareMode] = useState<CompareMode>("off");
+  const [compareIndexA, setCompareIndexA] = useState<number | null>(null);
+  const [overlayMix, setOverlayMix] = useState(0.5);
+  const [aiOpen, setAiOpen] = useState(false);
   const [imgNat, setImgNat] = useState<{ w: number; h: number } | null>(null);
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [addingPhoto, setAddingPhoto] = useState(false);
