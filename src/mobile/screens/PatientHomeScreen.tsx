@@ -1021,12 +1021,15 @@ export function PatientHomeScreen() {
               }
             >
               {src ? (
-                compareOpen && imgs.length >= 2 ? (() => {
+                compareMode !== "off" && imgs.length >= 2 ? (() => {
                   const list = locationImages(viewer.loc);
-                  const curImg = list[idx];
-                  const prevImg = list[idx - 1] ?? list[list.length - 1];
-                  const topSrc = imgs[list.indexOf(prevImg)] ?? imgs[0];
-                  const bottomSrc = src;
+                  const aIdx = compareIndexA != null && compareIndexA !== idx
+                    ? Math.max(0, Math.min(list.length - 1, compareIndexA))
+                    : (idx > 0 ? idx - 1 : Math.min(list.length - 1, idx + 1));
+                  const imgA = list[aIdx];
+                  const imgB = list[idx];
+                  const srcA = imgs[aIdx] ?? imgs[0];
+                  const srcB = src;
                   const fmt = (d?: string) =>
                     d
                       ? new Date(d)
@@ -1039,21 +1042,67 @@ export function PatientHomeScreen() {
                           })
                           .replace(",", " |")
                       : "";
+                  const badge = (txt: string, side: "tl" | "tr" | "bl" | "br") => {
+                    const pos = side === "tl" ? "left-3 top-2"
+                      : side === "tr" ? "right-3 top-2"
+                      : side === "bl" ? "left-3 bottom-2"
+                      : "right-3 bottom-2";
+                    return (
+                      <div className={`absolute ${pos} rounded-md bg-background/70 px-2 py-0.5 text-xs text-foreground backdrop-blur`}>
+                        {txt}
+                      </div>
+                    );
+                  };
+                  if (compareMode === "stack") {
+                    return (
+                      <div className="relative flex h-full w-full flex-col">
+                        <div className="relative flex-1 overflow-hidden rounded-t-[20px] bg-black">
+                          <img src={srcA} alt="" className="h-full w-full object-cover" />
+                          {badge(`A · ${fmt(imgA?.created_at)}`, "tl")}
+                        </div>
+                        <div className="h-px w-full bg-foreground/60" />
+                        <div className="relative flex-1 overflow-hidden rounded-b-[20px] bg-black">
+                          <img src={srcB} alt="" className="h-full w-full object-cover" />
+                          {badge(`B · ${fmt(imgB?.created_at)}`, "bl")}
+                        </div>
+                      </div>
+                    );
+                  }
+                  if (compareMode === "side") {
+                    return (
+                      <div className="relative flex h-full w-full flex-row">
+                        <div className="relative flex-1 overflow-hidden rounded-l-[20px] bg-black">
+                          <img src={srcA} alt="" className="h-full w-full object-cover" />
+                          {badge(`A · ${fmt(imgA?.created_at)}`, "tl")}
+                        </div>
+                        <div className="h-full w-px bg-foreground/60" />
+                        <div className="relative flex-1 overflow-hidden rounded-r-[20px] bg-black">
+                          <img src={srcB} alt="" className="h-full w-full object-cover" />
+                          {badge(`B · ${fmt(imgB?.created_at)}`, "tr")}
+                        </div>
+                      </div>
+                    );
+                  }
+                  // overlay
                   return (
-                    <div className="relative flex h-full w-full flex-col">
-                      <div className="relative flex-1 overflow-hidden rounded-t-[20px] bg-black">
-                        <img src={topSrc} alt="" className="h-full w-full object-cover" />
-                        <div className="absolute left-3 top-2 rounded-md bg-background/60 px-2 py-0.5 text-xs text-foreground backdrop-blur">
-                          {fmt(prevImg?.created_at)}
-                        </div>
-                      </div>
-                      <div className="h-px w-full bg-foreground/60" />
-                      <div className="relative flex-1 overflow-hidden rounded-b-[20px] bg-black">
-                        <img src={bottomSrc} alt="" className="h-full w-full object-cover" />
-                        <div className="absolute left-3 bottom-2 rounded-md bg-background/60 px-2 py-0.5 text-xs text-foreground backdrop-blur">
-                          {fmt(curImg?.created_at)}
-                        </div>
-                      </div>
+                    <div className="relative flex h-full w-full items-center justify-center overflow-hidden rounded-[20px] bg-black">
+                      <img src={srcA} alt="" className="absolute inset-0 h-full w-full object-contain" />
+                      <img
+                        src={srcB}
+                        alt=""
+                        className="absolute inset-0 h-full w-full object-contain"
+                        style={{ opacity: overlayMix }}
+                      />
+                      {badge(`A · ${fmt(imgA?.created_at)}`, "tl")}
+                      {badge(`B · ${fmt(imgB?.created_at)}`, "tr")}
+                      <input
+                        type="range"
+                        min={0}
+                        max={100}
+                        value={Math.round(overlayMix * 100)}
+                        onChange={(e) => setOverlayMix(Number(e.target.value) / 100)}
+                        className="absolute bottom-3 left-1/2 w-2/3 -translate-x-1/2 accent-primary"
+                      />
                     </div>
                   );
                 })() : (
@@ -1118,16 +1167,11 @@ export function PatientHomeScreen() {
                 )}
                 <button
                   type="button"
-                  aria-label="Körperregion"
-                  onClick={handleBodyRegion}
-                  className="relative inline-flex h-11 w-11 items-center justify-center rounded-[12px] bg-background/70 text-foreground backdrop-blur active:opacity-80"
+                  aria-label="Übersicht"
+                  onClick={handleOverview}
+                  className="inline-flex h-11 w-11 items-center justify-center rounded-[12px] bg-background/70 text-foreground backdrop-blur active:opacity-80"
                 >
-                  <Accessibility className="h-5 w-5" />
-                  {zone && (
-                    <span className="absolute -right-1 -top-1 inline-flex h-4 w-4 items-center justify-center rounded-full bg-emerald-500 text-[10px] text-background">
-                      <Check className="h-3 w-3" />
-                    </span>
-                  )}
+                  <LayoutGrid className="h-5 w-5" />
                 </button>
                 {!zone && (
                   <button
@@ -1140,16 +1184,31 @@ export function PatientHomeScreen() {
                   </button>
                 )}
                 {imgs.length >= 2 && (
-                  <button
-                    type="button"
-                    aria-label="Vergleich oben/unten"
-                    onClick={() => { tapHaptic(); setCompareOpen((v) => !v); }}
-                    className={`inline-flex h-11 w-11 items-center justify-center rounded-[12px] backdrop-blur active:opacity-80 ${
-                      compareOpen ? "bg-primary text-primary-foreground" : "bg-background/70 text-foreground"
-                    }`}
-                  >
-                    <Rows2 className="h-5 w-5" />
-                  </button>
+                  <>
+                    <button
+                      type="button"
+                      aria-label={`Vergleich (${compareMode})`}
+                      onClick={cycleCompareMode}
+                      className={`inline-flex h-11 w-11 items-center justify-center rounded-[12px] backdrop-blur active:opacity-80 ${
+                        compareMode !== "off" ? "bg-primary text-primary-foreground" : "bg-background/70 text-foreground"
+                      }`}
+                    >
+                      {compareMode === "side" ? <Columns2 className="h-5 w-5" />
+                        : compareMode === "stack" ? <Rows2 className="h-5 w-5" />
+                        : compareMode === "overlay" ? <Layers className="h-5 w-5" />
+                        : <Columns2 className="h-5 w-5" />}
+                    </button>
+                    {compareMode !== "off" && (
+                      <button
+                        type="button"
+                        aria-label="A und B tauschen"
+                        onClick={swapAB}
+                        className="inline-flex h-11 w-11 items-center justify-center rounded-[12px] bg-background/70 text-foreground backdrop-blur active:opacity-80"
+                      >
+                        <ArrowLeftRight className="h-5 w-5" />
+                      </button>
+                    )}
+                  </>
                 )}
                 <button
                   type="button"
