@@ -595,12 +595,21 @@ export function PatientHomeScreen() {
         {cover ? (
           <FittedImageFrame src={cover} alt={`Pin ${pinLabel}`} roundedClassName="rounded-[14px]">
             <div
-              className="pointer-events-none absolute z-10 flex items-center justify-center"
-              style={{ left: `${left}%`, top: `${top}%`, transform: "translate(-50%, -50%)" }}
+              className="pointer-events-none absolute z-10"
+              style={{ left: `${left}%`, top: `${top}%`, transform: "translate(-50%, -100%)" }}
             >
-              <span className="inline-flex h-6 min-w-6 items-center justify-center rounded-full bg-foreground px-1.5 text-[11px] font-bold text-background shadow-md">
-                {pinLabel}
-              </span>
+              <div className="flex flex-col items-center drop-shadow-md">
+                <span
+                  className="inline-flex items-center justify-center rounded-full border border-black/10 bg-white px-1.5 text-[11px] font-bold text-black shadow-md"
+                  style={{ minWidth: 24, height: 24 }}
+                >
+                  {pinLabel}
+                </span>
+                <div className="relative h-0 w-0">
+                  <div className="absolute left-1/2 top-0 h-0 w-0 -translate-x-1/2 border-x-[5px] border-t-[8px] border-x-transparent border-t-black/70" />
+                  <div className="absolute left-1/2 top-0 h-0 w-0 -translate-x-1/2 border-x-[4px] border-t-[7px] border-x-transparent border-t-white" />
+                </div>
+              </div>
             </div>
           </FittedImageFrame>
         ) : (
