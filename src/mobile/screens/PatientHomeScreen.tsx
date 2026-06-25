@@ -360,12 +360,15 @@ export function PatientHomeScreen() {
               {isCompact ? (
                 <div className="flex flex-col items-center drop-shadow-md">
                   <span
-                    className="inline-flex items-center justify-center rounded-full border border-foreground/10 bg-white text-[10px] font-bold text-foreground shadow-md"
+                    className="inline-flex items-center justify-center rounded-full border border-black/10 bg-white text-[10px] font-bold text-black shadow-md"
                     style={{ width: 26, height: 26 }}
                   >
                     {num}
                   </span>
-                  <div className="h-0 w-0 border-x-[4px] border-t-[7px] border-x-transparent border-t-white" />
+                  <div className="relative h-0 w-0">
+                    <div className="absolute left-1/2 top-0 h-0 w-0 -translate-x-1/2 border-x-[5px] border-t-[8px] border-x-transparent border-t-black/70" />
+                    <div className="absolute left-1/2 top-0 h-0 w-0 -translate-x-1/2 border-x-[4px] border-t-[7px] border-x-transparent border-t-white" />
+                  </div>
                 </div>
               ) : (
                 <button
@@ -403,20 +406,27 @@ export function PatientHomeScreen() {
                   style={{ touchAction: "none" }}
                 >
                   <span
-                    className={`inline-flex items-center justify-center rounded-full border-2 bg-white text-lg font-bold text-foreground shadow-md ${
+                    className={`inline-flex items-center justify-center rounded-full border-2 bg-white text-lg font-bold text-black shadow-md ${
                       isDragging
                         ? "border-destructive shadow-[0_0_0_6px_hsl(var(--destructive)/0.25)]"
-                        : "border-foreground"
+                        : "border-black/30"
                     }`}
                     style={{ width: 44, height: 44 }}
                   >
                     {num}
                   </span>
-                  <div
-                    className={`h-0 w-0 border-x-[8px] border-t-[13px] border-x-transparent ${
-                      isDragging ? "border-t-destructive" : "border-t-white"
-                    }`}
-                  />
+                  <div className="relative h-0 w-0">
+                    <div
+                      className={`absolute left-1/2 top-0 h-0 w-0 -translate-x-1/2 border-x-[10px] border-t-[15px] border-x-transparent ${
+                        isDragging ? "border-t-destructive" : "border-t-black/70"
+                      }`}
+                    />
+                    <div
+                      className={`absolute left-1/2 top-0 h-0 w-0 -translate-x-1/2 border-x-[8px] border-t-[13px] border-x-transparent ${
+                        isDragging ? "border-t-destructive" : "border-t-white"
+                      }`}
+                    />
+                  </div>
                 </button>
               )}
             </div>
