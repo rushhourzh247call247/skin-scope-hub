@@ -562,6 +562,31 @@ export function PatientHomeScreen() {
     const newA = viewer.index;
     setViewer({ loc: viewer.loc, index: compareIndexA });
     setCompareIndexA(newA);
+    setCompareTarget("A");
+  };
+
+  const chooseCompareImage = (target: "A" | "B", imageIndex: number) => {
+    if (!viewer) return;
+    const count = locationImages(viewer.loc).length;
+    if (count < 2) return;
+    const i = Math.max(0, Math.min(count - 1, imageIndex));
+    tapHaptic();
+    if (target === "A") {
+      if (i === viewer.index) {
+        setCompareTarget("B");
+        return;
+      }
+      setCompareIndexA(i);
+      setCompareTarget("B");
+      return;
+    }
+    if (i === compareIndexA) {
+      setCompareTarget("A");
+      return;
+    }
+    setImgNat(null);
+    setViewer({ loc: viewer.loc, index: i });
+    setCompareTarget("A");
   };
 
   const handleDeleteImage = async () => {
