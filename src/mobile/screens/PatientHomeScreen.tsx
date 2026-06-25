@@ -707,12 +707,12 @@ export function PatientHomeScreen() {
     const tiles: React.ReactNode[] = [];
 
     if (tab === "lesion") {
-      spots.forEach((s, idx) => tiles.push(...renderOrphanSpotRow(s, idx + 1)));
+      spots.forEach((s, idx) => tiles.push(...renderOrphanSpotRow(s, String(idx + 1))));
       return tiles;
     }
 
     const rendered = new Set<number>();
-    let pinCounter = 0;
+    let orphanCounter = 0;
     zones.forEach((zone) => {
       tiles.push(renderZoneTile(zone));
       tiles.push(<div key={`zpad1-${zone.id}`} />);
@@ -721,22 +721,22 @@ export function PatientHomeScreen() {
       const pins = zonePinsMap[zone.id] ?? [];
       pins.forEach((pin) => {
         rendered.add(pin.linked_location_id);
-        pinCounter += 1;
-        tiles.push(...renderSpotRowForZone(zone, pin, pinCounter));
+        tiles.push(...renderSpotRowForZone(zone, pin));
       });
     });
 
     if (tab === "all") {
       spots.forEach((s) => {
         if (rendered.has(s.id)) return;
-        pinCounter += 1;
-        tiles.push(...renderOrphanSpotRow(s, pinCounter));
+        orphanCounter += 1;
+        tiles.push(...renderOrphanSpotRow(s, String(orphanCounter)));
       });
     }
 
     return tiles;
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [tab, zones, spots, locations, zonePinsMap]);
+
 
 
 
