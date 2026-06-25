@@ -672,11 +672,12 @@ export function PatientHomeScreen() {
     const tiles: React.ReactNode[] = [];
 
     if (tab === "lesion") {
-      spots.forEach((s) => tiles.push(...renderOrphanSpotRow(s)));
+      spots.forEach((s, idx) => tiles.push(...renderOrphanSpotRow(s, idx + 1)));
       return tiles;
     }
 
     const rendered = new Set<number>();
+    let pinCounter = 0;
     zones.forEach((zone) => {
       tiles.push(renderZoneTile(zone));
       tiles.push(<div key={`zpad1-${zone.id}`} />);
@@ -685,14 +686,16 @@ export function PatientHomeScreen() {
       const pins = zonePinsMap[zone.id] ?? [];
       pins.forEach((pin) => {
         rendered.add(pin.linked_location_id);
-        tiles.push(...renderSpotRowForZone(zone, pin));
+        pinCounter += 1;
+        tiles.push(...renderSpotRowForZone(zone, pin, pinCounter));
       });
     });
 
     if (tab === "all") {
       spots.forEach((s) => {
         if (rendered.has(s.id)) return;
-        tiles.push(...renderOrphanSpotRow(s));
+        pinCounter += 1;
+        tiles.push(...renderOrphanSpotRow(s, pinCounter));
       });
     }
 
