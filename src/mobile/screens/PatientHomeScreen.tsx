@@ -1368,14 +1368,14 @@ export function PatientHomeScreen() {
                     <div className="mt-2 grid grid-cols-2 gap-1">
                       <button
                         type="button"
-                        onClick={() => setComparePair(0, newest, compareMode === "off" ? "stack" : compareMode)}
+                        onClick={() => setComparePair(0, newest, compareMode)}
                         className="rounded-[10px] bg-background/60 px-2 py-2 text-xs text-foreground active:opacity-80"
                       >
                         Älteste ↔ Neueste
                       </button>
                       <button
                         type="button"
-                        onClick={() => setComparePair(secondNewest, newest, compareMode === "off" ? "stack" : compareMode)}
+                        onClick={() => setComparePair(secondNewest, newest, compareMode)}
                         className="rounded-[10px] bg-background/60 px-2 py-2 text-xs text-foreground active:opacity-80"
                       >
                         2. neueste ↔ Neueste
