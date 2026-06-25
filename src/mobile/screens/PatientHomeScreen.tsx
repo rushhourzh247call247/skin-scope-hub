@@ -34,6 +34,43 @@ import type { Location, LocationImage, OverviewPin } from "@/types/patient";
 type Tab = "all" | "clinical" | "lesion";
 type ViewMode = "list" | "grid" | "body";
 
+function FittedImageFrame({
+  src,
+  alt,
+  children,
+  roundedClassName,
+}: {
+  src: string;
+  alt: string;
+  children?: React.ReactNode;
+  roundedClassName: string;
+}) {
+  const [natural, setNatural] = useState<{ w: number; h: number } | null>(null);
+  const isLandscape = natural ? natural.w / natural.h >= 1 : true;
+
+  return (
+    <div className="absolute inset-0 flex items-center justify-center overflow-hidden">
+      <div
+        className={`relative ${natural ? (isLandscape ? "w-full max-h-full" : "h-full max-w-full") : "h-full w-full"}`}
+        style={natural ? { aspectRatio: `${natural.w} / ${natural.h}` } : undefined}
+      >
+        <img
+          src={src}
+          alt={alt}
+          loading="lazy"
+          draggable={false}
+          onLoad={(e) => {
+            const t = e.currentTarget;
+            setNatural({ w: t.naturalWidth, h: t.naturalHeight });
+          }}
+          className={`h-full w-full object-contain ${roundedClassName}`}
+        />
+        {natural && children}
+      </div>
+    </div>
+  );
+}
+
 function isZone(l: Location) {
   return l.type === "overview";
 }
@@ -311,7 +348,7 @@ export function PatientHomeScreen() {
               {compact ? (
                 <span
                   className="inline-flex items-center justify-center rounded-full bg-foreground text-[10px] font-bold text-background shadow-md"
-                  style={{ width: 24, height: 24, marginTop: i % 2 ? 18 : 0 }}
+                  style={{ width: 24, height: 24 }}
                 >
                   {getPinLabel(pin, true)}
                 </span>
@@ -486,18 +523,14 @@ export function PatientHomeScreen() {
         className="relative block aspect-square overflow-hidden rounded-[18px] bg-secondary shadow-sm active:opacity-80"
       >
         {cover ? (
-          <img
-            src={cover}
-            alt={loc.name ?? "Zone"}
-            loading="lazy"
-            className="absolute inset-0 h-full w-full object-contain"
-          />
+          <FittedImageFrame src={cover} alt={loc.name ?? "Zone"} roundedClassName="rounded-[18px]">
+            {renderZoneMarkers(loc, "small")}
+          </FittedImageFrame>
         ) : (
           <div className="absolute inset-0 flex items-center justify-center text-muted-foreground">
             <ImageIcon className="h-10 w-10" />
           </div>
         )}
-        {renderZoneMarkers(loc, "small")}
         <div className="absolute right-3 top-3 inline-flex h-7 min-w-7 items-center justify-center rounded-full bg-card/90 px-2 text-xs font-semibold text-foreground shadow-sm backdrop-blur">
           {count}
         </div>
@@ -532,21 +565,21 @@ export function PatientHomeScreen() {
         className="relative block aspect-square overflow-hidden rounded-[14px] bg-secondary shadow-sm active:opacity-80"
       >
         {cover ? (
-          <img src={cover} alt={`Pin ${pinNumber}`} loading="lazy" className="absolute inset-0 h-full w-full object-cover" />
+          <FittedImageFrame src={cover} alt={`Pin ${pinNumber}`} roundedClassName="rounded-[14px]">
+            <div
+              className="pointer-events-none absolute z-10 flex items-center justify-center"
+              style={{ left: `${left}%`, top: `${top}%`, transform: "translate(-50%, -50%)" }}
+            >
+              <span className="inline-flex h-6 w-6 items-center justify-center rounded-full bg-card text-[11px] font-bold text-foreground shadow-md">
+                {pinNumber}
+              </span>
+            </div>
+          </FittedImageFrame>
         ) : (
           <div className="absolute inset-0 flex items-center justify-center text-muted-foreground">
             <ImageIcon className="h-6 w-6" />
           </div>
         )}
-        {/* single pin badge (clean numeric) */}
-        <div
-          className="pointer-events-none absolute z-10 flex items-center justify-center"
-          style={{ left: `${left}%`, top: `${top}%`, transform: "translate(-50%, -100%)" }}
-        >
-          <span className="inline-flex h-6 w-6 items-center justify-center rounded-full bg-card text-[11px] font-bold text-foreground shadow-md">
-            {pinNumber}
-          </span>
-        </div>
       </button>
     );
   };
