@@ -552,7 +552,7 @@ export function PatientHomeScreen() {
   const renderZoneCropCell = (
     zone: Location & { images?: LocationImage[] },
     pin: OverviewPin,
-    pinNumber: number,
+    pinLabel: string,
   ) => {
     const cover = imageSrcs(zone)[0];
     const left = clampPct(pin.x_pct);
@@ -565,13 +565,13 @@ export function PatientHomeScreen() {
         className="relative block aspect-square overflow-hidden rounded-[14px] bg-secondary shadow-sm active:opacity-80"
       >
         {cover ? (
-          <FittedImageFrame src={cover} alt={`Pin ${pinNumber}`} roundedClassName="rounded-[14px]">
+          <FittedImageFrame src={cover} alt={`Pin ${pinLabel}`} roundedClassName="rounded-[14px]">
             <div
               className="pointer-events-none absolute z-10 flex items-center justify-center"
               style={{ left: `${left}%`, top: `${top}%`, transform: "translate(-50%, -50%)" }}
             >
-              <span className="inline-flex h-6 w-6 items-center justify-center rounded-full bg-card text-[11px] font-bold text-foreground shadow-md">
-                {pinNumber}
+              <span className="inline-flex h-6 min-w-6 items-center justify-center rounded-full bg-foreground px-1.5 text-[11px] font-bold text-background shadow-md">
+                {pinLabel}
               </span>
             </div>
           </FittedImageFrame>
@@ -584,11 +584,11 @@ export function PatientHomeScreen() {
     );
   };
 
-  // Single photo cell labelled L{pinNumber}
+  // Single photo cell labelled L{pinLabel}
   const renderSpotPhotoCell = (
     spot: Location & { images?: LocationImage[] },
     imgIdx: number,
-    pinNumber: number,
+    pinLabel: string,
   ) => {
     const src = imageSrcs(spot)[imgIdx];
     if (!src) return null;
@@ -600,14 +600,15 @@ export function PatientHomeScreen() {
         onClick={() => openViewer(spot, imgIdx)}
         className="relative block aspect-square overflow-hidden rounded-[14px] bg-secondary shadow-sm active:opacity-80"
       >
-        <img src={src} alt={`L${pinNumber}`} loading="lazy" className="absolute inset-0 h-full w-full object-cover" />
+        <img src={src} alt={`L${pinLabel}`} loading="lazy" className="absolute inset-0 h-full w-full object-cover" />
         <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-background/95 via-background/20 to-transparent px-2 py-1.5 text-left text-card-foreground">
-          <div className="truncate text-sm font-semibold leading-tight">L{pinNumber}</div>
+          <div className="truncate text-sm font-semibold leading-tight">L{pinLabel}</div>
           {dateStr && <div className="text-[10px] text-foreground/80">{dateStr}</div>}
         </div>
       </button>
     );
   };
+
 
   const uploadLesionFile = async (spot: Location & { images?: LocationImage[] }, file: File) => {
     try {
@@ -667,17 +668,17 @@ export function PatientHomeScreen() {
   const renderSpotRowForZone = (
     zone: Location & { images?: LocationImage[] },
     pin: OverviewPin,
-    pinNumber: number,
   ): React.ReactNode[] => {
     const spot = spots.find((s) => s.id === pin.linked_location_id);
+    const pinLabel = getPinLabel(pin, true);
     const cells: React.ReactNode[] = [];
-    cells.push(renderZoneCropCell(zone, pin, pinNumber));
+    cells.push(renderZoneCropCell(zone, pin, pinLabel));
     const imgs = spot ? imageSrcs(spot) : [];
     if (spot && imgs.length === 0) {
       cells.push(renderAddLesionCell(spot));
     } else if (spot) {
       imgs.slice(0, 2).forEach((_, i) => {
-        const cell = renderSpotPhotoCell(spot, i, pinNumber);
+        const cell = renderSpotPhotoCell(spot, i, pinLabel);
         if (cell) cells.push(cell);
       });
     }
@@ -686,14 +687,14 @@ export function PatientHomeScreen() {
   };
 
   // Orphan spot (no parent zone) – row of available photos or single add-lesion placeholder
-  const renderOrphanSpotRow = (spot: Location & { images?: LocationImage[] }, pinNumber: number): React.ReactNode[] => {
+  const renderOrphanSpotRow = (spot: Location & { images?: LocationImage[] }, pinLabel: string): React.ReactNode[] => {
     const imgs = imageSrcs(spot);
     const cells: React.ReactNode[] = [];
     if (imgs.length === 0) {
       cells.push(renderAddLesionCell(spot));
     } else {
       imgs.slice(0, 3).forEach((_, i) => {
-        const cell = renderSpotPhotoCell(spot, i, pinNumber);
+        const cell = renderSpotPhotoCell(spot, i, pinLabel);
         if (cell) cells.push(cell);
       });
     }
@@ -701,16 +702,17 @@ export function PatientHomeScreen() {
     return cells;
   };
 
+
   const renderedTiles = useMemo(() => {
     const tiles: React.ReactNode[] = [];
 
     if (tab === "lesion") {
-      spots.forEach((s, idx) => tiles.push(...renderOrphanSpotRow(s, idx + 1)));
+      spots.forEach((s, idx) => tiles.push(...renderOrphanSpotRow(s, String(idx + 1))));
       return tiles;
     }
 
     const rendered = new Set<number>();
-    let pinCounter = 0;
+    let orphanCounter = 0;
     zones.forEach((zone) => {
       tiles.push(renderZoneTile(zone));
       tiles.push(<div key={`zpad1-${zone.id}`} />);
@@ -719,22 +721,22 @@ export function PatientHomeScreen() {
       const pins = zonePinsMap[zone.id] ?? [];
       pins.forEach((pin) => {
         rendered.add(pin.linked_location_id);
-        pinCounter += 1;
-        tiles.push(...renderSpotRowForZone(zone, pin, pinCounter));
+        tiles.push(...renderSpotRowForZone(zone, pin));
       });
     });
 
     if (tab === "all") {
       spots.forEach((s) => {
         if (rendered.has(s.id)) return;
-        pinCounter += 1;
-        tiles.push(...renderOrphanSpotRow(s, pinCounter));
+        orphanCounter += 1;
+        tiles.push(...renderOrphanSpotRow(s, String(orphanCounter)));
       });
     }
 
     return tiles;
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [tab, zones, spots, locations, zonePinsMap]);
+
 
 
 
