@@ -25,7 +25,6 @@ import {
   Columns2,
   Layers,
   ArrowLeftRight,
-  Map as MapIcon,
   GitCompareArrows,
 } from "lucide-react";
 import {
@@ -1106,6 +1105,44 @@ export function PatientHomeScreen() {
                       </div>
                     );
                   };
+                  if (compareMode === "overview") {
+                    return (
+                      <div className="grid h-full w-full grid-cols-2 gap-1 overflow-y-auto rounded-[20px] bg-background p-1">
+                        {imgs.map((thumbSrc, imageIndex) => {
+                          const item = list[imageIndex];
+                          const isA = imageIndex === aIdx;
+                          const isB = imageIndex === idx;
+                          return (
+                            <button
+                              key={imageIndex}
+                              type="button"
+                              onClick={() => chooseCompareImage(compareTarget, imageIndex)}
+                              className={`relative min-h-28 overflow-hidden rounded-[14px] border-2 bg-secondary active:opacity-80 ${
+                                isB ? "border-primary" : isA ? "border-accent" : "border-transparent"
+                              }`}
+                            >
+                              <img src={thumbSrc} alt="" className="h-full w-full object-cover" />
+                              <div className="absolute left-2 top-2 flex gap-1">
+                                {isA && (
+                                  <span className="inline-flex h-6 min-w-6 items-center justify-center rounded-full bg-accent px-1.5 text-xs font-bold text-accent-foreground">
+                                    A
+                                  </span>
+                                )}
+                                {isB && (
+                                  <span className="inline-flex h-6 min-w-6 items-center justify-center rounded-full bg-primary px-1.5 text-xs font-bold text-primary-foreground">
+                                    B
+                                  </span>
+                                )}
+                              </div>
+                              <div className="absolute inset-x-0 bottom-0 bg-background/75 px-2 py-1 text-left text-[11px] text-foreground backdrop-blur">
+                                {fmt(item?.created_at)}
+                              </div>
+                            </button>
+                          );
+                        })}
+                      </div>
+                    );
+                  }
                   if (compareMode === "stack") {
                     return (
                       <div className="relative flex h-full w-full flex-col">
@@ -1240,16 +1277,13 @@ export function PatientHomeScreen() {
                   <>
                     <button
                       type="button"
-                      aria-label={`Vergleich (${compareMode})`}
-                      onClick={cycleCompareMode}
+                      aria-label="Vergleich"
+                      onClick={toggleCompare}
                       className={`inline-flex h-11 w-11 items-center justify-center rounded-[12px] backdrop-blur active:opacity-80 ${
                         compareMode !== "off" ? "bg-primary text-primary-foreground" : "bg-background/70 text-foreground"
                       }`}
                     >
-                      {compareMode === "side" ? <Columns2 className="h-5 w-5" />
-                        : compareMode === "stack" ? <Rows2 className="h-5 w-5" />
-                        : compareMode === "overlay" ? <Layers className="h-5 w-5" />
-                        : <Columns2 className="h-5 w-5" />}
+                      <GitCompareArrows className="h-5 w-5" />
                     </button>
                     {compareMode !== "off" && (
                       <button
@@ -1298,6 +1332,82 @@ export function PatientHomeScreen() {
               )}
             </div>
 
+            {imgs.length >= 2 && compareMode !== "off" && (() => {
+              const aResolved = compareIndexA != null && compareIndexA !== idx
+                ? compareIndexA
+                : (idx > 0 ? idx - 1 : Math.min(imgs.length - 1, idx + 1));
+              const newest = imgs.length - 1;
+              const secondNewest = Math.max(0, imgs.length - 2);
+              return (
+                <div className="px-4 pt-3">
+                  <div className="rounded-[16px] bg-secondary p-2">
+                    <div className="grid grid-cols-4 gap-1">
+                      {([
+                        ["stack", Rows2, "Oben"],
+                        ["side", Columns2, "Nebenein."],
+                        ["overlay", Layers, "Overlay"],
+                        ["overview", LayoutGrid, "Übersicht"],
+                      ] as const).map(([mode, Icon, text]) => (
+                        <button
+                          key={mode}
+                          type="button"
+                          onClick={() => {
+                            tapHaptic();
+                            setCompareMode(mode);
+                          }}
+                          className={`inline-flex h-10 flex-col items-center justify-center gap-0.5 rounded-[10px] text-[10px] leading-none active:opacity-80 ${
+                            compareMode === mode ? "bg-primary text-primary-foreground" : "bg-background/60 text-foreground"
+                          }`}
+                        >
+                          <Icon className="h-4 w-4" />
+                          {text}
+                        </button>
+                      ))}
+                    </div>
+
+                    <div className="mt-2 grid grid-cols-2 gap-1">
+                      <button
+                        type="button"
+                        onClick={() => setComparePair(0, newest, compareMode === "off" ? "stack" : compareMode)}
+                        className="rounded-[10px] bg-background/60 px-2 py-2 text-xs text-foreground active:opacity-80"
+                      >
+                        Älteste ↔ Neueste
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setComparePair(secondNewest, newest, compareMode === "off" ? "stack" : compareMode)}
+                        className="rounded-[10px] bg-background/60 px-2 py-2 text-xs text-foreground active:opacity-80"
+                      >
+                        2. neueste ↔ Neueste
+                      </button>
+                    </div>
+
+                    <div className="mt-2 grid grid-cols-2 gap-1">
+                      {(["A", "B"] as const).map((target) => (
+                        <button
+                          key={target}
+                          type="button"
+                          onClick={() => {
+                            tapHaptic();
+                            setCompareTarget(target);
+                            if (compareMode !== "overview") setCompareMode("overview");
+                          }}
+                          className={`rounded-[10px] px-2 py-2 text-xs font-semibold active:opacity-80 ${
+                            compareTarget === target
+                              ? target === "A"
+                                ? "bg-accent text-accent-foreground"
+                                : "bg-primary text-primary-foreground"
+                              : "bg-background/60 text-foreground"
+                          }`}
+                        >
+                          {target} wählen · {target === "A" ? aResolved + 1 : idx + 1}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              );
+            })()}
 
             {/* Thumbnail strip */}
             <div className="flex gap-3 overflow-x-auto px-4 py-3">
@@ -1312,10 +1422,10 @@ export function PatientHomeScreen() {
                     key={i}
                     type="button"
                     onClick={() => {
-                      tapHaptic();
-                      if (compareMode !== "off" && i !== idx) {
-                        setCompareIndexA(i);
+                      if (compareMode !== "off") {
+                        chooseCompareImage(compareTarget, i);
                       } else {
+                        tapHaptic();
                         setImgNat(null);
                         setViewer({ loc: viewer.loc, index: i });
                       }
@@ -1327,7 +1437,7 @@ export function PatientHomeScreen() {
                     <img src={s} alt="" className="h-full w-full object-cover" />
                     {compareMode !== "off" && (isA || isB) && (
                       <span className={`absolute left-1 top-1 inline-flex h-5 w-5 items-center justify-center rounded-full text-[11px] font-bold ${
-                        isB ? "bg-primary text-primary-foreground" : "bg-emerald-500 text-background"
+                        isB ? "bg-primary text-primary-foreground" : "bg-accent text-accent-foreground"
                       }`}>
                         {isB ? "B" : "A"}
                       </span>
