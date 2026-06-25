@@ -186,6 +186,8 @@ export function PatientHomeScreen() {
     tapHaptic();
     setImgNat(null);
     setIsFullscreen(false);
+    setCompareMode("off");
+    setCompareIndexA(null);
     setViewer({ loc, index });
   };
 
