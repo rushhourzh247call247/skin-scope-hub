@@ -406,20 +406,27 @@ export function PatientHomeScreen() {
                   style={{ touchAction: "none" }}
                 >
                   <span
-                    className={`inline-flex items-center justify-center rounded-full border-2 bg-white text-lg font-bold text-foreground shadow-md ${
+                    className={`inline-flex items-center justify-center rounded-full border-2 bg-white text-lg font-bold text-black shadow-md ${
                       isDragging
                         ? "border-destructive shadow-[0_0_0_6px_hsl(var(--destructive)/0.25)]"
-                        : "border-foreground"
+                        : "border-black/30"
                     }`}
                     style={{ width: 44, height: 44 }}
                   >
                     {num}
                   </span>
-                  <div
-                    className={`h-0 w-0 border-x-[8px] border-t-[13px] border-x-transparent ${
-                      isDragging ? "border-t-destructive" : "border-t-white"
-                    }`}
-                  />
+                  <div className="relative h-0 w-0">
+                    <div
+                      className={`absolute left-1/2 top-0 h-0 w-0 -translate-x-1/2 border-x-[10px] border-t-[15px] border-x-transparent ${
+                        isDragging ? "border-t-destructive" : "border-t-black/70"
+                      }`}
+                    />
+                    <div
+                      className={`absolute left-1/2 top-0 h-0 w-0 -translate-x-1/2 border-x-[8px] border-t-[13px] border-x-transparent ${
+                        isDragging ? "border-t-destructive" : "border-t-white"
+                      }`}
+                    />
+                  </div>
                 </button>
               )}
             </div>
