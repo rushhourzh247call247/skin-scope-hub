@@ -458,9 +458,45 @@ export function PatientHomeScreen() {
     );
   };
 
-  const startNew = () => {
+  const [creatingZone, setCreatingZone] = useState(false);
+  const startNew = async () => {
+    if (creatingZone) return;
     tapHaptic();
-    navigate(`/m/patients/${patientId}/clinical/new`);
+    const captured = await takePhoto();
+    if (!captured) return;
+    setCreatingZone(true);
+    try {
+      const blob = await compressImage(captured.file);
+      const file =
+        blob instanceof File
+          ? blob
+          : new File([blob], captured.file.name || "zone.jpg", {
+              type: blob.type || "image/jpeg",
+            });
+      const nextNum = zones.length + 1;
+      const newZone = await api.createLocation(patientId, {
+        name: `Zone ${nextNum}`,
+        x: 50,
+        y: 50,
+        view: "front",
+        type: "overview",
+      });
+      await api.uploadImage(newZone.id, file);
+      const fresh = await api.getFullPatient(patientId);
+      queryClient.setQueryData(["full-patient", patientId], fresh);
+      setTab("clinical");
+      setViewMode("grid");
+      toast({ title: "Zone erstellt", description: `Zone ${nextNum}` });
+    } catch (e: any) {
+      toast({
+        title: "Fehler",
+        description: e?.message ?? "Zone konnte nicht erstellt werden.",
+        variant: "destructive",
+      });
+    } finally {
+      URL.revokeObjectURL(captured.previewUrl);
+      setCreatingZone(false);
+    }
   };
 
   const fmtDate = (s?: string) =>
@@ -992,10 +1028,15 @@ export function PatientHomeScreen() {
         <div className="flex gap-3">
           <button
             onClick={startNew}
-            className="flex-1 inline-flex items-center justify-center gap-2 rounded-[18px] bg-primary px-4 py-4 text-primary-foreground active:opacity-80"
+            disabled={creatingZone}
+            className="flex-1 inline-flex items-center justify-center gap-2 rounded-[18px] bg-primary px-4 py-4 text-primary-foreground active:opacity-80 disabled:opacity-60"
           >
-            <Camera className="h-5 w-5" />
-            <span className="text-lg font-medium">Neu</span>
+            {creatingZone ? (
+              <Loader2 className="h-5 w-5 animate-spin" />
+            ) : (
+              <Camera className="h-5 w-5" />
+            )}
+            <span className="text-lg font-medium">{creatingZone ? "Speichern…" : "Neue Zone"}</span>
           </button>
           <Link
             to="/m/patients"
