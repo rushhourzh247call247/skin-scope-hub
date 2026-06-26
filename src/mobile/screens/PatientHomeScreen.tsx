@@ -923,8 +923,34 @@ export function PatientHomeScreen() {
     let orphanCounter = 0;
     zones.forEach((zone) => {
       tiles.push(renderZoneTile(zone));
-      tiles.push(<div key={`zpad1-${zone.id}`} />);
-      tiles.push(<div key={`zpad2-${zone.id}`} />);
+      // Fill the remaining two cells in the zone row with additional zone photos
+      // (e.g. several overview shots of the same body region) so they appear
+      // right next to the zone cover instead of being hidden.
+      const zoneImgs = imageSrcs(zone);
+      for (let i = 1; i < Math.min(zoneImgs.length, 3); i += 1) {
+        tiles.push(
+          <button
+            type="button"
+            key={`zi-${zone.id}-${i}`}
+            onClick={() => openViewer(zone, i)}
+            className="relative block aspect-square overflow-hidden rounded-[14px] bg-secondary shadow-sm active:opacity-80"
+          >
+            <img src={zoneImgs[i]} alt={zone.name ?? "Zone"} loading="lazy" className="absolute inset-0 h-full w-full object-cover" />
+            {(() => {
+              const d = fmtDate(locationImages(zone)[i]?.created_at ?? zone.created_at);
+              return d ? (
+                <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-background/95 via-background/20 to-transparent px-2 py-1.5 text-left text-card-foreground">
+                  <div className="text-[10px] text-foreground/80">{d}</div>
+                </div>
+              ) : null;
+            })()}
+          </button>
+        );
+      }
+      const filled = 1 + Math.max(0, Math.min(zoneImgs.length, 3) - 1);
+      for (let i = filled; i < 3; i += 1) {
+        tiles.push(<div key={`zpad-${zone.id}-${i}`} />);
+      }
       if (tab === "clinical") return;
       const pins = zonePinsMap[zone.id] ?? [];
       pins.forEach((pin) => {
