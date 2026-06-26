@@ -1148,7 +1148,7 @@ export function PatientHomeScreen() {
               className={
                 isFullscreen
                   ? "fixed inset-0 z-[60] flex items-center justify-center overflow-hidden bg-black"
-                  : "relative mx-4 flex flex-1 items-center justify-center overflow-hidden rounded-[20px] bg-secondary"
+                  : "relative mx-2 flex flex-1 items-center justify-center overflow-hidden rounded-[20px] bg-secondary"
               }
             >
               {src ? (
