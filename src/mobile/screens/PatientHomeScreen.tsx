@@ -977,7 +977,7 @@ export function PatientHomeScreen() {
       const pins = zonePinsMap[zone.id] ?? [];
       pins.forEach((pin) => {
         rendered.add(pin.linked_location_id);
-        tiles.push(...renderSpotRowForZone(zone, pin));
+        tiles.push(...renderSpotRowForZone(zone, pin, tab === "all"));
       });
     });
 
