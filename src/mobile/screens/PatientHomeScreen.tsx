@@ -1285,18 +1285,8 @@ export function PatientHomeScreen() {
                     if (pinDrag) movePinDrag(e as any);
                   }}
                   onPointerUp={zone ? handleStagePointerUp(viewer.loc) : undefined}
-                  className="relative max-h-full max-w-full"
-                  style={{
-                    aspectRatio: imgNat ? `${imgNat.w} / ${imgNat.h}` : undefined,
-                    width: imgNat ? "100%" : undefined,
-                    height: imgNat ? "100%" : undefined,
-                    touchAction: "none",
-                    ...(imgNat
-                      ? imgNat.w / imgNat.h > 1
-                        ? { height: "auto" }
-                        : { width: "auto" }
-                      : {}),
-                  }}
+                  className="relative h-full w-full"
+                  style={{ touchAction: "none" }}
                 >
                   <img
                     src={src}
@@ -1306,7 +1296,7 @@ export function PatientHomeScreen() {
                       const t = e.currentTarget;
                       setImgNat({ w: t.naturalWidth, h: t.naturalHeight });
                     }}
-                    className="pointer-events-none h-full w-full rounded-[20px] object-contain"
+                    className="pointer-events-none absolute inset-0 h-full w-full rounded-[20px] object-contain"
                   />
                   {zone && renderZoneMarkers(viewer.loc, "large")}
                   {creatingPin && (
