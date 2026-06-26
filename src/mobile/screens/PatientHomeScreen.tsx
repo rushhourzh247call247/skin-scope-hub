@@ -802,6 +802,7 @@ export function PatientHomeScreen() {
     spot: Location & { images?: LocationImage[] },
     imgIdx: number,
     pinLabel: string,
+    hiddenCount = 0,
   ) => {
     const src = imageSrcs(spot)[imgIdx];
     if (!src) return null;
@@ -818,6 +819,11 @@ export function PatientHomeScreen() {
           <div className="truncate text-sm font-semibold leading-tight">L{pinLabel}</div>
           {dateStr && <div className="text-[10px] text-foreground/80">{dateStr}</div>}
         </div>
+        {hiddenCount > 0 && (
+          <div className="absolute inset-0 flex items-center justify-center bg-black/40 text-sm font-bold text-white">
+            +{hiddenCount}
+          </div>
+        )}
       </button>
     );
   };
@@ -883,15 +889,24 @@ export function PatientHomeScreen() {
   const renderSpotRowForZone = (
     zone: Location & { images?: LocationImage[] },
     pin: OverviewPin,
+    compact = false,
   ): React.ReactNode[] => {
     const spot = spots.find((s) => s.id === pin.linked_location_id);
     const imgs = spot ? imageSrcs(spot) : [];
+    const meta = spot ? locationImages(spot) : [];
     const pinLabel = getPinLabel(pin, true);
     const cells: React.ReactNode[] = [];
     cells.push(renderZoneCropCell(zone, pin, pinLabel));
     if (spot) {
-      imgs.forEach((_, i) => {
-        const cell = renderSpotPhotoCell(spot, i, pinLabel);
+      // In "Alle" view, only show the oldest and newest photo next to the pin.
+      // Tapping the pin/row opens the viewer with all photos of that spot.
+      const indices = compact
+        ? (imgs.length <= 2 ? imgs.map((_, i) => i) : [0, imgs.length - 1])
+        : imgs.map((_, i) => i);
+      indices.forEach((imgIdx, position) => {
+        const isLast = position === indices.length - 1;
+        const hiddenCount = compact && isLast && imgs.length > 2 ? imgs.length - 2 : 0;
+        const cell = renderSpotPhotoCell(spot, imgIdx, pinLabel, hiddenCount);
         if (cell) cells.push(cell);
       });
       cells.push(renderAddLesionCell(spot));
@@ -962,7 +977,7 @@ export function PatientHomeScreen() {
       const pins = zonePinsMap[zone.id] ?? [];
       pins.forEach((pin) => {
         rendered.add(pin.linked_location_id);
-        tiles.push(...renderSpotRowForZone(zone, pin));
+        tiles.push(...renderSpotRowForZone(zone, pin, tab === "all"));
       });
     });
 
