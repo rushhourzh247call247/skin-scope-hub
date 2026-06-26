@@ -912,7 +912,7 @@ export function PatientHomeScreen() {
         const cell = renderSpotPhotoCell(spot, imgIdx, pinLabel, hiddenCount);
         if (cell) cells.push(cell);
       });
-      cells.push(renderAddLesionCell(spot));
+      cells.push(renderAddLesionCell(spot, pinLabel));
     }
     // pad to fill the last 3-col row
     while (cells.length % 3 !== 0) {
