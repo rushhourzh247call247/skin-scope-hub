@@ -866,7 +866,10 @@ export function PatientHomeScreen() {
   };
 
   // "Add Lesion" placeholder cell when a spot has no photos yet
-  const renderAddLesionCell = (spot: Location & { images?: LocationImage[] }) => (
+  const renderAddLesionCell = (
+    spot: Location & { images?: LocationImage[] },
+    pinLabel?: string,
+  ) => (
     <button
       type="button"
       key={`al-${spot.id}`}
@@ -876,7 +879,7 @@ export function PatientHomeScreen() {
       <CameraIcon className="h-7 w-7" />
       <div className="absolute inset-x-0 bottom-0 px-2 py-1.5 text-left">
         <div className="truncate text-sm font-semibold leading-tight text-foreground">
-          {spot.name ?? `L${spot.id}`}
+          L{pinLabel ?? spot.id}
         </div>
         <div className="text-[10px] text-muted-foreground">Add Lesion</div>
       </div>
