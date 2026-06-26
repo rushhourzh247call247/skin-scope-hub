@@ -404,11 +404,21 @@ export function PatientHomeScreen() {
           const top = isDragging ? pinDrag!.y : clampPct(pin.y_pct);
           const num = getPinNumber(pin);
 
+          // For large (viewer) markers: position via px inside the actual image rect.
+          // For small (tile) markers: parent is the image itself, use percent.
+          const positionStyle: React.CSSProperties = (!isCompact && imgRect)
+            ? {
+                left: `${imgRect.left + (left / 100) * imgRect.width}px`,
+                top: `${imgRect.top + (top / 100) * imgRect.height}px`,
+                transform: "translate(-50%, -100%)",
+              }
+            : { left: `${left}%`, top: `${top}%`, transform: "translate(-50%, -100%)" };
+
           return (
             <div
               key={pin.id}
               className="absolute"
-              style={{ left: `${left}%`, top: `${top}%`, transform: "translate(-50%, -100%)" }}
+              style={positionStyle}
             >
               {isCompact ? (
                 <div className="flex flex-col items-center drop-shadow-md">
