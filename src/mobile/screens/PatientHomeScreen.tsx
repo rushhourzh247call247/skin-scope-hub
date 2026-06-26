@@ -330,9 +330,9 @@ export function PatientHomeScreen() {
     if (dx * dx + dy * dy > 100) return; // moved → not a tap
     if (Date.now() - start.t > 500) return;
     const rect = pinSurfaceRef.current?.getBoundingClientRect();
-    if (!rect) return;
-    const x = ((e.clientX - rect.left) / rect.width) * 100;
-    const y = ((e.clientY - rect.top) / rect.height) * 100;
+    if (!rect || !imgRect) return;
+    const x = ((e.clientX - rect.left - imgRect.left) / imgRect.width) * 100;
+    const y = ((e.clientY - rect.top - imgRect.top) / imgRect.height) * 100;
     if (x < 0 || x > 100 || y < 0 || y > 100) return;
     void createPinAt(zone, x, y);
   };
