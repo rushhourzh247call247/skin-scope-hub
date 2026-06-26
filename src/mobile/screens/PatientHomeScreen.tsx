@@ -1,4 +1,4 @@
-import { useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "@/hooks/use-toast";
@@ -125,6 +125,7 @@ export function PatientHomeScreen() {
   const [pinDrag, setPinDrag] = useState<{ pinId: number; x: number; y: number; overTrash: boolean } | null>(null);
   const stageRef = useRef<HTMLDivElement | null>(null);
   const pinSurfaceRef = useRef<HTMLDivElement | null>(null);
+  const [surfaceSize, setSurfaceSize] = useState<{ w: number; h: number } | null>(null);
   const pinLongPressTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const tapStartRef = useRef<{ x: number; y: number; t: number } | null>(null);
   const suppressClickRef = useRef(false);
@@ -186,11 +187,16 @@ export function PatientHomeScreen() {
     if (!(loc.images?.length)) return;
     tapHaptic();
     setImgNat(null);
+    setSurfaceSize(null);
     setIsFullscreen(false);
     setCompareMode("off");
     setCompareIndexA(null);
     setCompareTarget("A");
     setViewer({ loc, index });
+    if (isZone(loc)) {
+      // Ensure pins are fresh (newly created zones may not be in the map yet)
+      void refreshZonePins(loc.id);
+    }
   };
 
   const openLinkedSpot = (pin: OverviewPin) => {
@@ -256,6 +262,31 @@ export function PatientHomeScreen() {
     return n;
   };
 
+  // Compute the actual image bounding box inside pinSurface (object-contain math).
+  const imgRect = useMemo(() => {
+    if (!surfaceSize || !imgNat) return null;
+    const { w: cw, h: ch } = surfaceSize;
+    if (cw <= 0 || ch <= 0) return null;
+    const scale = Math.min(cw / imgNat.w, ch / imgNat.h);
+    const w = imgNat.w * scale;
+    const h = imgNat.h * scale;
+    return { left: (cw - w) / 2, top: (ch - h) / 2, width: w, height: h };
+  }, [surfaceSize, imgNat]);
+
+  // Track pin surface size for image-rect math.
+  useEffect(() => {
+    const el = pinSurfaceRef.current;
+    if (!el) return;
+    const update = () => {
+      const r = el.getBoundingClientRect();
+      setSurfaceSize({ w: r.width, h: r.height });
+    };
+    update();
+    const ro = new ResizeObserver(update);
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, [viewer?.loc.id, isFullscreen, compareMode]);
+
   const createPinAt = async (zone: Location, xPct: number, yPct: number) => {
     if (creatingPin) return;
     setCreatingPin(true);
@@ -299,9 +330,9 @@ export function PatientHomeScreen() {
     if (dx * dx + dy * dy > 100) return; // moved → not a tap
     if (Date.now() - start.t > 500) return;
     const rect = pinSurfaceRef.current?.getBoundingClientRect();
-    if (!rect) return;
-    const x = ((e.clientX - rect.left) / rect.width) * 100;
-    const y = ((e.clientY - rect.top) / rect.height) * 100;
+    if (!rect || !imgRect) return;
+    const x = ((e.clientX - rect.left - imgRect.left) / imgRect.width) * 100;
+    const y = ((e.clientY - rect.top - imgRect.top) / imgRect.height) * 100;
     if (x < 0 || x > 100 || y < 0 || y > 100) return;
     void createPinAt(zone, x, y);
   };
@@ -320,10 +351,10 @@ export function PatientHomeScreen() {
   const movePinDrag = (e: React.PointerEvent<HTMLElement>) => {
     if (!pinDrag) return;
     const rect = pinSurfaceRef.current?.getBoundingClientRect();
-    if (!rect) return;
+    if (!rect || !imgRect) return;
     // Don't clamp — let pin follow finger anywhere, even outside image.
-    const x = ((e.clientX - rect.left) / rect.width) * 100;
-    const y = ((e.clientY - rect.top) / rect.height) * 100;
+    const x = ((e.clientX - rect.left - imgRect.left) / imgRect.width) * 100;
+    const y = ((e.clientY - rect.top - imgRect.top) / imgRect.height) * 100;
     setPinDrag({ pinId: pinDrag.pinId, x, y, overTrash: isOverTrash(e.clientY) });
   };
 
@@ -373,11 +404,21 @@ export function PatientHomeScreen() {
           const top = isDragging ? pinDrag!.y : clampPct(pin.y_pct);
           const num = getPinNumber(pin);
 
+          // For large (viewer) markers: position via px inside the actual image rect.
+          // For small (tile) markers: parent is the image itself, use percent.
+          const positionStyle: React.CSSProperties = (!isCompact && imgRect)
+            ? {
+                left: `${imgRect.left + (left / 100) * imgRect.width}px`,
+                top: `${imgRect.top + (top / 100) * imgRect.height}px`,
+                transform: "translate(-50%, -100%)",
+              }
+            : { left: `${left}%`, top: `${top}%`, transform: "translate(-50%, -100%)" };
+
           return (
             <div
               key={pin.id}
               className="absolute"
-              style={{ left: `${left}%`, top: `${top}%`, transform: "translate(-50%, -100%)" }}
+              style={positionStyle}
             >
               {isCompact ? (
                 <div className="flex flex-col items-center drop-shadow-md">
@@ -1107,7 +1148,7 @@ export function PatientHomeScreen() {
               className={
                 isFullscreen
                   ? "fixed inset-0 z-[60] flex items-center justify-center overflow-hidden bg-black"
-                  : "relative mx-4 flex flex-1 items-center justify-center overflow-hidden rounded-[20px] bg-secondary"
+                  : "relative mx-2 flex flex-1 items-center justify-center overflow-hidden rounded-[20px] bg-secondary"
               }
             >
               {src ? (
@@ -1244,18 +1285,8 @@ export function PatientHomeScreen() {
                     if (pinDrag) movePinDrag(e as any);
                   }}
                   onPointerUp={zone ? handleStagePointerUp(viewer.loc) : undefined}
-                  className="relative max-h-full max-w-full"
-                  style={{
-                    aspectRatio: imgNat ? `${imgNat.w} / ${imgNat.h}` : undefined,
-                    width: imgNat ? "100%" : undefined,
-                    height: imgNat ? "100%" : undefined,
-                    touchAction: "none",
-                    ...(imgNat
-                      ? imgNat.w / imgNat.h > 1
-                        ? { height: "auto" }
-                        : { width: "auto" }
-                      : {}),
-                  }}
+                  className="relative h-full w-full"
+                  style={{ touchAction: "none" }}
                 >
                   <img
                     src={src}
@@ -1265,7 +1296,7 @@ export function PatientHomeScreen() {
                       const t = e.currentTarget;
                       setImgNat({ w: t.naturalWidth, h: t.naturalHeight });
                     }}
-                    className="pointer-events-none h-full w-full rounded-[20px] object-contain"
+                    className="pointer-events-none absolute inset-0 h-full w-full rounded-[20px] object-contain"
                   />
                   {zone && renderZoneMarkers(viewer.loc, "large")}
                   {creatingPin && (
