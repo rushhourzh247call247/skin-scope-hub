@@ -802,6 +802,7 @@ export function PatientHomeScreen() {
     spot: Location & { images?: LocationImage[] },
     imgIdx: number,
     pinLabel: string,
+    hiddenCount = 0,
   ) => {
     const src = imageSrcs(spot)[imgIdx];
     if (!src) return null;
@@ -818,6 +819,11 @@ export function PatientHomeScreen() {
           <div className="truncate text-sm font-semibold leading-tight">L{pinLabel}</div>
           {dateStr && <div className="text-[10px] text-foreground/80">{dateStr}</div>}
         </div>
+        {hiddenCount > 0 && (
+          <div className="absolute inset-0 flex items-center justify-center bg-black/40 text-sm font-bold text-white">
+            +{hiddenCount}
+          </div>
+        )}
       </button>
     );
   };
