@@ -883,15 +883,24 @@ export function PatientHomeScreen() {
   const renderSpotRowForZone = (
     zone: Location & { images?: LocationImage[] },
     pin: OverviewPin,
+    compact = false,
   ): React.ReactNode[] => {
     const spot = spots.find((s) => s.id === pin.linked_location_id);
     const imgs = spot ? imageSrcs(spot) : [];
+    const meta = spot ? locationImages(spot) : [];
     const pinLabel = getPinLabel(pin, true);
     const cells: React.ReactNode[] = [];
     cells.push(renderZoneCropCell(zone, pin, pinLabel));
     if (spot) {
-      imgs.forEach((_, i) => {
-        const cell = renderSpotPhotoCell(spot, i, pinLabel);
+      // In "Alle" view, only show the oldest and newest photo next to the pin.
+      // Tapping the pin/row opens the viewer with all photos of that spot.
+      const indices = compact
+        ? (imgs.length > 2 ? [0, imgs.length - 1] : imgs.length > 0 ? [0] : [])
+        : imgs.map((_, i) => i);
+      indices.forEach((imgIdx, position) => {
+        const isLast = position === indices.length - 1;
+        const hiddenCount = compact && isLast && imgs.length > 2 ? imgs.length - 2 : 0;
+        const cell = renderSpotPhotoCell(spot, imgIdx, pinLabel, hiddenCount);
         if (cell) cells.push(cell);
       });
       cells.push(renderAddLesionCell(spot));
