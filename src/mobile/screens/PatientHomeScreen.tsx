@@ -314,7 +314,9 @@ export function PatientHomeScreen() {
       tapHaptic();
       await refreshZonePins(zone.id);
       queryClient.invalidateQueries({ queryKey: ["full-patient", patientId] });
-      toast({ title: "Marker gesetzt", description: `${nextNum}` });
+      toast({ title: "Marker gesetzt", description: `${nextNum} – Foto aufnehmen` });
+      // Immediately prompt to capture the spot photo so the new pin gets its own row
+      void handleAddLesionPhoto(spot as any);
     } catch (e: any) {
       toast({ title: "Fehler", description: e?.message ?? "Marker konnte nicht gesetzt werden.", variant: "destructive" });
     } finally {
