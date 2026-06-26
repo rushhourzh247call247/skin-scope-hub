@@ -901,7 +901,7 @@ export function PatientHomeScreen() {
       // In "Alle" view, only show the oldest and newest photo next to the pin.
       // Tapping the pin/row opens the viewer with all photos of that spot.
       const indices = compact
-        ? (imgs.length > 2 ? [0, imgs.length - 1] : imgs.length > 0 ? [0] : [])
+        ? (imgs.length <= 2 ? imgs.map((_, i) => i) : [0, imgs.length - 1])
         : imgs.map((_, i) => i);
       indices.forEach((imgIdx, position) => {
         const isLast = position === indices.length - 1;
