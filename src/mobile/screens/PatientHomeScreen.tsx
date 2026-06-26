@@ -125,6 +125,7 @@ export function PatientHomeScreen() {
   const [pinDrag, setPinDrag] = useState<{ pinId: number; x: number; y: number; overTrash: boolean } | null>(null);
   const stageRef = useRef<HTMLDivElement | null>(null);
   const pinSurfaceRef = useRef<HTMLDivElement | null>(null);
+  const [surfaceSize, setSurfaceSize] = useState<{ w: number; h: number } | null>(null);
   const pinLongPressTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const tapStartRef = useRef<{ x: number; y: number; t: number } | null>(null);
   const suppressClickRef = useRef(false);
