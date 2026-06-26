@@ -875,24 +875,29 @@ export function PatientHomeScreen() {
     </button>
   );
 
-  // Build a 3-cell row for a spot belonging to a zone: [zone crop with pin, photo1, photo2 or add]
+  // Build cells for a pin: [zone crop with pin highlighted, ...all follow-up photos of that pin, +Add cell].
+  // Wraps into multiple grid rows (3 cells each) so every photo of the pin stays
+  // visible next to its zone crop. Empty cells in subsequent rows act as left padding.
   const renderSpotRowForZone = (
     zone: Location & { images?: LocationImage[] },
     pin: OverviewPin,
   ): React.ReactNode[] => {
     const spot = spots.find((s) => s.id === pin.linked_location_id);
     const imgs = spot ? imageSrcs(spot) : [];
-    // Skip rendering an entire row if there is no spot or no photos yet —
-    // empty placeholders only clutter the overview.
-    if (!spot || imgs.length === 0) return [];
     const pinLabel = getPinLabel(pin, true);
     const cells: React.ReactNode[] = [];
     cells.push(renderZoneCropCell(zone, pin, pinLabel));
-    imgs.slice(0, 2).forEach((_, i) => {
-      const cell = renderSpotPhotoCell(spot, i, pinLabel);
-      if (cell) cells.push(cell);
-    });
-    while (cells.length < 3) cells.push(<div key={`pad-${zone.id}-${pin.id}-${cells.length}`} />);
+    if (spot) {
+      imgs.forEach((_, i) => {
+        const cell = renderSpotPhotoCell(spot, i, pinLabel);
+        if (cell) cells.push(cell);
+      });
+      cells.push(renderAddLesionCell(spot));
+    }
+    // pad to fill the last 3-col row
+    while (cells.length % 3 !== 0) {
+      cells.push(<div key={`pad-${zone.id}-${pin.id}-${cells.length}`} />);
+    }
     return cells;
   };
 
