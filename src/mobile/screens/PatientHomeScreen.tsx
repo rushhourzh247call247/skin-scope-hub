@@ -803,37 +803,34 @@ export function PatientHomeScreen() {
     pin: OverviewPin,
   ): React.ReactNode[] => {
     const spot = spots.find((s) => s.id === pin.linked_location_id);
+    const imgs = spot ? imageSrcs(spot) : [];
+    // Skip rendering an entire row if there is no spot or no photos yet —
+    // empty placeholders only clutter the overview.
+    if (!spot || imgs.length === 0) return [];
     const pinLabel = getPinLabel(pin, true);
     const cells: React.ReactNode[] = [];
     cells.push(renderZoneCropCell(zone, pin, pinLabel));
-    const imgs = spot ? imageSrcs(spot) : [];
-    if (spot && imgs.length === 0) {
-      cells.push(renderAddLesionCell(spot));
-    } else if (spot) {
-      imgs.slice(0, 2).forEach((_, i) => {
-        const cell = renderSpotPhotoCell(spot, i, pinLabel);
-        if (cell) cells.push(cell);
-      });
-    }
+    imgs.slice(0, 2).forEach((_, i) => {
+      const cell = renderSpotPhotoCell(spot, i, pinLabel);
+      if (cell) cells.push(cell);
+    });
     while (cells.length < 3) cells.push(<div key={`pad-${zone.id}-${pin.id}-${cells.length}`} />);
     return cells;
   };
 
-  // Orphan spot (no parent zone) – row of available photos or single add-lesion placeholder
+  // Orphan spot (no parent zone) – row of available photos. Empty spots are hidden.
   const renderOrphanSpotRow = (spot: Location & { images?: LocationImage[] }, pinLabel: string): React.ReactNode[] => {
     const imgs = imageSrcs(spot);
+    if (imgs.length === 0) return [];
     const cells: React.ReactNode[] = [];
-    if (imgs.length === 0) {
-      cells.push(renderAddLesionCell(spot));
-    } else {
-      imgs.slice(0, 3).forEach((_, i) => {
-        const cell = renderSpotPhotoCell(spot, i, pinLabel);
-        if (cell) cells.push(cell);
-      });
-    }
+    imgs.slice(0, 3).forEach((_, i) => {
+      const cell = renderSpotPhotoCell(spot, i, pinLabel);
+      if (cell) cells.push(cell);
+    });
     while (cells.length < 3) cells.push(<div key={`opad-${spot.id}-${cells.length}`} />);
     return cells;
   };
+
 
 
   const renderedTiles = useMemo(() => {
