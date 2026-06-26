@@ -262,6 +262,31 @@ export function PatientHomeScreen() {
     return n;
   };
 
+  // Compute the actual image bounding box inside pinSurface (object-contain math).
+  const imgRect = useMemo(() => {
+    if (!surfaceSize || !imgNat) return null;
+    const { w: cw, h: ch } = surfaceSize;
+    if (cw <= 0 || ch <= 0) return null;
+    const scale = Math.min(cw / imgNat.w, ch / imgNat.h);
+    const w = imgNat.w * scale;
+    const h = imgNat.h * scale;
+    return { left: (cw - w) / 2, top: (ch - h) / 2, width: w, height: h };
+  }, [surfaceSize, imgNat]);
+
+  // Track pin surface size for image-rect math.
+  useEffect(() => {
+    const el = pinSurfaceRef.current;
+    if (!el) return;
+    const update = () => {
+      const r = el.getBoundingClientRect();
+      setSurfaceSize({ w: r.width, h: r.height });
+    };
+    update();
+    const ro = new ResizeObserver(update);
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, [viewer?.loc.id, isFullscreen, compareMode]);
+
   const createPinAt = async (zone: Location, xPct: number, yPct: number) => {
     if (creatingPin) return;
     setCreatingPin(true);
