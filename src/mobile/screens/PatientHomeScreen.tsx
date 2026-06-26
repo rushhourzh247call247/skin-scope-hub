@@ -206,10 +206,11 @@ export function PatientHomeScreen() {
       return;
     }
     if (spot) {
+      // No photo yet for this pin → jump straight into the camera so the
+      // user can capture the first lesion photo. After upload the spot row
+      // (zone crop + photos) appears next to the zone tile automatically.
       setViewer(null);
-      setTab("lesion");
-      setViewMode("grid");
-      toast({ title: spot.name || getPinLabel(pin), description: "Dieser Spot hat noch kein Foto." });
+      void handleAddLesionPhoto(spot);
       return;
     }
     toast({ title: "Spot nicht gefunden" });
