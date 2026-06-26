@@ -351,10 +351,10 @@ export function PatientHomeScreen() {
   const movePinDrag = (e: React.PointerEvent<HTMLElement>) => {
     if (!pinDrag) return;
     const rect = pinSurfaceRef.current?.getBoundingClientRect();
-    if (!rect) return;
+    if (!rect || !imgRect) return;
     // Don't clamp — let pin follow finger anywhere, even outside image.
-    const x = ((e.clientX - rect.left) / rect.width) * 100;
-    const y = ((e.clientY - rect.top) / rect.height) * 100;
+    const x = ((e.clientX - rect.left - imgRect.left) / imgRect.width) * 100;
+    const y = ((e.clientY - rect.top - imgRect.top) / imgRect.height) * 100;
     setPinDrag({ pinId: pinDrag.pinId, x, y, overTrash: isOverTrash(e.clientY) });
   };
 
