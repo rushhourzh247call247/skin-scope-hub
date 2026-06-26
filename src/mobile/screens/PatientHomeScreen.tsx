@@ -1028,10 +1028,15 @@ export function PatientHomeScreen() {
         <div className="flex gap-3">
           <button
             onClick={startNew}
-            className="flex-1 inline-flex items-center justify-center gap-2 rounded-[18px] bg-primary px-4 py-4 text-primary-foreground active:opacity-80"
+            disabled={creatingZone}
+            className="flex-1 inline-flex items-center justify-center gap-2 rounded-[18px] bg-primary px-4 py-4 text-primary-foreground active:opacity-80 disabled:opacity-60"
           >
-            <Camera className="h-5 w-5" />
-            <span className="text-lg font-medium">Neu</span>
+            {creatingZone ? (
+              <Loader2 className="h-5 w-5 animate-spin" />
+            ) : (
+              <Camera className="h-5 w-5" />
+            )}
+            <span className="text-lg font-medium">{creatingZone ? "Speichern…" : "Neue Zone"}</span>
           </button>
           <Link
             to="/m/patients"
