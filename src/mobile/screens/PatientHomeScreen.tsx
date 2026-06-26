@@ -187,11 +187,16 @@ export function PatientHomeScreen() {
     if (!(loc.images?.length)) return;
     tapHaptic();
     setImgNat(null);
+    setSurfaceSize(null);
     setIsFullscreen(false);
     setCompareMode("off");
     setCompareIndexA(null);
     setCompareTarget("A");
     setViewer({ loc, index });
+    if (isZone(loc)) {
+      // Ensure pins are fresh (newly created zones may not be in the map yet)
+      void refreshZonePins(loc.id);
+    }
   };
 
   const openLinkedSpot = (pin: OverviewPin) => {
